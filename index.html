@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>TaskUz — Vazifalarni boshqaring</title>
+<title>TaskFix — Vazifalarni hal qiling</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230F1417'/%3E%3Cpath d='M 9 16 L 14 21 L 23 11' stroke='%23FEF3C7' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -570,7 +570,7 @@
         <rect width="32" height="32" rx="8" fill="#FEF3C7"/>
         <path d="M 9 16 L 14 21 L 23 11" stroke="#0F1417" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
       </svg>
-      <span style="margin-left:8px;letter-spacing:-.02em;">TaskUz</span>
+      <span style="margin-left:8px;letter-spacing:-.02em;">TaskFix</span>
     </div>
     <div class="brand-hero">
       <h1>Biznesingiz bitta oynada.</h1>
@@ -618,7 +618,7 @@
   <aside class="sidebar">
     <div class="brand-top">
       <svg width="20" height="20" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#FEF3C7"/><path d="M 9 16 L 14 21 L 23 11" stroke="#0F1417" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-      <span>TaskUz</span>
+      <span>TaskFix</span>
     </div>
     <div class="ws-switch" onclick="toggleWsDrop(event)">
       <div class="ws-avatar" id="wsAvatar">P</div>
@@ -1494,6 +1494,37 @@
 </div>
 
 <!-- Yangi xodim qo'shish modal (Add Employee) -->
+<!-- Taklif yaratildi — havolani ko'rsatish modal (email o'rniga) -->
+<div class="modal-backdrop" id="inviteLinkBd" style="z-index: 160;">
+  <div class="modal" style="max-width: 500px;">
+    <div class="modal-head"><h3>✓ Taklif yaratildi</h3><button class="x-btn" onclick="closeInviteLinkModal()">×</button></div>
+    <div class="modal-body">
+      <p style="margin: 0 0 12px; color: var(--muted); font-size: 13.5px;">
+        Xodimga quyidagi havolani <b>WhatsApp</b>, <b>Telegram</b> yoki <b>email</b> orqali yuboring.
+        U shu havoladan ro'yxatdan o'tsa, avtomatik biriktirilgan vazifaga o'tadi.
+      </p>
+      <div style="background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-bottom: 12px;">
+        <div style="font-size: 11.5px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 6px;">Xodim</div>
+        <div id="invLinkPersonInfo" style="font-size: 14px; color: var(--ink); font-weight: 500;">—</div>
+      </div>
+      <div class="field">
+        <label>Taklif havolasi</label>
+        <div style="display:flex; gap:8px;">
+          <input id="invLinkUrl" type="text" readonly onclick="this.select()" style="font-family: 'JetBrains Mono', monospace; font-size: 12px;" />
+          <button class="btn" onclick="copyInviteLink()" id="invLinkCopyBtn" style="white-space:nowrap;">📋 Nusxa</button>
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px; margin-top: 14px;">
+        <button class="btn secondary" style="flex:1;" onclick="shareInviteTelegram()">📤 Telegram'gа yuborish</button>
+        <button class="btn secondary" style="flex:1;" onclick="shareInviteWhatsapp()">💬 WhatsApp'gа yuborish</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeInviteLinkModal()">Tayyor</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="addEmpBd" style="z-index: 150;">
   <div class="modal">
     <div class="modal-head"><h3>Yangi xodim qo'shish</h3><button class="x-btn" onclick="closeAddEmployeeModal()">×</button></div>
@@ -2268,6 +2299,25 @@ async function bootstrap() {
   const { data: prof } = await sb.from('profiles').select('*').eq('id', me.id).maybeSingle();
   myProfile = prof || { id: me.id };
 
+  // Taklif havolasi orqali kelgan bo'lsa — qabul qilamiz (workspace'gа qo'shilish + vazifaga biriktirish)
+  let _inviteTaskId = null, _inviteWsId = null;
+  let _pendingInvite = null;
+  try { _pendingInvite = sessionStorage.getItem('pending_invite'); } catch (e) {}
+  if (_pendingInvite) {
+    try {
+      const { data: accRes, error: accErr } = await sb.rpc('accept_invitation_and_assign_task', {
+        _invitation_id: _pendingInvite, _user_id: me.id
+      });
+      if (!accErr && accRes && accRes.ok) {
+        _inviteTaskId = accRes.task_id || null;
+        _inviteWsId = accRes.workspace_id || null;
+        toast('✅ Taklif qabul qilindi!', 'ok');
+      }
+    } catch (e) {}
+    try { sessionStorage.removeItem('pending_invite'); } catch (e) {}
+    try { history.replaceState({}, '', location.pathname); } catch (e) {}
+  }
+
   await loadWorkspaces();
   if (!workspaces.length) {
     await new Promise(r => setTimeout(r, 800));
@@ -2276,11 +2326,21 @@ async function bootstrap() {
   if (!workspaces.length) { toast('Workspace topilmadi — qaytadan kiring', 'err'); return; }
 
   const stored = localStorage.getItem('current_ws_' + me.id);
-  currentWs = workspaces.find(w => w.id === stored) || workspaces.find(w => w.kind === 'personal') || workspaces[0];
+  // Taklif orqali kirsa — o'sha workspace'ni ochamиz
+  if (_inviteWsId && workspaces.find(w => w.id === _inviteWsId)) {
+    currentWs = workspaces.find(w => w.id === _inviteWsId);
+  } else {
+    currentWs = workspaces.find(w => w.id === stored) || workspaces.find(w => w.kind === 'personal') || workspaces[0];
+  }
 
   await loadCurrentContext();
   showApp();
   goPage('dashboard');
+  // Taklif orqali biriktirilgan vazifani ochamιz
+  if (_inviteTaskId) {
+    goPage('tasks');
+    setTimeout(() => { try { openDetail(_inviteTaskId); } catch (e) {} }, 400);
+  }
   loadNotifs();
   if (window._bellTimer) clearInterval(window._bellTimer);
   window._bellTimer = setInterval(loadNotifs, 30000);
@@ -3111,6 +3171,47 @@ function closeAddEmployeeModal() {
   $('addEmpBd').classList.remove('show');
 }
 
+// Taklif havolasi modal
+let _lastInviteLink = '';
+let _lastInvitePerson = '';
+function showInviteLinkModal(invitationId, personLabel) {
+  const baseUrl = location.origin + location.pathname;
+  const url = baseUrl + '?invite=' + invitationId;
+  _lastInviteLink = url;
+  _lastInvitePerson = personLabel;
+  $('invLinkPersonInfo').textContent = personLabel;
+  $('invLinkUrl').value = url;
+  $('inviteLinkBd').classList.add('show');
+}
+function closeInviteLinkModal() {
+  $('inviteLinkBd').classList.remove('show');
+}
+function copyInviteLink() {
+  const inp = $('invLinkUrl');
+  inp.select();
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(_lastInviteLink);
+    } else {
+      document.execCommand('copy');
+    }
+    const btn = $('invLinkCopyBtn');
+    const oldTxt = btn.textContent;
+    btn.textContent = '✓ Nusxalandi';
+    setTimeout(() => { btn.textContent = oldTxt; }, 1500);
+  } catch (e) { toast('Nusxa olib bo\'lmadi, qo\'lda tanlang', 'err'); }
+}
+function shareInviteTelegram() {
+  const text = 'Sizni TaskFix\'gа taklif qildim. Ro\'yxatdan o\'tish uchun havolani oching:\n' + _lastInviteLink;
+  const url = 'https://t.me/share/url?url=' + encodeURIComponent(_lastInviteLink) + '&text=' + encodeURIComponent('Sizni TaskFix\'gа taklif qildim');
+  window.open(url, '_blank');
+}
+function shareInviteWhatsapp() {
+  const text = 'Sizni TaskFix\'gа taklif qildim. Ro\'yxatdan o\'tish uchun havolani oching: ' + _lastInviteLink;
+  const url = 'https://wa.me/?text=' + encodeURIComponent(text);
+  window.open(url, '_blank');
+}
+
 function isValidEmail(e) {
   return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(String(e || '').trim());
 }
@@ -3184,37 +3285,34 @@ async function saveNewEmployee() {
       inv = invData;
     }
 
-    // Email yuborish (send-email Edge Function)
-    let emailSent = true;
-    let emailErrMsg = '';
-    try {
-      const { data: mailRes, error: mailFnErr } = await sb.functions.invoke('send-email', {
-        body: {
-          type: 'invitation',
-          to: email,
-          invitation_id: inv.id,
-          token: inv.id, // UUID ni token sifatida ishlatamiz
-          workspace_name: currentWs.name,
-          invited_by_name: myProfile.full_name || me.email,
-          full_name: fullName || ''
-        }
-      });
-      if (mailFnErr) { emailSent = false; emailErrMsg = mailFnErr.message || ''; }
-      else if (mailRes && mailRes.ok === false) { emailSent = false; emailErrMsg = mailRes.error || ''; }
-    } catch (mailErr) {
-      emailSent = false;
-      emailErrMsg = String(mailErr.message || mailErr);
-    }
+    // Email yuborishga urinish keyin (modal ochilgach fon'да)
 
     // Multi-select'da ushbu invitation'ni ko'rsatamiz (pending sifatida)
     msSelected.push({ type: 'invite', id: inv.id, label: '✉ ' + (fullName || email) + ' (taklif)' });
     msUpdateSummary();
     closeAddEmployeeModal();
-    if (emailSent) {
-      toast('✓ Taklif yuborildi: ' + email, 'ok');
-    } else {
-      toast('⚠ Taklif yaratildi, lekin email yuborilmadi: ' + (emailErrMsg || 'noma\'lum xato'), 'err');
-    }
+    // Havola bilan modal ko'rsatamiz (backup — admin qo'lда ham yubora oladi)
+    const personLabel = (fullName ? fullName + ' — ' : '') + email;
+    showInviteLinkModal(inv.id, personLabel);
+    // Email — Supabase Auth SMTP (Resend) orqali sehrli havola. CORS YO'Q.
+    // Foydalanuvchi havolani bosganda tizimga kiradi va ?invite=<id> ga yo'naltiriladi.
+    const inviteRedirect = location.origin + location.pathname + '?invite=' + inv.id;
+    sb.auth.signInWithOtp({
+      email: email,
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: inviteRedirect,
+        data: { full_name: fullName || '', invited_to_ws: currentWs.id }
+      }
+    }).then(({ error }) => {
+      if (error) {
+        toast('⚠ Email yuborilmadi: ' + error.message + ' (havolani qo\'lда yuboring)', 'err');
+      } else {
+        toast('📧 Taklif email yuborildi: ' + email, 'ok');
+      }
+    }).catch((e) => {
+      toast('⚠ Email xatosi: ' + (e.message || e) + ' (havolani qo\'lда yuboring)', 'err');
+    });
   } catch (e) {
     showMsg($('empMsg'), translateErr(e.message), 'err');
     btn.disabled=false; btn.textContent='Yaratish va taklif yuborish';
@@ -7387,6 +7485,11 @@ async function init() {
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   sb.auth.onAuthStateChange(event => { if (event === 'PASSWORD_RECOVERY') showResetStep(); });
   const isRecovery = (window.location.hash || '').indexOf('type=recovery') !== -1;
+  // Taklif havolasi (?invite=UUID) — saqlab qo'yamiz, login'дан keyin qabul qilinadi
+  try {
+    const _iv = new URLSearchParams(window.location.search).get('invite');
+    if (_iv) sessionStorage.setItem('pending_invite', _iv);
+  } catch (e) {}
   const { data: { session } } = await sb.auth.getSession();
   if (isRecovery) { showResetStep(); return; }
   if (session) { await bootstrap(); }
