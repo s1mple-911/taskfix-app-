@@ -609,6 +609,16 @@
         <button class="btn block" id="rBtn" onclick="saveNewPassword()">Saqlash va kirish</button>
         <div class="msg" id="rMsg"></div>
       </div>
+      <div id="inviteSetPwStep" style="display:none">
+        <h2>Xush kelibsiz! 👋</h2>
+        <p class="sub" id="invWelcomeSub">Hisobingizni faollashtirish uchun parol o'rnating.</p>
+        <div class="field"><label>Ism</label><input id="invName" type="text" readonly style="background:var(--surface-2);cursor:not-allowed;" /></div>
+        <div class="field"><label>Email</label><input id="invEmail" type="email" readonly style="background:var(--surface-2);cursor:not-allowed;" /></div>
+        <div class="field"><label>Parol o'rnating</label><input id="invPwd" type="password" placeholder="Kamida 6 belgi" /></div>
+        <div class="field"><label>Parolni takrorlang</label><input id="invPwd2" type="password" /></div>
+        <button class="btn block" id="invBtn" onclick="saveInvitePassword()">Parol o'rnatib, kirish →</button>
+        <div class="msg" id="invPwMsg"></div>
+      </div>
     </div>
   </main>
 </div>
@@ -1969,6 +1979,47 @@ async function saveNewPassword() {
     await bootstrap();
   } catch (e) { showMsg($('rMsg'), translateErr(e.message), 'err'); btn.disabled=false; btn.textContent='Saqlash va kirish'; }
 }
+
+// Taklif orqali kelган foydalanuvchi — faqat parol o'rnatadi (ism qulflangan)
+function showInviteSetPassword(session) {
+  $('loadingView').style.display = 'none';
+  $('authShell').style.display = 'grid';
+  $('appView').classList.remove('show');
+  $('authStep').style.display = 'none';
+  $('forgotStep').style.display = 'none';
+  $('resetStep').style.display = 'none';
+  $('inviteSetPwStep').style.display = 'block';
+  hideMsg($('invPwMsg'));
+  // Ism va emailни user metadata'дан to'ldiramιz (qulflangan)
+  const u = session && session.user ? session.user : {};
+  const meta = u.user_metadata || {};
+  const fullName = meta.full_name || meta.name || '';
+  $('invName').value = fullName || '(ism ko\'rsatilmagan)';
+  $('invEmail').value = u.email || '';
+  setTimeout(() => { try { $('invPwd').focus(); } catch (e) {} }, 100);
+}
+
+async function saveInvitePassword() {
+  const p1 = $('invPwd').value;
+  const p2 = $('invPwd2').value;
+  const btn = $('invBtn');
+  if (!p1 || p1.length < 6) { showMsg($('invPwMsg'), 'Parol kamida 6 belgi', 'err'); return; }
+  if (p1 !== p2) { showMsg($('invPwMsg'), 'Parollar mos kelmadi', 'err'); return; }
+  btn.disabled = true; btn.textContent = 'Saqlanmoqda…';
+  try {
+    // Parolni o'rnatamιz (foydalanuvchi allaqachon tizimda — invite token bilan)
+    const { error } = await sb.auth.updateUser({ password: p1 });
+    if (error) throw error;
+    // URL'ни tozalaymιz (hash'даgi tokenlarни olib tashlaymιz)
+    if (window.history.replaceState) window.history.replaceState({}, '', window.location.pathname);
+    window._inviteSetPw = false;
+    toast('✅ Xush kelibsiz!', 'ok');
+    await bootstrap();
+  } catch (e) {
+    showMsg($('invPwMsg'), translateErr(e.message), 'err');
+    btn.disabled = false; btn.textContent = 'Parol o\'rnatib, kirish →';
+  }
+}
 function toggleProfileMenu(e) {
   const menu = $('profileMenu');
   if (!menu) return;
@@ -3273,10 +3324,14 @@ async function saveNewEmployee() {
     if (!msSelected.find(s => s.type === 'user' && s.id === newUserId)) {
       msSelected.push({ type: 'user', id: newUserId, label: fullName || email });
     }
-    msUpdateSummary();
 
     // A'zolar ro'yxatini yangilaymιz — darrov ko'rinsin
     await reloadMembers();
+
+    // Multi-select panel + summary'ni yangilaymιz — yangi xodim tanlangan (tick) holatда chiqsin
+    msUpdateSummary();
+    if ($('msInput')) $('msInput').value = '';
+    msFilter();
 
     closeAddEmployeeModal();
     toast('✅ Xodim yaratildi va biriktirildi: ' + (fullName || email), 'ok');
@@ -7450,22 +7505,29 @@ async function tgNotifyTaskEdit(task, field, oldValue, newValue) {
 }
 
 async function init() {
+  // MUHIM: hash'ни createClient'дан OLDIN o'qiymиz — detectSessionInUrl uni tozalaydi
+  const _rawHash = window.location.hash || '';
+  const _rawSearch = window.location.search || '';
+  const isRecovery = _rawHash.indexOf('type=recovery') !== -1;
+  const isInvite = _rawHash.indexOf('type=invite') !== -1;
+
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  sb.auth.onAuthStateChange(event => { if (event === 'PASSWORD_RECOVERY') showResetStep(); });
-  const isRecovery = (window.location.hash || '').indexOf('type=recovery') !== -1;
-  // Taklif havolasi (inviteUserByEmail) — parol o'rnatish ekrani ko'rsatamιz
-  const isInvite = (window.location.hash || '').indexOf('type=invite') !== -1;
-  // Taklif havolasi (?invite=UUID) — saqlab qo'yamiz, login'дан keyin qabul qilinadi
+  sb.auth.onAuthStateChange(event => {
+    if (event === 'PASSWORD_RECOVERY') showResetStep();
+  });
+
+  // ?invite=UUID (eski oqim) — saqlab qo'yamiz
   try {
-    const _iv = new URLSearchParams(window.location.search).get('invite');
+    const _iv = new URLSearchParams(_rawSearch).get('invite');
     if (_iv) sessionStorage.setItem('pending_invite', _iv);
   } catch (e) {}
+
   const { data: { session } } = await sb.auth.getSession();
   if (isRecovery) { showResetStep(); return; }
-  // Taklif orqali kelган — parol o'rnatish ekranini ko'rsatamιz (keyin bootstrap)
+  // Taklif orqali kelган — FAQAT parol o'rnatish ekrani (ro'yxatdan o'tish emas)
   if (isInvite && session) {
     window._inviteSetPw = true;
-    showResetStep();
+    showInviteSetPassword(session);
     return;
   }
   if (session) { await bootstrap(); }
