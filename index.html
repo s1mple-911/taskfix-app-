@@ -7378,6 +7378,11 @@ async function tgSaveIntegration() {
     toast('✅ Telegram bot yoqildi', 'ok');
     closeTgSetup();
     await loadIntegrations();
+    // Sidebar'ni darrov yangilaymιz — Telegram bo'limi ko'rinsin (refresh shart emas)
+    renderSidebar();
+    setTimeout(() => {
+      toast('✈ Telegram bo\'limi qo\'shildi — chapdagi menyudan oching', 'ok');
+    }, 600);
   } catch (e) {
     showMsg($('tgSaveMsg'), translateErr(e.message), 'err');
     btn.disabled = false; btn.textContent = 'Saqlash va yoqish';
