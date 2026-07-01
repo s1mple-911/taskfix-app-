@@ -1329,7 +1329,7 @@
     </div>
     <div class="modal-body">
       <div class="field"><label>Filial nomi *</label><input id="brName" type="text" placeholder="Masalan: Yunusobod" /></div>
-      <div class="field"><label>Aros warehouse_id (ixtiyoriy)</label><input id="brExternalId" type="text" placeholder="Masalan: 37" /><div style="font-size: 11px; color: var(--muted); margin-top: 4px;">Aros API bilan moslik uchun</div></div>
+      <div class="field" id="brExternalIdWrap" style="display:none;"><label>Aros warehouse_id (ixtiyoriy)</label><input id="brExternalId" type="text" placeholder="Masalan: 37" /><div style="font-size: 11px; color: var(--muted); margin-top: 4px;">Aros API bilan moslik uchun</div></div>
       <div class="field"><label>Manzil (ixtiyoriy)</label><input id="brAddress" type="text" /></div>
       <div class="field">
         <label>Boshliq (ixtiyoriy)</label>
@@ -1839,6 +1839,9 @@
 // ====================== CONFIG ======================
 const SUPABASE_URL = 'https://nnpsbwsppgxbytlfloth.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_ouA6pp3DwJjQkDJrWPi8QQ_30CUo51t';
+// Aros Market kompaniyasi — faqat shu workspace'да Aros warehouse_id maydoni ko'rinadi
+const AROS_WS_ID = '12b22aa6-dc45-4197-ae84-2e32e3cd56c2';
+function isArosWs() { return currentWs && currentWs.id === AROS_WS_ID; }
 // ====================================================
 
 // ============ STATE ============
@@ -2111,6 +2114,7 @@ function openBranchModal() {
   $('brName').value = '';
   $('brExternalId').value = '';
   $('brAddress').value = '';
+  $('brExternalIdWrap').style.display = isArosWs() ? 'block' : 'none';
   populateBranchManagerSelect(null);
   $('brDeleteBtn').style.display = 'none';
   hideMsg($('brMsg'));
@@ -2124,6 +2128,7 @@ function editBranch(id) {
   $('branchModalTitle').textContent = 'Filialni tahrirlash';
   $('brName').value = b.name || '';
   $('brExternalId').value = b.external_id || '';
+  $('brExternalIdWrap').style.display = (isArosWs() || b.external_id) ? 'block' : 'none';
   $('brAddress').value = b.address || '';
   populateBranchManagerSelect(b.manager_user_id || b.manager_tg_bot_user_id);
   $('brDeleteBtn').style.display = 'inline-block';
@@ -7338,24 +7343,37 @@ async function tgSaveIntegration() {
       bot_name: tgSetupState.bot.name
     };
     // Upsert (agar oldin yoqilgan bo'lsa, yangilab qo'yamiz)
+    let intgId = null;
     const existing = integrationsCache.find(i => i.tool === 'telegram');
     if (existing) {
       const { error } = await sb.from('integrations').update({ is_enabled: true, status: 'active', last_error: null, config, updated_at: new Date().toISOString() }).eq('id', existing.id);
       if (error) throw error;
+      intgId = existing.id;
     } else {
-      const { error } = await sb.from('integrations').insert({ workspace_id: currentWs.id, tool: 'telegram', is_enabled: true, status: 'active', config, created_by: me.id });
+      const { data: newIntg, error } = await sb.from('integrations').insert({ workspace_id: currentWs.id, tool: 'telegram', is_enabled: true, status: 'active', config, created_by: me.id }).select().single();
       if (error) throw error;
+      intgId = newIntg.id;
+      // Bot sozlamalari default qiymat bilan (yo'q bo'lsa)
+      try { await sb.from('tg_bot_settings').insert({ workspace_id: currentWs.id }); } catch (e) {}
     }
 
-    // Webhook'ni botda o'rnatish (tg-verify edge function shu serverda bo'lsa, biz SUPABASE_URL'ga webhook qo'yamiz)
-    const webhookUrl = SUPABASE_URL + '/functions/v1/tg-webhook?wid=' + currentWs.id;
+    // Webhook'ni o'rnatamιz — secret_token = integration_id (Edge Function shu orqali workspace topadi)
+    const webhookUrl = SUPABASE_URL + '/functions/v1/tg-webhook';
     try {
-      await fetch('https://api.telegram.org/bot' + tgSetupState.token + '/setWebhook', {
+      const swResp = await fetch('https://api.telegram.org/bot' + tgSetupState.token + '/setWebhook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: webhookUrl, allowed_updates: ['message','callback_query'] })
+        body: JSON.stringify({
+          url: webhookUrl,
+          secret_token: intgId,
+          allowed_updates: ['message', 'callback_query']
+        })
       });
-    } catch (e) { /* webhook xatosi muhim emas — keyin qayta sozlash mumkin */ }
+      const swData = await swResp.json();
+      if (!swData.ok) {
+        toast('⚠️ Bot ulandi, lekin webhook xato: ' + (swData.description || ''), 'err');
+      }
+    } catch (e) { /* webhook xatosi — keyin qayta sozlash mumkin */ }
 
     toast('✅ Telegram bot yoqildi', 'ok');
     closeTgSetup();
