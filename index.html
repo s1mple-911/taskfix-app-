@@ -2227,17 +2227,6 @@ function renderPositions() {
   const keys = Object.keys(positionGroups);
   if (!keys.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
 
-  const POS_LABELS = {
-    'sotuvchi': '🛒 Sotuvchi',
-    'katta_sotuvchi': '🛒 Katta sotuvchi',
-    'boshliq': '👔 Boshliq',
-    'filial_boshligi': '👔 Filial boshlig\'i',
-    'kuryer': '🚚 Kuryer',
-    'ceo': '👑 CEO',
-    'bugalter': '📊 Bugalter',
-    'hodim': '🧑‍💼 Xodim',
-    '(lavozimsiz)': '— Lavozimsiz —'
-  };
 
   const q = ($('posSearch')?.value || '').trim().toLowerCase();
   const sortedKeys = keys.sort((a, b) => positionGroups[b].length - positionGroups[a].length);
@@ -2245,14 +2234,14 @@ function renderPositions() {
   const sections = sortedKeys.map(pos => {
     let users = positionGroups[pos];
     if (q) {
-      const label = (POS_LABELS[pos] || pos).toLowerCase();
+      const label = posLabel(pos).toLowerCase();
       const posMatch = pos.toLowerCase().includes(q) || label.includes(q);
       if (!posMatch) {
         users = users.filter(u => (u.full_name||'').toLowerCase().includes(q) || (u.phone||'').toLowerCase().includes(q));
       }
     }
     if (!users.length) return '';
-    const label = POS_LABELS[pos] || pos;
+    const label = posLabelFull(pos);
     const usersHtml = users.slice(0, 100).map(u => {
       const phone = u.phone ? '📞 ' + escapeHtml(u.phone) : '';
       const branchName = u.branch_id ? (branchesCache.find(b => b.id === u.branch_id) || {}).name || '' : '';
@@ -3421,6 +3410,35 @@ function msMatchesQuery(text, q) {
 }
 
 // Lavozim labels (Lavozimlar sahifasi bilan bir xil)
+// Lavozim turiga qarab AVTOMATIK ikon tanlash (har qanday kompaniya uchun ishlaydi)
+function posIcon(pos) {
+  const p = (pos || '').toLowerCase();
+  if (/lavozimsiz|no.?position|—/.test(p)) return '—';
+  if (/ceo|director|direktor|rahbar\b|bosh.?direktor/.test(p)) return '👑';
+  if (/boshli|manager|menejer|mudir|lead|rahbar/.test(p)) return '👔';
+  if (/sotuv|sales|kassir|cashier|savdo/.test(p)) return '🛒';
+  if (/kuryer|courier|yetkaz|driver|haydovchi|dostavka/.test(p)) return '🚚';
+  if (/bugalter|account|hisobchi|moliya|finance/.test(p)) return '📊';
+  if (/admin/.test(p)) return '🛡';
+  if (/ombor|sklad|warehouse|omborchi/.test(p)) return '📦';
+  if (/marketing|smm|reklama|targetolog/.test(p)) return '📣';
+  if (/\bhr\b|kadr|rekruter/.test(p)) return '🧑‍💼';
+  if (/dasturchi|developer|dev\b|it\b|program|muhandis|engineer/.test(p)) return '💻';
+  if (/o.?qituvchi|teacher|ustoz|trener|trainer/.test(p)) return '🎓';
+  if (/shifokor|doctor|hamshira|tibbiy/.test(p)) return '⚕️';
+  if (/ofitsiant|waiter|oshpaz|cook|barista/.test(p)) return '🍽';
+  if (/qorovul|security|guard|xavfsizlik/.test(p)) return '🛡';
+  return '🧑‍💼'; // default
+}
+// Lavozim nomi — Aros maxsus kalitlari uchun chiroyli, aks holda nomni o'zi
+function posLabel(pos) {
+  const AROS = { sotuvchi: 'Sotuvchi', katta_sotuvchi: 'Katta sotuvchi', boshliq: 'Boshliq', filial_boshligi: "Filial boshlig'i", kuryer: 'Kuryer', ceo: 'CEO', bugalter: 'Bugalter', hodim: 'Xodim' };
+  if (pos === '(lavozimsiz)') return 'Lavozimsiz';
+  return AROS[pos] || pos;
+}
+// Ikon + nom birga
+function posLabelFull(pos) { return posIcon(pos) + ' ' + posLabel(pos); }
+
 const MS_POS_LABELS = {
   'sotuvchi': '🛒 Sotuvchi',
   'katta_sotuvchi': '🛒 Katta sotuvchi',
@@ -3479,7 +3497,7 @@ function msFilter() {
   // 3. Lavozimlar — barcha xodimlarga
   const positions = [...new Set(tgUsersCache.map(u => u.position).filter(Boolean))].sort();
   const posMatches = positions.filter(p => {
-    const label = MS_POS_LABELS[p] || p;
+    const label = posLabelFull(p);
     return msMatchesQuery(p + ' ' + label, q);
   });
   if (posMatches.length) {
@@ -3489,7 +3507,7 @@ function msFilter() {
       const enabled = count > 0;
       const sel = msIsSelected('position', p);
       const safeId = p.replace(/'/g, "\\'");
-      const label = MS_POS_LABELS[p] || p;
+      const label = posLabelFull(p);
       html += '<div class="ms-opt' + (sel ? ' selected' : '') + (enabled ? '' : ' disabled') + '" ' +
         (enabled ? 'onclick="msToggle(\'position\',\'' + safeId + '\',\'' + safeId + '\',' + count + ')"' : '') +
         '><div class="ms-check">✓</div><span class="ic">⌬</span><div class="name">' +
@@ -3526,8 +3544,8 @@ function msFilter() {
     tgMatches.forEach(u => {
       const name = u.full_name || u.tg_username || 'Bot user';
       const branchName = u.branch_id ? ((branchesCache.find(b => b.id === u.branch_id) || {}).name || '') : '';
-      const posLabel = u.position ? (MS_POS_LABELS[u.position] || u.position) : '';
-      const sub = [posLabel, branchName].filter(Boolean).join(' · ');
+      const posLbl = u.position ? posLabelFull(u.position) : '';
+      const sub = [posLbl, branchName].filter(Boolean).join(' · ');
       const sel = msIsSelected('tg', u.id);
       const safeName = name.replace(/'/g, "\\'");
       html += '<div class="ms-opt' + (sel ? ' selected' : '') +
