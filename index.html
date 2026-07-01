@@ -1562,7 +1562,7 @@
     </div>
     <div class="modal-foot">
       <button class="btn secondary" onclick="closeAddEmployeeModal()">Bekor</button>
-      <button class="btn" id="empSaveBtn" onclick="saveNewEmployee()">Yaratish va taklif yuborish</button>
+      <button class="btn" id="empSaveBtn" onclick="saveNewEmployee()">Yaratish va biriktirish</button>
     </div>
   </div>
 </div>
@@ -3162,7 +3162,7 @@ function openAddEmployeeModal() {
     '<option value="' + b.id + '">' + escapeHtml(b.name) + '</option>'
   ).join('');
   const btn = $('empSaveBtn');
-  if (btn) { btn.disabled = false; btn.textContent = 'Yaratish va taklif yuborish'; }
+  if (btn) { btn.disabled = false; btn.textContent = 'Yaratish va biriktirish'; }
   $('addEmpBd').classList.add('show');
   setTimeout(() => $('empFirstName').focus(), 50);
 }
@@ -3216,6 +3216,24 @@ function isValidEmail(e) {
   return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(String(e || '').trim());
 }
 
+async function reloadMembers() {
+  if (!currentWs) return;
+  const { data: wm } = await sb.from('workspace_members')
+    .select('user_id, role, created_at')
+    .eq('workspace_id', currentWs.id)
+    .order('created_at', { ascending: true });
+  const ids = (wm || []).map(x => x.user_id);
+  let profs = [];
+  if (ids.length) {
+    const r = await sb.from('profiles').select('id, full_name, phone, avatar_url').in('id', ids);
+    profs = r.data || [];
+  }
+  const pmap = {};
+  profs.forEach(p => { pmap[p.id] = p; });
+  wsMembers = (wm || []).map(x => Object.assign({}, x, { profile: pmap[x.user_id] || {} }));
+  if (currentPage === 'team') renderTeam();
+}
+
 async function saveNewEmployee() {
   const firstName = $('empFirstName').value.trim();
   const lastName = $('empLastName').value.trim();
@@ -3226,96 +3244,46 @@ async function saveNewEmployee() {
 
   if (!firstName) { showMsg($('empMsg'), 'Ism kerak', 'err'); return; }
   if (!email) { showMsg($('empMsg'), 'Email kerak', 'err'); return; }
-  if (!isValidEmail(email)) { showMsg($('empMsg'), 'Email noto\'g\'ri formatda', 'err'); return; }
-  if (!isOwnerLike()) { showMsg($('empMsg'), 'Bunga huquqingiz yo\'q', 'err'); return; }
+  if (!isValidEmail(email)) { showMsg($('empMsg'), "Email noto'g'ri formatda", 'err'); return; }
+  if (!isOwnerLike()) { showMsg($('empMsg'), "Bunga huquqingiz yo'q", 'err'); return; }
 
   const fullName = (firstName + ' ' + lastName).trim();
   const btn = $('empSaveBtn');
   btn.disabled = true; btn.textContent = 'Yaratilmoqda…';
   try {
-    // Invitation yozish — `id` (UUID) o'zi token sifatida ishlatiladi
-    const payload = {
-      workspace_id: currentWs.id,
-      email,
-      invited_full_name: fullName || null,
-      invited_phone: phone || null,
-      invited_position: position || null,
-      invited_branch_id: branchId,
-      invited_by: me.id,
-      status: 'pending'
-    };
-    let inv = null;
-    const { data: invData, error: invErr } = await sb.from('invitations').insert(payload).select().single();
-    if (invErr) {
-      const errMsg = invErr.message || String(invErr);
-      // Bu email'gа allaqachon ochiq taklif bor — uni topib qayta ishlatamiz
-      if (/uniq_inv_open|duplicate key|unique constraint/i.test(errMsg)) {
-        const { data: existing, error: exErr } = await sb.from('invitations')
-          .select('*')
-          .eq('workspace_id', currentWs.id)
-          .eq('email', email)
-          .eq('status', 'pending')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (existing && !exErr) {
-          inv = existing;
-          // Ma'lumotlarni yangilaymиz (ism, telefon, lavozim o'zgargan bo'lishi mumkin)
-          await sb.from('invitations').update({
-            invited_full_name: fullName || existing.invited_full_name,
-            invited_phone: phone || existing.invited_phone,
-            invited_position: position || existing.invited_position,
-            invited_branch_id: branchId || existing.invited_branch_id
-          }).eq('id', existing.id);
-        } else {
-          showMsg($('empMsg'), 'Bu email allaqachon taklif qilingan, lekin topib bo\'lmadi: ' + errMsg, 'err');
-          btn.disabled=false; btn.textContent='Yaratish va taklif yuborish';
-          return;
-        }
-      } else if (/invited_full_name|invited_phone|invited_position|invited_branch_id|pending_task_id/i.test(errMsg)) {
-        showMsg($('empMsg'), 'Migration 23 ishga tushirilishi kerak. Xato: ' + errMsg, 'err');
-        btn.disabled=false; btn.textContent='Yaratish va taklif yuborish';
-        return;
-      } else {
-        showMsg($('empMsg'), 'Xato: ' + errMsg, 'err');
-        btn.disabled=false; btn.textContent='Yaratish va taklif yuborish';
-        return;
+    // Xodimni DARROV yaratamiz — admin-create-employee Edge Function (service_role)
+    const redirect = location.origin + location.pathname;
+    const { data: res, error: fnErr } = await sb.functions.invoke('admin-create-employee', {
+      body: {
+        email: email,
+        full_name: fullName,
+        phone: phone || null,
+        position: position || null,
+        branch_id: branchId,
+        workspace_id: currentWs.id,
+        redirect_to: redirect
       }
-    } else {
-      inv = invData;
-    }
-
-    // Email yuborishga urinish keyin (modal ochilgach fon'да)
-
-    // Multi-select'da ushbu invitation'ni ko'rsatamiz (pending sifatida)
-    msSelected.push({ type: 'invite', id: inv.id, label: '✉ ' + (fullName || email) + ' (taklif)' });
-    msUpdateSummary();
-    closeAddEmployeeModal();
-    // Havola bilan modal ko'rsatamiz (backup — admin qo'lда ham yubora oladi)
-    const personLabel = (fullName ? fullName + ' — ' : '') + email;
-    showInviteLinkModal(inv.id, personLabel);
-    // Email — Supabase Auth SMTP (Resend) orqali sehrli havola. CORS YO'Q.
-    // Foydalanuvchi havolani bosganda tizimga kiradi va ?invite=<id> ga yo'naltiriladi.
-    const inviteRedirect = location.origin + location.pathname + '?invite=' + inv.id;
-    sb.auth.signInWithOtp({
-      email: email,
-      options: {
-        shouldCreateUser: true,
-        emailRedirectTo: inviteRedirect,
-        data: { full_name: fullName || '', invited_to_ws: currentWs.id }
-      }
-    }).then(({ error }) => {
-      if (error) {
-        toast('⚠ Email yuborilmadi: ' + error.message + ' (havolani qo\'lда yuboring)', 'err');
-      } else {
-        toast('📧 Taklif email yuborildi: ' + email, 'ok');
-      }
-    }).catch((e) => {
-      toast('⚠ Email xatosi: ' + (e.message || e) + ' (havolani qo\'lда yuboring)', 'err');
     });
+    if (fnErr) throw new Error(fnErr.message || 'Edge Function xatosi');
+    if (!res || !res.ok) throw new Error((res && (res.detail || res.error)) || "Noma'lum xato");
+
+    const newUserId = res.user_id;
+
+    // Real a'zo sifatida vazifaga biriktiramιz (ghost emas — haqiqiy user)
+    if (!msSelected.find(s => s.type === 'user' && s.id === newUserId)) {
+      msSelected.push({ type: 'user', id: newUserId, label: fullName || email });
+    }
+    msUpdateSummary();
+
+    // A'zolar ro'yxatini yangilaymιz — darrov ko'rinsin
+    await reloadMembers();
+
+    closeAddEmployeeModal();
+    toast('✅ Xodim yaratildi va biriktirildi: ' + (fullName || email), 'ok');
+    if (res.invited) toast('📧 Taklif email yuborildi', 'ok');
   } catch (e) {
-    showMsg($('empMsg'), translateErr(e.message), 'err');
-    btn.disabled=false; btn.textContent='Yaratish va taklif yuborish';
+    showMsg($('empMsg'), 'Xato: ' + (e.message || e), 'err');
+    btn.disabled = false; btn.textContent = 'Yaratish';
   }
 }
 
@@ -7485,6 +7453,8 @@ async function init() {
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   sb.auth.onAuthStateChange(event => { if (event === 'PASSWORD_RECOVERY') showResetStep(); });
   const isRecovery = (window.location.hash || '').indexOf('type=recovery') !== -1;
+  // Taklif havolasi (inviteUserByEmail) — parol o'rnatish ekrani ko'rsatamιz
+  const isInvite = (window.location.hash || '').indexOf('type=invite') !== -1;
   // Taklif havolasi (?invite=UUID) — saqlab qo'yamiz, login'дан keyin qabul qilinadi
   try {
     const _iv = new URLSearchParams(window.location.search).get('invite');
@@ -7492,6 +7462,12 @@ async function init() {
   } catch (e) {}
   const { data: { session } } = await sb.auth.getSession();
   if (isRecovery) { showResetStep(); return; }
+  // Taklif orqali kelган — parol o'rnatish ekranini ko'rsatamιz (keyin bootstrap)
+  if (isInvite && session) {
+    window._inviteSetPw = true;
+    showResetStep();
+    return;
+  }
   if (session) { await bootstrap(); }
   else { setMode('login'); showAuth(); }
 
