@@ -2533,7 +2533,12 @@ function teardownRealtime() {
 
 async function loadTasksFull() {
   if (!currentWs) { tasksCache = []; return; }
-  const { data } = await sb.from('tasks').select('*').eq('workspace_id', currentWs.id).order('created_at', { ascending: false });
+  let q = sb.from('tasks').select('*').eq('workspace_id', currentWs.id);
+  // Oddiy a'zo (owner/admin emas) — FAQAT o'ziga biriktirilган vazifalarни ko'radi
+  if (!isOwnerLike()) {
+    q = q.eq('assigned_to', me.id);
+  }
+  const { data } = await q.order('created_at', { ascending: false });
   tasksCache = data || [];
 }
 
@@ -2575,7 +2580,7 @@ function renderSidebar() {
   let html = '';
   html += '<button class="side-link ' + (currentPage === 'dashboard' ? 'active' : '') + '" onclick="goPage(\'dashboard\')"><span class="ic">◐</span> Bosh sahifa</button>';
   html += '<button class="side-link ' + (currentPage === 'tasks' ? 'active' : '') + '" onclick="goPage(\'tasks\')"><span class="ic">✓</span> Hamma vazifalar</button>';
-  if (isOrg) {
+  if (isOrg && canManage) {
     html += '<button class="side-link ' + (currentPage === 'stats' ? 'active' : '') + '" onclick="goPage(\'stats\')"><span class="ic">📊</span> Statistika</button>';
     html += '<button class="side-link ' + (currentPage === 'orgchart' ? 'active' : '') + '" onclick="goPage(\'orgchart\')"><span class="ic">⛓</span> Tashkilot</button>';
   }
@@ -2599,7 +2604,9 @@ function renderSidebar() {
     html += '<div class="side-section">Boshqaruv</div>';
     html += '<button class="side-link ' + (currentPage === 'departments' ? 'active' : '') + '" onclick="goPage(\'departments\')"><span class="ic">▦</span> Bo\'limlar ro\'yxati</button>';
     html += '<button class="side-link ' + (currentPage === 'team' ? 'active' : '') + '" onclick="goPage(\'team\')"><span class="ic">☆</span> Jamoa</button>';
-    html += '<button class="side-link ' + (currentPage === 'integrations' ? 'active' : '') + '" onclick="goPage(\'integrations\')"><span class="ic">⚡</span> Integratsiyalar</button>';
+    if (canManage) {
+      html += '<button class="side-link ' + (currentPage === 'integrations' ? 'active' : '') + '" onclick="goPage(\'integrations\')"><span class="ic">⚡</span> Integratsiyalar</button>';
+    }
     if (canManage) {
       // Telegram section — faqat bot ulangan bo'lsa ko'rinadi
       const hasTg = (integrationsCache || []).some(i => i.tool === 'telegram' && i.is_enabled);
@@ -2857,6 +2864,11 @@ function toggleTgSidebar() {
 }
 
 function goPage(p) {
+  // Rol himoyasi: oddiy a'zo faqat ruxsat etilган sahifalarга kira oladi
+  const managerOnlyPages = ['stats', 'orgchart', 'integrations', 'tgusers', 'branches', 'positions', 'settings', 'botsettings', 'botcommands'];
+  if (managerOnlyPages.includes(p) && !isOwnerLike()) {
+    p = 'dashboard';
+  }
   currentPage = p;
   if (p !== 'department') currentDeptId = null;
   renderSidebar();
@@ -7579,18 +7591,20 @@ function buildCmdItems() {
   };
 
   // Sahifalar
-  const pages = [
-    { label: 'Bosh sahifa', icon: '⌂', page: 'dashboard' },
-    { label: 'Vazifalar', icon: '✓', page: 'tasks' },
-    { label: 'Statistika', icon: '📊', page: 'stats' },
-    { label: 'Tashkilot tuzilmasi', icon: '⛓', page: 'orgchart' },
-    { label: 'Jamoa', icon: '👥', page: 'team' },
-    { label: 'Filiallar', icon: '🏪', page: 'branches' },
-    { label: 'Lavozimlar', icon: '🎖', page: 'positions' },
-    { label: 'Integratsiyalar', icon: '🔌', page: 'integrations' },
-    { label: 'Sozlamalar', icon: '⚙', page: 'settings' },
-    { label: 'Mening profilim', icon: '👤', page: 'profile' },
+  const pagesAll = [
+    { label: 'Bosh sahifa', icon: '⌂', page: 'dashboard', mgr: false },
+    { label: 'Vazifalar', icon: '✓', page: 'tasks', mgr: false },
+    { label: 'Statistika', icon: '📊', page: 'stats', mgr: true },
+    { label: 'Tashkilot tuzilmasi', icon: '⛓', page: 'orgchart', mgr: true },
+    { label: 'Jamoa', icon: '👥', page: 'team', mgr: false },
+    { label: 'Filiallar', icon: '🏪', page: 'branches', mgr: true },
+    { label: 'Lavozimlar', icon: '🎖', page: 'positions', mgr: true },
+    { label: 'Integratsiyalar', icon: '🔌', page: 'integrations', mgr: true },
+    { label: 'Sozlamalar', icon: '⚙', page: 'settings', mgr: true },
+    { label: 'Mening profilim', icon: '👤', page: 'profile', mgr: false },
   ];
+  // Oddiy a'zoga faqat ruxsat etilган sahifalar
+  const pages = pagesAll.filter(p => !p.mgr || isOwnerLike());
   const filteredPages = q
     ? pages.filter(p => fuzzyMatch(p.label, q))
     : pages.slice(0, 5);
