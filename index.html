@@ -455,6 +455,41 @@
   .kan-col-name { font-weight: 600; font-size: 13px; cursor: grab; padding: 2px 6px; border-radius: 4px; user-select: none; }
   .kan-col-name:hover { background: #F4F3EF; }
   .kan-col-name.editing { background: var(--surface); border: 1px solid var(--accent); outline: none; cursor: text; user-select: text; }
+
+  /* ===== Jadval (Excel-uslubi) ===== */
+  .tbl-subviews { display:flex; gap:4px; margin-bottom:12px; flex-wrap:wrap; border-bottom:1px solid var(--line); padding-bottom:0; }
+  .tbl-sv { padding:8px 14px; font-size:13px; font-weight:500; color:var(--muted); background:transparent; border:none; border-bottom:2px solid transparent; cursor:pointer; font-family:inherit; margin-bottom:-1px; }
+  .tbl-sv:hover { color:var(--ink); }
+  .tbl-sv.active { color:var(--accent-ink); border-bottom-color:var(--accent); font-weight:600; }
+  .tbl-toolbar { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .tbl-wrap { overflow:auto; border:1px solid var(--line); border-radius:10px; max-height:calc(100vh - 260px); position:relative; background:var(--surface); }
+  .xtbl { border-collapse:separate; border-spacing:0; font-size:13px; width:max-content; min-width:100%; }
+  .xtbl thead th { position:sticky; top:0; z-index:5; background:var(--surface-2); border-bottom:1px solid var(--line); border-right:1px solid var(--line); padding:0; font-weight:600; color:var(--ink); text-align:left; white-space:nowrap; vertical-align:middle; }
+  .xtbl th .th-inner { display:flex; align-items:center; gap:6px; padding:9px 10px; cursor:pointer; user-select:none; position:relative; }
+  .xtbl th .th-lbl { flex:1; overflow:hidden; text-overflow:ellipsis; }
+  .xtbl th .th-sort { font-size:10px; color:var(--muted); }
+  .xtbl th .th-filter { font-size:11px; color:var(--muted); cursor:pointer; padding:2px 4px; border-radius:4px; }
+  .xtbl th .th-filter:hover, .xtbl th .th-filter.active { background:var(--accent); color:#fff; }
+  .xtbl th .th-resize { position:absolute; right:0; top:0; bottom:0; width:6px; cursor:col-resize; }
+  .xtbl th.dragging { opacity:.4; }
+  .xtbl th.drag-over { border-left:2px solid var(--accent); }
+  .xtbl tbody td { border-bottom:1px solid var(--line); border-right:1px solid var(--line); padding:7px 10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:340px; vertical-align:middle; background:var(--surface); }
+  .xtbl tbody tr:hover td { background:var(--surface-2); }
+  .xtbl .col-freeze { position:sticky; left:0; z-index:4; box-shadow:2px 0 0 var(--line); }
+  .xtbl thead .col-freeze { z-index:6; }
+  .xtbl .cell-id { color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:11.5px; }
+  .xtbl .cell-edit { cursor:text; }
+  .xtbl .cell-edit:hover { background:rgba(0,0,0,.02); }
+  .xtbl select.cell-sel, .xtbl input.cell-inp { border:1px solid transparent; background:transparent; font-family:inherit; font-size:13px; padding:3px 5px; border-radius:5px; width:100%; color:var(--ink); }
+  .xtbl select.cell-sel:hover, .xtbl input.cell-inp:hover { border-color:var(--line); }
+  .xtbl select.cell-sel:focus, .xtbl input.cell-inp:focus { border-color:var(--accent); outline:none; background:var(--surface); }
+  .xtbl .status-pill { display:inline-block; padding:3px 9px; border-radius:12px; font-size:11.5px; font-weight:600; }
+  .xtbl .grp-row td { background:var(--surface-2); font-weight:700; font-size:13.5px; color:var(--ink); padding:9px 12px; position:sticky; left:0; }
+  .xtbl .grp-row .grp-count { color:var(--muted); font-weight:500; font-size:12px; margin-left:8px; }
+  .tbl-filter-pop { position:fixed; background:var(--surface); border:1px solid var(--line); border-radius:10px; box-shadow:0 8px 28px rgba(0,0,0,.14); padding:8px; z-index:250; max-height:320px; overflow:auto; min-width:200px; }
+  .tbl-filter-pop label { display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:13px; border-radius:6px; cursor:pointer; }
+  .tbl-filter-pop label:hover { background:var(--surface-2); }
+  .tbl-empty-row td { text-align:center; color:var(--muted); padding:28px; }
   .kan-add-task { background: none; border: 1px dashed var(--line-strong); border-radius: 8px; padding: 8px; width: 100%; color: var(--muted); font-size: 12.5px; cursor: pointer; margin-top: 6px; }
   .kan-add-task:hover { color: var(--accent-ink); border-color: var(--accent); background: var(--accent-soft); }
   .kan-col-actions { display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
@@ -701,6 +736,7 @@
         <button class="view-tab active" data-tv="list"     onclick="setTasksView('list')">Ro'yxat</button>
         <button class="view-tab"        data-tv="kanban"   onclick="setTasksView('kanban')">Kanban</button>
         <button class="view-tab"        data-tv="calendar" onclick="setTasksView('calendar')">Kalendar</button>
+        <button class="view-tab"        data-tv="table"    onclick="setTasksView('table')">Jadval</button>
       </div>
       <div id="tasksView-list">
         <div class="search-row">
@@ -748,6 +784,24 @@
           <button class="btn sm secondary" onclick="tkCalNav(0)">Bugun</button>
         </div>
         <div class="cal-grid" id="tkCalGrid"></div>
+      </div>
+      <div id="tasksView-table" style="display:none">
+        <div class="tbl-subviews" id="tblSubviews">
+          <button class="tbl-sv active" data-sv="all"       onclick="tblSetSubview('all')">Barchasi</button>
+          <button class="tbl-sv"        data-sv="incoming"  onclick="tblSetSubview('incoming')">Kiruvchi</button>
+          <button class="tbl-sv"        data-sv="outgoing"  onclick="tblSetSubview('outgoing')">Chiquvchi</button>
+          <button class="tbl-sv"        data-sv="checked"   onclick="tblSetSubview('checked')">Tekshirilgan</button>
+          <button class="tbl-sv"        data-sv="workload"  onclick="tblSetSubview('workload')">Xodim yuklamasi</button>
+        </div>
+        <div class="tbl-toolbar">
+          <input type="text" class="search-input" id="tblSearch" placeholder="Qidirish..." oninput="renderTasksTable()" style="max-width:260px;" />
+          <button class="btn sm secondary" onclick="tblClearFilters()" id="tblClearBtn" style="display:none;">✕ Filtrlarni tozalash</button>
+          <div style="flex:1"></div>
+          <button class="btn sm" onclick="tblAddRow()">+ Yangi qator</button>
+        </div>
+        <div class="tbl-wrap" id="tblWrap">
+          <table class="xtbl" id="xtbl"><thead id="xtblHead"></thead><tbody id="xtblBody"></tbody></table>
+        </div>
       </div>
     </section>
 
@@ -2053,6 +2107,7 @@ async function doLogout() {
   await sb.auth.signOut();
   me = myProfile = currentWs = myWsRole = null;
   workspaces = []; myDepts = []; departments = []; tasksCache = []; notifs = [];
+  _tblAttachSet = null; tblFilters = {}; tblSort = { col: null, dir: 1 }; tblColOrder = null;
   setMode('login'); $('email').value=''; $('password').value=''; showAuth();
 }
 
@@ -5816,6 +5871,7 @@ function refreshActiveView() {
     if (currentTasksView === 'list') renderTasksList();
     else if (currentTasksView === 'kanban') renderTasksKanban();
     else if (currentTasksView === 'calendar') renderTasksCalendar();
+    else if (currentTasksView === 'table') renderTasksTable();
   }
   else if (currentPage === 'stats') renderStats();
   else if (currentPage === 'department') {
@@ -5831,10 +5887,397 @@ function setTasksView(v) {
   $('tasksView-list').style.display = v === 'list' ? 'block' : 'none';
   $('tasksView-kanban').style.display = v === 'kanban' ? 'block' : 'none';
   $('tasksView-calendar').style.display = v === 'calendar' ? 'block' : 'none';
+  $('tasksView-table').style.display = v === 'table' ? 'block' : 'none';
   if (v === 'kanban') renderTasksKanban();
   else if (v === 'calendar') { tkCalCursor = new Date(); renderTasksCalendar(); }
+  else if (v === 'table') renderTasksTable();
   else renderTasksList();
 }
+
+
+// ============ JADVAL (Excel-uslubi) VIEW ============
+let tblSubview = 'all';
+let tblSort = { col: null, dir: 1 };        // dir: 1 asc, -1 desc
+let tblFilters = {};                          // colKey -> Set of allowed values
+let tblColWidths = {};                        // colKey -> px
+let tblColOrder = null;                       // massiv (reorder)
+
+const TBL_COLS_DEFAULT = ['id', 'file', 'title', 'department', 'creator', 'assignee', 'start', 'deadline', 'priority', 'status'];
+const TBL_COL_META = {
+  id:         { label: '№', w: 60, sortable: true, filter: false },
+  file:       { label: '📎', w: 42, sortable: false, filter: false },
+  title:      { label: 'Nomi', w: 300, sortable: true, filter: false, freeze: true },
+  department: { label: "Bo'lim", w: 150, sortable: true, filter: true },
+  creator:    { label: 'Topshiriq beruvchi', w: 160, sortable: true, filter: true },
+  assignee:   { label: 'Bajaruvchi', w: 160, sortable: true, filter: true },
+  start:      { label: 'Boshlangan', w: 120, sortable: true, filter: false },
+  deadline:   { label: 'Deadline', w: 130, sortable: true, filter: false },
+  priority:   { label: 'Prioritet', w: 100, sortable: true, filter: true },
+  status:     { label: 'Status', w: 150, sortable: true, filter: true },
+};
+
+let _tblAttachSet = null; // task_id'lar to'plami (fayli borlar)
+
+function tblColKeys() {
+  return (tblColOrder && tblColOrder.length) ? tblColOrder : TBL_COLS_DEFAULT.slice();
+}
+
+function tblSetSubview(sv) {
+  tblSubview = sv;
+  document.querySelectorAll('#tblSubviews [data-sv]').forEach(b => b.classList.toggle('active', b.dataset.sv === sv));
+  renderTasksTable();
+}
+
+function tblClearFilters() {
+  tblFilters = {};
+  renderTasksTable();
+}
+
+// Yordamchi: a'zo ismi
+function tblMemberName(uid) {
+  if (!uid) return '—';
+  if (uid === me.id) return (myProfile.full_name || 'Siz');
+  const m = (wsMembers || []).find(x => x.user_id === uid);
+  return (m && m.profile && m.profile.full_name) || 'A\'zo';
+}
+function tblDeptName(did) {
+  if (!did) return '—';
+  const d = (departments || []).find(x => x.id === did);
+  return d ? d.name : '—';
+}
+function tblStatusMeta(statusVal) {
+  const c = (kanbanColumns || []).find(x => x.status === statusVal);
+  if (c) return { name: c.name, color: c.color || '#E5E7EB' };
+  return { name: statusVal || 'Yangi', color: '#E5E7EB' };
+}
+function tblFmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d)) return '—';
+  return String(d.getDate()).padStart(2,'0') + '-' + String(d.getMonth()+1).padStart(2,'0');
+}
+
+// Bitta task uchun ustun qiymati (sort/filter uchun)
+function tblCellValue(t, key) {
+  switch (key) {
+    case 'id': return t.id;
+    case 'title': return t.title || '';
+    case 'department': return tblDeptName(t.department_id);
+    case 'creator': return tblMemberName(t.created_by);
+    case 'assignee': return t.assigned_to ? tblMemberName(t.assigned_to) : '—';
+    case 'start': return t.created_at || '';
+    case 'deadline': return t.deadline || '';
+    case 'priority': return t.priority_level || 0;
+    case 'status': return tblStatusMeta(t.status).name;
+    default: return '';
+  }
+}
+
+// Subview + qidiruv + filtr bo'yicha tasklar
+function tblGetTasks() {
+  let list = (tasksCache || []).slice();
+  // Subview
+  if (tblSubview === 'incoming') list = list.filter(t => t.assigned_to === me.id);
+  else if (tblSubview === 'outgoing') list = list.filter(t => t.created_by === me.id);
+  else if (tblSubview === 'checked') list = list.filter(t => t.status === 'completed');
+  // 'all' va 'workload' — hammasi (workload guruhlaydi)
+
+  // Qidiruv
+  const q = ($('tblSearch')?.value || '').trim().toLowerCase();
+  if (q) list = list.filter(t => (t.title || '').toLowerCase().includes(q) || String(t.id).includes(q));
+
+  // Ustun filtrlari
+  Object.keys(tblFilters).forEach(key => {
+    const allowed = tblFilters[key];
+    if (allowed && allowed.size) {
+      list = list.filter(t => allowed.has(String(tblCellValue(t, key))));
+    }
+  });
+
+  // Sort
+  if (tblSort.col) {
+    const k = tblSort.col;
+    list.sort((a, b) => {
+      let va = tblCellValue(a, k), vb = tblCellValue(b, k);
+      if (k === 'id' || k === 'priority') { va = Number(va)||0; vb = Number(vb)||0; return (va - vb) * tblSort.dir; }
+      if (k === 'start' || k === 'deadline') { va = va ? new Date(va).getTime() : 0; vb = vb ? new Date(vb).getTime() : 0; return (va - vb) * tblSort.dir; }
+      return String(va).localeCompare(String(vb), 'uz') * tblSort.dir;
+    });
+  }
+  return list;
+}
+
+async function renderTasksTable() {
+  if (!$('xtblHead')) return;
+  // Fayli bor tasklarni bir marta yuklaymiz (📎 ustun uchun)
+  if (_tblAttachSet === null && currentWs) {
+    _tblAttachSet = new Set();
+    try {
+      const { data } = await sb.from('task_attachments').select('task_id').limit(2000);
+      (data || []).forEach(a => _tblAttachSet.add(a.task_id));
+    } catch (e) {}
+  }
+  const cols = tblColKeys();
+  $('tblClearBtn').style.display = Object.keys(tblFilters).some(k => tblFilters[k] && tblFilters[k].size) ? 'inline-flex' : 'none';
+
+  // HEAD
+  let head = '<tr>';
+  cols.forEach(key => {
+    const meta = TBL_COL_META[key];
+    const w = tblColWidths[key] || meta.w;
+    const freeze = meta.freeze ? ' col-freeze' : '';
+    const sortIc = tblSort.col === key ? (tblSort.dir === 1 ? '▲' : '▼') : '';
+    const filterActive = (tblFilters[key] && tblFilters[key].size) ? ' active' : '';
+    head += '<th class="' + freeze + '" data-col="' + key + '" style="width:' + w + 'px;min-width:' + w + 'px" draggable="true" ' +
+      'ondragstart="tblDragStart(event,\'' + key + '\')" ondragover="tblDragOver(event,\'' + key + '\')" ondrop="tblDrop(event,\'' + key + '\')" ondragend="tblDragEnd(event)">' +
+      '<div class="th-inner">' +
+        '<span class="th-lbl" ' + (meta.sortable ? 'onclick="tblToggleSort(\'' + key + '\')"' : '') + '>' + escapeHtml(meta.label) + '</span>' +
+        (sortIc ? '<span class="th-sort">' + sortIc + '</span>' : '') +
+        (meta.filter ? '<span class="th-filter' + filterActive + '" onclick="tblOpenFilter(event,\'' + key + '\')">▾</span>' : '') +
+        '<span class="th-resize" onmousedown="tblResizeStart(event,\'' + key + '\')"></span>' +
+      '</div></th>';
+  });
+  head += '</tr>';
+  $('xtblHead').innerHTML = head;
+
+  // BODY
+  const list = tblGetTasks();
+  const canEdit = canEditWorkspace();
+  let body = '';
+
+  if (!list.length) {
+    body = '<tr class="tbl-empty-row"><td colspan="' + cols.length + '">Vazifa topilmadi</td></tr>';
+    $('xtblBody').innerHTML = body;
+    return;
+  }
+
+  if (tblSubview === 'workload') {
+    // Xodimlar bo'yicha guruhlash
+    const groups = {};
+    list.forEach(t => {
+      const key = t.assigned_to || '__none__';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(t);
+    });
+    // Ism bo'yicha tartib, biriktirilmagan oxirida
+    const keys = Object.keys(groups).sort((a, b) => {
+      if (a === '__none__') return 1; if (b === '__none__') return -1;
+      return tblMemberName(a).localeCompare(tblMemberName(b), 'uz');
+    });
+    keys.forEach(gk => {
+      const gname = gk === '__none__' ? 'Biriktirilmagan' : tblMemberName(gk);
+      body += '<tr class="grp-row"><td colspan="' + cols.length + '">' + escapeHtml(gname) +
+        '<span class="grp-count">' + groups[gk].length + ' ta vazifa</span></td></tr>';
+      groups[gk].forEach(t => { body += tblRowHtml(t, cols, canEdit); });
+    });
+  } else {
+    list.forEach(t => { body += tblRowHtml(t, cols, canEdit); });
+  }
+  $('xtblBody').innerHTML = body;
+}
+
+function tblRowHtml(t, cols, canEdit) {
+  let row = '<tr data-tid="' + t.id + '">';
+  cols.forEach(key => {
+    const meta = TBL_COL_META[key];
+    const freeze = meta.freeze ? ' col-freeze' : '';
+    let cell = '';
+    switch (key) {
+      case 'id':
+        cell = '<span class="cell-id">' + t.id + '</span>'; break;
+      case 'file':
+        cell = (_tblAttachSet && _tblAttachSet.has(t.id)) ? '📎' : ''; break;
+      case 'title':
+        cell = '<span class="cell-edit" onclick="openDetail(' + t.id + ')" style="cursor:pointer;font-weight:500;">' + escapeHtml(t.title || '(nomsiz)') + '</span>'; break;
+      case 'department':
+        cell = tblDeptSelect(t, canEdit); break;
+      case 'creator':
+        cell = escapeHtml(tblMemberName(t.created_by)); break;
+      case 'assignee':
+        cell = tblAssigneeSelect(t, canEdit); break;
+      case 'start':
+        cell = tblFmtDate(t.created_at); break;
+      case 'deadline':
+        cell = canEdit
+          ? '<input class="cell-inp" type="date" value="' + (t.deadline ? t.deadline.slice(0,10) : '') + '" onchange="tblUpdate(' + t.id + ',\'deadline\',this.value?new Date(this.value).toISOString():null)">'
+          : tblFmtDate(t.deadline); break;
+      case 'priority':
+        cell = tblPrioSelect(t, canEdit); break;
+      case 'status':
+        cell = tblStatusSelect(t, canEdit); break;
+    }
+    row += '<td class="' + freeze + '">' + cell + '</td>';
+  });
+  row += '</tr>';
+  return row;
+}
+
+function tblStatusSelect(t, canEdit) {
+  const cols = (kanbanColumns || []).slice().sort((a,b) => (a.sort_order||0)-(b.sort_order||0));
+  const cur = tblStatusMeta(t.status);
+  if (!canEdit || !cols.length) {
+    return '<span class="status-pill" style="background:' + (cur.color || '#E5E7EB') + '33;color:var(--ink);">' + escapeHtml(cur.name) + '</span>';
+  }
+  let opts = cols.map(c => '<option value="' + escapeHtml(c.status) + '" ' + (t.status === c.status ? 'selected' : '') + '>' + escapeHtml(c.name) + '</option>').join('');
+  // Agar joriy status kanban'да yo'q bo'lsa ham ko'rsatamiz
+  if (!cols.find(c => c.status === t.status)) {
+    opts = '<option value="' + escapeHtml(t.status||'') + '" selected>' + escapeHtml(cur.name) + '</option>' + opts;
+  }
+  return '<select class="cell-sel" onchange="tblUpdate(' + t.id + ',\'status\',this.value)">' + opts + '</select>';
+}
+
+function tblPrioSelect(t, canEdit) {
+  if (!canEdit) return (t.priority_level ? 'P' + t.priority_level : '—');
+  let opts = '';
+  for (let i = 0; i <= 10; i++) {
+    opts += '<option value="' + i + '" ' + ((t.priority_level||0) === i ? 'selected' : '') + '>' + (i === 0 ? '—' : 'P' + i) + '</option>';
+  }
+  return '<select class="cell-sel" onchange="tblUpdate(' + t.id + ',\'priority_level\',parseInt(this.value,10))">' + opts + '</select>';
+}
+
+function tblDeptSelect(t, canEdit) {
+  if (!canEdit) return escapeHtml(tblDeptName(t.department_id));
+  let opts = '<option value="">—</option>' + (departments || []).map(d =>
+    '<option value="' + d.id + '" ' + (t.department_id === d.id ? 'selected' : '') + '>' + escapeHtml(d.name) + '</option>').join('');
+  return '<select class="cell-sel" onchange="tblUpdate(' + t.id + ',\'department_id\',this.value||null)">' + opts + '</select>';
+}
+
+function tblAssigneeSelect(t, canEdit) {
+  if (!canEdit) return escapeHtml(t.assigned_to ? tblMemberName(t.assigned_to) : '—');
+  let opts = '<option value="">—</option>' + (wsMembers || []).map(m =>
+    '<option value="' + m.user_id + '" ' + (t.assigned_to === m.user_id ? 'selected' : '') + '>' +
+    escapeHtml(m.user_id === me.id ? (myProfile.full_name || 'Siz') : ((m.profile && m.profile.full_name) || 'A\'zo')) + '</option>').join('');
+  return '<select class="cell-sel" onchange="tblUpdate(' + t.id + ',\'assigned_to\',this.value||null)">' + opts + '</select>';
+}
+
+// Ma'lumotни yangilash (har qanday task, id bo'yicha)
+async function tblUpdate(taskId, field, value) {
+  const idx = tasksCache.findIndex(t => t.id === taskId);
+  const old = idx >= 0 ? tasksCache[idx][field] : undefined;
+  if (idx >= 0) tasksCache[idx][field] = value; // optimistik
+  try {
+    const { error } = await sb.from('tasks').update({ [field]: value }).eq('id', taskId);
+    if (error) throw error;
+    // Realtime boshqa joylarni yangilaydi; jadvalни ham qayta chizamиz
+    renderTasksTable();
+  } catch (e) {
+    if (idx >= 0) tasksCache[idx][field] = old; // qaytaramιz
+    toast('Xato: ' + (e.message || e), 'err');
+    renderTasksTable();
+  }
+}
+
+// Yangi qator (vazifa) qo'shish — Create modalни ochamιz
+function tblAddRow() {
+  if (!canEditWorkspace()) { toast('Bunga huquqingiz yo\'q', 'err'); return; }
+  openCreate();
+}
+
+// ---- Sort ----
+function tblToggleSort(key) {
+  if (tblSort.col === key) tblSort.dir = -tblSort.dir;
+  else { tblSort.col = key; tblSort.dir = 1; }
+  renderTasksTable();
+}
+
+// ---- Filter popover ----
+function tblOpenFilter(ev, key) {
+  ev.stopPropagation();
+  document.querySelectorAll('.tbl-filter-pop').forEach(p => p.remove());
+  const values = [...new Set((tblGetTasksNoFilter(key)).map(t => String(tblCellValue(t, key))))].sort();
+  const active = tblFilters[key] || new Set();
+  const pop = document.createElement('div');
+  pop.className = 'tbl-filter-pop';
+  let html = '<div style="display:flex;gap:6px;margin-bottom:6px;">' +
+    '<button class="btn sm secondary" style="flex:1" onclick="tblFilterAll(\'' + key + '\',true)">Hammasi</button>' +
+    '<button class="btn sm secondary" style="flex:1" onclick="tblFilterAll(\'' + key + '\',false)">Hech biri</button></div>';
+  values.forEach(v => {
+    const checked = !active.size || active.has(v) ? 'checked' : '';
+    html += '<label><input type="checkbox" ' + checked + ' onchange="tblFilterToggle(\'' + key + '\',this.value,this.checked)" value="' + escapeHtml(v) + '">' + escapeHtml(v) + '</label>';
+  });
+  pop.innerHTML = html;
+  document.body.appendChild(pop);
+  const r = ev.target.getBoundingClientRect();
+  pop.style.top = (r.bottom + 4) + 'px';
+  pop.style.left = Math.min(r.left, window.innerWidth - 240) + 'px';
+  setTimeout(() => {
+    document.addEventListener('click', function close(e) {
+      if (!pop.contains(e.target)) { pop.remove(); document.removeEventListener('click', close); }
+    });
+  }, 50);
+}
+function tblGetTasksNoFilter(exceptKey) {
+  // Filtrsiz (o'zi bundan mustasno) ro'yxat — filter variantlari uchun
+  const saved = tblFilters; tblFilters = {};
+  Object.keys(saved).forEach(k => { if (k !== exceptKey) tblFilters[k] = saved[k]; });
+  const list = tblGetTasks();
+  tblFilters = saved;
+  return list;
+}
+function tblFilterToggle(key, val, on) {
+  if (!tblFilters[key]) {
+    // Boshlanishда hamma variant bor deb hisoblaymιz
+    const all = [...new Set(tblGetTasksNoFilter(key).map(t => String(tblCellValue(t, key))))];
+    tblFilters[key] = new Set(all);
+  }
+  if (on) tblFilters[key].add(val); else tblFilters[key].delete(val);
+  renderTasksTable();
+}
+function tblFilterAll(key, on) {
+  if (on) { delete tblFilters[key]; }
+  else { tblFilters[key] = new Set(); }
+  renderTasksTable();
+  // popover'ni yangilaymιz
+  document.querySelectorAll('.tbl-filter-pop').forEach(p => p.remove());
+}
+
+// ---- Resize ----
+let _tblResize = null;
+function tblResizeStart(ev, key) {
+  ev.stopPropagation(); ev.preventDefault();
+  _tblResize = { key, startX: ev.clientX, startW: tblColWidths[key] || TBL_COL_META[key].w };
+  document.addEventListener('mousemove', tblResizeMove);
+  document.addEventListener('mouseup', tblResizeEnd);
+}
+function tblResizeMove(ev) {
+  if (!_tblResize) return;
+  const dw = ev.clientX - _tblResize.startX;
+  tblColWidths[_tblResize.key] = Math.max(42, _tblResize.startW + dw);
+  const th = document.querySelector('#xtblHead th[data-col="' + _tblResize.key + '"]');
+  if (th) { th.style.width = tblColWidths[_tblResize.key] + 'px'; th.style.minWidth = tblColWidths[_tblResize.key] + 'px'; }
+}
+function tblResizeEnd() {
+  _tblResize = null;
+  document.removeEventListener('mousemove', tblResizeMove);
+  document.removeEventListener('mouseup', tblResizeEnd);
+  renderTasksTable();
+}
+
+// ---- Drag & drop reorder ----
+let _tblDragCol = null;
+function tblDragStart(ev, key) { _tblDragCol = key; ev.target.closest('th').classList.add('dragging'); }
+function tblDragOver(ev, key) { ev.preventDefault(); const th = ev.target.closest('th'); if (th) th.classList.add('drag-over'); }
+function tblDrop(ev, key) {
+  ev.preventDefault();
+  document.querySelectorAll('.xtbl th').forEach(t => t.classList.remove('drag-over'));
+  if (!_tblDragCol || _tblDragCol === key) return;
+  const order = tblColKeys();
+  const from = order.indexOf(_tblDragCol);
+  const to = order.indexOf(key);
+  if (from < 0 || to < 0) return;
+  order.splice(from, 1);
+  order.splice(to, 0, _tblDragCol);
+  tblColOrder = order;
+  renderTasksTable();
+}
+function tblDragEnd(ev) {
+  document.querySelectorAll('.xtbl th').forEach(t => t.classList.remove('dragging', 'drag-over'));
+  _tblDragCol = null;
+}
+
+// Attach cache tozalash (task o'zgarganда qayta yuklash uchun emas — attach kamdan-kam o'zgaradi)
+function tblResetAttachCache() { _tblAttachSet = null; }
+
 
 function tkFilteredTasks() {
   let list = (tasksCache || []).slice();
