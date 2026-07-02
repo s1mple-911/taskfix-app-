@@ -460,7 +460,7 @@
   .tbl-subviews { display:flex; gap:4px; margin-bottom:12px; flex-wrap:wrap; border-bottom:1px solid var(--line); padding-bottom:0; }
   .tbl-sv { padding:8px 14px; font-size:13px; font-weight:500; color:var(--muted); background:transparent; border:none; border-bottom:2px solid transparent; cursor:pointer; font-family:inherit; margin-bottom:-1px; }
   .tbl-sv:hover { color:var(--ink); }
-  .tbl-sv.active { color:var(--accent-ink); border-bottom-color:var(--accent); font-weight:600; }
+  .tbl-sv.active { color:#0F1417; border-bottom-color:#0F1417; font-weight:700; background:rgba(15,20,23,.05); border-radius:8px 8px 0 0; }
   .tbl-toolbar { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
   .tbl-wrap { overflow:auto; border:1px solid var(--line); border-radius:10px; max-height:calc(100vh - 260px); position:relative; background:var(--surface); }
   .xtbl { border-collapse:separate; border-spacing:0; font-size:13px; width:max-content; min-width:100%; }
@@ -690,9 +690,9 @@
 
   <main class="main">
     <div class="topbar">
-      <div class="topbar-search" onclick="openCmdPalette()">
+      <div class="topbar-search" onclick="topSearchFocus()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
-        <span style="flex:1;">Hammasi: vazifa, odam, sahifa…</span>
+        <input id="topSearchInp" type="text" placeholder="Hammasi: vazifa, odam, sahifa…" style="flex:1;border:none;background:transparent;outline:none;font-family:inherit;font-size:13px;color:var(--ink);min-width:0;" oninput="topSearchInput(this)" onfocus="topSearchInput(this)" autocomplete="off" />
         <span class="kbd">⌘K</span>
       </div>
       <button class="btn topbar-new" onclick="openCreate()" id="topbarNewBtn" style="display:none;">
@@ -2107,7 +2107,7 @@ async function doLogout() {
   await sb.auth.signOut();
   me = myProfile = currentWs = myWsRole = null;
   workspaces = []; myDepts = []; departments = []; tasksCache = []; notifs = [];
-  _tblAttachSet = null; tblFilters = {}; tblSort = { col: null, dir: 1 }; tblColOrder = null;
+  _tblAttachSet = null; tblFilters = {}; tblSort = { col: null, dir: 1 }; tblColOrder = null; _tblNewRowOpen = false;
   setMode('login'); $('email').value=''; $('password').value=''; showAuth();
 }
 
@@ -6030,11 +6030,11 @@ async function renderTasksTable() {
     const filterActive = (tblFilters[key] && tblFilters[key].size) ? ' active' : '';
     head += '<th class="' + freeze + '" data-col="' + key + '" style="width:' + w + 'px;min-width:' + w + 'px" draggable="true" ' +
       'ondragstart="tblDragStart(event,\'' + key + '\')" ondragover="tblDragOver(event,\'' + key + '\')" ondrop="tblDrop(event,\'' + key + '\')" ondragend="tblDragEnd(event)">' +
-      '<div class="th-inner">' +
-        '<span class="th-lbl" ' + (meta.sortable ? 'onclick="tblToggleSort(\'' + key + '\')"' : '') + '>' + escapeHtml(meta.label) + '</span>' +
+      '<div class="th-inner" onclick="tblOpenHeaderMenu(event,\'' + key + '\')">' +
+        '<span class="th-lbl">' + escapeHtml(meta.label) + '</span>' +
         (sortIc ? '<span class="th-sort">' + sortIc + '</span>' : '') +
-        (meta.filter ? '<span class="th-filter' + filterActive + '" onclick="tblOpenFilter(event,\'' + key + '\')">▾</span>' : '') +
-        '<span class="th-resize" onmousedown="tblResizeStart(event,\'' + key + '\')"></span>' +
+        ((meta.sortable || meta.filter) ? '<span class="th-filter' + filterActive + '">▾</span>' : '') +
+        '<span class="th-resize" onmousedown="tblResizeStart(event,\'' + key + '\')" onclick="event.stopPropagation()" draggable="false"></span>' +
       '</div></th>';
   });
   head += '</tr>';
@@ -6045,7 +6045,10 @@ async function renderTasksTable() {
   const canEdit = canEditWorkspace();
   let body = '';
 
-  if (!list.length) {
+  // Inline yangi qator (ochiq bo'lsa — eng tepada)
+  if (_tblNewRowOpen) body += tblNewRowHtml(cols);
+
+  if (!list.length && !_tblNewRowOpen) {
     body = '<tr class="tbl-empty-row"><td colspan="' + cols.length + '">Vazifa topilmadi</td></tr>';
     $('xtblBody').innerHTML = body;
     return;
@@ -6167,10 +6170,72 @@ async function tblUpdate(taskId, field, value) {
   }
 }
 
-// Yangi qator (vazifa) qo'shish — Create modalни ochamιz
+// Yangi qator — jadval ичida inline (modal emas)
+let _tblNewRowOpen = false;
 function tblAddRow() {
   if (!canEditWorkspace()) { toast('Bunga huquqingiz yo\'q', 'err'); return; }
-  openCreate();
+  _tblNewRowOpen = true;
+  renderTasksTable();
+  setTimeout(() => { const i = $('tblNewTitle'); if (i) i.focus(); }, 60);
+}
+function tblCancelNewRow() {
+  _tblNewRowOpen = false;
+  renderTasksTable();
+}
+function tblNewRowHtml(cols) {
+  const firstCol = (kanbanColumns || []).slice().sort((a,b)=>(a.sort_order||0)-(b.sort_order||0))[0];
+  const defStatus = firstCol ? firstCol.status : 'new';
+  let row = '<tr style="background:rgba(254,243,199,.18);">';
+  cols.forEach(key => {
+    const meta = TBL_COL_META[key];
+    const freeze = meta.freeze ? ' col-freeze' : '';
+    let cell = '';
+    switch (key) {
+      case 'id': cell = '<span class="cell-id">＋</span>'; break;
+      case 'title':
+        cell = '<input id="tblNewTitle" class="cell-inp" type="text" placeholder="Vazifa nomi… (Enter=saqlash, Esc=bekor)" style="border-color:var(--line);background:var(--surface);" onkeydown="if(event.key===\'Enter\')tblSaveNewRow();if(event.key===\'Escape\')tblCancelNewRow();">'; break;
+      case 'department':
+        cell = '<select id="tblNewDept" class="cell-sel"><option value="">—</option>' + (departments||[]).map(d=>'<option value="'+d.id+'">'+escapeHtml(d.name)+'</option>').join('') + '</select>'; break;
+      case 'assignee':
+        cell = '<select id="tblNewAsg" class="cell-sel"><option value="">—</option>' + (wsMembers||[]).map(m=>'<option value="'+m.user_id+'">'+escapeHtml(m.user_id===me.id?(myProfile.full_name||'Siz'):((m.profile&&m.profile.full_name)||'A\'zo'))+'</option>').join('') + '</select>'; break;
+      case 'deadline':
+        cell = '<input id="tblNewDl" class="cell-inp" type="date">'; break;
+      case 'priority':
+        cell = '<select id="tblNewPrio" class="cell-sel">' + Array.from({length:11},(_,i)=>'<option value="'+i+'">'+(i===0?'—':'P'+i)+'</option>').join('') + '</select>'; break;
+      case 'status':
+        cell = '<select id="tblNewStatus" class="cell-sel">' + (kanbanColumns||[]).slice().sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)).map(c=>'<option value="'+escapeHtml(c.status)+'" '+(c.status===defStatus?'selected':'')+'>'+escapeHtml(c.name)+'</option>').join('') + '</select>'; break;
+      case 'creator':
+        cell = '<div style="display:flex;gap:6px;"><button class="btn sm" onclick="tblSaveNewRow()">✓ Saqlash</button><button class="btn sm secondary" onclick="tblCancelNewRow()">✕</button></div>'; break;
+    }
+    row += '<td class="' + freeze + '">' + cell + '</td>';
+  });
+  row += '</tr>';
+  return row;
+}
+async function tblSaveNewRow() {
+  const title = ($('tblNewTitle')?.value || '').trim();
+  if (!title) { toast('Vazifa nomini kiriting', 'err'); return; }
+  const payload = {
+    workspace_id: currentWs.id,
+    department_id: $('tblNewDept')?.value || null,
+    title,
+    description: null,
+    deadline: $('tblNewDl')?.value ? new Date($('tblNewDl').value).toISOString() : null,
+    priority_level: parseInt($('tblNewPrio')?.value || '0', 10) || 0,
+    created_by: me.id,
+    assigned_to: $('tblNewAsg')?.value || null,
+    status: $('tblNewStatus')?.value || 'new'
+  };
+  try {
+    const { data, error } = await sb.from('tasks').insert(payload).select().single();
+    if (error) throw error;
+    if (data && !tasksCache.find(t => t.id === data.id)) tasksCache.unshift(data);
+    _tblNewRowOpen = false;
+    toast('✓ Vazifa qo\'shildi', 'ok');
+    renderTasksTable();
+  } catch (e) {
+    toast('Xato: ' + (e.message || e), 'err');
+  }
 }
 
 // ---- Sort ----
@@ -6180,31 +6245,57 @@ function tblToggleSort(key) {
   renderTasksTable();
 }
 
-// ---- Filter popover ----
-function tblOpenFilter(ev, key) {
+// ---- Excel-uslub header menyu: sort + filter bitta joyда ----
+function tblOpenHeaderMenu(ev, key) {
   ev.stopPropagation();
   document.querySelectorAll('.tbl-filter-pop').forEach(p => p.remove());
-  const values = [...new Set((tblGetTasksNoFilter(key)).map(t => String(tblCellValue(t, key))))].sort();
-  const active = tblFilters[key] || new Set();
+  const meta = TBL_COL_META[key];
   const pop = document.createElement('div');
   pop.className = 'tbl-filter-pop';
-  let html = '<div style="display:flex;gap:6px;margin-bottom:6px;">' +
-    '<button class="btn sm secondary" style="flex:1" onclick="tblFilterAll(\'' + key + '\',true)">Hammasi</button>' +
-    '<button class="btn sm secondary" style="flex:1" onclick="tblFilterAll(\'' + key + '\',false)">Hech biri</button></div>';
-  values.forEach(v => {
-    const checked = !active.size || active.has(v) ? 'checked' : '';
-    html += '<label><input type="checkbox" ' + checked + ' onchange="tblFilterToggle(\'' + key + '\',this.value,this.checked)" value="' + escapeHtml(v) + '">' + escapeHtml(v) + '</label>';
-  });
+  let html = '';
+
+  // Sort qismi
+  if (meta.sortable) {
+    const isAsc = tblSort.col === key && tblSort.dir === 1;
+    const isDesc = tblSort.col === key && tblSort.dir === -1;
+    html += '<div style="display:flex;flex-direction:column;gap:2px;margin-bottom:6px;">' +
+      '<button class="btn sm secondary" style="justify-content:flex-start;' + (isAsc ? 'background:#0F1417;color:#fff;' : '') + '" onclick="tblSortSet(\'' + key + '\',1)">↑ &nbsp;A → Z (o\'sish)</button>' +
+      '<button class="btn sm secondary" style="justify-content:flex-start;' + (isDesc ? 'background:#0F1417;color:#fff;' : '') + '" onclick="tblSortSet(\'' + key + '\',-1)">↓ &nbsp;Z → A (kamayish)</button>' +
+      (tblSort.col === key ? '<button class="btn sm secondary" style="justify-content:flex-start;" onclick="tblSortSet(null,1)">✕ &nbsp;Saralashni bekor qilish</button>' : '') +
+      '</div>';
+  }
+
+  // Filter qismi
+  if (meta.filter) {
+    const values = [...new Set((tblGetTasksNoFilter(key)).map(t => String(tblCellValue(t, key))))].sort();
+    const active = tblFilters[key] || new Set();
+    html += '<div style="border-top:1px solid var(--line);padding-top:6px;margin-top:2px;">' +
+      '<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:2px 8px 6px;">Filtr</div>' +
+      '<div style="display:flex;gap:6px;margin-bottom:6px;">' +
+      '<button class="btn sm secondary" style="flex:1" onclick="tblFilterAll(\'' + key + '\',true)">Hammasi</button>' +
+      '<button class="btn sm secondary" style="flex:1" onclick="tblFilterAll(\'' + key + '\',false)">Hech biri</button></div>';
+    values.forEach(v => {
+      const checked = !active.size || active.has(v) ? 'checked' : '';
+      html += '<label><input type="checkbox" ' + checked + ' onchange="tblFilterToggle(\'' + key + '\',this.value,this.checked)" value="' + escapeHtml(v) + '">' + escapeHtml(v) + '</label>';
+    });
+    html += '</div>';
+  }
+
   pop.innerHTML = html;
   document.body.appendChild(pop);
-  const r = ev.target.getBoundingClientRect();
+  const r = ev.currentTarget.getBoundingClientRect();
   pop.style.top = (r.bottom + 4) + 'px';
-  pop.style.left = Math.min(r.left, window.innerWidth - 240) + 'px';
+  pop.style.left = Math.min(r.left, window.innerWidth - 260) + 'px';
   setTimeout(() => {
     document.addEventListener('click', function close(e) {
       if (!pop.contains(e.target)) { pop.remove(); document.removeEventListener('click', close); }
     });
   }, 50);
+}
+function tblSortSet(key, dir) {
+  tblSort.col = key; tblSort.dir = dir;
+  document.querySelectorAll('.tbl-filter-pop').forEach(p => p.remove());
+  renderTasksTable();
 }
 function tblGetTasksNoFilter(exceptKey) {
   // Filtrsiz (o'zi bundan mustasno) ro'yxat — filter variantlari uchun
@@ -6255,8 +6346,21 @@ function tblResizeEnd() {
 
 // ---- Drag & drop reorder ----
 let _tblDragCol = null;
-function tblDragStart(ev, key) { _tblDragCol = key; ev.target.closest('th').classList.add('dragging'); }
-function tblDragOver(ev, key) { ev.preventDefault(); const th = ev.target.closest('th'); if (th) th.classList.add('drag-over'); }
+function tblDragStart(ev, key) {
+  _tblDragCol = key;
+  try {
+    ev.dataTransfer.setData('text/plain', key);
+    ev.dataTransfer.effectAllowed = 'move';
+  } catch (e) {}
+  ev.target.closest('th').classList.add('dragging');
+}
+function tblDragOver(ev, key) {
+  ev.preventDefault();
+  try { ev.dataTransfer.dropEffect = 'move'; } catch (e) {}
+  document.querySelectorAll('.xtbl th.drag-over').forEach(t => t.classList.remove('drag-over'));
+  const th = ev.target.closest('th');
+  if (th && th.dataset.col !== _tblDragCol) th.classList.add('drag-over');
+}
 function tblDrop(ev, key) {
   ev.preventDefault();
   document.querySelectorAll('.xtbl th').forEach(t => t.classList.remove('drag-over'));
@@ -8032,6 +8136,28 @@ async function init() {
 // ============ ⌘K COMMAND PALETTE ============
 let _cmdItems = [];
 let _cmdIndex = 0;
+
+// Topbar search — yozganда palette ochilib, matn sinxron qidiriladi
+function topSearchFocus() {
+  const inp = $('topSearchInp');
+  if (inp) { try { inp.focus(); } catch (e) {} }
+}
+function topSearchInput(inp) {
+  const bd = $('cmdPaletteBd');
+  if (bd && !bd.classList.contains('show')) {
+    bd.classList.add('show');
+    _cmdIndex = 0;
+  }
+  const pInp = $('cmdPaletteInput');
+  if (pInp) {
+    pInp.value = inp.value;
+    renderCmdPalette();
+    // Fokusни palette inputга o'tkazamiz — o'q tugmalar ishlashi uchun
+    try { pInp.focus(); pInp.setSelectionRange(pInp.value.length, pInp.value.length); } catch (e) {}
+  }
+  // Topbar inputни tozalaymiz (palette endi asosiy)
+  inp.value = '';
+}
 
 function openCmdPalette() {
   const bd = $('cmdPaletteBd');
