@@ -691,10 +691,11 @@
 
   <main class="main">
     <div class="topbar">
-      <div class="topbar-search" onclick="topSearchFocus()">
+      <div class="topbar-search" id="topSearchWrap" style="position:relative;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
-        <input id="topSearchInp" type="text" placeholder="Hammasi: vazifa, odam, sahifa…" style="flex:1;border:none;background:transparent;outline:none;font-family:inherit;font-size:13px;color:var(--ink);min-width:0;" oninput="topSearchInput(this)" onkeydown="topSearchKey(event)" autocomplete="off" />
+        <input id="topSearchInp" type="text" placeholder="Hammasi: vazifa, odam, sahifa…" style="flex:1;border:none;background:transparent;outline:none;font-family:inherit;font-size:13px;color:var(--ink);min-width:0;" oninput="topSearchRun()" onkeydown="topSearchKey(event)" onfocus="topSearchRun()" autocomplete="off" />
         <span class="kbd">⌘K</span>
+        <div id="topSearchDrop" style="display:none;position:absolute;top:44px;left:0;right:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.16);max-height:420px;overflow:auto;z-index:300;padding:6px;"></div>
       </div>
       <button class="btn topbar-new" onclick="openCreate()" id="topbarNewBtn" style="display:none;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M12 5v14M5 12h14"></path></svg>
@@ -2500,6 +2501,9 @@ async function loadCurrentContext() {
   // Tasks + kanban — parallel
   await Promise.all([loadTasksFull(), loadKanbanColumns()]);
 
+  // Jadval sozlamalarини (kenglik, tartib, filtr, sort) tiklaymιz
+  tblLoadSettings();
+
   setupRealtime();
   renderSidebar();
   updateDashboard(subR.data);
@@ -2584,12 +2588,25 @@ function teardownRealtime() {
 
 async function loadTasksFull() {
   if (!currentWs) { tasksCache = []; return; }
-  let q = sb.from('tasks').select('*').eq('workspace_id', currentWs.id);
-  // Oddiy a'zo (owner/admin emas) — FAQAT o'ziga biriktirilган vazifalarни ko'radi
-  if (!isOwnerLike()) {
-    q = q.eq('assigned_to', me.id);
+  // Owner/admin — hamma vazifa
+  if (isOwnerLike()) {
+    const { data } = await sb.from('tasks').select('*').eq('workspace_id', currentWs.id).order('created_at', { ascending: false });
+    tasksCache = data || [];
+    return;
   }
-  const { data } = await q.order('created_at', { ascending: false });
+  // Oddiy a'zo — o'ziga tegishli barcha vazifalar:
+  // (a) assigned_to = men, (b) men yaratган, (c) Telegram identitetimga biriktirilган
+  let myTgIds = [];
+  try {
+    const { data: tgu } = await sb.from('tg_bot_users').select('id').eq('linked_user_id', me.id);
+    myTgIds = (tgu || []).map(x => x.id);
+  } catch (e) {}
+  const orParts = ['assigned_to.eq.' + me.id, 'created_by.eq.' + me.id];
+  if (myTgIds.length) orParts.push('assigned_to_tg_bot_user.in.(' + myTgIds.join(',') + ')');
+  const { data } = await sb.from('tasks').select('*')
+    .eq('workspace_id', currentWs.id)
+    .or(orParts.join(','))
+    .order('created_at', { ascending: false });
   tasksCache = data || [];
 }
 
@@ -5904,6 +5921,43 @@ let tblFilters = {};                          // colKey -> Set of allowed values
 let tblColWidths = {};                        // colKey -> px
 let tblColOrder = null;                       // massiv (reorder)
 
+// ---- Jadval sozlamalarини saqlash (localStorage, workspace bo'yicha) ----
+function tblSaveSettings() {
+  if (!currentWs) return;
+  // Filtrlar Set → massiv
+  const filtersObj = {};
+  Object.keys(tblFilters).forEach(k => {
+    if (tblFilters[k] && tblFilters[k].size) filtersObj[k] = [...tblFilters[k]];
+  });
+  const state = {
+    sort: tblSort,
+    filters: filtersObj,
+    widths: tblColWidths,
+    order: tblColOrder,
+    subview: tblSubview
+  };
+  try { localStorage.setItem('tblSettings_' + currentWs.id, JSON.stringify(state)); } catch (e) {}
+}
+function tblLoadSettings() {
+  if (!currentWs) return;
+  // Avval defaultга qaytaramιz (boshqa workspace sozlamasi o'tib ketmasin)
+  tblSort = { col: null, dir: 1 };
+  tblColWidths = {};
+  tblColOrder = null;
+  tblSubview = 'all';
+  tblFilters = {};
+  try {
+    const raw = localStorage.getItem('tblSettings_' + currentWs.id);
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    tblSort = s.sort || { col: null, dir: 1 };
+    tblColWidths = s.widths || {};
+    tblColOrder = s.order || null;
+    tblSubview = s.subview || 'all';
+    Object.keys(s.filters || {}).forEach(k => { tblFilters[k] = new Set(s.filters[k]); });
+  } catch (e) {}
+}
+
 const TBL_COLS_DEFAULT = ['id', 'file', 'title', 'department', 'creator', 'assignee', 'start', 'deadline', 'priority', 'status'];
 const TBL_COL_META = {
   id:         { label: '№', w: 60, sortable: true, filter: false },
@@ -5977,12 +6031,12 @@ function tblCustomMeta(key) {
 function tblSetSubview(sv) {
   tblSubview = sv;
   document.querySelectorAll('#tblSubviews [data-sv]').forEach(b => b.classList.toggle('active', b.dataset.sv === sv));
-  renderTasksTable();
+  tblSaveSettings(); renderTasksTable();
 }
 
 function tblClearFilters() {
   tblFilters = {};
-  renderTasksTable();
+  tblSaveSettings(); renderTasksTable();
 }
 
 // Yordamchi: a'zo ismi
@@ -6061,6 +6115,8 @@ function tblGetTasks() {
 
 async function renderTasksTable() {
   if (!$('xtblHead')) return;
+  // Saqlangan subview tab'ini faollashtiramιz
+  document.querySelectorAll('#tblSubviews [data-sv]').forEach(b => b.classList.toggle('active', b.dataset.sv === tblSubview));
   // Shift+Enter = yangi qator (bir marta bog'laymιz)
   if (!window._tblKeyBound) {
     window._tblKeyBound = true;
@@ -6329,7 +6385,7 @@ async function tblSaveNewRow() {
 function tblToggleSort(key) {
   if (tblSort.col === key) tblSort.dir = -tblSort.dir;
   else { tblSort.col = key; tblSort.dir = 1; }
-  renderTasksTable();
+  tblSaveSettings(); renderTasksTable();
 }
 
 // ---- Excel-uslub header menyu: sort + filter bitta joyда ----
@@ -6382,7 +6438,7 @@ function tblOpenHeaderMenu(ev, key) {
 function tblSortSet(key, dir) {
   tblSort.col = key; tblSort.dir = dir;
   document.querySelectorAll('.tbl-filter-pop').forEach(p => p.remove());
-  renderTasksTable();
+  tblSaveSettings(); renderTasksTable();
 }
 function tblGetTasksNoFilter(exceptKey) {
   // Filtrsiz (o'zi bundan mustasno) ro'yxat — filter variantlari uchun
@@ -6399,12 +6455,12 @@ function tblFilterToggle(key, val, on) {
     tblFilters[key] = new Set(all);
   }
   if (on) tblFilters[key].add(val); else tblFilters[key].delete(val);
-  renderTasksTable();
+  tblSaveSettings(); renderTasksTable();
 }
 function tblFilterAll(key, on) {
   if (on) { delete tblFilters[key]; }
   else { tblFilters[key] = new Set(); }
-  renderTasksTable();
+  tblSaveSettings(); renderTasksTable();
   // popover'ni yangilaymιz
   document.querySelectorAll('.tbl-filter-pop').forEach(p => p.remove());
 }
@@ -6439,7 +6495,7 @@ function tblResizeEnd() {
   document.removeEventListener('mouseup', tblResizeEnd);
   // Drag'ни qayta yoqamιz
   document.querySelectorAll('#xtblHead th').forEach(th => th.setAttribute('draggable', 'true'));
-  renderTasksTable();
+  tblSaveSettings(); renderTasksTable();
 }
 
 // ---- Drag & drop reorder ----
@@ -6470,7 +6526,7 @@ function tblDrop(ev, key) {
   order.splice(from, 1);
   order.splice(to, 0, _tblDragCol);
   tblColOrder = order;
-  renderTasksTable();
+  tblSaveSettings(); renderTasksTable();
 }
 function tblDragEnd(ev) {
   document.querySelectorAll('.xtbl th').forEach(t => t.classList.remove('dragging', 'drag-over'));
@@ -8248,33 +8304,104 @@ async function init() {
 let _cmdItems = [];
 let _cmdIndex = 0;
 
-// Topbar search — yozganда palette ochilib, matn ko'zgu qilinadi (tozalamaymιz!)
-function topSearchFocus() {
+// Topbar search — mustaqil dropdown (palette'gа bog'liq emas)
+let _topSearchResults = [];
+let _topSearchIdx = 0;
+function topSearchRun() {
   const inp = $('topSearchInp');
-  if (inp) { try { inp.focus(); } catch (e) {} }
-}
-function topSearchInput(inp) {
-  const bd = $('cmdPaletteBd');
-  const pInp = $('cmdPaletteInput');
-  if (inp.value.trim()) {
-    if (bd && !bd.classList.contains('show')) { bd.classList.add('show'); _cmdIndex = 0; }
-    if (pInp) pInp.value = inp.value;
-    renderCmdPalette();
-  } else {
-    if (bd) bd.classList.remove('show');
+  const drop = $('topSearchDrop');
+  if (!inp || !drop) return;
+  const q = (inp.value || '').trim().toLowerCase();
+  if (!q) { drop.style.display = 'none'; drop.innerHTML = ''; _topSearchResults = []; return; }
+
+  const results = [];
+  const match = (text) => (text || '').toLowerCase().includes(q);
+
+  // 1. Vazifalar
+  (tasksCache || []).forEach(t => {
+    if (match(t.title) || match(t.description) || String(t.id) === q) {
+      results.push({ type: 'task', icon: '✓', title: t.title || '(nomsiz)', sub: 'Vazifa #' + t.id, action: () => { goPage('tasks'); openDetail(t.id); } });
+    }
+  });
+  // 2. Odamlar (a'zolar)
+  (wsMembers || []).forEach(m => {
+    const name = m.user_id === me.id ? (myProfile.full_name || 'Siz') : ((m.profile && m.profile.full_name) || '');
+    if (match(name)) {
+      results.push({ type: 'user', icon: '👤', title: name, sub: 'Jamoa a\'zosi', action: () => { goPage('team'); } });
+    }
+  });
+  // 3. Bo'limlar
+  (departments || []).forEach(d => {
+    if (match(d.name)) {
+      results.push({ type: 'dept', icon: '▦', title: d.name, sub: 'Bo\'lim', action: () => { goDept(d.id); } });
+    }
+  });
+  // 4. Sahifalar
+  const pages = [
+    { label: 'Bosh sahifa', page: 'dashboard', mgr: false },
+    { label: 'Hamma vazifalar', page: 'tasks', mgr: false },
+    { label: 'Statistika', page: 'stats', mgr: true },
+    { label: 'Tashkilot', page: 'orgchart', mgr: true },
+    { label: 'Jamoa', page: 'team', mgr: false },
+    { label: 'Filiallar', page: 'branches', mgr: true },
+    { label: 'Lavozimlar', page: 'positions', mgr: true },
+    { label: 'Integratsiyalar', page: 'integrations', mgr: true },
+    { label: 'Sozlamalar', page: 'settings', mgr: true },
+    { label: 'Profil', page: 'profile', mgr: false },
+  ];
+  pages.filter(p => (!p.mgr || isOwnerLike()) && match(p.label)).forEach(p => {
+    results.push({ type: 'page', icon: '⚡', title: p.label, sub: 'Sahifa', action: () => { goPage(p.page); } });
+  });
+
+  _topSearchResults = results.slice(0, 20);
+  _topSearchIdx = 0;
+  if (!_topSearchResults.length) {
+    drop.innerHTML = '<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px;">Hech narsa topilmadi</div>';
+    drop.style.display = 'block';
+    return;
   }
+  topSearchRender();
+  drop.style.display = 'block';
+}
+function topSearchRender() {
+  const drop = $('topSearchDrop');
+  let lastType = '';
+  const typeLabels = { task: 'Vazifalar', user: 'Odamlar', dept: 'Bo\'limlar', page: 'Sahifalar' };
+  drop.innerHTML = _topSearchResults.map((r, i) => {
+    let head = '';
+    if (r.type !== lastType) { head = '<div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:8px 10px 4px;">' + typeLabels[r.type] + '</div>'; lastType = r.type; }
+    const active = i === _topSearchIdx ? 'background:var(--surface-2);' : '';
+    return head + '<div class="tsr-item" data-i="' + i + '" onmousedown="event.preventDefault();topSearchPick(' + i + ')" onmouseenter="topSearchHover(' + i + ')" style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;' + active + '">' +
+      '<span style="width:22px;text-align:center;">' + r.icon + '</span>' +
+      '<span style="flex:1;min-width:0;"><span style="display:block;font-size:13.5px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(r.title) + '</span>' +
+      '<span style="display:block;font-size:11.5px;color:var(--muted);">' + escapeHtml(r.sub) + '</span></span></div>';
+  }).join('');
+}
+function topSearchHover(i) { _topSearchIdx = i; topSearchRender(); }
+function topSearchPick(i) {
+  const r = _topSearchResults[i];
+  if (!r) return;
+  $('topSearchInp').value = '';
+  $('topSearchDrop').style.display = 'none';
+  _topSearchResults = [];
+  r.action();
 }
 function topSearchKey(ev) {
-  // Palette ochiq bo'lsa — o'q/enter/esc palette'ga uzatiladi
-  const bd = $('cmdPaletteBd');
-  if (!bd || !bd.classList.contains('show')) return;
-  if (ev.key === 'Escape') { bd.classList.remove('show'); $('topSearchInp').blur(); return; }
-  if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp' || ev.key === 'Enter') {
-    cmdPaletteKey(ev);
-    // Enter'да palette yopilsa, topbar inputni ham tozalaymιz
-    if (ev.key === 'Enter') { const i = $('topSearchInp'); if (i) i.value = ''; }
+  const drop = $('topSearchDrop');
+  if (!drop || drop.style.display === 'none' || !_topSearchResults.length) {
+    if (ev.key === 'Escape') { $('topSearchInp').blur(); }
+    return;
   }
+  if (ev.key === 'ArrowDown') { ev.preventDefault(); _topSearchIdx = Math.min(_topSearchIdx + 1, _topSearchResults.length - 1); topSearchRender(); }
+  else if (ev.key === 'ArrowUp') { ev.preventDefault(); _topSearchIdx = Math.max(_topSearchIdx - 1, 0); topSearchRender(); }
+  else if (ev.key === 'Enter') { ev.preventDefault(); topSearchPick(_topSearchIdx); }
+  else if (ev.key === 'Escape') { ev.preventDefault(); drop.style.display = 'none'; $('topSearchInp').value = ''; $('topSearchInp').blur(); }
 }
+// Tashqariga bosilса — yopiladi
+document.addEventListener('click', (e) => {
+  const wrap = $('topSearchWrap');
+  if (wrap && !wrap.contains(e.target)) { const d = $('topSearchDrop'); if (d) d.style.display = 'none'; }
+});
 
 function openCmdPalette() {
   const bd = $('cmdPaletteBd');
