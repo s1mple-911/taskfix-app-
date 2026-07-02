@@ -6502,6 +6502,12 @@ function tkFilteredTasks() {
   return list;
 }
 
+function rerenderActiveKanban() {
+  if (currentPage === 'tasks' && currentTasksView === 'kanban') renderTasksKanban();
+  else if (currentPage === 'department' && currentDeptView === 'kanban') renderKanban();
+  else { try { renderKanban(); } catch (e) {} try { renderTasksKanban(); } catch (e) {} }
+}
+
 function renderTasksKanban() {
   const grid = $('tkGrid'); if (!grid) return;
   const tasks = tkFilteredTasks();
@@ -6537,13 +6543,20 @@ function renderTasksKanban() {
     const colId = col.id;
     const isFb = String(colId).startsWith('fallback-');
     const colorDot = '<span class="kan-col-color" style="background:' + (col.color || '#94A3B8') + '"></span>';
-    const nameHtml = '<span class="kan-col-name">' + escapeHtml(col.name) + '</span>';
+    const canMng = canEditWorkspace();
+    const nameHtml = (canMng && !isFb)
+      ? '<span class="kan-col-name" ondblclick="event.stopPropagation(); editColName(\'' + colId + '\', this)" title="Ikki marta bosing — tahrirlash">' + escapeHtml(col.name) + '</span>'
+      : '<span class="kan-col-name">' + escapeHtml(col.name) + '</span>';
+    const actions = (!canMng || col.is_default || isFb)
+      ? ''
+      : '<div class="kan-col-actions"><button class="kan-col-action-btn" title="O\'chirish" onclick="event.stopPropagation(); deleteColumn(\'' + colId + '\')">×</button></div>';
 
     return '<div class="kan-col" data-col="'+colId+'" data-status="'+col.status+'"' +
       ' ondragover="kanDragOver(event)" ondragleave="kanDragLeave(event)" ondrop="kanDrop(event, \''+col.status+'\')">' +
-      '<div class="kan-head">' +
+      '<div class="kan-head"' + ((canMng && !isFb) ? ' draggable="true" ondragstart="colDragStart(event, \''+colId+'\')" ondragend="colDragEnd(event)" ondragover="colDragOver(event)" ondragleave="colDragLeave(event)" ondrop="colDrop(event, \''+colId+'\')"' : '') + '>' +
         '<div class="kan-col-head">' + colorDot + nameHtml + '</div>' +
         '<div style="display:flex; align-items:center; gap:6px;">' +
+          actions +
           '<span class="kan-count">' + cards.length + '</span>' +
         '</div>' +
       '</div>' +
@@ -6885,7 +6898,7 @@ async function saveNewColumn() {
     if (error) throw error;
     kanbanColumns.push(data);
     closeAddColumnModal();
-    renderKanban();
+    rerenderActiveKanban();
     toast('✓ Column qo\'shildi', 'ok');
   } catch (e) {
     showMsg($('kcMsg'), translateErr(e.message), 'err');
@@ -6924,7 +6937,7 @@ function editColName(colId, el) {
         }).select().single();
         if (error) throw error;
         kanbanColumns.push(data);
-        renderKanban();
+        rerenderActiveKanban();
       } else {
         const { error } = await sb.from('kanban_columns').update({ name: newName }).eq('id', colId);
         if (error) throw error;
@@ -6948,7 +6961,7 @@ async function deleteColumn(colId) {
     const { error } = await sb.from('kanban_columns').delete().eq('id', colId);
     if (error) throw error;
     kanbanColumns = kanbanColumns.filter(c => c.id !== colId);
-    renderKanban();
+    rerenderActiveKanban();
     toast('O\'chirildi', 'ok');
   } catch (e) { toast(translateErr(e.message), 'err'); }
 }
@@ -7026,7 +7039,7 @@ async function reorderColumn(srcId, tgtId, before) {
       const c = kanbanColumns.find(x => x.id === u.id);
       if (c) c.sort_order = u.sort_order;
     });
-    renderKanban();
+    rerenderActiveKanban();
     // DB update parallel
     await Promise.all(updates.map(u => sb.from('kanban_columns').update({ sort_order: u.sort_order }).eq('id', u.id)));
     toast('✓ Tartib o\'zgartirildi', 'ok');
