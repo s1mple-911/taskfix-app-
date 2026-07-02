@@ -470,7 +470,8 @@
   .xtbl th .th-sort { font-size:10px; color:var(--muted); }
   .xtbl th .th-filter { font-size:11px; color:var(--muted); cursor:pointer; padding:2px 4px; border-radius:4px; }
   .xtbl th .th-filter:hover, .xtbl th .th-filter.active { background:var(--accent); color:#fff; }
-  .xtbl th .th-resize { position:absolute; right:0; top:0; bottom:0; width:6px; cursor:col-resize; }
+  .xtbl th .th-resize { position:absolute; right:-4px; top:0; bottom:0; width:9px; cursor:col-resize; z-index:2; }
+  .xtbl th .th-resize:hover { background:var(--accent); opacity:.5; }
   .xtbl th.dragging { opacity:.4; }
   .xtbl th.drag-over { border-left:2px solid var(--accent); }
   .xtbl tbody td { border-bottom:1px solid var(--line); border-right:1px solid var(--line); padding:7px 10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:340px; vertical-align:middle; background:var(--surface); }
@@ -692,7 +693,7 @@
     <div class="topbar">
       <div class="topbar-search" onclick="topSearchFocus()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
-        <input id="topSearchInp" type="text" placeholder="Hammasi: vazifa, odam, sahifa…" style="flex:1;border:none;background:transparent;outline:none;font-family:inherit;font-size:13px;color:var(--ink);min-width:0;" oninput="topSearchInput(this)" onfocus="topSearchInput(this)" autocomplete="off" />
+        <input id="topSearchInp" type="text" placeholder="Hammasi: vazifa, odam, sahifa…" style="flex:1;border:none;background:transparent;outline:none;font-family:inherit;font-size:13px;color:var(--ink);min-width:0;" oninput="topSearchInput(this)" onkeydown="topSearchKey(event)" autocomplete="off" />
         <span class="kbd">⌘K</span>
       </div>
       <button class="btn topbar-new" onclick="openCreate()" id="topbarNewBtn" style="display:none;">
@@ -797,7 +798,8 @@
           <input type="text" class="search-input" id="tblSearch" placeholder="Qidirish..." oninput="renderTasksTable()" style="max-width:260px;" />
           <button class="btn sm secondary" onclick="tblClearFilters()" id="tblClearBtn" style="display:none;">✕ Filtrlarni tozalash</button>
           <div style="flex:1"></div>
-          <button class="btn sm" onclick="tblAddRow()">+ Yangi qator</button>
+          <span style="font-size:11.5px;color:var(--muted);margin-right:6px;">Shift+Enter = yangi qator</span>
+          <button class="btn sm secondary" onclick="tblAddColumn()">+ Yangi ustun</button>
         </div>
         <div class="tbl-wrap" id="tblWrap">
           <table class="xtbl" id="xtbl"><thead id="xtblHead"></thead><tbody id="xtblBody"></tbody></table>
@@ -5918,8 +5920,58 @@ const TBL_COL_META = {
 
 let _tblAttachSet = null; // task_id'lar to'plami (fayli borlar)
 
+// ---- Custom ustunlar (localStorage'да saqlanadi, workspace bo'yicha) ----
+function tblCustomCols() {
+  if (!currentWs) return [];
+  try { return JSON.parse(localStorage.getItem('tblCols_' + currentWs.id) || '[]'); } catch (e) { return []; }
+}
+function tblSaveCustomCols(cols) {
+  if (!currentWs) return;
+  try { localStorage.setItem('tblCols_' + currentWs.id, JSON.stringify(cols)); } catch (e) {}
+}
+function tblCustomVal(taskId, colKey) {
+  if (!currentWs) return '';
+  try {
+    const all = JSON.parse(localStorage.getItem('tblVals_' + currentWs.id) || '{}');
+    return (all[taskId] && all[taskId][colKey]) || '';
+  } catch (e) { return ''; }
+}
+function tblSetCustomVal(taskId, colKey, val) {
+  if (!currentWs) return;
+  try {
+    const all = JSON.parse(localStorage.getItem('tblVals_' + currentWs.id) || '{}');
+    if (!all[taskId]) all[taskId] = {};
+    all[taskId][colKey] = val;
+    localStorage.setItem('tblVals_' + currentWs.id, JSON.stringify(all));
+  } catch (e) {}
+}
+function tblAddColumn() {
+  if (!canEditWorkspace()) { toast('Bunga huquqingiz yo\'q', 'err'); return; }
+  const name = prompt('Yangi ustun nomi:');
+  if (!name || !name.trim()) return;
+  const cols = tblCustomCols();
+  const key = 'c_' + Date.now();
+  cols.push({ key, label: name.trim() });
+  tblSaveCustomCols(cols);
+  renderTasksTable();
+  toast('✓ Ustun qo\'shildi: ' + name.trim(), 'ok');
+}
+function tblDeleteColumn(key) {
+  if (!confirm('Bu ustunni o\'chirasizmi?')) return;
+  tblSaveCustomCols(tblCustomCols().filter(c => c.key !== key));
+  renderTasksTable();
+}
+
 function tblColKeys() {
-  return (tblColOrder && tblColOrder.length) ? tblColOrder : TBL_COLS_DEFAULT.slice();
+  const base = (tblColOrder && tblColOrder.length) ? tblColOrder.slice() : TBL_COLS_DEFAULT.slice();
+  // Custom ustunlar oxiriga qo'shiladi (agar tartibда bo'lmasa)
+  tblCustomCols().forEach(c => { if (!base.includes(c.key)) base.push(c.key); });
+  return base;
+}
+function tblIsCustom(key) { return key && key.indexOf('c_') === 0; }
+function tblCustomMeta(key) {
+  const c = tblCustomCols().find(x => x.key === key);
+  return c || { key, label: key };
 }
 
 function tblSetSubview(sv) {
@@ -6009,6 +6061,20 @@ function tblGetTasks() {
 
 async function renderTasksTable() {
   if (!$('xtblHead')) return;
+  // Shift+Enter = yangi qator (bir marta bog'laymιz)
+  if (!window._tblKeyBound) {
+    window._tblKeyBound = true;
+    document.addEventListener('keydown', (e) => {
+      if (currentPage === 'tasks' && currentTasksView === 'table' && e.shiftKey && e.key === 'Enter') {
+        // Agar inline qatorда yozayotган bo'lsa — saqlaymιz, aks holda ochamιz
+        if (_tblNewRowOpen && document.activeElement && document.activeElement.id === 'tblNewTitle') {
+          e.preventDefault(); tblSaveNewRow();
+        } else {
+          e.preventDefault(); tblAddRow();
+        }
+      }
+    });
+  }
   // Fayli bor tasklarni bir marta yuklaymiz (📎 ustun uchun)
   if (_tblAttachSet === null && currentWs) {
     _tblAttachSet = new Set();
@@ -6023,6 +6089,18 @@ async function renderTasksTable() {
   // HEAD
   let head = '<tr>';
   cols.forEach(key => {
+    if (tblIsCustom(key)) {
+      const cm = tblCustomMeta(key);
+      const w = tblColWidths[key] || 140;
+      head += '<th data-col="' + key + '" style="width:' + w + 'px;min-width:' + w + 'px" draggable="true" ' +
+        'ondragstart="tblDragStart(event,\'' + key + '\')" ondragover="tblDragOver(event,\'' + key + '\')" ondrop="tblDrop(event,\'' + key + '\')" ondragend="tblDragEnd(event)">' +
+        '<div class="th-inner">' +
+          '<span class="th-lbl">' + escapeHtml(cm.label) + '</span>' +
+          '<span class="th-filter" onclick="event.stopPropagation();tblDeleteColumn(\'' + key + '\')" title="O\'chirish" style="color:#DC2626;">✕</span>' +
+          '<span class="th-resize" onmousedown="tblResizeStart(event,\'' + key + '\')" onclick="event.stopPropagation()" draggable="false"></span>' +
+        '</div></th>';
+      return;
+    }
     const meta = TBL_COL_META[key];
     const w = tblColWidths[key] || meta.w;
     const freeze = meta.freeze ? ' col-freeze' : '';
@@ -6082,6 +6160,14 @@ async function renderTasksTable() {
 function tblRowHtml(t, cols, canEdit) {
   let row = '<tr data-tid="' + t.id + '">';
   cols.forEach(key => {
+    if (tblIsCustom(key)) {
+      const val = tblCustomVal(t.id, key);
+      const cell = canEdit
+        ? '<input class="cell-inp" type="text" value="' + escapeHtml(val) + '" onchange="tblSetCustomVal(' + t.id + ',\'' + key + '\',this.value)">'
+        : escapeHtml(val);
+      row += '<td>' + cell + '</td>';
+      return;
+    }
     const meta = TBL_COL_META[key];
     const freeze = meta.freeze ? ' col-freeze' : '';
     let cell = '';
@@ -6187,6 +6273,7 @@ function tblNewRowHtml(cols) {
   const defStatus = firstCol ? firstCol.status : 'new';
   let row = '<tr style="background:rgba(254,243,199,.18);">';
   cols.forEach(key => {
+    if (tblIsCustom(key)) { row += '<td></td>'; return; }
     const meta = TBL_COL_META[key];
     const freeze = meta.freeze ? ' col-freeze' : '';
     let cell = '';
@@ -6326,21 +6413,32 @@ function tblFilterAll(key, on) {
 let _tblResize = null;
 function tblResizeStart(ev, key) {
   ev.stopPropagation(); ev.preventDefault();
+  // Resize paytida drag (ko'chirish) ni o'chiramιz — aks holda brauzer drag boshlaydi
+  document.querySelectorAll('#xtblHead th').forEach(th => th.setAttribute('draggable', 'false'));
+  document.body.style.userSelect = 'none';
+  document.body.style.cursor = 'col-resize';
   _tblResize = { key, startX: ev.clientX, startW: tblColWidths[key] || TBL_COL_META[key].w };
   document.addEventListener('mousemove', tblResizeMove);
   document.addEventListener('mouseup', tblResizeEnd);
 }
 function tblResizeMove(ev) {
   if (!_tblResize) return;
+  ev.preventDefault();
   const dw = ev.clientX - _tblResize.startX;
   tblColWidths[_tblResize.key] = Math.max(42, _tblResize.startW + dw);
+  const w = tblColWidths[_tblResize.key];
+  // Header + shu ustundagi barcha kataklarни darrov yangilaymιz (silliq)
   const th = document.querySelector('#xtblHead th[data-col="' + _tblResize.key + '"]');
-  if (th) { th.style.width = tblColWidths[_tblResize.key] + 'px'; th.style.minWidth = tblColWidths[_tblResize.key] + 'px'; }
+  if (th) { th.style.width = w + 'px'; th.style.minWidth = w + 'px'; th.style.maxWidth = w + 'px'; }
 }
 function tblResizeEnd() {
   _tblResize = null;
+  document.body.style.userSelect = '';
+  document.body.style.cursor = '';
   document.removeEventListener('mousemove', tblResizeMove);
   document.removeEventListener('mouseup', tblResizeEnd);
+  // Drag'ни qayta yoqamιz
+  document.querySelectorAll('#xtblHead th').forEach(th => th.setAttribute('draggable', 'true'));
   renderTasksTable();
 }
 
@@ -8137,26 +8235,32 @@ async function init() {
 let _cmdItems = [];
 let _cmdIndex = 0;
 
-// Topbar search — yozganда palette ochilib, matn sinxron qidiriladi
+// Topbar search — yozganда palette ochilib, matn ko'zgu qilinadi (tozalamaymιz!)
 function topSearchFocus() {
   const inp = $('topSearchInp');
   if (inp) { try { inp.focus(); } catch (e) {} }
 }
 function topSearchInput(inp) {
   const bd = $('cmdPaletteBd');
-  if (bd && !bd.classList.contains('show')) {
-    bd.classList.add('show');
-    _cmdIndex = 0;
-  }
   const pInp = $('cmdPaletteInput');
-  if (pInp) {
-    pInp.value = inp.value;
+  if (inp.value.trim()) {
+    if (bd && !bd.classList.contains('show')) { bd.classList.add('show'); _cmdIndex = 0; }
+    if (pInp) pInp.value = inp.value;
     renderCmdPalette();
-    // Fokusни palette inputга o'tkazamiz — o'q tugmalar ishlashi uchun
-    try { pInp.focus(); pInp.setSelectionRange(pInp.value.length, pInp.value.length); } catch (e) {}
+  } else {
+    if (bd) bd.classList.remove('show');
   }
-  // Topbar inputни tozalaymiz (palette endi asosiy)
-  inp.value = '';
+}
+function topSearchKey(ev) {
+  // Palette ochiq bo'lsa — o'q/enter/esc palette'ga uzatiladi
+  const bd = $('cmdPaletteBd');
+  if (!bd || !bd.classList.contains('show')) return;
+  if (ev.key === 'Escape') { bd.classList.remove('show'); $('topSearchInp').blur(); return; }
+  if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp' || ev.key === 'Enter') {
+    cmdPaletteKey(ev);
+    // Enter'да palette yopilsa, topbar inputni ham tozalaymιz
+    if (ev.key === 'Enter') { const i = $('topSearchInp'); if (i) i.value = ''; }
+  }
 }
 
 function openCmdPalette() {
