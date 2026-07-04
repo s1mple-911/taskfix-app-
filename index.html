@@ -6985,7 +6985,13 @@ function plnBlockMouseDown(ev, taskId, mode) {
   const s = sched[taskId];
   if (!s) return;
   const blockEl = ev.target.closest('.pln-block');
-  _plnMove = { taskId, mode, startClientY: ev.clientY, origStart: s.start, origDur: s.dur, origDate: s.date, newDate: s.date, blockEl, moved: false, newStart: s.start, newDur: s.dur, lastX: ev.clientX, lastY: ev.clientY };
+  const origCol = blockEl ? blockEl.parentElement : null;
+  _plnMove = { taskId, mode, startClientX: ev.clientX, startClientY: ev.clientY, origStart: s.start, origDur: s.dur, origDate: s.date, newDate: s.date, blockEl, origCol, moved: false, newStart: s.start, newDur: s.dur };
+  if (blockEl) {
+    blockEl.style.willChange = 'transform';
+    blockEl.style.zIndex = '20';
+    blockEl.style.transition = 'none';
+  }
   document.body.style.userSelect = 'none';
   document.addEventListener('mousemove', plnMoveMove);
   document.addEventListener('mouseup', plnMoveUp);
@@ -7001,25 +7007,30 @@ function plnDayAtPoint(x, y) {
 }
 function plnMoveMove(ev) {
   if (!_plnMove) return;
-  _plnMove.lastX = ev.clientX; _plnMove.lastY = ev.clientY;
+  const dx = ev.clientX - _plnMove.startClientX;
   const dy = ev.clientY - _plnMove.startClientY;
-  if (Math.abs(dy) > 3) _plnMove.moved = true;
-  const dMin = (dy / PLN_HPX) * 60;
+  if (Math.abs(dy) > 3 || Math.abs(dx) > 3) _plnMove.moved = true;
   const el = _plnMove.blockEl; if (!el) return;
+  const dMin = (dy / PLN_HPX) * 60;
+
   if (_plnMove.mode === 'move') {
+    // Snap qilinган boshlanish (label + yakuniy qiymat uchun)
     let newStart = plnSnap(_plnMove.origStart + dMin);
     newStart = Math.max(PLN_H_START*60, Math.min((PLN_H_END+1)*60 - _plnMove.origDur, newStart));
-    el.style.top = ((newStart - PLN_H_START*60)/60*PLN_HPX) + 'px';
     _plnMove.newStart = newStart;
-    // Gorizontal — qaysi kun ustunида
+    // Qaysi kun ustuni ustidamιz (faqat qiymatni yozamιz — DOM ko'chirmaymιz!)
     const targetDate = plnDayAtPoint(ev.clientX, ev.clientY);
-    if (targetDate && targetDate !== _plnMove.newDate) {
-      _plnMove.newDate = targetDate;
-      _plnMove.moved = true;
-      // Blokni yangi ustunga ko'chiramιz (vizual)
+    if (targetDate) _plnMove.newDate = targetDate;
+    // SILLIQ: faqat transform (reflow yo'q). Gorizontal = ustun kengligiga snap
+    let tx = dx;
+    if (targetDate && _plnMove.origCol) {
       const targetCol = [...document.querySelectorAll('#plnCal .pln-day')].find(d => d.dataset.date === targetDate);
-      if (targetCol && el.parentElement !== targetCol) targetCol.appendChild(el);
-    }
+      if (targetCol && targetCol !== _plnMove.origCol) {
+        tx = targetCol.getBoundingClientRect().left - _plnMove.origCol.getBoundingClientRect().left;
+      } else { tx = 0; }
+    } else { tx = 0; }
+    const ty = ((newStart - _plnMove.origStart) / 60) * PLN_HPX;
+    el.style.transform = 'translate(' + tx + 'px,' + ty + 'px)';
     const tl = el.querySelector('.pb-time'); if (tl) tl.textContent = plnMinLabel(newStart) + ' - ' + plnMinLabel(newStart + _plnMove.origDur);
   } else {
     let newDur = Math.max(15, plnSnap(_plnMove.origDur + dMin));
@@ -7034,12 +7045,13 @@ function plnMoveUp(ev) {
   document.body.style.userSelect = '';
   if (!_plnMove) return;
   const m = _plnMove; _plnMove = null;
+  if (m.blockEl) { m.blockEl.style.willChange = ''; m.blockEl.style.zIndex = ''; m.blockEl.style.transform = ''; }
   if (!m.moved) { openDetail(m.taskId); return; }
   const sched = plnGetSchedule();
   if (!sched[m.taskId]) return;
   if (m.mode === 'move') {
     sched[m.taskId].start = m.newStart;
-    if (m.newDate) sched[m.taskId].date = m.newDate; // kun ham o'zgarishi mumkin
+    if (m.newDate) sched[m.taskId].date = m.newDate;
   } else {
     sched[m.taskId].dur = m.newDur;
   }
