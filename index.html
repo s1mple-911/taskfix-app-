@@ -4124,7 +4124,7 @@ function renderDetailBody() {
 
   // Comments
   const cmtsHtml = '<div class="cmt-list">' + curDetailComments.map(c => renderCommentItem(c, canEditTask)).join('') + '</div>' +
-    '<div class="cmt-input-row"><input class="cmt-input" id="newCmtInput" placeholder="Izoh yozish… (Ctrl+Enter — yuborish)" onkeydown="if ((event.ctrlKey || event.metaKey) && event.key === \'Enter\') addComment()" /><button class="btn" onclick="addComment()">Yuborish</button></div>';
+    '<div class="cmt-input-row" style="position:relative;"><input class="cmt-input" id="newCmtInput" placeholder="Izoh yozish… (@ — odam belgilash, Ctrl+Enter — yuborish)" autocomplete="off" oninput="cmtMentionInput(this)" onkeydown="cmtInputKey(event)" /><button class="btn" onclick="addComment()">Yuborish</button><div id="cmtMentionDrop" style="display:none;position:absolute;bottom:46px;left:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14);max-height:220px;overflow:auto;z-index:60;min-width:220px;padding:5px;"></div></div>';
 
   // Attachments
   const attsHtml = curDetailAttachments.length
@@ -4353,9 +4353,74 @@ async function deleteSubtask(id) {
 }
 
 // ----- Comments -----
+let _cmtMentionIdx = 0, _cmtMentionList = [];
+function cmtInputKey(ev) {
+  const drop = document.getElementById('cmtMentionDrop');
+  const open = drop && drop.style.display !== 'none' && _cmtMentionList.length;
+  if (open) {
+    if (ev.key === 'ArrowDown') { ev.preventDefault(); _cmtMentionIdx = Math.min(_cmtMentionIdx+1, _cmtMentionList.length-1); cmtMentionRender(); return; }
+    if (ev.key === 'ArrowUp') { ev.preventDefault(); _cmtMentionIdx = Math.max(_cmtMentionIdx-1, 0); cmtMentionRender(); return; }
+    if (ev.key === 'Enter' && !ev.ctrlKey && !ev.metaKey) { ev.preventDefault(); cmtMentionPick(_cmtMentionIdx); return; }
+    if (ev.key === 'Escape') { drop.style.display = 'none'; return; }
+  }
+  if ((ev.ctrlKey || ev.metaKey) && ev.key === 'Enter') addComment();
+}
+function cmtMentionInput(inp) {
+  const drop = document.getElementById('cmtMentionDrop');
+  const val = inp.value;
+  const pos = inp.selectionStart || val.length;
+  // @dan keyingi so'zni topamιz
+  const before = val.slice(0, pos);
+  const m = before.match(/@([\p{L}\w'\- ]{0,20})$/u);
+  if (!m) { if (drop) drop.style.display = 'none'; _cmtMentionList = []; return; }
+  const q = (m[1] || '').trim().toLowerCase();
+  const members = (wsMembers || []).filter(mm => mm.user_id !== me.id).map(mm => ({
+    id: mm.user_id, name: (mm.profile && mm.profile.full_name) || 'A\'zo'
+  }));
+  _cmtMentionList = members.filter(mm => !q || mm.name.toLowerCase().includes(q)).slice(0, 8);
+  _cmtMentionIdx = 0;
+  if (!_cmtMentionList.length) { if (drop) drop.style.display = 'none'; return; }
+  cmtMentionRender();
+  drop.style.display = 'block';
+}
+function cmtMentionRender() {
+  const drop = document.getElementById('cmtMentionDrop');
+  if (!drop) return;
+  drop.innerHTML = _cmtMentionList.map((mm, i) =>
+    '<div onmousedown="event.preventDefault();cmtMentionPick(' + i + ')" style="display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:7px;cursor:pointer;' + (i===_cmtMentionIdx?'background:var(--surface-2);':'') + '">' +
+    '<span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">' + escapeHtml((mm.name[0]||'?').toUpperCase()) + '</span>' +
+    '<span style="font-size:13px;color:var(--ink);">' + escapeHtml(mm.name) + '</span></div>'
+  ).join('');
+}
+function cmtMentionPick(i) {
+  const inp = document.getElementById('newCmtInput');
+  const mm = _cmtMentionList[i];
+  if (!inp || !mm) return;
+  const pos = inp.selectionStart || inp.value.length;
+  const before = inp.value.slice(0, pos).replace(/@([\p{L}\w'\- ]{0,20})$/u, '');
+  const after = inp.value.slice(pos);
+  inp.value = before + '@' + mm.name + ' ' + after;
+  const drop = document.getElementById('cmtMentionDrop'); if (drop) drop.style.display = 'none';
+  _cmtMentionList = [];
+  inp.focus();
+  const newPos = (before + '@' + mm.name + ' ').length;
+  try { inp.setSelectionRange(newPos, newPos); } catch (e) {}
+}
+// Matndan belgilanган a'zolarni topadi
+function cmtParseMentions(text) {
+  const mentioned = [];
+  (wsMembers || []).forEach(mm => {
+    if (mm.user_id === me.id) return;
+    const name = (mm.profile && mm.profile.full_name) || '';
+    if (name && text.includes('@' + name)) mentioned.push({ user_id: mm.user_id, name });
+  });
+  return mentioned;
+}
+
 async function addComment() {
   const input = document.getElementById('newCmtInput'); if (!input) return;
   const text = (input.value || '').trim(); if (!text) return;
+  const mentions = cmtParseMentions(text);
   try {
     const { data, error } = await sb.from('task_comments').insert({
       workspace_id: currentWs.id, task_id: currentDetailId, author_id: me.id, comment_text: text
@@ -4363,10 +4428,36 @@ async function addComment() {
     if (error) throw error;
     curDetailComments.push(data);
     input.value = '';
+    const drop = document.getElementById('cmtMentionDrop'); if (drop) drop.style.display = 'none';
     renderDetailBody();
     // Telegram'gа yuborish — assignee'gа
     notifyCommentToTg(text);
+    // Belgilanган a'zolarга bildirishnoma + Telegram
+    mentions.forEach(mn => notifyMention(mn.user_id, text));
+    if (mentions.length) toast('🔔 ' + mentions.length + ' kishi belgilandi', 'ok');
   } catch (e) { toast(translateErr(e.message), 'err'); }
+}
+
+// @mention bildirishnomasi (in-app + Telegram)
+async function notifyMention(userId, text) {
+  const t = tasksCache.find(x => x.id === currentDetailId);
+  const title = t ? t.title : '';
+  // In-app notification
+  try {
+    await sb.from('notifications').insert({
+      workspace_id: currentWs.id, user_id: userId, kind: 'mention',
+      title: 'Sizni izohда belgilashdi',
+      body: (myProfile.full_name || me.email) + ': ' + text.slice(0, 120),
+      meta: { task_id: currentDetailId, workspace_id: currentWs.id }
+    });
+  } catch (e) {}
+  // Telegram
+  try {
+    await sb.functions.invoke('tg-send', { body: {
+      workspace_id: currentWs.id, target: { user_id: userId },
+      text: '🔔 <b>Sizni belgilashdi</b>\n' + escapeHtml(title) + '\n\n' + escapeHtml(myProfile.full_name || me.email) + ':\n' + escapeHtml(text)
+    }});
+  } catch (e) {}
 }
 async function deleteComment(id) {
   if (!confirm('Izohni o\'chirasizmi?')) return;
@@ -6809,13 +6900,23 @@ function plnBlockMouseDown(ev, taskId, mode) {
   const s = sched[taskId];
   if (!s) return;
   const blockEl = ev.target.closest('.pln-block');
-  _plnMove = { taskId, mode, startClientY: ev.clientY, origStart: s.start, origDur: s.dur, blockEl, moved: false, newStart: s.start, newDur: s.dur };
+  _plnMove = { taskId, mode, startClientY: ev.clientY, origStart: s.start, origDur: s.dur, origDate: s.date, newDate: s.date, blockEl, moved: false, newStart: s.start, newDur: s.dur, lastX: ev.clientX, lastY: ev.clientY };
   document.body.style.userSelect = 'none';
   document.addEventListener('mousemove', plnMoveMove);
   document.addEventListener('mouseup', plnMoveUp);
 }
+// clientX/Y qaysi kun ustunида ekanini aniqlaydi
+function plnDayAtPoint(x, y) {
+  const days = document.querySelectorAll('#plnCal .pln-day');
+  for (const d of days) {
+    const r = d.getBoundingClientRect();
+    if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return d.dataset.date;
+  }
+  return null;
+}
 function plnMoveMove(ev) {
   if (!_plnMove) return;
+  _plnMove.lastX = ev.clientX; _plnMove.lastY = ev.clientY;
   const dy = ev.clientY - _plnMove.startClientY;
   if (Math.abs(dy) > 3) _plnMove.moved = true;
   const dMin = (dy / PLN_HPX) * 60;
@@ -6825,6 +6926,15 @@ function plnMoveMove(ev) {
     newStart = Math.max(PLN_H_START*60, Math.min((PLN_H_END+1)*60 - _plnMove.origDur, newStart));
     el.style.top = ((newStart - PLN_H_START*60)/60*PLN_HPX) + 'px';
     _plnMove.newStart = newStart;
+    // Gorizontal — qaysi kun ustunида
+    const targetDate = plnDayAtPoint(ev.clientX, ev.clientY);
+    if (targetDate && targetDate !== _plnMove.newDate) {
+      _plnMove.newDate = targetDate;
+      _plnMove.moved = true;
+      // Blokni yangi ustunga ko'chiramιz (vizual)
+      const targetCol = [...document.querySelectorAll('#plnCal .pln-day')].find(d => d.dataset.date === targetDate);
+      if (targetCol && el.parentElement !== targetCol) targetCol.appendChild(el);
+    }
     const tl = el.querySelector('.pb-time'); if (tl) tl.textContent = plnMinLabel(newStart) + ' - ' + plnMinLabel(newStart + _plnMove.origDur);
   } else {
     let newDur = Math.max(15, plnSnap(_plnMove.origDur + dMin));
@@ -6842,8 +6952,12 @@ function plnMoveUp(ev) {
   if (!m.moved) { openDetail(m.taskId); return; }
   const sched = plnGetSchedule();
   if (!sched[m.taskId]) return;
-  if (m.mode === 'move') sched[m.taskId].start = m.newStart;
-  else sched[m.taskId].dur = m.newDur;
+  if (m.mode === 'move') {
+    sched[m.taskId].start = m.newStart;
+    if (m.newDate) sched[m.taskId].date = m.newDate; // kun ham o'zgarishi mumkin
+  } else {
+    sched[m.taskId].dur = m.newDur;
+  }
   plnSaveSchedule(sched);
   renderPlanner();
   toast('✓ Saqlandi', 'ok');
@@ -7791,6 +7905,7 @@ const NOTIF_ICONS = {
   invitation: '📨',
   invitation_accepted: '✅',
   task_assigned: '🔔',
+  mention: '🔔',
   task_status: '🔄',
   task_comment: '💬',
   task_attachment: '📎',
