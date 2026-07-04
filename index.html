@@ -797,7 +797,7 @@
 
     <!-- Tasks (workspace-wide) -->
     <section id="page-tasks" style="display:none">
-      <h2 class="h2" style="margin-bottom:14px;">Hamma vazifalar</h2>
+      <h2 class="h2" id="tasksPageTitle" style="margin-bottom:14px;">Barcha vazifalar</h2>
       <div class="view-tabs">
         <button class="view-tab active" data-tv="list"     onclick="setTasksView('list')">Ro'yxat</button>
         <button class="view-tab"        data-tv="kanban"   onclick="setTasksView('kanban')">Kanban</button>
@@ -1987,6 +1987,7 @@ let notifs = [];
 let currentDeptId = null;
 let currentDeptView = 'kanban';
 let currentTasksView = 'list';
+let taskScope = 'all'; // 'all' | 'mine' (menga biriktirilган) | 'assigned' (men topshirган)
 let tkCalCursor = new Date();
 let deptTeamCache = [];   // department_members for current dept
 let calCursor = new Date();  // month displayed in calendar
@@ -2568,6 +2569,12 @@ async function loadCurrentContext() {
   // Jadval sozlamalarини (kenglik, tartib, filtr, sort) tiklaymιz
   tblLoadSettings();
 
+  // "Mening vazifalarim" uchun — mening Telegram identitetlarim
+  try {
+    const { data: tgu } = await sb.from('tg_bot_users').select('id').eq('linked_user_id', me.id);
+    window._myTgBotIds = (tgu || []).map(x => x.id);
+  } catch (e) { window._myTgBotIds = []; }
+
   setupRealtime();
   renderSidebar();
   updateDashboard(subR.data);
@@ -2712,7 +2719,9 @@ function renderSidebar() {
   let html = '';
   html += '<button class="side-link ' + (currentPage === 'dashboard' ? 'active' : '') + '" onclick="goPage(\'dashboard\')"><span class="ic">◐</span> Bosh sahifa</button>';
   html += '<button class="side-link ' + (currentPage === 'planner' ? 'active' : '') + '" onclick="goPage(\'planner\')"><span class="ic">🗓</span> Rejalashtirgich</button>';
-  html += '<button class="side-link ' + (currentPage === 'tasks' ? 'active' : '') + '" onclick="goPage(\'tasks\')"><span class="ic">✓</span> Hamma vazifalar</button>';
+  html += '<button class="side-link ' + (currentPage === 'tasks' && taskScope === 'mine' ? 'active' : '') + '" onclick="goTaskScope(\'mine\')"><span class="ic">📥</span> Mening vazifalarim</button>';
+  html += '<button class="side-link ' + (currentPage === 'tasks' && taskScope === 'assigned' ? 'active' : '') + '" onclick="goTaskScope(\'assigned\')"><span class="ic">📤</span> Men topshirganlar</button>';
+  html += '<button class="side-link ' + (currentPage === 'tasks' && taskScope === 'all' ? 'active' : '') + '" onclick="goTaskScope(\'all\')"><span class="ic">✓</span> Barcha vazifalar</button>';
   if (isOrg && canManage) {
     html += '<button class="side-link ' + (currentPage === 'stats' ? 'active' : '') + '" onclick="goPage(\'stats\')"><span class="ic">📊</span> Statistika</button>';
     html += '<button class="side-link ' + (currentPage === 'orgchart' ? 'active' : '') + '" onclick="goPage(\'orgchart\')"><span class="ic">⛓</span> Tashkilot</button>';
@@ -3007,7 +3016,11 @@ function goPage(p) {
   renderSidebar();
   ['dashboard','planner','tasks','departments','department','team','integrations','tgusers','branches','positions','settings','stats','botsettings','botcommands','orgchart','profile'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
   if (p === 'planner') renderPlanner();
-  if (p === 'tasks') renderTasksList();
+  if (p === 'tasks') {
+    const titles = { mine: '📥 Mening vazifalarim', assigned: '📤 Men topshirganlar', all: '✓ Barcha vazifalar' };
+    const el = $('tasksPageTitle'); if (el) el.textContent = titles[taskScope] || '✓ Barcha vazifalar';
+    renderTasksList();
+  }
   if (p === 'departments') renderDeptsList();
   if (p === 'team') renderTeam();
   if (p === 'integrations') loadIntegrations();
@@ -3241,8 +3254,18 @@ function onTasksSearch() {
   renderTasksList();
 }
 
+// Task scope (sidebar bo'limlari) — barcha view ishlatadi
+function applyTaskScope(list) {
+  if (taskScope === 'mine') {
+    const myTgIds = window._myTgBotIds || [];
+    return list.filter(t => t.assigned_to === me.id || (t.assigned_to_tg_bot_user && myTgIds.includes(t.assigned_to_tg_bot_user)));
+  }
+  if (taskScope === 'assigned') return list.filter(t => t.created_by === me.id);
+  return list;
+}
+
 function renderTasksList() {
-  let list = tasksCache.slice();
+  let list = applyTaskScope(tasksCache.slice());
   if (activeFilter === 'overdue') list = list.filter(isOverdue);
   else if (activeFilter !== 'all') list = list.filter(t => t.status === activeFilter);
 
@@ -6081,6 +6104,17 @@ function refreshActiveView() {
   }
 }
 
+// Sidebar bo'limlari: Mening vazifalarim / Men topshirganlar / Barcha
+function goTaskScope(scope) {
+  taskScope = scope;
+  // Planfix'даgidek — kanban ko'rinishда ochamιz
+  currentTasksView = 'kanban';
+  goPage('tasks');
+  const titles = { mine: '📥 Mening vazifalarim', assigned: '📤 Men topshirganlar', all: '✓ Barcha vazifalar' };
+  const el = $('tasksPageTitle'); if (el) el.textContent = titles[scope] || 'Vazifalar';
+  setTasksView('kanban');
+}
+
 function setTasksView(v) {
   currentTasksView = v;
   document.querySelectorAll('#page-tasks [data-tv]').forEach(b => b.classList.toggle('active', b.dataset.tv === v));
@@ -6262,7 +6296,7 @@ function tblCellValue(t, key) {
 
 // Subview + qidiruv + filtr bo'yicha tasklar
 function tblGetTasks() {
-  let list = (tasksCache || []).slice();
+  let list = applyTaskScope((tasksCache || []).slice());
   // Subview
   if (tblSubview === 'incoming') list = list.filter(t => t.assigned_to === me.id);
   else if (tblSubview === 'outgoing') list = list.filter(t => t.created_by === me.id);
@@ -7006,7 +7040,7 @@ function plnDayDrop(ev, dateStr) {
 }
 
 function tkFilteredTasks() {
-  let list = (tasksCache || []).slice();
+  let list = applyTaskScope((tasksCache || []).slice());
   const q = ($('tkSearch')?.value || '').trim().toLowerCase();
   if (q) list = list.filter(t => (t.title||'').toLowerCase().includes(q) || (t.description||'').toLowerCase().includes(q));
   const asgF = $('tkAsgFilter')?.value || 'all';
