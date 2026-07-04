@@ -491,6 +491,39 @@
   .tbl-filter-pop label { display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:13px; border-radius:6px; cursor:pointer; }
   .tbl-filter-pop label:hover { background:var(--surface-2); }
   .tbl-empty-row td { text-align:center; color:var(--muted); padding:28px; }
+
+  /* ===== Rejalashtirgich (Planner) ===== */
+  .pln-layout { display:grid; grid-template-columns:280px 1fr; gap:16px; align-items:start; }
+  @media (max-width:900px){ .pln-layout{ grid-template-columns:1fr; } }
+  .pln-side { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px; position:sticky; top:8px; }
+  .pln-side-head { font-size:14px; font-weight:700; color:var(--ink); margin-bottom:2px; }
+  .pln-side-hint { font-size:11.5px; color:var(--muted); margin-bottom:12px; }
+  .pln-side-list { display:flex; flex-direction:column; gap:8px; max-height:calc(100vh - 220px); overflow:auto; }
+  .pln-task { background:var(--surface-2); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:9px; padding:9px 11px; cursor:grab; font-size:13px; transition:box-shadow .12s,transform .12s; }
+  .pln-task:hover { box-shadow:0 3px 10px rgba(0,0,0,.08); transform:translateY(-1px); }
+  .pln-task:active { cursor:grabbing; }
+  .pln-task .pt-title { font-weight:600; color:var(--ink); display:block; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pln-task .pt-meta { font-size:11px; color:var(--muted); }
+  .pln-side-empty { font-size:12.5px; color:var(--muted); text-align:center; padding:20px 8px; }
+
+  .pln-cal-wrap { background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  .pln-cal { overflow:auto; max-height:calc(100vh - 190px); }
+  .pln-grid { display:grid; grid-template-columns:56px repeat(7,minmax(120px,1fr)); position:relative; }
+  .pln-cell { border-right:1px solid var(--line); border-bottom:1px solid var(--line); min-height:44px; position:relative; }
+  .pln-dayhead { position:sticky; top:0; z-index:4; background:var(--surface-2); border-bottom:1px solid var(--line); border-right:1px solid var(--line); padding:8px 6px; text-align:center; font-size:12px; font-weight:600; color:var(--ink); }
+  .pln-dayhead.today { color:var(--accent-ink); background:var(--accent); }
+  .pln-dayhead .dh-dow { display:block; font-size:10.5px; color:var(--muted); font-weight:500; }
+  .pln-dayhead.today .dh-dow { color:var(--accent-ink); opacity:.8; }
+  .pln-timecol { position:sticky; left:0; z-index:3; background:var(--surface); border-right:1px solid var(--line); font-size:10.5px; color:var(--muted); text-align:right; padding:2px 6px 0 0; }
+  .pln-timecol.pln-dayhead { z-index:5; }
+  .pln-cell.slot { cursor:pointer; }
+  .pln-cell.slot:hover { background:var(--accent); opacity:.35; }
+  .pln-cell.drop-hi { background:var(--accent); opacity:.4; }
+  .pln-block { position:absolute; left:2px; right:2px; border-radius:7px; padding:4px 7px; font-size:11.5px; color:#fff; overflow:hidden; cursor:pointer; z-index:2; box-shadow:0 1px 4px rgba(0,0,0,.12); }
+  .pln-block .pb-title { font-weight:600; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pln-block .pb-time { font-size:10px; opacity:.85; }
+  .pln-block .pb-x { position:absolute; top:2px; right:4px; cursor:pointer; opacity:.7; font-size:12px; }
+  .pln-block .pb-x:hover { opacity:1; }
   .kan-add-task { background: none; border: 1px dashed var(--line-strong); border-radius: 8px; padding: 8px; width: 100%; color: var(--muted); font-size: 12.5px; cursor: pointer; margin-top: 6px; }
   .kan-add-task:hover { color: var(--accent-ink); border-color: var(--accent); background: var(--accent-soft); }
   .kan-col-actions { display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
@@ -704,6 +737,27 @@
       </button>
     </div>
     <!-- Dashboard -->
+    <section id="page-planner" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap;">
+        <h2 class="h2" style="margin:0">🗓 Rejalashtirgich</h2>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="btn sm secondary" onclick="plnNav(-1)">‹</button>
+          <span id="plnWeekLbl" style="font-weight:600;font-size:14px;min-width:180px;text-align:center;">—</span>
+          <button class="btn sm secondary" onclick="plnNav(1)">›</button>
+          <button class="btn sm secondary" onclick="plnNav(0)">Bugun</button>
+        </div>
+      </div>
+      <div class="pln-layout">
+        <div class="pln-side">
+          <div class="pln-side-head">Bajarishim kerak</div>
+          <div class="pln-side-hint">Vazifani kalendarga sudrab olib boring →</div>
+          <div id="plnUnscheduled" class="pln-side-list"></div>
+        </div>
+        <div class="pln-cal-wrap">
+          <div class="pln-cal" id="plnCal"></div>
+        </div>
+      </div>
+    </section>
     <section id="page-dashboard">
       <h2 class="h2" id="dashTitle">Bosh sahifa</h2>
       <div class="stat-grid">
@@ -2647,6 +2701,7 @@ function renderSidebar() {
 
   let html = '';
   html += '<button class="side-link ' + (currentPage === 'dashboard' ? 'active' : '') + '" onclick="goPage(\'dashboard\')"><span class="ic">◐</span> Bosh sahifa</button>';
+  html += '<button class="side-link ' + (currentPage === 'planner' ? 'active' : '') + '" onclick="goPage(\'planner\')"><span class="ic">🗓</span> Rejalashtirgich</button>';
   html += '<button class="side-link ' + (currentPage === 'tasks' ? 'active' : '') + '" onclick="goPage(\'tasks\')"><span class="ic">✓</span> Hamma vazifalar</button>';
   if (isOrg && canManage) {
     html += '<button class="side-link ' + (currentPage === 'stats' ? 'active' : '') + '" onclick="goPage(\'stats\')"><span class="ic">📊</span> Statistika</button>';
@@ -2940,7 +2995,8 @@ function goPage(p) {
   currentPage = p;
   if (p !== 'department') currentDeptId = null;
   renderSidebar();
-  ['dashboard','tasks','departments','department','team','integrations','tgusers','branches','positions','settings','stats','botsettings','botcommands','orgchart','profile'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
+  ['dashboard','planner','tasks','departments','department','team','integrations','tgusers','branches','positions','settings','stats','botsettings','botcommands','orgchart','profile'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
+  if (p === 'planner') renderPlanner();
   if (p === 'tasks') renderTasksList();
   if (p === 'departments') renderDeptsList();
   if (p === 'team') renderTeam();
@@ -5885,6 +5941,7 @@ function exportStatsCsv() {
 function refreshActiveView() {
   // Dashboard
   if (currentPage === 'dashboard') updateDashboard(null);
+  if (currentPage === 'planner') renderPlanner();
   // Active page
   if (currentPage === 'tasks') {
     if (currentTasksView === 'list') renderTasksList();
@@ -6536,6 +6593,189 @@ function tblDragEnd(ev) {
 // Attach cache tozalash (task o'zgarganда qayta yuklash uchun emas — attach kamdan-kam o'zgaradi)
 function tblResetAttachCache() { _tblAttachSet = null; }
 
+
+
+// ============ REJALASHTIRGICH (Planner) ============
+const PLN_H_START = 7, PLN_H_END = 23, PLN_HPX = 44;
+let plnWeekStart = null; // dushanba 00:00
+
+function plnMondayOf(d) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  const dow = (x.getDay() + 6) % 7; // 0=dushanba
+  x.setDate(x.getDate() - dow);
+  return x;
+}
+function plnDateStr(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function plnGetSchedule() {
+  if (!currentWs || !me) return {};
+  try { return JSON.parse(localStorage.getItem('planner_' + currentWs.id + '_' + me.id) || '{}'); } catch (e) { return {}; }
+}
+function plnSaveSchedule(obj) {
+  if (!currentWs || !me) return;
+  try { localStorage.setItem('planner_' + currentWs.id + '_' + me.id, JSON.stringify(obj)); } catch (e) {}
+}
+function plnScheduleTask(taskId, dateStr, startMin, durMin) {
+  const s = plnGetSchedule();
+  s[taskId] = { date: dateStr, start: startMin, dur: durMin || 60 };
+  plnSaveSchedule(s);
+  renderPlanner();
+}
+function plnUnschedule(taskId) {
+  const s = plnGetSchedule();
+  delete s[taskId];
+  plnSaveSchedule(s);
+  renderPlanner();
+}
+function plnNav(dir) {
+  if (!plnWeekStart) plnWeekStart = plnMondayOf(new Date());
+  if (dir === 0) plnWeekStart = plnMondayOf(new Date());
+  else { plnWeekStart = new Date(plnWeekStart); plnWeekStart.setDate(plnWeekStart.getDate() + dir * 7); }
+  renderPlanner();
+}
+
+function renderPlanner() {
+  if (!$('plnCal')) return;
+  if (!plnWeekStart) plnWeekStart = plnMondayOf(new Date());
+  const DOW = ['Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan', 'Yak'];
+  const MON = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'];
+  const days = [];
+  for (let i = 0; i < 7; i++) { const d = new Date(plnWeekStart); d.setDate(d.getDate() + i); days.push(d); }
+  const todayStr = plnDateStr(new Date());
+
+  // Hafta yorlig'i
+  const wEnd = days[6];
+  $('plnWeekLbl').textContent = days[0].getDate() + ' ' + MON[days[0].getMonth()] + ' – ' + wEnd.getDate() + ' ' + MON[wEnd.getMonth()];
+
+  const bodyH = (PLN_H_END - PLN_H_START + 1) * PLN_HPX;
+
+  // HEAD
+  let html = '<div class="pln-grid" style="grid-template-rows:auto ' + bodyH + 'px;">';
+  html += '<div class="pln-dayhead pln-timecol"></div>';
+  days.forEach(d => {
+    const isToday = plnDateStr(d) === todayStr;
+    html += '<div class="pln-dayhead' + (isToday ? ' today' : '') + '"><span class="dh-dow">' + DOW[(d.getDay()+6)%7] + '</span>' + d.getDate() + '</div>';
+  });
+  // BODY: time column
+  html += '<div class="pln-timecol" style="position:sticky;left:0;z-index:3;">';
+  for (let h = PLN_H_START; h <= PLN_H_END; h++) {
+    html += '<div style="height:' + PLN_HPX + 'px;text-align:right;padding:1px 6px 0 0;font-size:10.5px;color:var(--muted);">' + String(h).padStart(2,'0') + ':00</div>';
+  }
+  html += '</div>';
+  // Day columns
+  const sched = plnGetSchedule();
+  days.forEach((d, di) => {
+    const ds = plnDateStr(d);
+    const gridlines = 'repeating-linear-gradient(to bottom, transparent, transparent ' + (PLN_HPX-1) + 'px, var(--line) ' + (PLN_HPX-1) + 'px, var(--line) ' + PLN_HPX + 'px)';
+    html += '<div class="pln-day" data-date="' + ds + '" style="position:relative;height:' + bodyH + 'px;border-right:1px solid var(--line);background:' + gridlines + ';" ' +
+      'onclick="plnCellClick(event,\'' + ds + '\')" ondragover="plnDayDragOver(event)" ondragleave="plnDayDragLeave(event)" ondrop="plnDayDrop(event,\'' + ds + '\')">';
+    // Shu kundagi bloklar
+    Object.keys(sched).forEach(tid => {
+      const s = sched[tid];
+      if (s.date !== ds) return;
+      const t = (tasksCache || []).find(x => String(x.id) === String(tid));
+      if (!t) return;
+      const top = ((s.start - PLN_H_START * 60) / 60) * PLN_HPX;
+      const height = Math.max(24, (s.dur / 60) * PLN_HPX);
+      const col = plnTaskColor(t);
+      const sh = String(Math.floor(s.start/60)).padStart(2,'0') + ':' + String(s.start%60).padStart(2,'0');
+      const eMin = s.start + s.dur;
+      const eh = String(Math.floor(eMin/60)).padStart(2,'0') + ':' + String(eMin%60).padStart(2,'0');
+      html += '<div class="pln-block" style="top:' + top + 'px;height:' + height + 'px;background:' + col + ';" onclick="event.stopPropagation();openDetail(' + t.id + ')">' +
+        '<span class="pb-x" onclick="event.stopPropagation();plnUnschedule(' + t.id + ')">×</span>' +
+        '<span class="pb-title">' + escapeHtml(t.title || '(nomsiz)') + '</span>' +
+        '<span class="pb-time">' + sh + ' – ' + eh + '</span></div>';
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+  $('plnCal').innerHTML = html;
+
+  // Chap panel: rejalashtirilmagan vazifalarim
+  renderPlnUnscheduled();
+}
+
+function plnTaskColor(t) {
+  const c = (kanbanColumns || []).find(x => x.status === t.status);
+  if (c && c.color) return c.color;
+  const map = { new: '#6366F1', in_progress: '#0EA5E9', completed: '#10B981', cancelled: '#94A3B8' };
+  return map[t.status] || '#6366F1';
+}
+
+function renderPlnUnscheduled() {
+  const wrap = $('plnUnscheduled');
+  if (!wrap) return;
+  const sched = plnGetSchedule();
+  // Mening vazifalarim: menga biriktirilган yoki men yaratган, tugallanmagan, rejaга qo'yilmagan
+  const mine = (tasksCache || []).filter(t =>
+    (t.assigned_to === me.id || t.created_by === me.id) &&
+    t.status !== 'completed' && t.status !== 'cancelled' &&
+    !sched[t.id]
+  );
+  if (!mine.length) { wrap.innerHTML = '<div class="pln-side-empty">Rejalashtirilmagan vazifa yo\'q 🎉</div>'; return; }
+  wrap.innerHTML = mine.map(t => {
+    const dl = t.deadline ? tblFmtDate(t.deadline) : '';
+    return '<div class="pln-task" draggable="true" ondragstart="plnTaskDragStart(event,' + t.id + ')" ondragend="plnTaskDragEnd(event)" onclick="openDetail(' + t.id + ')">' +
+      '<span class="pt-title">' + escapeHtml(t.title || '(nomsiz)') + '</span>' +
+      '<span class="pt-meta">' + (dl ? '⏰ ' + dl : 'Muddatsiz') + '</span></div>';
+  }).join('');
+}
+
+// Bo'sh katakka bosish → o'sha kun/soatда vazifa yaratish
+function plnCellClick(ev, dateStr) {
+  const day = ev.currentTarget;
+  const rect = day.getBoundingClientRect();
+  const y = ev.clientY - rect.top;
+  let hour = PLN_H_START + Math.floor(y / PLN_HPX);
+  hour = Math.max(PLN_H_START, Math.min(PLN_H_END, hour));
+  const startMin = hour * 60;
+  const title = prompt('Vazifa nomi (' + String(hour).padStart(2,'0') + ':00 ga rejalashtiriladi):');
+  if (!title || !title.trim()) return;
+  plnQuickCreate(title.trim(), dateStr, startMin);
+}
+async function plnQuickCreate(title, dateStr, startMin) {
+  const firstCol = (kanbanColumns || []).slice().sort((a,b)=>(a.sort_order||0)-(b.sort_order||0))[0];
+  const payload = {
+    workspace_id: currentWs.id,
+    title,
+    created_by: me.id,
+    assigned_to: me.id,
+    status: firstCol ? firstCol.status : 'new',
+    priority_level: 0,
+    deadline: new Date(dateStr + 'T' + String(Math.floor(startMin/60)).padStart(2,'0') + ':00:00').toISOString()
+  };
+  try {
+    const { data, error } = await sb.from('tasks').insert(payload).select().single();
+    if (error) throw error;
+    if (data && !tasksCache.find(t => t.id === data.id)) tasksCache.unshift(data);
+    plnScheduleTask(data.id, dateStr, startMin, 60);
+    toast('✓ Vazifa rejaga qo\'shildi', 'ok');
+  } catch (e) { toast('Xato: ' + (e.message || e), 'err'); }
+}
+
+// Drag & drop
+let _plnDragTask = null;
+function plnTaskDragStart(ev, taskId) {
+  _plnDragTask = taskId;
+  try { ev.dataTransfer.setData('text/plain', String(taskId)); ev.dataTransfer.effectAllowed = 'move'; } catch (e) {}
+}
+function plnTaskDragEnd(ev) { _plnDragTask = null; document.querySelectorAll('.pln-day.drop-hi').forEach(d => d.classList.remove('drop-hi')); }
+function plnDayDragOver(ev) { ev.preventDefault(); try { ev.dataTransfer.dropEffect = 'move'; } catch (e) {} ev.currentTarget.classList.add('drop-hi'); }
+function plnDayDragLeave(ev) { ev.currentTarget.classList.remove('drop-hi'); }
+function plnDayDrop(ev, dateStr) {
+  ev.preventDefault();
+  ev.currentTarget.classList.remove('drop-hi');
+  const tid = _plnDragTask || (ev.dataTransfer && ev.dataTransfer.getData('text/plain'));
+  if (!tid) return;
+  const rect = ev.currentTarget.getBoundingClientRect();
+  const y = ev.clientY - rect.top;
+  let hour = PLN_H_START + Math.floor(y / PLN_HPX);
+  hour = Math.max(PLN_H_START, Math.min(PLN_H_END, hour));
+  plnScheduleTask(parseInt(tid, 10), dateStr, hour * 60, 60);
+  toast('✓ Rejaga qo\'yildi', 'ok');
+}
 
 function tkFilteredTasks() {
   let list = (tasksCache || []).slice();
