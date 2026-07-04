@@ -749,23 +749,37 @@
     <!-- Dashboard -->
     <section id="page-planner" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap;">
-        <h2 class="h2" style="margin:0">🗓 Rejalashtirgich</h2>
-        <div style="display:flex;align-items:center;gap:8px;">
+        <h2 class="h2" style="margin:0" id="plnPageTitle">🗓 Rejalashtirgich</h2>
+        <div id="plnWeekNav" style="display:flex;align-items:center;gap:8px;">
           <button class="btn sm secondary" onclick="plnNav(-1)">‹</button>
           <span id="plnWeekLbl" style="font-weight:600;font-size:14px;min-width:180px;text-align:center;">—</span>
           <button class="btn sm secondary" onclick="plnNav(1)">›</button>
           <button class="btn sm secondary" onclick="plnNav(0)">Bugun</button>
         </div>
       </div>
-      <div class="pln-layout">
-        <div class="pln-side">
-          <div class="pln-side-head">Bajarishim kerak</div>
-          <div class="pln-side-hint">Vazifani kalendarga sudrab olib boring →</div>
-          <div id="plnUnscheduled" class="pln-side-list"></div>
+      <div class="view-tabs" style="margin-bottom:16px;">
+        <button class="view-tab active" data-plntab="schedule" onclick="plnSetTab('schedule')">🗓 Mening jadvalim</button>
+        <button class="view-tab" data-plntab="mine" onclick="plnSetTab('mine')">📥 Mening vazifalarim</button>
+        <button class="view-tab" data-plntab="assigned" onclick="plnSetTab('assigned')">📤 Men topshirganlar</button>
+        <button class="view-tab" data-plntab="all" onclick="plnSetTab('all')">✓ Barcha vazifalar</button>
+      </div>
+      <div id="plnCalPane">
+        <div class="pln-layout">
+          <div class="pln-side">
+            <div class="pln-side-head">Bajarishim kerak</div>
+            <div class="pln-side-hint">Vazifani kalendarga sudrab olib boring →</div>
+            <div id="plnUnscheduled" class="pln-side-list"></div>
+          </div>
+          <div class="pln-cal-wrap">
+            <div class="pln-cal" id="plnCal"></div>
+          </div>
         </div>
-        <div class="pln-cal-wrap">
-          <div class="pln-cal" id="plnCal"></div>
+      </div>
+      <div id="plnKanbanPane" style="display:none">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+          <button class="btn sm secondary" onclick="openAddColumnModal()">+ Yangi column</button>
         </div>
+        <div class="kanban" id="plnKanGrid"></div>
       </div>
     </section>
     <section id="page-dashboard">
@@ -2719,8 +2733,6 @@ function renderSidebar() {
   let html = '';
   html += '<button class="side-link ' + (currentPage === 'dashboard' ? 'active' : '') + '" onclick="goPage(\'dashboard\')"><span class="ic">◐</span> Bosh sahifa</button>';
   html += '<button class="side-link ' + (currentPage === 'planner' ? 'active' : '') + '" onclick="goPage(\'planner\')"><span class="ic">🗓</span> Rejalashtirgich</button>';
-  html += '<button class="side-link ' + (currentPage === 'tasks' && taskScope === 'mine' ? 'active' : '') + '" onclick="goTaskScope(\'mine\')"><span class="ic">📥</span> Mening vazifalarim</button>';
-  html += '<button class="side-link ' + (currentPage === 'tasks' && taskScope === 'assigned' ? 'active' : '') + '" onclick="goTaskScope(\'assigned\')"><span class="ic">📤</span> Men topshirganlar</button>';
   html += '<button class="side-link ' + (currentPage === 'tasks' && taskScope === 'all' ? 'active' : '') + '" onclick="goTaskScope(\'all\')"><span class="ic">✓</span> Barcha vazifalar</button>';
   if (isOrg && canManage) {
     html += '<button class="side-link ' + (currentPage === 'stats' ? 'active' : '') + '" onclick="goPage(\'stats\')"><span class="ic">📊</span> Statistika</button>';
@@ -3015,7 +3027,7 @@ function goPage(p) {
   if (p !== 'department') currentDeptId = null;
   renderSidebar();
   ['dashboard','planner','tasks','departments','department','team','integrations','tgusers','branches','positions','settings','stats','botsettings','botcommands','orgchart','profile'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
-  if (p === 'planner') renderPlanner();
+  if (p === 'planner') plnSetTab(plnTab);
   if (p === 'tasks') {
     const titles = { mine: '📥 Mening vazifalarim', assigned: '📤 Men topshirganlar', all: '✓ Barcha vazifalar' };
     const el = $('tasksPageTitle'); if (el) el.textContent = titles[taskScope] || '✓ Barcha vazifalar';
@@ -6088,7 +6100,7 @@ function exportStatsCsv() {
 function refreshActiveView() {
   // Dashboard
   if (currentPage === 'dashboard') updateDashboard(null);
-  if (currentPage === 'planner') renderPlanner();
+  if (currentPage === 'planner') { if (plnTab === 'schedule') renderPlanner(); else renderTasksKanban('plnKanGrid'); }
   // Active page
   if (currentPage === 'tasks') {
     if (currentTasksView === 'list') renderTasksList();
@@ -6794,6 +6806,24 @@ function plnNav(dir) {
   renderPlanner();
 }
 
+let plnTab = 'schedule'; // 'schedule' | 'mine' | 'assigned' | 'all'
+function plnSetTab(tab) {
+  plnTab = tab;
+  document.querySelectorAll('#page-planner [data-plntab]').forEach(b => b.classList.toggle('active', b.dataset.plntab === tab));
+  const isSchedule = tab === 'schedule';
+  $('plnCalPane').style.display = isSchedule ? 'block' : 'none';
+  $('plnKanbanPane').style.display = isSchedule ? 'none' : 'block';
+  $('plnWeekNav').style.display = isSchedule ? 'flex' : 'none';
+  const titles = { schedule: '🗓 Mening jadvalim', mine: '📥 Mening vazifalarim', assigned: '📤 Men topshirganlar', all: '✓ Barcha vazifalar' };
+  $('plnPageTitle').textContent = titles[tab] || '🗓 Rejalashtirgich';
+  if (isSchedule) {
+    renderPlanner();
+  } else {
+    taskScope = tab; // mine=menga assign qilinган, assigned=men topshirган, all=barchasi
+    renderTasksKanban('plnKanGrid');
+  }
+}
+
 function renderPlanner() {
   if (!$('plnCal')) return;
   if (!plnWeekStart) plnWeekStart = plnMondayOf(new Date());
@@ -7061,13 +7091,14 @@ function tkFilteredTasks() {
 }
 
 function rerenderActiveKanban() {
+  if (currentPage === 'planner' && plnTab !== 'schedule') { renderTasksKanban('plnKanGrid'); return; }
   if (currentPage === 'tasks' && currentTasksView === 'kanban') renderTasksKanban();
   else if (currentPage === 'department' && currentDeptView === 'kanban') renderKanban();
   else { try { renderKanban(); } catch (e) {} try { renderTasksKanban(); } catch (e) {} }
 }
 
-function renderTasksKanban() {
-  const grid = $('tkGrid'); if (!grid) return;
+function renderTasksKanban(gridId) {
+  const grid = $(gridId || 'tkGrid'); if (!grid) return;
   const tasks = tkFilteredTasks();
   const cols = kanbanColumns.length ? kanbanColumns : STATUS_ORDER.map((s, i) => ({ id: 'fallback-'+s, name: STATUS_LBL[s], status: s, color: '#94A3B8', sort_order: i+1, is_default: true }));
 
