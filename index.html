@@ -492,6 +492,11 @@
   .tbl-filter-pop label:hover { background:var(--surface-2); }
   .tbl-empty-row td { text-align:center; color:var(--muted); padding:28px; }
 
+  /* Izoh @mention + highlight */
+  .cmt-mention { color:var(--accent-ink); background:var(--accent); padding:0 4px; border-radius:5px; font-weight:600; }
+  .cmt-highlight { animation:cmtFlash 2.6s ease; border-radius:10px; }
+  @keyframes cmtFlash { 0%,100%{ background:transparent; } 15%,55%{ background:var(--accent); } }
+
   /* ===== Rejalashtirgich (Planner) ===== */
   .pln-layout { display:grid; grid-template-columns:280px 1fr; gap:16px; align-items:start; }
   @media (max-width:900px){ .pln-layout{ grid-template-columns:1fr; } }
@@ -3995,8 +4000,15 @@ let curDetailAttachments = [];
 let _detailPasteHandler = null;
 
 async function openDetail(id) {
-  const t = tasksCache.find(x => x.id === id);
-  if (!t) return;
+  let t = tasksCache.find(x => x.id === id);
+  if (!t) {
+    // Cache'да yo'q (masalan belgilanган, lekin biriktirilmagan) — bevosita o'qiymιz
+    try {
+      const { data } = await sb.from('tasks').select('*').eq('id', id).maybeSingle();
+      if (data) { t = data; tasksCache.unshift(data); }
+    } catch (e) {}
+  }
+  if (!t) { toast('Vazifa topilmadi yoki ruxsat yo\'q', 'err'); return; }
   currentDetailId = id;
   $('dTitle').textContent = t.title || '—';
   $('dBody').innerHTML = '<div style="text-align:center; padding: 30px; color: var(--muted); font-size: 13px;">⏳ Yuklanmoqda…</div>';
@@ -4183,11 +4195,20 @@ function renderCommentItem(c, canDelete) {
   const av = avatarHtml(displayAuthor, 'sm', authorAvatarUrl);
   const time = relTime(c.created_at);
   const canDel = canDelete && (c.author_id === me.id || isOwnerLike());
-  return '<div class="cmt-item">' +
+  // @mention'larni ajratib ko'rsatamιz
+  let textHtml = escapeHtml(displayText);
+  (wsMembers || []).forEach(mm => {
+    const nm = (mm.profile && mm.profile.full_name) || '';
+    if (nm) {
+      const esc = escapeHtml('@' + nm);
+      textHtml = textHtml.split(esc).join('<span class="cmt-mention">' + esc + '</span>');
+    }
+  });
+  return '<div class="cmt-item" id="cmt-' + c.id + '">' +
     '<div class="cmt-head">' + av + '<span class="cmt-author">' + escapeHtml(displayAuthor) + '</span><span class="cmt-time">' + time + '</span>' +
       (canDel ? '<span class="cmt-delete" onclick="deleteComment('+c.id+')" style="margin-left:auto;">×</span>' : '') +
     '</div>' +
-    '<div class="cmt-text ' + (fromTg ? 'from-tg' : '') + '">' + escapeHtml(displayText) + '</div>' +
+    '<div class="cmt-text ' + (fromTg ? 'from-tg' : '') + '">' + textHtml + '</div>' +
   '</div>';
 }
 
@@ -4433,13 +4454,13 @@ async function addComment() {
     // Telegram'gа yuborish — assignee'gа
     notifyCommentToTg(text);
     // Belgilanган a'zolarга bildirishnoma + Telegram
-    mentions.forEach(mn => notifyMention(mn.user_id, text));
+    mentions.forEach(mn => notifyMention(mn.user_id, text, data.id));
     if (mentions.length) toast('🔔 ' + mentions.length + ' kishi belgilandi', 'ok');
   } catch (e) { toast(translateErr(e.message), 'err'); }
 }
 
 // @mention bildirishnomasi (in-app + Telegram)
-async function notifyMention(userId, text) {
+async function notifyMention(userId, text, commentId) {
   const t = tasksCache.find(x => x.id === currentDetailId);
   const title = t ? t.title : '';
   // In-app notification
@@ -4448,7 +4469,7 @@ async function notifyMention(userId, text) {
       workspace_id: currentWs.id, user_id: userId, kind: 'mention',
       title: 'Sizni izohда belgilashdi',
       body: (myProfile.full_name || me.email) + ': ' + text.slice(0, 120),
-      meta: { task_id: currentDetailId, workspace_id: currentWs.id }
+      meta: { task_id: currentDetailId, workspace_id: currentWs.id, comment_id: commentId || null }
     });
   } catch (e) {}
   // Telegram
@@ -7924,7 +7945,7 @@ function renderNotifs() {
       actions = '<div class="notif-actions" style="margin-top:8px"><button class="btn sm" onclick="acceptInvite(\''+meta.invitation_id+'\')">✓ Qabul</button><button class="btn sm secondary" onclick="declineInvite(\''+meta.invitation_id+'\')">Rad</button></div>';
     } else if (meta.task_id && meta.workspace_id) {
       // Click to open task (switch workspace if needed)
-      clickHandler = ' onclick="openNotifTask(\''+meta.workspace_id+'\', '+meta.task_id+', \''+n.id+'\')" style="cursor:pointer;"';
+      clickHandler = ' onclick="openNotifTask(\''+meta.workspace_id+'\', '+meta.task_id+', \''+n.id+'\', '+(meta.comment_id || 'null')+')" style="cursor:pointer;"';
     }
     const from = meta.invited_by_name ? '<div style="font-size:11.5px; color: var(--muted); margin-top:4px;">Kim: ' + escapeHtml(meta.invited_by_name) + '</div>' : '';
     const wsLabel = meta.workspace_name ? '<div style="font-size:11px; color: var(--muted); margin-top:2px;">' + escapeHtml(meta.workspace_name) + '</div>' : '';
@@ -7942,7 +7963,7 @@ function renderNotifs() {
   }).join('');
 }
 
-async function openNotifTask(wsId, taskId, notifId) {
+async function openNotifTask(wsId, taskId, notifId, commentId) {
   // Mark read
   if (notifId) {
     try { await sb.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', notifId); } catch(e){}
@@ -7957,7 +7978,20 @@ async function openNotifTask(wsId, taskId, notifId) {
     }
   }
   goPage('tasks');
-  setTimeout(() => openDetail(taskId), 80);
+  setTimeout(() => {
+    openDetail(taskId);
+    // Belgilanган izohgа o'tish va ajratib ko'rsatish
+    if (commentId) {
+      setTimeout(() => {
+        const el = document.getElementById('cmt-' + commentId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('cmt-highlight');
+          setTimeout(() => el.classList.remove('cmt-highlight'), 2600);
+        }
+      }, 500);
+    }
+  }, 80);
   loadNotifs();
 }
 function toggleNotif(e) {
