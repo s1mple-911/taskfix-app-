@@ -524,6 +524,11 @@
   .pln-block .pb-time { font-size:10px; opacity:.85; }
   .pln-block .pb-x { position:absolute; top:2px; right:4px; cursor:pointer; opacity:.7; font-size:12px; }
   .pln-block .pb-x:hover { opacity:1; }
+  .pln-block .pb-resize { position:absolute; left:0; right:0; bottom:0; height:7px; cursor:ns-resize; }
+  .pln-block .pb-resize:hover { background:rgba(255,255,255,.35); }
+  .pln-block:hover { filter:brightness(1.05); box-shadow:0 2px 8px rgba(0,0,0,.2); }
+  .pln-sel-overlay { position:absolute; left:2px; right:2px; background:var(--accent); opacity:.55; border:1.5px dashed var(--accent-ink); border-radius:6px; z-index:3; pointer-events:none; font-size:10.5px; color:var(--accent-ink); font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .pln-day { cursor:crosshair; }
   .kan-add-task { background: none; border: 1px dashed var(--line-strong); border-radius: 8px; padding: 8px; width: 100%; color: var(--muted); font-size: 12.5px; cursor: pointer; margin-top: 6px; }
   .kan-add-task:hover { color: var(--accent-ink); border-color: var(--accent); background: var(--accent-soft); }
   .kan-col-actions { display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
@@ -1867,7 +1872,7 @@
         <div class="ms-summary" id="msSummary"></div>
       </div>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-        <div class="field" style="margin-bottom:0"><label>Deadline</label><input id="cDeadline" type="datetime-local" /></div>
+        <div class="field" style="margin-bottom:0"><label>Deadline</label><input id="cDeadline" type="datetime-local" /><div id="cPlnHint" style="display:none;font-size:11.5px;color:var(--accent-ink);background:var(--accent);opacity:.9;padding:5px 9px;border-radius:7px;margin-top:6px;"></div></div>
         <div class="field" style="margin-bottom:0"><label>Prioritet</label><select id="cPriority"><option value="0">Yo'q</option><option value="1">P1 (eng yuqori)</option><option value="2">P2</option><option value="3">P3 (yuqori)</option><option value="4">P4</option><option value="5">P5</option><option value="6">P6 (o'rta)</option><option value="7">P7</option><option value="8">P8 (past)</option><option value="9">P9</option><option value="10">P10 (eng past)</option></select></div>
       </div>
       <div class="field" style="margin-top: 12px;">
@@ -3297,6 +3302,7 @@ function openCreate() { openCreateInternal(null); }
 function openCreateForDept() { openCreateInternal(currentDeptId); }
 function openCreateInternal(forceDeptId) {
   $('cTitle').value=''; $('cDesc').value=''; $('cDeadline').value=''; $('cPriority').value='0';
+  const _plnH = $('cPlnHint'); if (_plnH && !window._plnPendingSchedule) _plnH.style.display = 'none';
   $('cNewSub').value = '';
   cPendingSubs = [];
   cPendingFiles = [];
@@ -3892,6 +3898,12 @@ async function saveCreate() {
 
     // Local cache va UI yangilash
     data.forEach(d => tasksCache.unshift(d));
+    // Planner orqali yaratilган bo'lsa — rejaга qo'shamιz
+    if (window._plnPendingSchedule && data[0]) {
+      const p = window._plnPendingSchedule;
+      plnScheduleTask(data[0].id, p.date, p.start, p.dur);
+      window._plnPendingSchedule = null;
+    }
     closeCreate();
     toast(targets.length > 1 ? ('✅ ' + targets.length + ' ta vazifa yaratildi') : '✅ Vazifa yaratildi', 'ok');
     refreshActiveView();
@@ -6670,7 +6682,7 @@ function renderPlanner() {
     const ds = plnDateStr(d);
     const gridlines = 'repeating-linear-gradient(to bottom, transparent, transparent ' + (PLN_HPX-1) + 'px, var(--line) ' + (PLN_HPX-1) + 'px, var(--line) ' + PLN_HPX + 'px)';
     html += '<div class="pln-day" data-date="' + ds + '" style="position:relative;height:' + bodyH + 'px;border-right:1px solid var(--line);background:' + gridlines + ';" ' +
-      'onclick="plnCellClick(event,\'' + ds + '\')" ondragover="plnDayDragOver(event)" ondragleave="plnDayDragLeave(event)" ondrop="plnDayDrop(event,\'' + ds + '\')">';
+      'onmousedown="plnDayMouseDown(event,\'' + ds + '\')" ondragover="plnDayDragOver(event)" ondragleave="plnDayDragLeave(event)" ondrop="plnDayDrop(event,\'' + ds + '\')">';
     // Shu kundagi bloklar
     Object.keys(sched).forEach(tid => {
       const s = sched[tid];
@@ -6680,13 +6692,13 @@ function renderPlanner() {
       const top = ((s.start - PLN_H_START * 60) / 60) * PLN_HPX;
       const height = Math.max(24, (s.dur / 60) * PLN_HPX);
       const col = plnTaskColor(t);
-      const sh = String(Math.floor(s.start/60)).padStart(2,'0') + ':' + String(s.start%60).padStart(2,'0');
-      const eMin = s.start + s.dur;
-      const eh = String(Math.floor(eMin/60)).padStart(2,'0') + ':' + String(eMin%60).padStart(2,'0');
-      html += '<div class="pln-block" style="top:' + top + 'px;height:' + height + 'px;background:' + col + ';" onclick="event.stopPropagation();openDetail(' + t.id + ')">' +
-        '<span class="pb-x" onclick="event.stopPropagation();plnUnschedule(' + t.id + ')">×</span>' +
+      const sh = plnMinLabel(s.start);
+      const eh = plnMinLabel(s.start + s.dur);
+      html += '<div class="pln-block" data-tid="' + t.id + '" style="top:' + top + 'px;height:' + height + 'px;background:' + col + ';" onmousedown="plnBlockMouseDown(event,' + t.id + ',\'move\')">' +
+        '<span class="pb-x" onmousedown="event.stopPropagation();" onclick="event.stopPropagation();plnUnschedule(' + t.id + ')">×</span>' +
         '<span class="pb-title">' + escapeHtml(t.title || '(nomsiz)') + '</span>' +
-        '<span class="pb-time">' + sh + ' – ' + eh + '</span></div>';
+        '<span class="pb-time">' + sh + ' – ' + eh + '</span>' +
+        '<span class="pb-resize" onmousedown="plnBlockMouseDown(event,' + t.id + ',\'resize\')"></span></div>';
     });
     html += '</div>';
   });
@@ -6724,38 +6736,120 @@ function renderPlnUnscheduled() {
 }
 
 // Bo'sh katakka bosish → o'sha kun/soatда vazifa yaratish
-function plnCellClick(ev, dateStr) {
-  const day = ev.currentTarget;
-  const rect = day.getBoundingClientRect();
-  const y = ev.clientY - rect.top;
-  let hour = PLN_H_START + Math.floor(y / PLN_HPX);
-  hour = Math.max(PLN_H_START, Math.min(PLN_H_END, hour));
-  const startMin = hour * 60;
-  const title = prompt('Vazifa nomi (' + String(hour).padStart(2,'0') + ':00 ga rejalashtiriladi):');
-  if (!title || !title.trim()) return;
-  plnQuickCreate(title.trim(), dateStr, startMin);
+// ---- Yordamchi ----
+function plnMinLabel(min) { min = Math.max(0, Math.round(min)); return String(Math.floor(min/60)).padStart(2,'0') + ':' + String(Math.round(min%60)).padStart(2,'0'); }
+function plnYToMin(y) { return PLN_H_START * 60 + (y / PLN_HPX) * 60; }
+function plnSnap(min) { return Math.round(min / 15) * 15; }
+
+// ---- Sichqoncha bilan vaqt oralig'ini tanlash ----
+let _plnSel = null;
+function plnDayMouseDown(ev, dateStr) {
+  if (ev.target.closest('.pln-block')) return;
+  if (ev.button !== 0) return;
+  ev.preventDefault();
+  const dayEl = ev.currentTarget;
+  const rect = dayEl.getBoundingClientRect();
+  const y = Math.max(0, ev.clientY - rect.top);
+  _plnSel = { dayEl, dateStr, startY: y, curY: y };
+  const ov = document.createElement('div');
+  ov.className = 'pln-sel-overlay'; ov.id = 'plnSelOverlay';
+  dayEl.appendChild(ov);
+  plnSelUpdate();
+  document.addEventListener('mousemove', plnSelMove);
+  document.addEventListener('mouseup', plnSelUp);
 }
-async function plnQuickCreate(title, dateStr, startMin) {
-  const firstCol = (kanbanColumns || []).slice().sort((a,b)=>(a.sort_order||0)-(b.sort_order||0))[0];
-  const payload = {
-    workspace_id: currentWs.id,
-    title,
-    created_by: me.id,
-    assigned_to: me.id,
-    status: firstCol ? firstCol.status : 'new',
-    priority_level: 0,
-    deadline: new Date(dateStr + 'T' + String(Math.floor(startMin/60)).padStart(2,'0') + ':00:00').toISOString()
-  };
-  try {
-    const { data, error } = await sb.from('tasks').insert(payload).select().single();
-    if (error) throw error;
-    if (data && !tasksCache.find(t => t.id === data.id)) tasksCache.unshift(data);
-    plnScheduleTask(data.id, dateStr, startMin, 60);
-    toast('✓ Vazifa rejaga qo\'shildi', 'ok');
-  } catch (e) { toast('Xato: ' + (e.message || e), 'err'); }
+function plnSelMove(ev) {
+  if (!_plnSel) return;
+  const rect = _plnSel.dayEl.getBoundingClientRect();
+  _plnSel.curY = Math.max(0, Math.min(rect.height, ev.clientY - rect.top));
+  plnSelUpdate();
+}
+function plnSelUpdate() {
+  const ov = document.getElementById('plnSelOverlay');
+  if (!ov || !_plnSel) return;
+  const top = Math.min(_plnSel.startY, _plnSel.curY);
+  const height = Math.abs(_plnSel.curY - _plnSel.startY);
+  ov.style.top = top + 'px';
+  ov.style.height = Math.max(2, height) + 'px';
+  ov.textContent = plnMinLabel(plnYToMin(top)) + ' - ' + plnMinLabel(plnYToMin(top + height));
+}
+function plnSelUp(ev) {
+  document.removeEventListener('mousemove', plnSelMove);
+  document.removeEventListener('mouseup', plnSelUp);
+  if (!_plnSel) return;
+  const top = Math.min(_plnSel.startY, _plnSel.curY);
+  const bottom = Math.max(_plnSel.startY, _plnSel.curY);
+  const ds = _plnSel.dateStr;
+  const ov = document.getElementById('plnSelOverlay'); if (ov) ov.remove();
+  _plnSel = null;
+  let startMin = plnSnap(plnYToMin(top));
+  let endMin = plnSnap(plnYToMin(bottom));
+  if (endMin - startMin < 15) endMin = startMin + 60;
+  plnOpenCreate(ds, startMin, endMin - startMin);
 }
 
-// Drag & drop
+// Bo'sh joyга bosilганда — TO'LIQ vazifa modali
+function plnOpenCreate(dateStr, startMin, durMin) {
+  window._plnPendingSchedule = { date: dateStr, start: startMin, dur: durMin };
+  openCreate();
+  setTimeout(() => {
+    const dl = $('cDeadline');
+    if (dl) dl.value = dateStr + 'T' + plnMinLabel(startMin);
+    const hint = $('cPlnHint');
+    if (hint) { hint.style.display = 'block'; hint.textContent = "🗓 Rejaga: " + dateStr + " " + plnMinLabel(startMin) + " - " + plnMinLabel(startMin + durMin); }
+  }, 80);
+}
+
+// ---- Blokni ko'chirish / cho'zish ----
+let _plnMove = null;
+function plnBlockMouseDown(ev, taskId, mode) {
+  if (ev.button !== 0) return;
+  ev.preventDefault(); ev.stopPropagation();
+  const sched = plnGetSchedule();
+  const s = sched[taskId];
+  if (!s) return;
+  const blockEl = ev.target.closest('.pln-block');
+  _plnMove = { taskId, mode, startClientY: ev.clientY, origStart: s.start, origDur: s.dur, blockEl, moved: false, newStart: s.start, newDur: s.dur };
+  document.body.style.userSelect = 'none';
+  document.addEventListener('mousemove', plnMoveMove);
+  document.addEventListener('mouseup', plnMoveUp);
+}
+function plnMoveMove(ev) {
+  if (!_plnMove) return;
+  const dy = ev.clientY - _plnMove.startClientY;
+  if (Math.abs(dy) > 3) _plnMove.moved = true;
+  const dMin = (dy / PLN_HPX) * 60;
+  const el = _plnMove.blockEl; if (!el) return;
+  if (_plnMove.mode === 'move') {
+    let newStart = plnSnap(_plnMove.origStart + dMin);
+    newStart = Math.max(PLN_H_START*60, Math.min((PLN_H_END+1)*60 - _plnMove.origDur, newStart));
+    el.style.top = ((newStart - PLN_H_START*60)/60*PLN_HPX) + 'px';
+    _plnMove.newStart = newStart;
+    const tl = el.querySelector('.pb-time'); if (tl) tl.textContent = plnMinLabel(newStart) + ' - ' + plnMinLabel(newStart + _plnMove.origDur);
+  } else {
+    let newDur = Math.max(15, plnSnap(_plnMove.origDur + dMin));
+    el.style.height = Math.max(24, newDur/60*PLN_HPX) + 'px';
+    _plnMove.newDur = newDur;
+    const tl = el.querySelector('.pb-time'); if (tl) tl.textContent = plnMinLabel(_plnMove.origStart) + ' - ' + plnMinLabel(_plnMove.origStart + newDur);
+  }
+}
+function plnMoveUp(ev) {
+  document.removeEventListener('mousemove', plnMoveMove);
+  document.removeEventListener('mouseup', plnMoveUp);
+  document.body.style.userSelect = '';
+  if (!_plnMove) return;
+  const m = _plnMove; _plnMove = null;
+  if (!m.moved) { openDetail(m.taskId); return; }
+  const sched = plnGetSchedule();
+  if (!sched[m.taskId]) return;
+  if (m.mode === 'move') sched[m.taskId].start = m.newStart;
+  else sched[m.taskId].dur = m.newDur;
+  plnSaveSchedule(sched);
+  renderPlanner();
+  toast('✓ Saqlandi', 'ok');
+}
+
+// ---- Panel'дан drag (HTML5) ----
 let _plnDragTask = null;
 function plnTaskDragStart(ev, taskId) {
   _plnDragTask = taskId;
@@ -6771,10 +6865,9 @@ function plnDayDrop(ev, dateStr) {
   if (!tid) return;
   const rect = ev.currentTarget.getBoundingClientRect();
   const y = ev.clientY - rect.top;
-  let hour = PLN_H_START + Math.floor(y / PLN_HPX);
-  hour = Math.max(PLN_H_START, Math.min(PLN_H_END, hour));
-  plnScheduleTask(parseInt(tid, 10), dateStr, hour * 60, 60);
-  toast('✓ Rejaga qo\'yildi', 'ok');
+  const startMin = plnSnap(plnYToMin(y));
+  plnScheduleTask(parseInt(tid, 10), dateStr, Math.max(PLN_H_START*60, startMin), 60);
+  toast('✓ Saqlandi', 'ok');
 }
 
 function tkFilteredTasks() {
