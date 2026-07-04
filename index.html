@@ -3553,6 +3553,16 @@ function msUpdateSummary() {
     el.textContent = '✓ ' + total + ' ta xodimga (har biriga alohida vazifa) beriladi';
     el.classList.add('has-selection');
   }
+  plnUpdateHintVisibility();
+}
+
+// Reja vaqt yorlig'i — FAQAT o'zimga (yoki hech kimga) biriktirilganda ko'rinadi
+function plnUpdateHintVisibility() {
+  const hint = $('cPlnHint');
+  if (!hint || !window._plnPendingSchedule) { if (hint) hint.style.display = 'none'; return; }
+  // Boshqa xodim tanlanган bo'lsa — reja o'zimга emas → yashiramιz
+  const hasOther = msSelected.some(s => !(s.type === 'me' || (s.type === 'user' && s.id === me.id)));
+  hint.style.display = hasOther ? 'none' : 'block';
 }
 
 function msCountFinal() {
@@ -3823,6 +3833,8 @@ function closeCreate() {
   $('createBd').classList.remove('show');
   detachCreatePaste();
   window._cQuickStatus = null;
+  window._plnPendingSchedule = null; // planner reja holatini tozalaymιz (leak oldini olish)
+  const _plnH = $('cPlnHint'); if (_plnH) _plnH.style.display = 'none';
   const cBtn = $('cBtn');
   if (cBtn) { cBtn.disabled = false; cBtn.textContent = 'Yaratish'; }
 }
@@ -3938,10 +3950,14 @@ async function saveCreate() {
 
     // Local cache va UI yangilash
     data.forEach(d => tasksCache.unshift(d));
-    // Planner orqali yaratilган bo'lsa — rejaга qo'shamιz
+    // Planner orqali yaratilган bo'lsa — FAQAT o'zimga biriktirilган bo'lsa rejaга qo'shamιz
     if (window._plnPendingSchedule && data[0]) {
-      const p = window._plnPendingSchedule;
-      plnScheduleTask(data[0].id, p.date, p.start, p.dur);
+      const t0 = data[0];
+      const isMine = (t0.assigned_to === me.id) || (!t0.assigned_to && !t0.assigned_to_tg_bot_user);
+      if (isMine) {
+        const p = window._plnPendingSchedule;
+        plnScheduleTask(t0.id, p.date, p.start, p.dur);
+      }
       window._plnPendingSchedule = null;
     }
     closeCreate();
@@ -6971,8 +6987,15 @@ function plnOpenCreate(dateStr, startMin, durMin) {
   setTimeout(() => {
     const dl = $('cDeadline');
     if (dl) dl.value = dateStr + 'T' + plnMinLabel(startMin);
+    // O'zimni bajaruvchi qilib tanlaymιz (reja = mening jadvalim)
+    if (typeof msIsSelected === 'function' && !msIsSelected('me', 'me')) {
+      msSelected.push({ type: 'me', id: 'me', label: (myProfile.full_name || 'Men') });
+      if (typeof msUpdateSummary === 'function') msUpdateSummary();
+      if (typeof msFilter === 'function') msFilter();
+    }
     const hint = $('cPlnHint');
-    if (hint) { hint.style.display = 'block'; hint.textContent = "🗓 Rejaga: " + dateStr + " " + plnMinLabel(startMin) + " - " + plnMinLabel(startMin + durMin); }
+    if (hint) { hint.style.display = 'block'; hint.textContent = "🗓 Rejaga qo'shiladi: " + dateStr + " " + plnMinLabel(startMin) + " - " + plnMinLabel(startMin + durMin); }
+    plnUpdateHintVisibility();
   }, 80);
 }
 
