@@ -3883,9 +3883,6 @@ function xlsDownloadTemplate() {
   if (typeof XLSX === 'undefined') { toast('Excel kutubxonasi hali yuklanmadi, biroz kuting', 'err'); return; }
   const aoa = [
     ['Nomi', 'Tavsif', 'Bajaruvchi', "Bo'lim", 'Deadline', 'Prioritet', 'Status'],
-    ['Do\'kon uchun tovar buyurtma qilish', 'Zapchastlar ro\'yxati bo\'yicha', 'Asilbek Ermatov', 'IT', '2026-07-20', '1', 'Yangi'],
-    ['Hisobotni tayyorlash', '', '+998901234567', 'HR', '2026-07-25', '5', 'Jarayonda'],
-    ['Mijoz bilan bog\'lanish', 'Qarz bo\'yicha', '', '', '', '', ''],
   ];
   const ws = XLSX.utils.aoa_to_sheet(aoa);
   ws['!cols'] = [{ wch: 34 }, { wch: 28 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 10 }, { wch: 16 }];
