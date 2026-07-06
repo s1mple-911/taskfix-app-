@@ -201,6 +201,8 @@
   /* KANBAN */
   .kanban { display: flex; gap: 12px; align-items: stretch; height: calc(100vh - 220px); min-height: 500px; overflow-x: auto; padding-bottom: 8px; }
   .kan-col { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; flex: 0 0 280px; min-width: 280px; max-height: 100%; }
+  .kan-cards { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 8px; margin: 0 -4px; padding: 2px 4px 0; }
+  .kan-head { flex: 0 0 auto; }
   .kan-col.drop-over { background: #ECF7F1; border-color: var(--accent); }
   .kan-col.col-drop-target-left { box-shadow: -3px 0 0 var(--accent); }
   .kan-col.col-drop-target-right { box-shadow: 3px 0 0 var(--accent); }
@@ -215,6 +217,8 @@
   .kan-card:active { cursor: grabbing; }
   .kan-card.dragging { opacity: .4; }
   .kan-card-title { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px; line-height: 1.35; }
+  .kan-card-title.done { text-decoration: line-through; text-decoration-thickness: 1.5px; color: var(--muted); }
+  .kan-card-done { opacity: .72; background: var(--surface-2); }
   .kan-card-meta { font-size: 11.5px; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
   /* CALENDAR */
@@ -1492,7 +1496,7 @@
     </div>
     <div class="modal-body">
       <div class="field"><label>Column nomi *</label><input id="kcName" type="text" placeholder="Masalan: Review" /></div>
-      <div class="field">
+      <div class="field" style="display:none">
         <label>Status mapping</label>
         <select id="kcStatus">
           <option value="new">Yangi (boshlanmagan)</option>
@@ -2028,6 +2032,23 @@ const ROLE_WS = { owner: 'Egasi', member: "A'zo" };
 const ROLE_DEPT = { viewer: 'Ko\'ruvchi', editor: 'Tahrirlovchi', admin: 'Boshqaruvchi' };
 const STATUS_LBL = { new: 'Yangi', in_progress: 'Jarayonda', completed: 'Tugallangan', cancelled: 'Bekor' };
 const STATUS_ORDER = ['new', 'in_progress', 'completed', 'cancelled'];
+
+// Statuslar HAMMA joyда kanban ustunlaridan olinadi
+function statusColsList() {
+  if (kanbanColumns && kanbanColumns.length) {
+    return kanbanColumns.slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+  }
+  return STATUS_ORDER.map((s, i) => ({ status: s, name: STATUS_LBL[s], color: '#94A3B8', sort_order: i + 1 }));
+}
+function statusName(val) {
+  const c = (kanbanColumns || []).find(x => x.status === val);
+  if (c) return c.name;
+  return STATUS_LBL[val] || val || 'Yangi';
+}
+function statusColor(val) {
+  const c = (kanbanColumns || []).find(x => x.status === val);
+  return (c && c.color) || '#94A3B8';
+}
 
 function showMsg(el, t, k) { el.textContent = t; el.className = 'msg show ' + (k || ''); }
 function hideMsg(el) { el.className = 'msg'; }
@@ -3331,9 +3352,9 @@ function taskItemHtml(t, showDept) {
   return '<div class="item ' + (completed ? 'task-completed' : '') + '" onclick="openDetail(' + t.id + ')">' +
     '<div class="dot ts-' + t.status + '"></div>' +
     '<div class="item-mid">' +
-      '<div class="item-title">' + escapeHtml(t.title) + '</div>' +
+      '<div class="item-title"' + (completed ? ' style="text-decoration:line-through;color:var(--muted);"' : '') + '>' + (completed ? '✓ ' : '') + escapeHtml(t.title) + '</div>' +
       '<div class="item-meta">' +
-        '<span>' + STATUS_LBL[t.status] + '</span>' +
+        '<span>' + escapeHtml(statusName(t.status)) + '</span>' +
         (dept ? '<span class="dot-sep"></span><span>' + escapeHtml(dept) + '</span>' : '') +
         (asgName ? '<span class="dot-sep"></span><span>👤 ' + escapeHtml(asgName) + '</span>' : '') +
         (dlText ? '<span class="dot-sep"></span><span class="' + (ov ? 'task-overdue' : '') + '">⏰ ' + dlText + '</span>' : '') +
@@ -4353,7 +4374,7 @@ function renderDetailBody() {
   const t = tasksCache.find(x => x.id === currentDetailId);
   if (!t) return;
   const ov = isOverdue(t);
-  const statusBtns = STATUS_ORDER.map(s => '<button class="filter-btn ' + (t.status===s?'active':'') + '" onclick="changeStatus('+t.id+',\''+s+'\')">'+STATUS_LBL[s]+'</button>').join('');
+  const statusBtns = statusColsList().map(c => '<button class="filter-btn ' + (t.status===c.status?'active':'') + '" onclick="changeStatus('+t.id+',\''+c.status+'\')">'+escapeHtml(c.name)+'</button>').join('');
 
   // Assignee
   let asgLine = '';
@@ -6712,7 +6733,7 @@ function tblRowHtml(t, cols, canEdit) {
       case 'file':
         cell = (_tblAttachSet && _tblAttachSet.has(t.id)) ? '📎' : ''; break;
       case 'title':
-        cell = '<span class="cell-edit" onclick="openDetail(' + t.id + ')" style="cursor:pointer;font-weight:500;">' + escapeHtml(t.title || '(nomsiz)') + '</span>'; break;
+        cell = '<span class="cell-edit" onclick="openDetail(' + t.id + ')" style="cursor:pointer;font-weight:500;' + (t.status === 'completed' ? 'text-decoration:line-through;color:var(--muted);' : '') + '">' + (t.status === 'completed' ? '✓ ' : '') + escapeHtml(t.title || '(nomsiz)') + '</span>'; break;
       case 'department':
         cell = tblDeptSelect(t, canEdit); break;
       case 'creator':
@@ -7389,8 +7410,9 @@ function renderTasksKanban(gridId) {
       // Bo'lim ko'rsatish — tasks page'da boshqa bo'limlar bilan aralash bo'lishi mumkin
       const dept = t.department_id ? departments.find(d => d.id === t.department_id) : null;
       const deptName = dept ? '▦ ' + dept.name : '';
-      return '<div class="kan-card" draggable="true" data-id="'+t.id+'" ondragstart="kanDragStart(event, '+t.id+')" ondragend="kanDragEnd(event)" onclick="openDetail('+t.id+')">' +
-        '<div class="kan-card-title">' + escapeHtml(t.title) + '</div>' +
+      const isDone = t.status === 'completed';
+      return '<div class="kan-card' + (isDone ? ' kan-card-done' : '') + '" draggable="true" data-id="'+t.id+'" ondragstart="kanDragStart(event, '+t.id+')" ondragend="kanDragEnd(event)" onclick="openDetail('+t.id+')">' +
+        '<div class="kan-card-title' + (isDone ? ' done' : '') + '">' + (isDone ? '\u2713 ' : '') + escapeHtml(t.title) + '</div>' +
         '<div class="kan-card-meta">' +
           (deptName ? '<span>' + escapeHtml(deptName) + '</span>' : '') +
           (asgName ? '<span>' + escapeHtml(asgName) + '</span>' : '') +
@@ -7620,12 +7642,27 @@ async function loadKanbanColumns() {
     const { data, error } = await sb.from('kanban_columns').select('*').eq('workspace_id', currentWs.id).order('sort_order', { ascending: true });
     if (error) throw error;
     kanbanColumns = data || [];
+    // "Bajarildi" (completed) ustuni — protected. Nomi eski bo'lsa yangilaymιz.
+    const doneCol = kanbanColumns.find(c => c.status === 'completed');
+    if (doneCol && doneCol.name !== 'Bajarildi' && (doneCol.name === 'Tugatilgan' || doneCol.name === 'Tugallangan')) {
+      try { await sb.from('kanban_columns').update({ name: 'Bajarildi', is_default: true }).eq('id', doneCol.id); doneCol.name = 'Bajarildi'; doneCol.is_default = true; } catch (e) {}
+    }
+    // Agar completed ustuni umuman yo'q bo'lsa — qo'shamιz (protected)
+    if (kanbanColumns.length && !doneCol && currentWs.kind === 'organization') {
+      const sortMax = kanbanColumns.reduce((a, c) => Math.max(a, c.sort_order || 0), 0);
+      try {
+        const { data: dc } = await sb.from('kanban_columns').insert({
+          workspace_id: currentWs.id, name: 'Bajarildi', status: 'completed', color: '#10B981', sort_order: sortMax + 1, is_default: true
+        }).select().single();
+        if (dc) kanbanColumns.push(dc);
+      } catch (e) {}
+    }
     // Agar bo'sh — default 4 ta yaratamиz (backfill SQL ishlamagan bo'lsa)
     if (!kanbanColumns.length && currentWs.kind === 'organization') {
       const defaults = [
         { workspace_id: currentWs.id, name: 'Yangi', status: 'new', color: '#94A3B8', sort_order: 1, is_default: true },
         { workspace_id: currentWs.id, name: 'Jarayonда', status: 'in_progress', color: '#3B82F6', sort_order: 2, is_default: true },
-        { workspace_id: currentWs.id, name: 'Tugatilgan', status: 'completed', color: '#10B981', sort_order: 3, is_default: true },
+        { workspace_id: currentWs.id, name: 'Bajarildi', status: 'completed', color: '#10B981', sort_order: 3, is_default: true },
         { workspace_id: currentWs.id, name: 'Bekor', status: 'cancelled', color: '#EF4444', sort_order: 4, is_default: true },
       ];
       try {
@@ -7686,8 +7723,9 @@ function renderKanban() {
         const bu = tgUsersCache.find(u => u.id === t.assigned_to_tg_bot_user);
         asgName = bu ? '✈ ' + (bu.full_name || bu.tg_username || 'Bot') : '✈ Bot';
       }
-      return '<div class="kan-card" draggable="true" data-id="'+t.id+'" ondragstart="kanDragStart(event, '+t.id+')" ondragend="kanDragEnd(event)" onclick="openDetail('+t.id+')">' +
-        '<div class="kan-card-title">' + escapeHtml(t.title) + '</div>' +
+      const isDone = t.status === 'completed';
+      return '<div class="kan-card' + (isDone ? ' kan-card-done' : '') + '" draggable="true" data-id="'+t.id+'" ondragstart="kanDragStart(event, '+t.id+')" ondragend="kanDragEnd(event)" onclick="openDetail('+t.id+')">' +
+        '<div class="kan-card-title' + (isDone ? ' done' : '') + '">' + (isDone ? '\u2713 ' : '') + escapeHtml(t.title) + '</div>' +
         '<div class="kan-card-meta">' +
           (asgName ? '<span>' + escapeHtml(asgName) + '</span>' : '') +
           (dl ? '<span class="' + (ov ? 'task-overdue' : '') + '">⏰ ' + dl + '</span>' : '') +
@@ -7744,10 +7782,19 @@ function kcSetColor(c) {
   document.querySelectorAll('.kc-color-opt').forEach(el => el.classList.toggle('active', el.dataset.color === c));
 }
 
+function slugStatus(name) {
+  let base = String(name || '').toLowerCase().trim()
+    .replace(/'/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 30) || 'status';
+  const existing = new Set((kanbanColumns || []).map(c => c.status));
+  let s = base, i = 1;
+  while (existing.has(s)) { s = base + '_' + (++i); }
+  return s;
+}
+
 async function saveNewColumn() {
   const name = ($('kcName').value || '').trim();
   if (!name) { showMsg($('kcMsg'), 'Nomi kerak', 'err'); return; }
-  const status = $('kcStatus').value;
+  const status = slugStatus(name);
   const btn = $('kcSaveBtn');
   btn.disabled = true; btn.textContent = 'Saqlanmoqда…';
   try {
@@ -7759,7 +7806,8 @@ async function saveNewColumn() {
     kanbanColumns.push(data);
     closeAddColumnModal();
     rerenderActiveKanban();
-    toast('✓ Column qo\'shildi', 'ok');
+    if (currentDetailId) renderDetailBody();
+    toast('\u2713 "' + name + '" ustuni qo\'shildi \u2014 status hamma joyда paydo bo\'ldi', 'ok');
   } catch (e) {
     showMsg($('kcMsg'), translateErr(e.message), 'err');
     btn.disabled = false; btn.textContent = 'Yaratish';
