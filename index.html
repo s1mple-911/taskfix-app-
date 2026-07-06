@@ -3506,13 +3506,21 @@ async function saveNewEmployee() {
       try {
         if (fnErr.context && typeof fnErr.context.json === 'function') {
           const eb = await fnErr.context.json();
-          if (eb && (eb.detail || eb.error)) detail = (eb.error || '') + (eb.detail ? (': ' + eb.detail) : '');
+          if (eb && (eb.detail || eb.error)) {
+            const parts = [eb.error, eb.detail, eb.hint ? ('💡 ' + eb.hint) : '', eb.v ? ('(' + eb.v + ')') : '(ESKI VERSIYA — deploy qiling!)'].filter(Boolean);
+            detail = parts.join(' · ');
+          }
         }
       } catch (_) {}
       throw new Error(detail);
     }
     if (!res || !res.ok) {
-      const parts = [res && res.error, res && res.detail, res && res.code ? ('code=' + res.code) : '', res && res.status ? ('status=' + res.status) : ''].filter(Boolean);
+      const parts = [
+        res && res.error,
+        res && res.detail,
+        res && res.hint ? ('💡 ' + res.hint) : '',
+        res && res.v ? ('(' + res.v + ')') : '(ESKI VERSIYA — deploy qiling!)'
+      ].filter(Boolean);
       throw new Error(parts.join(' · ') || "Noma'lum xato");
     }
 
