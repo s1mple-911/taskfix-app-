@@ -821,15 +821,11 @@
     <!-- Tasks (workspace-wide) -->
     <section id="page-tasks" style="display:none">
       <h2 class="h2" id="tasksPageTitle" style="margin-bottom:14px;">Barcha vazifalar</h2>
-      <div class="view-tabs" style="display:flex;align-items:center;">
+      <div class="view-tabs">
         <button class="view-tab active" data-tv="list"     onclick="setTasksView('list')">Ro'yxat</button>
         <button class="view-tab"        data-tv="kanban"   onclick="setTasksView('kanban')">Kanban</button>
         <button class="view-tab"        data-tv="calendar" onclick="setTasksView('calendar')">Kalendar</button>
         <button class="view-tab"        data-tv="table"    onclick="setTasksView('table')">Jadval</button>
-        <div style="flex:1"></div>
-        <input type="file" id="xlsFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="onXlsPick(this)" />
-        <button class="btn sm secondary" onclick="xlsDownloadTemplate()" style="margin-right:6px;">⬇ Shablon</button>
-        <button class="btn sm secondary" onclick="document.getElementById('xlsFileInput').click()">📊 Excel import</button>
       </div>
       <div id="tasksView-list">
         <div class="search-row">
@@ -1368,6 +1364,27 @@
     </section>
 
     <!-- Settings (faqat owner) -->
+    <section id="page-logs" style="display:none">
+      <div class="row-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <h2 class="h2" style="margin:0">📋 Loglar (harakatlar tarixi)</h2>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input id="logSearch" placeholder="Qidirish..." oninput="renderLogs()" style="padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;width:200px;" />
+          <select id="logActionFilter" onchange="renderLogs()" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;">
+            <option value="">Barcha harakatlar</option>
+            <option value="task_created">Vazifa yaratildi</option>
+            <option value="task_status_changed">Holat o'zgardi</option>
+            <option value="task_assigned">Biriktirildi</option>
+            <option value="task_deleted">Vazifa o'chirildi</option>
+            <option value="employee_added">Xodim qo'shildi</option>
+            <option value="column_added">Ustun qo'shildi</option>
+            <option value="column_deleted">Ustun o'chirildi</option>
+          </select>
+          <button class="btn sm secondary" onclick="loadLogs()">↻ Yangilash</button>
+        </div>
+      </div>
+      <div id="logsList" style="margin-top:16px;"></div>
+    </section>
+
     <section id="page-settings" style="display:none">
       <div class="row-head"><h2 class="h2" style="margin:0">Sozlamalar</h2></div>
 
@@ -1385,6 +1402,16 @@
         <div class="field"><label>Telefon</label><input id="setProfPhone" type="text" /></div>
         <div style="display:flex; gap:10px;">
           <button class="btn" onclick="saveProfile()">Saqlash</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>📊 Excel'дан vazifa import</h3>
+        <p style="font-size:12.5px;color:var(--muted);margin:0 0 12px;">Bir nechta vazifани bir vaqtда Excel fayldан yuklang. Shablonни yuklab, to'ldiring va import qiling. Bajaruvchи bo'sh qolса — keyin Jadvalда tanlaysiz.</p>
+        <input type="file" id="xlsFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="onXlsPick(this)" />
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn secondary" onclick="xlsDownloadTemplate()">⬇ Shablon yuklab olish</button>
+          <button class="btn" onclick="document.getElementById('xlsFileInput').click()">📊 Excel yuklash</button>
         </div>
       </div>
 
@@ -2049,6 +2076,114 @@ function statusName(val) {
 function statusColor(val) {
   const c = (kanbanColumns || []).find(x => x.status === val);
   return (c && c.color) || '#94A3B8';
+}
+
+// ============ LOGLAR (audit ko'rinishi) ============
+let _logsCache = [];
+async function loadLogs() {
+  const wrap = $('logsList'); if (wrap) wrap.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);">Yuklanmoqда…</div>';
+  try {
+    const { data, error } = await sb.from('activity_logs').select('*').eq('workspace_id', currentWs.id).order('created_at', { ascending: false }).limit(500);
+    if (error) throw error;
+    _logsCache = data || [];
+    renderLogs();
+  } catch (e) {
+    if (wrap) wrap.innerHTML = '<div style="padding:24px;text-align:center;color:var(--danger);">Xato: ' + escapeHtml(e.message || String(e)) + '<br><span style="font-size:12px;color:var(--muted);">28-migratsiyani ishga tushiring</span></div>';
+  }
+}
+
+function logActionMeta(action) {
+  const map = {
+    task_created: { icon: '➕', label: 'Vazifa yaratdi', color: '#10B981' },
+    task_status_changed: { icon: '🔄', label: 'Holatни o\'zgartirdi', color: '#3B82F6' },
+    task_assigned: { icon: '👤', label: 'Biriktirdi', color: '#8B5CF6' },
+    task_updated: { icon: '✏️', label: 'Tahrirladi', color: '#6B7280' },
+    task_deleted: { icon: '🗑', label: 'Vazifани o\'chirdi', color: '#EF4444' },
+    employee_added: { icon: '🧑‍💼', label: 'Xodim qo\'shdi', color: '#0EA5E9' },
+    column_added: { icon: '📊', label: 'Ustun qo\'shdi', color: '#10B981' },
+    column_deleted: { icon: '🗑', label: 'Ustunни o\'chirdi', color: '#EF4444' },
+  };
+  return map[action] || { icon: '•', label: action, color: '#6B7280' };
+}
+
+function logTimeStr(iso) {
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = (now - d) / 1000;
+  if (diff < 60) return 'hozirgina';
+  if (diff < 3600) return Math.floor(diff / 60) + ' daqiqa oldin';
+  if (diff < 86400 && d.getDate() === now.getDate()) return 'bugun ' + d.toLocaleTimeString('uz', { hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleDateString('uz') + ' ' + d.toLocaleTimeString('uz', { hour: '2-digit', minute: '2-digit' });
+}
+
+function renderLogs() {
+  const wrap = $('logsList'); if (!wrap) return;
+  const q = ($('logSearch')?.value || '').toLowerCase().trim();
+  const af = $('logActionFilter')?.value || '';
+  let list = _logsCache.slice();
+  if (af) list = list.filter(l => l.action === af);
+  if (q) list = list.filter(l =>
+    (l.actor_name || '').toLowerCase().includes(q) ||
+    (l.entity_title || '').toLowerCase().includes(q) ||
+    (l.action || '').toLowerCase().includes(q) ||
+    JSON.stringify(l.details || {}).toLowerCase().includes(q)
+  );
+  if (!list.length) { wrap.innerHTML = '<div style="padding:32px;text-align:center;color:var(--muted);">Log topilmadi</div>'; return; }
+
+  let html = '<div style="display:flex;flex-direction:column;gap:2px;">';
+  let lastDay = '';
+  for (const l of list) {
+    const meta = logActionMeta(l.action);
+    const d = new Date(l.created_at);
+    const dayKey = d.toLocaleDateString('uz');
+    if (dayKey !== lastDay) {
+      lastDay = dayKey;
+      html += '<div style="font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 6px;">' + escapeHtml(dayKey) + '</div>';
+    }
+    let detailHtml = '';
+    const det = l.details || {};
+    if (det.from != null || det.to != null) {
+      detailHtml = '<span style="color:var(--muted);">' + escapeHtml(String(det.from ?? '—')) + '</span> <span style="color:var(--muted);">→</span> <span style="font-weight:600;">' + escapeHtml(String(det.to ?? '—')) + '</span>';
+    } else if (det.assignee) {
+      detailHtml = '<span style="color:var(--muted);">→ ' + escapeHtml(det.assignee) + '</span>';
+    } else if (det.email) {
+      detailHtml = '<span style="color:var(--muted);">' + escapeHtml(det.email) + '</span>';
+    }
+    html += '<div style="display:flex;gap:12px;align-items:flex-start;padding:11px 14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;">' +
+      '<div style="font-size:18px;line-height:1.2;flex:0 0 auto;">' + meta.icon + '</div>' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="font-size:13.5px;color:var(--ink);line-height:1.4;">' +
+          '<b>' + escapeHtml(l.actor_name || 'Kimdir') + '</b> ' +
+          '<span style="color:' + meta.color + ';">' + escapeHtml(meta.label.toLowerCase()) + '</span>' +
+          (l.entity_title ? ' <b>"' + escapeHtml(l.entity_title) + '"</b>' : '') +
+        '</div>' +
+        (detailHtml ? '<div style="font-size:12.5px;margin-top:3px;">' + detailHtml + '</div>' : '') +
+      '</div>' +
+      '<div style="font-size:11.5px;color:var(--muted);flex:0 0 auto;white-space:nowrap;">' + logTimeStr(l.created_at) + '</div>' +
+    '</div>';
+  }
+  html += '</div>';
+  wrap.innerHTML = html;
+}
+
+// ============ AUDIT LOG — kim/nima/qachon/qayerdan-qayerga ============
+async function logActivity(action, opts) {
+  opts = opts || {};
+  try {
+    if (!currentWs || !me) return;
+    await sb.from('activity_logs').insert({
+      workspace_id: currentWs.id,
+      actor_id: me.id,
+      actor_name: myProfile.full_name || me.email,
+      action,
+      entity_type: opts.entityType || null,
+      entity_id: opts.entityId != null ? String(opts.entityId) : null,
+      entity_title: opts.entityTitle || null,
+      details: opts.details || null,
+    });
+    // Ochiq bo'lsa — jonli yangilaymιz
+    if (currentPage === 'logs') loadLogs();
+  } catch (e) { /* log yozilmasa ham asosiy ish davom etadi */ }
 }
 
 function showMsg(el, t, k) { el.textContent = t; el.className = 'msg show ' + (k || ''); }
@@ -2795,6 +2930,9 @@ function renderSidebar() {
     html += '<button class="side-link ' + (currentPage === 'departments' ? 'active' : '') + '" onclick="goPage(\'departments\')"><span class="ic">▦</span> Bo\'limlar ro\'yxati</button>';
     html += '<button class="side-link ' + (currentPage === 'team' ? 'active' : '') + '" onclick="goPage(\'team\')"><span class="ic">☆</span> Jamoa</button>';
     if (canManage) {
+      html += '<button class="side-link ' + (currentPage === 'logs' ? 'active' : '') + '" onclick="goPage(\'logs\')"><span class="ic">📋</span> Loglar</button>';
+    }
+    if (canManage) {
       html += '<button class="side-link ' + (currentPage === 'integrations' ? 'active' : '') + '" onclick="goPage(\'integrations\')"><span class="ic">⚡</span> Integratsiyalar</button>';
     }
     if (canManage) {
@@ -3055,14 +3193,14 @@ function toggleTgSidebar() {
 
 function goPage(p) {
   // Rol himoyasi: oddiy a'zo faqat ruxsat etilган sahifalarга kira oladi
-  const managerOnlyPages = ['stats', 'orgchart', 'integrations', 'tgusers', 'branches', 'positions', 'settings', 'botsettings', 'botcommands'];
+  const managerOnlyPages = ['stats', 'orgchart', 'integrations', 'tgusers', 'branches', 'positions', 'settings', 'logs', 'botsettings', 'botcommands'];
   if (managerOnlyPages.includes(p) && !isOwnerLike()) {
     p = 'dashboard';
   }
   currentPage = p;
   if (p !== 'department') currentDeptId = null;
   renderSidebar();
-  ['dashboard','planner','tasks','departments','department','team','integrations','tgusers','branches','positions','settings','stats','botsettings','botcommands','orgchart','profile'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
+  ['dashboard','planner','tasks','departments','department','team','integrations','tgusers','branches','positions','settings','logs','stats','botsettings','botcommands','orgchart','profile'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
   if (p === 'planner') plnSetTab(plnTab);
   if (p === 'tasks') {
     const titles = { mine: '📥 Mening vazifalarim', assigned: '📤 Men topshirganlar', all: '✓ Barcha vazifalar' };
@@ -3075,6 +3213,7 @@ function goPage(p) {
   if (p === 'tgusers') loadTgUsers();
   if (p === 'dashboard') updateDashboard(null);
   if (p === 'settings') loadSettings();
+  if (p === 'logs') loadLogs();
   if (p === 'branches') loadBranches();
   if (p === 'positions') loadPositions();
   if (p === 'stats') renderStats();
@@ -3566,6 +3705,7 @@ async function saveNewEmployee() {
     // Jadval'даgi "Bajaruvchi"дан chaqirilган bo'lsa — o'sha task'ga biriktiramιz
     if (window._tblAsgForTask != null) {
       const tid = window._tblAsgForTask; window._tblAsgForTask = null;
+      logActivity('employee_added', { entityType: 'employee', entityTitle: fullName || email, details: { email } });
       closeAddEmployeeModal();
       toast('✅ Xodim yaratildi: ' + (fullName || email), 'ok');
       if (res.email_sent) toast('📧 Email yuborildi: ' + email, 'ok');
@@ -3584,6 +3724,7 @@ async function saveNewEmployee() {
     msFilter();
 
     closeAddEmployeeModal();
+    logActivity('employee_added', { entityType: 'employee', entityTitle: fullName || email, details: { email } });
     toast('✅ Xodim yaratildi va biriktirildi: ' + (fullName || email), 'ok');
     if (res.email_sent) {
       toast('📧 Parol o\'rnatish emaili yuborildi: ' + email, 'ok');
@@ -4255,6 +4396,7 @@ async function saveCreate() {
         tgNotifyAssignment(t.id, { tg_bot_user_id: t.assigned_to_tg_bot_user });
       }
       notifyN8n('task.created', { task: t });
+      logActivity('task_created', { entityType: 'task', entityId: t.id, entityTitle: t.title, details: { assignee: t.assigned_to ? tblMemberName(t.assigned_to) : null } });
     }
   } catch (e) {
     clearTimeout(stuckTimer);
@@ -4937,6 +5079,8 @@ function closeDetail() { $('detailBd').classList.remove('show'); currentDetailId
 
 async function changeStatus(id, newStatus) {
   try {
+    const prev = tasksCache.find(x => x.id === id);
+    const oldStatus = prev ? prev.status : null;
     const patch = { status: newStatus };
     if (newStatus === 'in_progress') patch.started_at = new Date().toISOString();
     if (newStatus === 'completed') patch.completed_at = new Date().toISOString();
@@ -4950,6 +5094,7 @@ async function changeStatus(id, newStatus) {
     // Telegram'ga assignee xabari
     notifyStatusToTg(data, newStatus);
     notifyN8n('task.status_changed', { task: data, new_status: newStatus });
+    logActivity('task_status_changed', { entityType: 'task', entityId: id, entityTitle: data.title, details: { from: statusName(oldStatus), to: statusName(newStatus) } });
     // Email yaratuvchiga (faqat completed bo'lganda, va yaratuvchi boshqa odam bo'lsa)
     if (newStatus === 'completed' && data.created_by && data.created_by !== me.id) {
       emailNotify('task_completed', data.id, data.created_by);
@@ -4972,10 +5117,12 @@ async function deleteCurrent() {
   if (!currentDetailId) return;
   if (!confirm('Vazifani o\'chirasizmi?')) return;
   const id = currentDetailId;
+  const _dt = tasksCache.find(t => t.id === id);
   try {
     const { error } = await sb.from('tasks').delete().eq('id', id);
     if (error) throw error;
     tasksCache = tasksCache.filter(t => t.id !== id);
+    logActivity('task_deleted', { entityType: 'task', entityId: id, entityTitle: _dt && _dt.title });
     closeDetail(); toast('🗑 O\'chirildi', 'ok');
     refreshActiveView();
   } catch (e) { toast(translateErr(e.message), 'err'); }
@@ -6850,11 +6997,16 @@ async function tblUpdate(taskId, field, value) {
   try {
     const { error } = await sb.from('tasks').update({ [field]: value }).eq('id', taskId);
     if (error) throw error;
-    // Bajaruvchi o'zgarган bo'lsa — yangi odamга email + TG xabar
+    // Bajaruvchi o'zgarган bo'lsa — yangi odamға email + TG xabar
     if (field === 'assigned_to' && value && value !== old && value !== me.id) {
       tgNotifyAssignment(taskId, { user_id: value });
       emailNotify('task_assigned', taskId, value);
     }
+    // Audit log
+    const _tt = tasksCache.find(x => x.id === taskId);
+    if (field === 'assigned_to') logActivity('task_assigned', { entityType: 'task', entityId: taskId, entityTitle: _tt && _tt.title, details: { from: old ? tblMemberName(old) : '—', to: value ? tblMemberName(value) : '—' } });
+    else if (field === 'status') logActivity('task_status_changed', { entityType: 'task', entityId: taskId, entityTitle: _tt && _tt.title, details: { from: statusName(old), to: statusName(value) } });
+    else logActivity('task_updated', { entityType: 'task', entityId: taskId, entityTitle: _tt && _tt.title, details: { field, to: value } });
     // Realtime boshqa joylarni yangilaydi; jadvalни ham qayta chizamиz
     renderTasksTable();
   } catch (e) {
@@ -7871,6 +8023,7 @@ async function saveNewColumn() {
     }).select().single();
     if (error) throw error;
     kanbanColumns.push(data);
+    logActivity('column_added', { entityType: 'column', entityId: data.id, entityTitle: name });
     closeAddColumnModal();
     rerenderActiveKanban();
     if (currentDetailId) renderDetailBody();
@@ -7936,6 +8089,7 @@ async function deleteColumn(colId) {
     const { error } = await sb.from('kanban_columns').delete().eq('id', colId);
     if (error) throw error;
     kanbanColumns = kanbanColumns.filter(c => c.id !== colId);
+    logActivity('column_deleted', { entityType: 'column', entityId: colId, entityTitle: col.name });
     rerenderActiveKanban();
     toast('O\'chirildi', 'ok');
   } catch (e) { toast(translateErr(e.message), 'err'); }
@@ -8297,6 +8451,7 @@ async function sendInvite() {
         const rows = picks.map(p => ({ department_id: p.department_id, user_id: newUserId, role: p.role }));
         try { await sb.from('department_members').upsert(rows, { onConflict: 'department_id,user_id' }); } catch(e){}
       }
+      logActivity('employee_added', { entityType: 'employee', entityTitle: (firstName + ' ' + lastName).trim() || email, details: { email } });
       showMsg($('iMsg'), '✅ Xodim yaratildi va bo\'limlarga qo\'shildi', 'ok');
       if (res.email_sent) toast('📧 Parol o\'rnatish emaili yuborildi: ' + email, 'ok');
       else toast('⚠ Email yuborilmadi' + (res.email_error ? (': ' + res.email_error) : ''), 'err');
