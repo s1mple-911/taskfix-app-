@@ -218,6 +218,8 @@
   .kan-card.dragging { opacity: .4; }
   .kan-card-title { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px; line-height: 1.35; }
   .kan-card-title.done { text-decoration: line-through; text-decoration-thickness: 1.5px; color: var(--muted); }
+  .cell-asg-btn { width:100%; text-align:left; background:none; border:1px solid transparent; border-radius:6px; padding:4px 8px; font-size:12.5px; color:var(--ink); cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cell-asg-btn:hover { border-color:var(--line); background:var(--surface-2); }
   .kan-card-done { opacity: .72; background: var(--surface-2); }
   .kan-card-meta { font-size: 11.5px; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
@@ -819,11 +821,15 @@
     <!-- Tasks (workspace-wide) -->
     <section id="page-tasks" style="display:none">
       <h2 class="h2" id="tasksPageTitle" style="margin-bottom:14px;">Barcha vazifalar</h2>
-      <div class="view-tabs">
+      <div class="view-tabs" style="display:flex;align-items:center;">
         <button class="view-tab active" data-tv="list"     onclick="setTasksView('list')">Ro'yxat</button>
         <button class="view-tab"        data-tv="kanban"   onclick="setTasksView('kanban')">Kanban</button>
         <button class="view-tab"        data-tv="calendar" onclick="setTasksView('calendar')">Kalendar</button>
         <button class="view-tab"        data-tv="table"    onclick="setTasksView('table')">Jadval</button>
+        <div style="flex:1"></div>
+        <input type="file" id="xlsFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="onXlsPick(this)" />
+        <button class="btn sm secondary" onclick="xlsDownloadTemplate()" style="margin-right:6px;">⬇ Shablon</button>
+        <button class="btn sm secondary" onclick="document.getElementById('xlsFileInput').click()">📊 Excel import</button>
       </div>
       <div id="tasksView-list">
         <div class="search-row">
@@ -1884,16 +1890,6 @@
   <div class="modal modal-wide">
     <div class="modal-head"><h3 id="createTitle">Yangi vazifa</h3><button class="x-btn" onclick="closeCreate()">×</button></div>
     <div class="modal-body">
-      <div id="xlsImportBanner" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface-2);border:1px dashed var(--line);border-radius:10px;padding:10px 12px;margin-bottom:14px;">
-        <span style="font-size:20px;">📊</span>
-        <div style="flex:1;min-width:180px;">
-          <div style="font-size:13px;font-weight:600;color:var(--ink);">Excel'дан ommaviy import</div>
-          <div style="font-size:11.5px;color:var(--muted);">Bir nechta vazifани bir vaqtда yuklang</div>
-        </div>
-        <input type="file" id="xlsFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="onXlsPick(this)" />
-        <button class="btn sm secondary" onclick="xlsDownloadTemplate()">⬇ Shablon</button>
-        <button class="btn sm" onclick="document.getElementById('xlsFileInput').click()">📊 Excel yuklash</button>
-      </div>
       <div class="field"><label>Nomi *</label><input id="cTitle" type="text" /></div>
       <div class="field"><label>Tavsif</label><textarea id="cDesc"></textarea></div>
       <div class="field" id="cDeptField" style="display:none"><label>Bo'lim</label><select id="cDept"><option value="">(Bo'limsiz)</option></select></div>
@@ -3383,8 +3379,6 @@ function openCreateForDept() { openCreateInternal(currentDeptId); }
 function openCreateInternal(forceDeptId) {
   $('cTitle').value=''; $('cDesc').value=''; $('cDeadline').value=''; $('cPriority').value='0';
   const _plnH = $('cPlnHint'); if (_plnH && !window._plnPendingSchedule) _plnH.style.display = 'none';
-  // Excel import banner — rejaга vaqt bilan (planner) yaratganда yashiramιz
-  const _xlsB = $('xlsImportBanner'); if (_xlsB) _xlsB.style.display = window._plnPendingSchedule ? 'none' : 'flex';
   $('cNewSub').value = '';
   cPendingSubs = [];
   cPendingFiles = [];
@@ -3444,6 +3438,7 @@ function openAddEmployeeModal() {
 
 function closeAddEmployeeModal() {
   $('addEmpBd').classList.remove('show');
+  window._tblAsgForTask = null;
 }
 
 // Taklif havolasi modal
@@ -3565,13 +3560,23 @@ async function saveNewEmployee() {
 
     const newUserId = res.user_id;
 
+    // A'zolar ro'yxatini yangilaymιz — darrov ko'rinsin
+    await reloadMembers();
+
+    // Jadval'даgi "Bajaruvchi"дан chaqirilган bo'lsa — o'sha task'ga biriktiramιz
+    if (window._tblAsgForTask != null) {
+      const tid = window._tblAsgForTask; window._tblAsgForTask = null;
+      closeAddEmployeeModal();
+      toast('✅ Xodim yaratildi: ' + (fullName || email), 'ok');
+      if (res.email_sent) toast('📧 Email yuborildi: ' + email, 'ok');
+      try { await tblUpdate(tid, 'assigned_to', newUserId); } catch (e) {}
+      return;
+    }
+
     // Real a'zo sifatida vazifaga biriktiramιz (ghost emas — haqiqiy user)
     if (!msSelected.find(s => s.type === 'user' && s.id === newUserId)) {
       msSelected.push({ type: 'user', id: newUserId, label: fullName || email });
     }
-
-    // A'zolar ro'yxatini yangilaymιz — darrov ko'rinsin
-    await reloadMembers();
 
     // Multi-select panel + summary'ni yangilaymιz — yangi xodim tanlangan (tick) holatда chiqsin
     msUpdateSummary();
@@ -6798,11 +6803,44 @@ function tblDeptSelect(t, canEdit) {
 
 function tblAssigneeSelect(t, canEdit) {
   if (!canEdit) return escapeHtml(t.assigned_to ? tblMemberName(t.assigned_to) : '—');
-  let opts = '<option value="">—</option>' + (wsMembers || []).map(m =>
-    '<option value="' + m.user_id + '" ' + (t.assigned_to === m.user_id ? 'selected' : '') + '>' +
-    escapeHtml(m.user_id === me.id ? (myProfile.full_name || 'Siz') : ((m.profile && m.profile.full_name) || 'A\'zo')) + '</option>').join('');
-  return '<select class="cell-sel" onchange="tblUpdate(' + t.id + ',\'assigned_to\',this.value||null)">' + opts + '</select>';
+  const label = t.assigned_to ? tblMemberName(t.assigned_to) : '— tanlang —';
+  return '<button class="cell-asg-btn" onclick="tblOpenAsgDrop(event,' + t.id + ')">' + escapeHtml(label) + ' <span style="opacity:.5">▾</span></button>';
 }
+
+let _tblAsgTask = null;
+function tblOpenAsgDrop(ev, taskId) {
+  ev.stopPropagation();
+  tblCloseAsgDrop();
+  _tblAsgTask = taskId;
+  const r = ev.currentTarget.getBoundingClientRect();
+  const drop = document.createElement('div');
+  drop.id = 'tblAsgDrop';
+  const left = Math.min(r.left, window.innerWidth - 280);
+  drop.style.cssText = 'position:fixed;z-index:600;left:' + left + 'px;top:' + (r.bottom + 4) + 'px;width:264px;background:var(--surface);border:1px solid var(--line-strong);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);overflow:hidden;';
+  drop.innerHTML =
+    '<div style="padding:8px;border-bottom:1px solid var(--line);"><input id="tblAsgSearch" placeholder="Xodim qidirish..." oninput="tblAsgFilter()" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-size:13px;box-sizing:border-box;" /></div>' +
+    '<div id="tblAsgList" style="max-height:240px;overflow-y:auto;"></div>' +
+    '<div style="border-top:1px solid var(--line);"><button onclick="tblAsgAddEmployee()" style="width:100%;text-align:left;padding:11px 12px;background:none;border:none;cursor:pointer;font-size:13px;color:var(--accent-ink);font-weight:600;">＋ Yangi xodim taklif qilish</button></div>';
+  document.body.appendChild(drop);
+  tblAsgRenderList('');
+  setTimeout(() => { const s = $('tblAsgSearch'); if (s) s.focus(); document.addEventListener('mousedown', tblAsgOutside); }, 30);
+}
+function tblAsgOutside(e) { const d = $('tblAsgDrop'); if (d && !d.contains(e.target)) tblCloseAsgDrop(); }
+function tblCloseAsgDrop() { const d = $('tblAsgDrop'); if (d) d.remove(); document.removeEventListener('mousedown', tblAsgOutside); }
+function tblAsgFilter() { tblAsgRenderList(($('tblAsgSearch').value || '').toLowerCase()); }
+function tblAsgRenderList(q) {
+  const t = tasksCache.find(x => x.id === _tblAsgTask);
+  const members = (wsMembers || []).map(m => ({ id: m.user_id, name: m.user_id === me.id ? (myProfile.full_name || 'Siz') : ((m.profile && m.profile.full_name) || 'A\'zo') }))
+    .filter(m => !q || m.name.toLowerCase().includes(q))
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+  const itemStyle = 'width:100%;text-align:left;padding:9px 12px;background:none;border:none;cursor:pointer;font-size:13px;color:var(--ink);display:block;';
+  let html = '<button onmouseover="this.style.background=\'var(--surface-2)\'" onmouseout="this.style.background=\'none\'" style="' + itemStyle + 'color:var(--muted);" onclick="tblAsgPick(null)">— (bo\'sh qoldirish)</button>';
+  html += members.map(m => '<button onmouseover="this.style.background=\'var(--surface-2)\'" onmouseout="this.style.background=\'none\'" style="' + itemStyle + (t && t.assigned_to === m.id ? 'font-weight:700;' : '') + '" onclick="tblAsgPick(\'' + m.id + '\')">' + escapeHtml(m.name) + (t && t.assigned_to === m.id ? ' ✓' : '') + '</button>').join('');
+  if (!members.length) html += '<div style="padding:10px 12px;color:var(--muted);font-size:12.5px;">Topilmadi</div>';
+  $('tblAsgList').innerHTML = html;
+}
+function tblAsgPick(userId) { const tid = _tblAsgTask; tblCloseAsgDrop(); if (tid != null) tblUpdate(tid, 'assigned_to', userId); }
+function tblAsgAddEmployee() { window._tblAsgForTask = _tblAsgTask; tblCloseAsgDrop(); openAddEmployeeModal(); }
 
 // Ma'lumotни yangilash (har qanday task, id bo'yicha)
 async function tblUpdate(taskId, field, value) {
@@ -7656,6 +7694,21 @@ async function loadKanbanColumns() {
     const { data, error } = await sb.from('kanban_columns').select('*').eq('workspace_id', currentWs.id).order('sort_order', { ascending: true });
     if (error) throw error;
     kanbanColumns = data || [];
+    // DEDUP: har status FAQAT bitta ustunда bo'lsin (aks holда task ikki joyда chiqadi)
+    // is_default ustunlar statusni saqlaydi; dublikatlar yangi unikal status oladi.
+    {
+      const seen = new Set();
+      const ordered = kanbanColumns.slice().sort((a, b) => (b.is_default ? 1 : 0) - (a.is_default ? 1 : 0) || (a.sort_order || 0) - (b.sort_order || 0));
+      for (const col of ordered) {
+        if (!seen.has(col.status)) { seen.add(col.status); continue; }
+        // Dublikat — yangi unikal status hosil qilamιz
+        let base = String(col.name || 'status').toLowerCase().trim().replace(/'/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 30) || 'status';
+        let ns = base, i = 1;
+        while (seen.has(ns)) { ns = base + '_' + (++i); }
+        seen.add(ns);
+        try { await sb.from('kanban_columns').update({ status: ns }).eq('id', col.id); col.status = ns; } catch (e) {}
+      }
+    }
     // "Bajarildi" (completed) ustuni — protected. Nomi eski bo'lsa yangilaymιz.
     const doneCol = kanbanColumns.find(c => c.status === 'completed');
     if (doneCol && doneCol.name !== 'Bajarildi' && (doneCol.name === 'Tugatilgan' || doneCol.name === 'Tugallangan')) {
