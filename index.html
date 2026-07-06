@@ -3511,7 +3511,10 @@ async function saveNewEmployee() {
       } catch (_) {}
       throw new Error(detail);
     }
-    if (!res || !res.ok) throw new Error((res && ((res.error || '') + (res.detail ? (': ' + res.detail) : ''))) || "Noma'lum xato");
+    if (!res || !res.ok) {
+      const parts = [res && res.error, res && res.detail, res && res.code ? ('code=' + res.code) : '', res && res.status ? ('status=' + res.status) : ''].filter(Boolean);
+      throw new Error(parts.join(' · ') || "Noma'lum xato");
+    }
 
     const newUserId = res.user_id;
 
