@@ -3575,7 +3575,11 @@ async function saveNewEmployee() {
 
     closeAddEmployeeModal();
     toast('✅ Xodim yaratildi va biriktirildi: ' + (fullName || email), 'ok');
-    if (res.invited) toast('📧 Taklif email yuborildi', 'ok');
+    if (res.email_sent) {
+      toast('📧 Parol o\'rnatish emaili yuborildi: ' + email, 'ok');
+    } else {
+      toast('⚠ Email yuborilmadi' + (res.email_error ? (': ' + res.email_error) : '') + ' — Supabase SMTP sozlamasини tekshiring', 'err');
+    }
   } catch (e) {
     showMsg($('empMsg'), 'Xato: ' + (e.message || e), 'err');
     btn.disabled = false; btn.textContent = 'Yaratish';
