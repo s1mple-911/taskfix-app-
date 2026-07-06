@@ -3500,8 +3500,18 @@ async function saveNewEmployee() {
         redirect_to: redirect
       }
     });
-    if (fnErr) throw new Error(fnErr.message || 'Edge Function xatosi');
-    if (!res || !res.ok) throw new Error((res && (res.detail || res.error)) || "Noma'lum xato");
+    if (fnErr) {
+      let detail = fnErr.message || 'Edge Function xatosi';
+      // Non-2xx javob tanasиdан aniq sababни o'qiymιz
+      try {
+        if (fnErr.context && typeof fnErr.context.json === 'function') {
+          const eb = await fnErr.context.json();
+          if (eb && (eb.detail || eb.error)) detail = (eb.error || '') + (eb.detail ? (': ' + eb.detail) : '');
+        }
+      } catch (_) {}
+      throw new Error(detail);
+    }
+    if (!res || !res.ok) throw new Error((res && ((res.error || '') + (res.detail ? (': ' + res.detail) : ''))) || "Noma'lum xato");
 
     const newUserId = res.user_id;
 
