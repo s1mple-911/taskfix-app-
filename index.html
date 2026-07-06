@@ -1880,6 +1880,16 @@
   <div class="modal modal-wide">
     <div class="modal-head"><h3 id="createTitle">Yangi vazifa</h3><button class="x-btn" onclick="closeCreate()">×</button></div>
     <div class="modal-body">
+      <div id="xlsImportBanner" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface-2);border:1px dashed var(--line);border-radius:10px;padding:10px 12px;margin-bottom:14px;">
+        <span style="font-size:20px;">📊</span>
+        <div style="flex:1;min-width:180px;">
+          <div style="font-size:13px;font-weight:600;color:var(--ink);">Excel'дан ommaviy import</div>
+          <div style="font-size:11.5px;color:var(--muted);">Bir nechta vazifани bir vaqtда yuklang</div>
+        </div>
+        <input type="file" id="xlsFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="onXlsPick(this)" />
+        <button class="btn sm secondary" onclick="xlsDownloadTemplate()">⬇ Shablon</button>
+        <button class="btn sm" onclick="document.getElementById('xlsFileInput').click()">📊 Excel yuklash</button>
+      </div>
       <div class="field"><label>Nomi *</label><input id="cTitle" type="text" /></div>
       <div class="field"><label>Tavsif</label><textarea id="cDesc"></textarea></div>
       <div class="field" id="cDeptField" style="display:none"><label>Bo'lim</label><select id="cDept"><option value="">(Bo'limsiz)</option></select></div>
@@ -1973,6 +1983,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 // ====================== CONFIG ======================
 const SUPABASE_URL = 'https://nnpsbwsppgxbytlfloth.supabase.co';
@@ -3346,6 +3357,8 @@ function openCreateForDept() { openCreateInternal(currentDeptId); }
 function openCreateInternal(forceDeptId) {
   $('cTitle').value=''; $('cDesc').value=''; $('cDeadline').value=''; $('cPriority').value='0';
   const _plnH = $('cPlnHint'); if (_plnH && !window._plnPendingSchedule) _plnH.style.display = 'none';
+  // Excel import banner — rejaга vaqt bilan (planner) yaratganда yashiramιz
+  const _xlsB = $('xlsImportBanner'); if (_xlsB) _xlsB.style.display = window._plnPendingSchedule ? 'none' : 'flex';
   $('cNewSub').value = '';
   cPendingSubs = [];
   cPendingFiles = [];
@@ -3862,6 +3875,208 @@ function closeCreate() {
   const cBtn = $('cBtn');
   if (cBtn) { cBtn.disabled = false; cBtn.textContent = 'Yaratish'; }
 }
+
+// ============ EXCEL'дан OMMAVIY VAZIFA IMPORT ============
+let _xlsRows = [];
+
+function xlsDownloadTemplate() {
+  if (typeof XLSX === 'undefined') { toast('Excel kutubxonasi hali yuklanmadi, biroz kuting', 'err'); return; }
+  const aoa = [
+    ['Nomi', 'Tavsif', 'Bajaruvchi', "Bo'lim", 'Deadline', 'Prioritet', 'Status'],
+    ['Do\'kon uchun tovar buyurtma qilish', 'Zapchastlar ro\'yxati bo\'yicha', 'Asilbek Ermatov', 'IT', '2026-07-20', '1', 'Yangi'],
+    ['Hisobotni tayyorlash', '', '+998901234567', 'HR', '2026-07-25', '5', 'Jarayonda'],
+    ['Mijoz bilan bog\'lanish', 'Qarz bo\'yicha', '', '', '', '', ''],
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = [{ wch: 34 }, { wch: 28 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 10 }, { wch: 16 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Vazifalar');
+  XLSX.writeFile(wb, 'vazifalar_shablon.xlsx');
+}
+
+async function onXlsPick(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  if (typeof XLSX === 'undefined') { toast('Excel kutubxonasi yuklanmadi', 'err'); return; }
+  try {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+    const sheet = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+    if (!rows.length) { toast("Excel bo'sh yoki sarlavha topilmadi", 'err'); return; }
+    _xlsRows = rows;
+    xlsShowPreview(rows);
+  } catch (e) {
+    toast("Excel o'qishда xato: " + (e.message || e), 'err');
+  }
+}
+
+// Ustun nomini moslashtirish (turli yozilishlar uchun)
+function xlsGet(row, keys) {
+  for (const k of Object.keys(row)) {
+    const kl = k.toLowerCase().trim();
+    for (const want of keys) if (kl === want || kl.includes(want)) return row[k];
+  }
+  return '';
+}
+function xlsResolveMember(val) {
+  const raw = String(val || '').trim();
+  if (!raw) return null;
+  const n = raw.toLowerCase();
+  const memberName = (x) => ((x.user_id === me.id ? (myProfile.full_name || '') : (x.profile && x.profile.full_name)) || '').toLowerCase().trim();
+  const memberPhone = (x) => String((x.profile && x.profile.phone) || '').replace(/\D/g, '');
+  const digits = raw.replace(/\D/g, '');
+  // 1. Aniq ism mosligi (eng ishonchli)
+  let m = (wsMembers || []).find(x => memberName(x) && memberName(x) === n);
+  if (m) return m.user_id;
+  // 2. Telefon mosligi (raqam bo'lsa)
+  if (digits.length >= 7) {
+    m = (wsMembers || []).find(x => { const p = memberPhone(x); return p && (p === digits || p.endsWith(digits) || digits.endsWith(p)); });
+    if (m) return m.user_id;
+  }
+  // 3. Fuzzy — FAQAT bitta mos kelса (noaniqlikni oldini olish)
+  const matches = (wsMembers || []).filter(x => { const fn = memberName(x); return fn && (fn.includes(n) || n.includes(fn)); });
+  if (matches.length === 1) return matches[0].user_id;
+  return null; // topilmadi yoki noaniq → bo'sh
+}
+function xlsResolveDept(name) {
+  const n = String(name || '').trim().toLowerCase();
+  if (!n) return null;
+  const d = (departments || []).find(x => (x.name || '').toLowerCase().includes(n) || n.includes((x.name || '').toLowerCase()));
+  return d ? d.id : null;
+}
+function xlsResolveStatus(name) {
+  const cols = (kanbanColumns || []).slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+  const n = String(name || '').trim().toLowerCase();
+  if (n) {
+    const c = cols.find(x => (x.name || '').toLowerCase() === n || (x.name || '').toLowerCase().includes(n));
+    if (c) return c.status;
+  }
+  return cols.length ? cols[0].status : 'new';
+}
+function xlsParseDate(v) {
+  if (!v) return null;
+  if (v instanceof Date && !isNaN(v)) return v.toISOString();
+  const s = String(v).trim();
+  const d = new Date(s);
+  if (!isNaN(d)) return d.toISOString();
+  return null;
+}
+
+// Bitta qatorни task obyektiga aylantirish
+function xlsRowToTask(row) {
+  const title = String(xlsGet(row, ['nomi', 'name', 'vazifa', 'title']) || '').trim();
+  if (!title) return null;
+  const desc = String(xlsGet(row, ['tavsif', 'izoh', 'description', 'desc']) || '').trim() || null;
+  const asgRaw = String(xlsGet(row, ['bajaruvchi', 'assignee', 'kim', 'xodim']) || '').trim();
+  const asg = xlsResolveMember(asgRaw);
+  const dept = xlsResolveDept(xlsGet(row, ["bo'lim", 'bolim', 'bo\u2018lim', 'department', 'bulim']));
+  const dl = xlsParseDate(xlsGet(row, ['deadline', 'muddat', 'sana']));
+  let prio = parseInt(String(xlsGet(row, ['prioritet', 'priority', 'muhim'])).replace(/\D/g, ''), 10);
+  if (isNaN(prio) || prio < 0 || prio > 10) prio = 0;
+  const status = xlsResolveStatus(xlsGet(row, ['status', 'holat']));
+  return {
+    workspace_id: currentWs.id,
+    title, description: desc,
+    assigned_to: asg,
+    department_id: dept,
+    deadline: dl,
+    priority_level: prio,
+    status,
+    created_by: me.id,
+    _asgRaw: asgRaw, // preview uchun (DB'ga yozilmaydi)
+  };
+}
+
+function xlsShowPreview(rows) {
+  const tasks = rows.map(xlsRowToTask).filter(Boolean);
+  if (!tasks.length) { toast("Hech qanday to'g'ri qator topilmadi (Nomi ustuni kerak)", 'err'); return; }
+  window._xlsTasks = tasks;
+  // Preview modal
+  let old = document.getElementById('xlsPreviewBd'); if (old) old.remove();
+  const bd = document.createElement('div');
+  bd.className = 'modal-backdrop show';
+  bd.id = 'xlsPreviewBd';
+  bd.style.zIndex = '400';
+  const rowsHtml = tasks.slice(0, 50).map((t, i) => {
+    let asgCell;
+    if (t.assigned_to) {
+      const nm = t.assigned_to === me.id ? (myProfile.full_name || 'Siz') : ((wsMembers.find(m => m.user_id === t.assigned_to)?.profile?.full_name) || 'A\'zo');
+      asgCell = escapeHtml(nm);
+    } else if (t._asgRaw) {
+      asgCell = '<span style="color:#DC2626;" title="Xodim topilmadi — bo\'sh qoladi">⚠ ' + escapeHtml(t._asgRaw) + '</span>';
+    } else {
+      asgCell = '—';
+    }
+    const stName = (kanbanColumns.find(c => c.status === t.status)?.name) || t.status;
+    const dl = t.deadline ? new Date(t.deadline).toLocaleDateString() : '—';
+    return '<tr>' +
+      '<td style="padding:6px 8px;border-bottom:1px solid var(--line);">' + (i + 1) + '</td>' +
+      '<td style="padding:6px 8px;border-bottom:1px solid var(--line);font-weight:500;">' + escapeHtml(t.title) + '</td>' +
+      '<td style="padding:6px 8px;border-bottom:1px solid var(--line);">' + asgCell + '</td>' +
+      '<td style="padding:6px 8px;border-bottom:1px solid var(--line);">' + escapeHtml(dl) + '</td>' +
+      '<td style="padding:6px 8px;border-bottom:1px solid var(--line);">' + (t.priority_level ? 'P' + t.priority_level : '—') + '</td>' +
+      '<td style="padding:6px 8px;border-bottom:1px solid var(--line);">' + escapeHtml(stName) + '</td>' +
+      '</tr>';
+  }).join('');
+  bd.innerHTML =
+    '<div class="modal modal-wide" onclick="event.stopPropagation()">' +
+      '<div class="modal-head"><h3>📊 Import — ' + tasks.length + ' ta vazifa</h3><button class="x-btn" onclick="xlsClosePreview()">×</button></div>' +
+      '<div class="modal-body">' +
+        '<p style="font-size:12.5px;color:var(--muted);margin:0 0 12px;">Quyidagi vazifalar yaratiladi. Bajaruvchi/Bo\'lim/Status nomlar bo\'yicha avtomatik moslashtirildi. <b>Bajaruvchi majburiy emas</b> — bo\'sh qolса, keyin <b>Jadval</b> ko\'rinishида "Bajaruvchi" ustunидан tanlaysiz.</p>' +
+        '<div style="overflow:auto;max-height:50vh;border:1px solid var(--line);border-radius:10px;">' +
+        '<table style="width:100%;border-collapse:collapse;font-size:12.5px;">' +
+        '<thead><tr style="position:sticky;top:0;background:var(--surface-2);">' +
+        '<th style="padding:8px;text-align:left;">№</th><th style="padding:8px;text-align:left;">Nomi</th><th style="padding:8px;text-align:left;">Bajaruvchi</th><th style="padding:8px;text-align:left;">Deadline</th><th style="padding:8px;text-align:left;">Prio</th><th style="padding:8px;text-align:left;">Status</th>' +
+        '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div>' +
+        (tasks.length > 50 ? '<p style="font-size:11.5px;color:var(--muted);margin:8px 0 0;">… va yana ' + (tasks.length - 50) + ' ta (hammasi yaratiladi)</p>' : '') +
+      '</div>' +
+      '<div class="modal-foot"><button class="btn secondary" onclick="xlsClosePreview()">Bekor</button><button class="btn" id="xlsImportBtn" onclick="xlsConfirmImport()">✓ ' + tasks.length + ' ta vazifa yaratish</button></div>' +
+    '</div>';
+  bd.onclick = xlsClosePreview;
+  document.body.appendChild(bd);
+}
+function xlsClosePreview() { const b = document.getElementById('xlsPreviewBd'); if (b) b.remove(); }
+
+async function xlsConfirmImport() {
+  const tasks = window._xlsTasks || [];
+  if (!tasks.length) return;
+  const btn = document.getElementById('xlsImportBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Yaratilyapti…'; }
+  try {
+    // 500 tadan bo'lib yozamιz (juda katta bo'lса)
+    const chunk = 200;
+    let created = 0;
+    for (let i = 0; i < tasks.length; i += chunk) {
+      const part = tasks.slice(i, i + chunk).map(t => {
+        const { _asgRaw, ...clean } = t; // preview maydonini olib tashlaymιz
+        return clean;
+      });
+      const { data, error } = await sb.from('tasks').insert(part).select();
+      if (error) throw error;
+      (data || []).forEach(d => tasksCache.unshift(d));
+      created += (data || []).length;
+    }
+    xlsClosePreview();
+    closeCreate();
+    const noAsg = tasks.filter(t => !t.assigned_to).length;
+    toast('✅ ' + created + ' ta vazifa yaratildi', 'ok');
+    // Bajaruvchi tanlanmaganlar bo'lsa — Jadval view'ga o'tib, biriktirishга taklif qilamιz
+    if (noAsg > 0) {
+      taskScope = 'all';
+      goPage('tasks');
+      setTasksView('table');
+      setTimeout(() => toast('👥 ' + noAsg + ' ta vazifага bajaruvchi tanlanmagan — Jadvalда "Bajaruvchi" ustunидан tanlang', 'ok'), 700);
+    } else {
+      refreshActiveView();
+    }
+  } catch (e) {
+    if (btn) { btn.disabled = false; btn.textContent = '✓ Qayta urinish'; }
+    toast('Xato: ' + (e.message || e), 'err');
+  }
+}
+
 
 async function saveCreate() {
   const title = $('cTitle').value.trim();
