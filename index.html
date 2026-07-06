@@ -1962,7 +1962,12 @@
   <div class="modal">
     <div class="modal-head"><h3>Xodim taklif qilish</h3><button class="x-btn" onclick="closeInvite()">×</button></div>
     <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="field"><label>Ism *</label><input id="iFirst" type="text" placeholder="Ism" /></div>
+        <div class="field"><label>Familya</label><input id="iLast" type="text" placeholder="Familya" /></div>
+      </div>
       <div class="field"><label>Xodim email *</label><input id="iEmail" type="email" placeholder="xodim@kompaniya.uz" /></div>
+      <div class="field"><label>Telefon</label><input id="iPhone" type="tel" placeholder="+998 90 123 45 67" /></div>
       <div class="field">
         <label>Bo'limlarga kirish *</label>
         <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; padding:8px 10px; background:#F4F3EF; border-radius:8px;">
@@ -6807,6 +6812,11 @@ async function tblUpdate(taskId, field, value) {
   try {
     const { error } = await sb.from('tasks').update({ [field]: value }).eq('id', taskId);
     if (error) throw error;
+    // Bajaruvchi o'zgarган bo'lsa — yangi odamга email + TG xabar
+    if (field === 'assigned_to' && value && value !== old && value !== me.id) {
+      tgNotifyAssignment(taskId, { user_id: value });
+      emailNotify('task_assigned', taskId, value);
+    }
     // Realtime boshqa joylarni yangilaydi; jadvalни ham qayta chizamиz
     renderTasksTable();
   } catch (e) {
@@ -8178,7 +8188,7 @@ async function renderTeam() {
 function openInvite() {
   if (!canManageTeam()) return;
   if (!departments.length) { toast('Avval kamida bitta bo\'lim yarating', 'err'); goPage('departments'); return; }
-  $('iEmail').value=''; hideMsg($('iMsg'));
+  $('iEmail').value=''; $('iFirst').value=''; $('iLast').value=''; $('iPhone').value=''; hideMsg($('iMsg'));
   $('iDeptPicker').innerHTML = departments.map(d => '<label class="dept-pick-item"><input type="checkbox" data-dept="'+d.id+'" /><span class="dept-name">'+escapeHtml(d.name)+'</span><select data-role="'+d.id+'"><option value="viewer">Ko\'ruvchi</option><option value="editor" selected>Tahrirlovchi</option><option value="admin">Boshqaruvchi</option></select></label>').join('');
   $('inviteBd').classList.add('show'); setTimeout(()=>$('iEmail').focus(), 50);
 }
@@ -8197,9 +8207,13 @@ function iToggleAll() {
 async function sendInvite() {
   const btn = $('iBtn');
   const isFromTg = !!inviteFromTgUserId;
-  let email = null;
+  let email = null, firstName = '', lastName = '', phone = '';
   if (!isFromTg) {
+    firstName = ($('iFirst').value || '').trim();
+    lastName = ($('iLast').value || '').trim();
+    phone = ($('iPhone').value || '').trim();
     email = $('iEmail').value.trim().toLowerCase();
+    if (!firstName) { showMsg($('iMsg'), 'Ism majburiy.', 'err'); return; }
     if (!email || !/^\S+@\S+\.\S+$/.test(email)) { showMsg($('iMsg'), 'Email noto\'g\'ri.', 'err'); return; }
   }
   const picks = [];
@@ -8209,41 +8223,59 @@ async function sendInvite() {
   });
   if (!picks.length) { showMsg($('iMsg'), 'Kamida bitta bo\'limni tanlang.', 'err'); return; }
   btn.disabled = true; btn.textContent = 'Yuborilmoqda…';
+
+  // ── EMAIL yo'li — darrov yaratamιz (admin-create-employee) + email + bo'limlar ──
+  if (!isFromTg) {
+    try {
+      const fullName = (firstName + ' ' + lastName).trim();
+      const redirect = location.origin + location.pathname;
+      const { data: res, error: fnErr } = await sb.functions.invoke('admin-create-employee', {
+        body: { email, full_name: fullName, phone: phone || null, workspace_id: currentWs.id, redirect_to: redirect }
+      });
+      if (fnErr) {
+        let detail = fnErr.message || 'Edge Function xatosi';
+        try { if (fnErr.context && fnErr.context.json) { const eb = await fnErr.context.json(); if (eb && (eb.detail || eb.error)) detail = (eb.error||'') + (eb.detail?(': '+eb.detail):''); } } catch(_){}
+        throw new Error(detail);
+      }
+      if (!res || !res.ok) throw new Error((res && ((res.error||'') + (res.detail?(': '+res.detail):''))) || 'Xato');
+      const newUserId = res.user_id;
+      // Bo'limlarга qo'shamιz
+      if (newUserId && picks.length) {
+        const rows = picks.map(p => ({ department_id: p.department_id, user_id: newUserId, role: p.role }));
+        try { await sb.from('department_members').upsert(rows, { onConflict: 'department_id,user_id' }); } catch(e){}
+      }
+      showMsg($('iMsg'), '✅ Xodim yaratildi va bo\'limlarga qo\'shildi', 'ok');
+      if (res.email_sent) toast('📧 Parol o\'rnatish emaili yuborildi: ' + email, 'ok');
+      else toast('⚠ Email yuborilmadi' + (res.email_error ? (': ' + res.email_error) : ''), 'err');
+      if (currentPage === 'team') { await loadTeamData?.(); renderTeam(); }
+      setTimeout(() => closeInvite(), 900);
+    } catch (e) {
+      showMsg($('iMsg'), 'Xato: ' + (e.message || e), 'err');
+    }
+    btn.disabled = false; btn.textContent = 'Taklif yuborish';
+    return;
+  }
+
+  // ── TG yo'li (mavjud botdagi userни saytga taklif) — eski invitations oqimi ──
   try {
     const payload = { workspace_id: currentWs.id, ws_role: 'member', departments: picks, invited_by: me.id, invited_by_name: myProfile.full_name || me.email, status: 'pending' };
-    if (isFromTg) payload.tg_bot_user_id = inviteFromTgUserId;
-    else payload.email = email;
+    payload.tg_bot_user_id = inviteFromTgUserId;
 
     const { data: inv, error } = await sb.from('invitations').insert(payload).select().single();
     if (error) { if (/duplicate|unique/i.test(error.message)) showMsg($('iMsg'), 'Bu odamga allaqachon taklif yuborilgan.', 'err'); else showMsg($('iMsg'), translateErr(error.message), 'err'); btn.disabled=false; btn.textContent='Taklif yuborish'; return; }
 
-    // Telegram orqali xabar yuborishni Edge Function bajaradi
     const signupUrl = window.location.origin + window.location.pathname;
     try {
       const { data: tgData, error: tgErr } = await sb.functions.invoke('tg-send-invites', { body: { invitation_id: inv.id, signup_url: signupUrl } });
-      console.log('[tg-send-invites] data:', tgData, 'error:', tgErr);
-      if (tgErr) {
-        toast('TG xabar yuborilmadi: ' + (tgErr.message || tgErr), 'err');
-      } else if (tgData && tgData.sent === false) {
-        toast('TG xabar yuborilmadi: ' + (tgData.reason || tgData.error || 'noma\'lum'), 'err');
-      } else if (tgData && tgData.sent === true) {
-        toast('📨 Telegram\'ga ham yuborildi', 'ok');
-      }
-    } catch (e) {
-      console.error('[tg-send-invites] exception:', e);
-      toast('TG xato: ' + (e?.message || e), 'err');
-    }
+      if (tgErr) toast('TG xabar yuborilmadi: ' + (tgErr.message || tgErr), 'err');
+      else if (tgData && tgData.sent === false) toast('TG xabar yuborilmadi: ' + (tgData.reason || tgData.error || 'noma\'lum'), 'err');
+      else if (tgData && tgData.sent === true) toast('📨 Telegram\'ga ham yuborildi', 'ok');
+    } catch (e) { toast('TG xato: ' + (e?.message || e), 'err'); }
 
-    if (isFromTg) {
-      showMsg($('iMsg'), '✅ Taklif yuborildi. Botda xabar bordi va saytga ro\'yxatdan o\'tgach bell\'ida ko\'radi.', 'ok');
-      inviteFromTgUserId = null;
-      $('iEmail').readOnly = false;
-      $('iEmail').style.background = '';
-      loadTgUsers();
-    } else {
-      showMsg($('iMsg'), '✅ Taklif yuborildi. Saytда 🔔 bell orqali ko\'radi (Telegramда ham xabar olgan bo\'lsa).', 'ok');
-      if (currentPage === 'team') renderTeam();
-    }
+    showMsg($('iMsg'), '✅ Taklif yuborildi. Botda xabar bordi va saytga ro\'yxatdan o\'tgach bell\'ida ko\'radi.', 'ok');
+    inviteFromTgUserId = null;
+    $('iEmail').readOnly = false; $('iEmail').style.background = '';
+    loadTgUsers();
   } catch (e) { showMsg($('iMsg'), translateErr(e.message), 'err'); }
   btn.disabled = false; btn.textContent = 'Taklif yuborish';
 }
