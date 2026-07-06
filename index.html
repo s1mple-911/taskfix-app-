@@ -8001,8 +8001,12 @@ async function changeWsRole(uid, role) {
   if (uid === me.id) { toast('O\'z roligingizni o\'zgartirib bo\'lmaydi', 'err'); return; }
   if (!['admin', 'member'].includes(role)) return;
   try {
-    const { error } = await sb.from('workspace_members').update({ role }).eq('workspace_id', currentWs.id).eq('user_id', uid);
+    const { data: upd, error } = await sb.from('workspace_members').update({ role }).eq('workspace_id', currentWs.id).eq('user_id', uid).select();
     if (error) throw error;
+    if (!upd || !upd.length) {
+      toast('⚠ Rol o\'zgarмади (ruxsat yo\'q). 26-migratsiyani ishga tushiring.', 'err');
+      return;
+    }
     const i = wsMembers.findIndex(x => x.user_id === uid); if (i>=0) wsMembers[i].role = role;
     toast(role === 'admin' ? '✓ Admin huquqlari berildi' : '✓ Oddiy a\'zoga qaytarildi', 'ok');
     if (currentPage === 'team') renderTeam();
