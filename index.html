@@ -752,9 +752,9 @@
 
   <main class="main">
     <div class="topbar">
-      <div class="topbar-search" id="topSearchWrap" style="position:relative;">
+      <div class="topbar-search" id="topSearchWrap" onclick="openCmdPalette()" style="position:relative;cursor:pointer;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
-        <input id="topSearchInp" type="text" placeholder="Hammasi: vazifa, odam, sahifa…" readonly onclick="openCmdPalette()" onfocus="openCmdPalette()" style="flex:1;border:none;background:transparent;outline:none;font-family:inherit;font-size:13px;color:var(--ink);min-width:0;cursor:pointer;" autocomplete="off" />
+        <input id="topSearchInp" type="text" placeholder="Hammasi: vazifa, odam, sahifa…" readonly tabindex="-1" style="flex:1;border:none;background:transparent;outline:none;font-family:inherit;font-size:13px;color:var(--muted);min-width:0;cursor:pointer;pointer-events:none;" autocomplete="off" />
         <span class="kbd">⌘K</span>
         <div id="topSearchDrop" style="display:none;position:absolute;top:44px;left:0;right:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.16);max-height:420px;overflow:auto;z-index:300;padding:6px;"></div>
       </div>
