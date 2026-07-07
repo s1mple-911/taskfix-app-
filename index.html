@@ -769,11 +769,13 @@
           <button class="btn sm secondary" onclick="plnNav(0)">Bugun</button>
         </div>
       </div>
-      <div class="view-tabs" style="margin-bottom:16px;">
+      <div class="view-tabs" style="margin-bottom:16px;display:flex;align-items:center;">
         <button class="view-tab active" data-plntab="schedule" onclick="plnSetTab('schedule')">🗓 Mening jadvalim</button>
         <button class="view-tab" data-plntab="mine" onclick="plnSetTab('mine')">📥 Mening vazifalarim</button>
         <button class="view-tab" data-plntab="assigned" onclick="plnSetTab('assigned')">📤 Men topshirganlar</button>
         <button class="view-tab" data-plntab="all" onclick="plnSetTab('all')">✓ Barcha vazifalar</button>
+        <div style="flex:1"></div>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);cursor:pointer;white-space:nowrap;"><input type="checkbox" class="hide-done-cb" onchange="toggleHideCompleted(this.checked)" style="cursor:pointer;"> Bajarilganlarni yashirish</label>
       </div>
       <div id="plnCalPane">
         <div class="pln-layout">
@@ -824,11 +826,13 @@
     <!-- Tasks (workspace-wide) -->
     <section id="page-tasks" style="display:none">
       <h2 class="h2" id="tasksPageTitle" style="margin-bottom:14px;">Barcha vazifalar</h2>
-      <div class="view-tabs">
+      <div class="view-tabs" style="display:flex;align-items:center;">
         <button class="view-tab active" data-tv="list"     onclick="setTasksView('list')">Ro'yxat</button>
         <button class="view-tab"        data-tv="kanban"   onclick="setTasksView('kanban')">Kanban</button>
         <button class="view-tab"        data-tv="calendar" onclick="setTasksView('calendar')">Kalendar</button>
         <button class="view-tab"        data-tv="table"    onclick="setTasksView('table')">Jadval</button>
+        <div style="flex:1"></div>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);cursor:pointer;white-space:nowrap;"><input type="checkbox" class="hide-done-cb" onchange="toggleHideCompleted(this.checked)" style="cursor:pointer;"> Bajarilganlarni yashirish</label>
       </div>
       <div id="tasksView-list">
         <div class="search-row">
@@ -3460,10 +3464,20 @@ function onTasksSearch() {
 function applyTaskScope(list) {
   if (taskScope === 'mine') {
     const myTgIds = window._myTgBotIds || [];
-    return list.filter(t => t.assigned_to === me.id || (t.assigned_to_tg_bot_user && myTgIds.includes(t.assigned_to_tg_bot_user)));
+    list = list.filter(t => t.assigned_to === me.id || (t.assigned_to_tg_bot_user && myTgIds.includes(t.assigned_to_tg_bot_user)));
+  } else if (taskScope === 'assigned') {
+    list = list.filter(t => t.created_by === me.id);
   }
-  if (taskScope === 'assigned') return list.filter(t => t.created_by === me.id);
+  // Bajarilganlarni yashirish (barcha view)
+  if (window.hideCompleted) list = list.filter(t => t.status !== 'completed');
   return list;
+}
+function toggleHideCompleted(v) {
+  window.hideCompleted = !!v;
+  try { localStorage.setItem('hideCompleted', v ? '1' : '0'); } catch (e) {}
+  // Barcha checkbox'larни sinxronlaymιz
+  document.querySelectorAll('.hide-done-cb').forEach(cb => { cb.checked = !!v; });
+  refreshActiveView();
 }
 
 function renderTasksList() {
@@ -6581,6 +6595,7 @@ function goTaskScope(scope) {
 
 function setTasksView(v) {
   currentTasksView = v;
+  document.querySelectorAll('.hide-done-cb').forEach(cb => { cb.checked = !!window.hideCompleted; });
   document.querySelectorAll('#page-tasks [data-tv]').forEach(b => b.classList.toggle('active', b.dataset.tv === v));
   $('tasksView-list').style.display = v === 'list' ? 'block' : 'none';
   $('tasksView-kanban').style.display = v === 'kanban' ? 'block' : 'none';
@@ -7304,6 +7319,7 @@ function plnNav(dir) {
 let plnTab = 'schedule'; // 'schedule' | 'mine' | 'assigned' | 'all'
 function plnSetTab(tab) {
   plnTab = tab;
+  document.querySelectorAll('.hide-done-cb').forEach(cb => { cb.checked = !!window.hideCompleted; });
   document.querySelectorAll('#page-planner [data-plntab]').forEach(b => b.classList.toggle('active', b.dataset.plntab === tab));
   const isSchedule = tab === 'schedule';
   $('plnCalPane').style.display = isSchedule ? 'block' : 'none';
@@ -9547,6 +9563,7 @@ async function tgNotifyTaskEdit(task, field, oldValue, newValue) {
 
 async function init() {
   console.log('%cTaskFix build: 2026-07-06-planner+jadval', 'color:#0F1417;background:#FEF3C7;padding:2px 8px;border-radius:4px;font-weight:700;');
+  try { window.hideCompleted = localStorage.getItem('hideCompleted') === '1'; } catch (e) { window.hideCompleted = false; }
   // MUHIM: hash'ни createClient'дан OLDIN o'qiymиz — detectSessionInUrl uni tozalaydi
   const _rawHash = window.location.hash || '';
   const _rawSearch = window.location.search || '';
@@ -9584,25 +9601,30 @@ let _topSearchResults = [];
 let _topSearchIdx = 0;
 function topSearchRun() {
   const inp = $('topSearchInp');
-  const drop = $('topSearchDrop');
+  let drop = $('topSearchDrop');
   if (!inp || !drop) return;
+  // Dropdown'ni body'ga ko'chiramiz (topbar stacking muammosini yo'q qiladi)
+  if (drop.parentElement && drop.parentElement.id === 'topSearchWrap') { document.body.appendChild(drop); }
   const q = (inp.value || '').trim().toLowerCase();
   if (!q) { drop.style.display = 'none'; drop.innerHTML = ''; _topSearchResults = []; return; }
 
   const results = [];
-  const match = (text) => (text || '').toLowerCase().includes(q);
+  const match = (text) => (text || '').toString().toLowerCase().includes(q);
+  const memberName = (uid) => uid === me.id ? (myProfile.full_name || 'Siz') : ((wsMembers.find(m => m.user_id === uid) && wsMembers.find(m => m.user_id === uid).profile && wsMembers.find(m => m.user_id === uid).profile.full_name) || '');
 
-  // 1. Vazifalar
+  // 1. Vazifalar (nom, tavsif, id, bajaruvchi)
   (tasksCache || []).forEach(t => {
-    if (match(t.title) || match(t.description) || String(t.id) === q) {
-      results.push({ type: 'task', icon: '✓', title: t.title || '(nomsiz)', sub: 'Vazifa #' + t.id, action: () => { goPage('tasks'); openDetail(t.id); } });
+    if (match(t.title) || match(t.description) || String(t.id) === q || match(memberName(t.assigned_to))) {
+      const asg = t.assigned_to ? memberName(t.assigned_to) : '';
+      results.push({ type: 'task', icon: '✓', title: t.title || '(nomsiz)', sub: '#' + t.id + (asg ? ' · ' + asg : ''), action: () => { taskScope = 'all'; goPage('tasks'); openDetail(t.id); } });
     }
   });
-  // 2. Odamlar (a'zolar)
+  // 2. Odamlar (ism, telefon, email)
   (wsMembers || []).forEach(m => {
-    const name = m.user_id === me.id ? (myProfile.full_name || 'Siz') : ((m.profile && m.profile.full_name) || '');
-    if (match(name)) {
-      results.push({ type: 'user', icon: '👤', title: name, sub: 'Jamoa a\'zosi', action: () => { goPage('team'); } });
+    const p = m.profile || {};
+    const name = m.user_id === me.id ? (myProfile.full_name || 'Siz') : (p.full_name || '');
+    if (match(name) || match(p.phone) || match(p.email)) {
+      results.push({ type: 'user', icon: '👤', title: name || '(ismsiz)', sub: [p.phone, p.email].filter(Boolean).join(' · ') || 'Jamoa a\'zosi', action: () => { goPage('team'); } });
     }
   });
   // 3. Bo'limlar
@@ -9628,8 +9650,9 @@ function topSearchRun() {
     results.push({ type: 'page', icon: '⚡', title: p.label, sub: 'Sahifa', action: () => { goPage(p.page); } });
   });
 
-  _topSearchResults = results.slice(0, 20);
+  _topSearchResults = results.slice(0, 30);
   _topSearchIdx = 0;
+  topSearchPosition();
   if (!_topSearchResults.length) {
     drop.innerHTML = '<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px;">Hech narsa topilmadi</div>';
     drop.style.display = 'block';
@@ -9637,6 +9660,18 @@ function topSearchRun() {
   }
   topSearchRender();
   drop.style.display = 'block';
+}
+function topSearchPosition() {
+  const inp = $('topSearchInp'); const drop = $('topSearchDrop');
+  if (!inp || !drop) return;
+  const wrap = $('topSearchWrap') || inp;
+  const r = wrap.getBoundingClientRect();
+  drop.style.position = 'fixed';
+  drop.style.top = (r.bottom + 6) + 'px';
+  drop.style.left = r.left + 'px';
+  drop.style.width = r.width + 'px';
+  drop.style.right = 'auto';
+  drop.style.zIndex = '2000';
 }
 function topSearchRender() {
   const drop = $('topSearchDrop');
