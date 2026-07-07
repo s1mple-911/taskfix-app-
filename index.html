@@ -220,6 +220,12 @@
   .kan-card-title.done { text-decoration: line-through; text-decoration-thickness: 1.5px; color: var(--muted); }
   .cell-asg-btn { width:100%; text-align:left; background:none; border:1px solid transparent; border-radius:6px; padding:4px 8px; font-size:12.5px; color:var(--ink); cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .cell-asg-btn:hover { border-color:var(--line); background:var(--surface-2); }
+  .done-toggle { display:inline-flex; align-items:center; gap:8px; padding:6px 13px; border:1px solid var(--line); border-radius:999px; background:var(--surface); font-size:12.5px; font-weight:500; color:var(--muted); cursor:pointer; white-space:nowrap; font-family:inherit; transition:all .12s; }
+  .done-toggle:hover { border-color:var(--line-strong); color:var(--ink); }
+  .done-toggle .dt-dot { width:15px; height:15px; border-radius:50%; border:1.5px solid currentColor; position:relative; flex:0 0 auto; transition:all .12s; }
+  .done-toggle.active { background:var(--accent); border-color:var(--accent-ink); color:var(--accent-ink); }
+  .done-toggle.active .dt-dot { background:var(--accent-ink); border-color:var(--accent-ink); }
+  .done-toggle.active .dt-dot::after { content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:10px; color:var(--accent); font-weight:700; }
   .kan-card-done { opacity: .72; background: var(--surface-2); }
   .kan-card-meta { font-size: 11.5px; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
@@ -748,7 +754,7 @@
     <div class="topbar">
       <div class="topbar-search" id="topSearchWrap" style="position:relative;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
-        <input id="topSearchInp" type="text" placeholder="Hammasi: vazifa, odam, sahifa…" style="flex:1;border:none;background:transparent;outline:none;font-family:inherit;font-size:13px;color:var(--ink);min-width:0;" oninput="topSearchRun()" onkeydown="topSearchKey(event)" onfocus="topSearchRun()" autocomplete="off" />
+        <input id="topSearchInp" type="text" placeholder="Hammasi: vazifa, odam, sahifa…" readonly onclick="openCmdPalette()" onfocus="openCmdPalette()" style="flex:1;border:none;background:transparent;outline:none;font-family:inherit;font-size:13px;color:var(--ink);min-width:0;cursor:pointer;" autocomplete="off" />
         <span class="kbd">⌘K</span>
         <div id="topSearchDrop" style="display:none;position:absolute;top:44px;left:0;right:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.16);max-height:420px;overflow:auto;z-index:300;padding:6px;"></div>
       </div>
@@ -775,7 +781,7 @@
         <button class="view-tab" data-plntab="assigned" onclick="plnSetTab('assigned')">📤 Men topshirganlar</button>
         <button class="view-tab" data-plntab="all" onclick="plnSetTab('all')">✓ Barcha vazifalar</button>
         <div style="flex:1"></div>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);cursor:pointer;white-space:nowrap;"><input type="checkbox" class="hide-done-cb" onchange="toggleHideCompleted(this.checked)" style="cursor:pointer;"> Bajarilganlarni yashirish</label>
+        <button type="button" class="done-toggle" data-done-toggle onclick="toggleHideCompleted(!window.hideCompleted)"><span class="dt-dot"></span> Bajarilganlarni yashirish</button>
       </div>
       <div id="plnCalPane">
         <div class="pln-layout">
@@ -832,7 +838,7 @@
         <button class="view-tab"        data-tv="calendar" onclick="setTasksView('calendar')">Kalendar</button>
         <button class="view-tab"        data-tv="table"    onclick="setTasksView('table')">Jadval</button>
         <div style="flex:1"></div>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);cursor:pointer;white-space:nowrap;"><input type="checkbox" class="hide-done-cb" onchange="toggleHideCompleted(this.checked)" style="cursor:pointer;"> Bajarilganlarni yashirish</label>
+        <button type="button" class="done-toggle" data-done-toggle onclick="toggleHideCompleted(!window.hideCompleted)"><span class="dt-dot"></span> Bajarilganlarni yashirish</button>
       </div>
       <div id="tasksView-list">
         <div class="search-row">
@@ -3475,8 +3481,7 @@ function applyTaskScope(list) {
 function toggleHideCompleted(v) {
   window.hideCompleted = !!v;
   try { localStorage.setItem('hideCompleted', v ? '1' : '0'); } catch (e) {}
-  // Barcha checkbox'larни sinxronlaymιz
-  document.querySelectorAll('.hide-done-cb').forEach(cb => { cb.checked = !!v; });
+  document.querySelectorAll('.done-toggle').forEach(b => b.classList.toggle('active', !!v));
   refreshActiveView();
 }
 
@@ -6595,7 +6600,7 @@ function goTaskScope(scope) {
 
 function setTasksView(v) {
   currentTasksView = v;
-  document.querySelectorAll('.hide-done-cb').forEach(cb => { cb.checked = !!window.hideCompleted; });
+  document.querySelectorAll('.done-toggle').forEach(b => b.classList.toggle('active', !!window.hideCompleted));
   document.querySelectorAll('#page-tasks [data-tv]').forEach(b => b.classList.toggle('active', b.dataset.tv === v));
   $('tasksView-list').style.display = v === 'list' ? 'block' : 'none';
   $('tasksView-kanban').style.display = v === 'kanban' ? 'block' : 'none';
@@ -7319,7 +7324,7 @@ function plnNav(dir) {
 let plnTab = 'schedule'; // 'schedule' | 'mine' | 'assigned' | 'all'
 function plnSetTab(tab) {
   plnTab = tab;
-  document.querySelectorAll('.hide-done-cb').forEach(cb => { cb.checked = !!window.hideCompleted; });
+  document.querySelectorAll('.done-toggle').forEach(b => b.classList.toggle('active', !!window.hideCompleted));
   document.querySelectorAll('#page-planner [data-plntab]').forEach(b => b.classList.toggle('active', b.dataset.plntab === tab));
   const isSchedule = tab === 'schedule';
   $('plnCalPane').style.display = isSchedule ? 'block' : 'none';
@@ -9789,9 +9794,7 @@ function buildCmdItems() {
       ? tasksCache.filter(t => fuzzyMatch(t.title || '', q) || fuzzyMatch(t.description || '', q)).slice(0, 8)
       : tasksCache.slice(0, 4);
     tFiltered.forEach(t => {
-      const statusLabel = t.status === 'completed' ? 'Bajarildi' :
-        t.status === 'in_progress' ? 'Jarayonda' :
-        t.status === 'review' ? 'Tekshiruvda' : 'Yangi';
+      const statusLabel = statusName(t.status);
       items.push({
         group: 'Vazifalar',
         icon: '✓',
@@ -9820,11 +9823,11 @@ function buildCmdItems() {
     });
   }
 
-  // A'zolar (wsMembers)
+  // A'zolar (wsMembers) — ism, telefon, email
   if (Array.isArray(wsMembers) && wsMembers.length && q) {
     const mFiltered = wsMembers
-      .filter(m => fuzzyMatch((m.profile && m.profile.full_name) || '', q))
-      .slice(0, 4);
+      .filter(m => { const p = m.profile || {}; return fuzzyMatch(p.full_name || '', q) || fuzzyMatch(p.phone || '', q) || fuzzyMatch(p.email || '', q); })
+      .slice(0, 6);
     mFiltered.forEach(m => {
       const name = (m.profile && m.profile.full_name) || 'A\'zo';
       items.push({
