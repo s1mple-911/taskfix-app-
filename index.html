@@ -1026,12 +1026,23 @@
     <!-- Team (workspace) -->
     <section id="page-team" style="display:none">
       <div class="row-head"><h2 class="h2" style="margin:0">Jamoa</h2><button class="btn" id="inviteBtn" onclick="openInvite()" style="display:none">+ Xodim taklif qilish</button></div>
-      <div style="margin-bottom: 14px; font-size: 13.5px; color: var(--muted);">Faol a'zolar</div>
-      <div id="membersList" class="list"></div>
-      <div id="invitesWrap" style="margin-top: 28px; display:none;">
-        <div style="margin-bottom: 14px; font-size: 13.5px; color: var(--muted);">Yuborilgan takliflar</div>
-        <div id="invitesList" class="list"></div>
+      <div class="view-tabs" style="margin:6px 0 16px;">
+        <button class="view-tab active" data-teamtab="hodimlar" onclick="teamSetTab('hodimlar')">👥 Hodimlar</button>
+        <button class="view-tab" data-teamtab="tashkilot" onclick="teamSetTab('tashkilot')">🏢 Tashkilot</button>
       </div>
+      <div id="teamPaneHodimlar">
+        <div class="tbl-wrap" style="max-height:calc(100vh - 240px);">
+          <table class="xtbl" id="teamTbl" style="width:max-content;min-width:100%;">
+            <thead id="teamTblHead"></thead>
+            <tbody id="teamTblBody"></tbody>
+          </table>
+        </div>
+        <div id="invitesWrap" style="margin-top: 22px; display:none;">
+          <div style="margin-bottom: 10px; font-size: 13px; color: var(--muted);">Yuborilgan takliflar</div>
+          <div id="invitesList" class="list"></div>
+        </div>
+      </div>
+      <div id="teamPaneTashkilot" style="display:none"></div>
     </section>
 
     <!-- Integrations -->
@@ -1736,7 +1747,8 @@
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
         <div class="field">
           <label>Lavozim</label>
-          <input id="empPosition" type="text" placeholder="Masalan: Menejer" />
+          <input id="empPosition" type="text" list="empPosList" placeholder="Tanlang yoki yozing..." />
+          <datalist id="empPosList"></datalist>
         </div>
         <div class="field">
           <label>Filial</label>
@@ -2907,7 +2919,6 @@ function renderSidebar() {
   html += '<button class="side-link ' + (currentPage === 'tasks' && taskScope === 'all' ? 'active' : '') + '" onclick="goTaskScope(\'all\')"><span class="ic">✓</span> Barcha vazifalar</button>';
   if (isOrg && canManage) {
     html += '<button class="side-link ' + (currentPage === 'stats' ? 'active' : '') + '" onclick="goPage(\'stats\')"><span class="ic">📊</span> Statistika</button>';
-    html += '<button class="side-link ' + (currentPage === 'orgchart' ? 'active' : '') + '" onclick="goPage(\'orgchart\')"><span class="ic">⛓</span> Tashkilot</button>';
   }
   if (isOrg) {
     html += '<div class="side-section">Bo\'limlar' + (canManage ? '<button class="add-mini" title="Yangi bo\'lim" onclick="openNewDept()">+</button>' : '') + '</div>';
@@ -2955,7 +2966,8 @@ function renderSidebar() {
         }
       }
       html += '<button class="side-link ' + (currentPage === 'branches' ? 'active' : '') + '" onclick="goPage(\'branches\')"><span class="ic">▢</span> Filiallar</button>';
-      html += '<button class="side-link ' + (currentPage === 'positions' ? 'active' : '') + '" onclick="goPage(\'positions\')"><span class="ic">⌬</span> Lavozimlar</button>';
+      // Lavozimlar — vaqtincha yashirilган (kerak bo'lsa qaytaramιz)
+      // html += '<button class="side-link ' + (currentPage === 'positions' ? 'active' : '') + '" onclick="goPage(\'positions\')"><span class="ic">⌬</span> Lavozimlar</button>';
     }
   }
   if (isOwnerLike()) {
@@ -3200,7 +3212,7 @@ function goPage(p) {
   currentPage = p;
   if (p !== 'department') currentDeptId = null;
   renderSidebar();
-  ['dashboard','planner','tasks','departments','department','team','integrations','tgusers','branches','positions','settings','logs','stats','botsettings','botcommands','orgchart','profile'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
+  ['dashboard','planner','tasks','departments','department','team','integrations','tgusers','branches','positions','settings','logs','stats','botsettings','botcommands','profile'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
   if (p === 'planner') plnSetTab(plnTab);
   if (p === 'tasks') {
     const titles = { mine: '📥 Mening vazifalarim', assigned: '📤 Men topshirganlar', all: '✓ Barcha vazifalar' };
@@ -3208,7 +3220,7 @@ function goPage(p) {
     renderTasksList();
   }
   if (p === 'departments') renderDeptsList();
-  if (p === 'team') renderTeam();
+  if (p === 'team') { _teamTab = 'hodimlar'; teamSetTab('hodimlar'); renderTeam(); }
   if (p === 'integrations') loadIntegrations();
   if (p === 'tgusers') loadTgUsers();
   if (p === 'dashboard') updateDashboard(null);
@@ -3564,6 +3576,9 @@ function openAddEmployeeModal() {
   $('empPhone').value = '';
   $('empPosition').value = '';
   hideMsg($('empMsg'));
+  // Lavozim datalist — Jamoadagi lavozimlar
+  const dl = $('empPosList');
+  if (dl) dl.innerHTML = teamPositions().map(p => '<option value="' + escapeHtml(p) + '"></option>').join('');
   // Filial select to'ldirish
   const br = $('empBranch');
   br.innerHTML = '<option value="">(tanlanmagan)</option>' + (branchesCache || []).map(b =>
@@ -8337,60 +8352,150 @@ async function removeDeptMember(uid) {
 function canManageTeam() { return isOwnerLike(); }
 function canEditWorkspace() { return isOwnerLike() || myWsRole === 'member'; }
 function isWorkspaceOwner() { return myWsRole === 'owner'; }
+
+// ---- Lavozimlar (hozircha localStorage — faqat view) ----
+function teamPosKey() { return 'positions_' + (currentWs ? currentWs.id : 'x'); }
+function teamMemberPosKey() { return 'memberPos_' + (currentWs ? currentWs.id : 'x'); }
+function teamStoredPositions() { try { return JSON.parse(localStorage.getItem(teamPosKey()) || '[]'); } catch (e) { return []; } }
+function teamMemberPosMap() { try { return JSON.parse(localStorage.getItem(teamMemberPosKey()) || '{}'); } catch (e) { return {}; } }
+function teamPositions() {
+  const set = new Set(teamStoredPositions());
+  const mp = teamMemberPosMap();
+  Object.values(mp).forEach(v => { if (v) set.add(v); });
+  return [...set].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+}
+function teamAddPosition(name) {
+  name = (name || '').trim(); if (!name) return;
+  const arr = teamStoredPositions();
+  if (!arr.some(x => x.toLowerCase() === name.toLowerCase())) { arr.push(name); localStorage.setItem(teamPosKey(), JSON.stringify(arr)); }
+}
+function teamMemberPos(uid) { return teamMemberPosMap()[uid] || ''; }
+function teamSetMemberPos(uid, pos) {
+  const mp = teamMemberPosMap();
+  if (pos) mp[uid] = pos; else delete mp[uid];
+  localStorage.setItem(teamMemberPosKey(), JSON.stringify(mp));
+}
+
+// ---- Sub-tab: Hodimlar / Tashkilot ----
+let _teamTab = 'hodimlar';
+function teamSetTab(tab) {
+  _teamTab = tab;
+  document.querySelectorAll('#page-team [data-teamtab]').forEach(b => b.classList.toggle('active', b.dataset.teamtab === tab));
+  $('teamPaneHodimlar').style.display = tab === 'hodimlar' ? 'block' : 'none';
+  $('teamPaneTashkilot').style.display = tab === 'tashkilot' ? 'block' : 'none';
+  if (tab === 'tashkilot') {
+    // Org chart elementini Jamoa ichiga ko'chiramιz (bir marta) va yuklaymιz
+    const oc = $('page-orgchart');
+    if (oc && oc.parentElement !== $('teamPaneTashkilot')) {
+      oc.style.display = 'block';
+      $('teamPaneTashkilot').appendChild(oc);
+    }
+    try { loadOrgChart(); } catch (e) {}
+  }
+}
+
 async function renderTeam() {
   $('inviteBtn').style.display = canManageTeam() ? 'inline-block' : 'none';
   $('invitesWrap').style.display = canManageTeam() ? 'block' : 'none';
-  const wrap = $('membersList');
-  if (!wsMembers.length) { wrap.innerHTML = '<div class="empty"><strong>A\'zo yo\'q</strong></div>'; }
-  else {
-    wrap.innerHTML = wsMembers.map(m => {
-      const p = m.profile || {};
-      const isMe = m.user_id === me.id;
-      const name = p.full_name || (isMe ? 'Siz' : 'A\'zo');
-      const canChange = canManageTeam() && m.role !== 'owner' && !isMe;
-      const isOwner = m.role === 'owner';
-      const isAdmin = m.role === 'admin';
-      let badge;
-      if (isOwner) badge = '<span class="badge ok">Egasi</span>';
-      else if (isAdmin) badge = '<span class="badge" style="background:#DDEBFF;color:#1E40AF;">Admin</span>';
-      else badge = '<span class="badge muted">A\'zo</span>';
+  const canManage = canManageTeam();
+  const isOwner2 = isWorkspaceOwner();
 
-      // Faqat haqiqiy owner — boshqalarni admin/member qila oladi
-      let roleSelector = '';
-      if (canChange && isWorkspaceOwner()) {
-        roleSelector = ' <select class="link-btn" onchange="changeWsRole(\''+m.user_id+'\', this.value)" style="border:1px solid var(--line); padding: 4px 8px; border-radius: 6px; margin-left: 6px;">' +
-          '<option value="member"' + (m.role==='member'?' selected':'') + '>A\'zo</option>' +
-          '<option value="admin"' + (m.role==='admin'?' selected':'') + '>Admin (to\'liq huquqlar)</option>' +
-        '</select>';
-      }
+  // ---- HODIMLAR JADVALI ----
+  const cols = ['№', '', 'To\'liq ism', 'Telefon', 'Lavozim', 'Rol', ''];
+  $('teamTblHead').innerHTML = '<tr>' + cols.map((c, i) =>
+    '<th style="padding:9px 12px;text-align:left;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;">' + escapeHtml(c) + '</th>').join('') + '</tr>';
 
-      return '<div class="item static">' +
-        '<div style="padding-right:10px;">' + avatarHtml(name, null, p.avatar_url) + '</div>' +
-        '<div class="item-mid"><div class="item-title">' + escapeHtml(name) + (isMe?' <span style="color:var(--muted); font-weight:500;">(siz)</span>':'') + '</div><div class="item-meta">' + escapeHtml(p.phone || '—') + '</div></div>' +
-        '<div class="item-right">' + badge + roleSelector + (canChange ? ' <button class="link-btn" onclick="removeMember(\''+m.user_id+'\')" style="color:var(--danger); margin-left:8px;">O\'chirish</button>' : '') + '</div>' +
-      '</div>';
-    }).join('');
-  }
-  if (canManageTeam()) {
+  const rows = (wsMembers || []).slice().sort((a, b) => {
+    const an = (a.user_id === me.id ? (myProfile.full_name || '') : ((a.profile && a.profile.full_name) || '')) || '';
+    const bn = (b.user_id === me.id ? (myProfile.full_name || '') : ((b.profile && b.profile.full_name) || '')) || '';
+    return an.localeCompare(bn, undefined, { sensitivity: 'base' });
+  });
+
+  $('teamTblBody').innerHTML = rows.map((m, i) => {
+    const p = m.profile || {};
+    const isMe = m.user_id === me.id;
+    const name = p.full_name || (isMe ? 'Siz' : 'A\'zo');
+    const canChange = canManage && m.role !== 'owner' && !isMe;
+    const roleBadge = m.role === 'owner' ? '<span class="badge ok">Egasi</span>'
+      : (m.role === 'admin' ? '<span class="badge" style="background:#DDEBFF;color:#1E40AF;">Admin</span>' : '<span class="badge muted">A\'zo</span>');
+    let roleCell = roleBadge;
+    if (canChange && isOwner2) {
+      roleCell = '<select onchange="changeWsRole(\'' + m.user_id + '\', this.value)" style="border:1px solid var(--line);padding:4px 8px;border-radius:6px;font-size:12.5px;background:var(--surface);">' +
+        '<option value="member"' + (m.role === 'member' ? ' selected' : '') + '>A\'zo</option>' +
+        '<option value="admin"' + (m.role === 'admin' ? ' selected' : '') + '>Admin</option></select>';
+    }
+    const pos = teamMemberPos(m.user_id);
+    const posCell = canManage
+      ? '<button class="cell-asg-btn" onclick="teamOpenPosDrop(event,\'' + m.user_id + '\')">' + (pos ? escapeHtml(pos) : '<span style="color:var(--muted)">— tanlang —</span>') + ' <span style="opacity:.5">▾</span></button>'
+      : (pos ? escapeHtml(pos) : '—');
+    const td = 'padding:8px 12px;border-top:1px solid var(--line);font-size:13px;vertical-align:middle;white-space:nowrap;';
+    return '<tr>' +
+      '<td style="' + td + 'color:var(--muted);">' + (i + 1) + '</td>' +
+      '<td style="' + td + '">' + avatarHtml(name, null, p.avatar_url) + '</td>' +
+      '<td style="' + td + 'font-weight:500;">' + escapeHtml(name) + (isMe ? ' <span style="color:var(--muted);font-weight:400;">(siz)</span>' : '') + '</td>' +
+      '<td style="' + td + 'color:var(--muted);">' + escapeHtml(p.phone || '—') + '</td>' +
+      '<td style="' + td + 'min-width:150px;">' + posCell + '</td>' +
+      '<td style="' + td + '">' + roleCell + '</td>' +
+      '<td style="' + td + '">' + (canChange ? '<button class="link-btn" onclick="removeMember(\'' + m.user_id + '\')" style="color:var(--danger);">O\'chirish</button>' : '') + '</td>' +
+    '</tr>';
+  }).join('') || '<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--muted);">A\'zo yo\'q</td></tr>';
+
+  // ---- Takliflar ----
+  if (canManage) {
     const { data: invs } = await sb.from('invitations').select('*').eq('workspace_id', currentWs.id).eq('status', 'pending').order('created_at', { ascending: false });
     const list = $('invitesList');
-    if (!invs || !invs.length) { list.innerHTML = '<div class="empty" style="padding:24px"><strong>Ochiq taklif yo\'q</strong></div>'; }
+    if (!invs || !invs.length) { list.innerHTML = '<div class="empty" style="padding:20px"><strong>Ochiq taklif yo\'q</strong></div>'; }
     else {
       list.innerHTML = invs.map(inv => {
-        const deptNames = (inv.departments || []).map(x => { const d = departments.find(z=>z.id===x.department_id); return d ? d.name+' ('+ROLE_DEPT[x.role]+')' : ''; }).filter(Boolean).join(', ');
+        const deptNames = (inv.departments || []).map(x => { const d = departments.find(z => z.id === x.department_id); return d ? d.name + ' (' + ROLE_DEPT[x.role] + ')' : ''; }).filter(Boolean).join(', ');
         let label = inv.email;
-        if (!inv.email && inv.tg_bot_user_id) {
-          const bu = tgUsersCache.find(u => u.id === inv.tg_bot_user_id);
-          label = bu ? '✈ ' + (bu.full_name || bu.tg_username || 'TG user') : '✈ TG user';
-        }
-        return '<div class="item static">' +
-          '<div class="dot ts-new"></div>' +
+        if (!inv.email && inv.tg_bot_user_id) { const bu = tgUsersCache.find(u => u.id === inv.tg_bot_user_id); label = bu ? '✈ ' + (bu.full_name || bu.tg_username || 'TG user') : '✈ TG user'; }
+        return '<div class="item static"><div class="dot ts-new"></div>' +
           '<div class="item-mid"><div class="item-title">' + escapeHtml(label || '—') + '</div><div class="item-meta">' + (deptNames ? escapeHtml(deptNames) : 'bo\'lim yo\'q') + '</div></div>' +
-          '<div class="item-right"><button class="link-btn" onclick="cancelInvite(\''+inv.id+'\')" style="color:var(--danger)">Bekor</button></div>' +
-        '</div>';
+          '<div class="item-right"><button class="link-btn" onclick="cancelInvite(\'' + inv.id + '\')" style="color:var(--danger)">Bekor</button></div></div>';
       }).join('');
     }
   }
+}
+
+// ---- Lavozim dropdown (jadval ичida) ----
+let _teamPosUid = null;
+function teamOpenPosDrop(ev, uid) {
+  ev.stopPropagation();
+  teamClosePosDrop();
+  _teamPosUid = uid;
+  const r = ev.currentTarget.getBoundingClientRect();
+  const left = Math.min(r.left, window.innerWidth - 280);
+  const drop = document.createElement('div');
+  drop.id = 'teamPosDrop';
+  drop.style.cssText = 'position:fixed;z-index:600;left:' + left + 'px;top:' + (r.bottom + 4) + 'px;width:264px;background:var(--surface);border:1px solid var(--line-strong);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);overflow:hidden;';
+  drop.innerHTML =
+    '<div style="padding:8px;border-bottom:1px solid var(--line);"><input id="teamPosSearch" placeholder="Lavozim qidirish yoki yangi..." oninput="teamPosFilter()" onkeydown="if(event.key===\'Enter\')teamPosAddFromSearch()" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-size:13px;box-sizing:border-box;" /></div>' +
+    '<div id="teamPosList" style="max-height:240px;overflow-y:auto;"></div>' +
+    '<div style="border-top:1px solid var(--line);"><button onclick="teamPosAddFromSearch()" style="width:100%;text-align:left;padding:11px 12px;background:none;border:none;cursor:pointer;font-size:13px;color:var(--accent-ink);font-weight:600;">＋ Yangi lavozim qo\'shish</button></div>';
+  document.body.appendChild(drop);
+  teamPosRenderList('');
+  setTimeout(() => { const s = $('teamPosSearch'); if (s) s.focus(); document.addEventListener('mousedown', teamPosOutside); }, 30);
+}
+function teamPosOutside(e) { const d = $('teamPosDrop'); if (d && !d.contains(e.target)) teamClosePosDrop(); }
+function teamClosePosDrop() { const d = $('teamPosDrop'); if (d) d.remove(); document.removeEventListener('mousedown', teamPosOutside); }
+function teamPosFilter() { teamPosRenderList(($('teamPosSearch').value || '').toLowerCase()); }
+function teamPosRenderList(q) {
+  const cur = teamMemberPos(_teamPosUid);
+  const list = teamPositions().filter(p => !q || p.toLowerCase().includes(q));
+  const itemStyle = 'width:100%;text-align:left;padding:9px 12px;background:none;border:none;cursor:pointer;font-size:13px;color:var(--ink);display:block;';
+  let html = '<button onmouseover="this.style.background=\'var(--surface-2)\'" onmouseout="this.style.background=\'none\'" style="' + itemStyle + 'color:var(--muted);" onclick="teamPosPick(\'\')">— (bo\'sh)</button>';
+  html += list.map(p => '<button onmouseover="this.style.background=\'var(--surface-2)\'" onmouseout="this.style.background=\'none\'" style="' + itemStyle + (cur === p ? 'font-weight:700;' : '') + '" onclick="teamPosPick(\'' + p.replace(/'/g, "\\'") + '\')">' + escapeHtml(p) + (cur === p ? ' ✓' : '') + '</button>').join('');
+  if (!list.length) html += '<div style="padding:10px 12px;color:var(--muted);font-size:12.5px;">Yo\'q — pastdan qo\'shing</div>';
+  $('teamPosList').innerHTML = html;
+}
+function teamPosPick(pos) { const uid = _teamPosUid; teamClosePosDrop(); if (uid) { teamSetMemberPos(uid, pos); renderTeam(); } }
+function teamPosAddFromSearch() {
+  const v = ($('teamPosSearch') && $('teamPosSearch').value || '').trim();
+  if (!v) return;
+  teamAddPosition(v);
+  const uid = _teamPosUid; teamClosePosDrop();
+  if (uid) { teamSetMemberPos(uid, v); renderTeam(); }
 }
 function openInvite() {
   if (!canManageTeam()) return;
