@@ -491,6 +491,9 @@
   .xtbl .cell-edit { cursor:text; }
   .xtbl .cell-edit:hover { background:rgba(0,0,0,.02); }
   .xtbl select.cell-sel, .xtbl input.cell-inp { border:1px solid transparent; background:transparent; font-family:inherit; font-size:13px; padding:3px 5px; border-radius:5px; width:100%; color:var(--ink); }
+  .xtbl input.cell-inp[type="datetime-local"] { min-width:180px; }
+  .xtbl input.cell-inp:hover { border-color:var(--line); background:var(--surface-2); }
+  .xtbl input.cell-inp:focus { border-color:var(--accent-ink); background:var(--surface); outline:none; }
   .xtbl select.cell-sel:hover, .xtbl input.cell-inp:hover { border-color:var(--line); }
   .xtbl select.cell-sel:focus, .xtbl input.cell-inp:focus { border-color:var(--accent); outline:none; background:var(--surface); }
   .xtbl .status-pill { display:inline-block; padding:3px 9px; border-radius:12px; font-size:11.5px; font-weight:600; }
@@ -2751,7 +2754,7 @@ async function loadCurrentContext() {
   const tgIntg = integrationsCache.find(i => i.tool === 'telegram');
 
   const [profsR, tgBusR] = await Promise.all([
-    memberIds.length ? sb.from('profiles').select('id, full_name, phone, avatar_url').in('id', memberIds) : Promise.resolve({ data: [] }),
+    memberIds.length ? sb.from('profiles').select('id, full_name, phone, avatar_url, email').in('id', memberIds) : Promise.resolve({ data: [] }),
     (isOrg && tgIntg) ? sb.from('tg_bot_users').select('*').eq('integration_id', tgIntg.id).eq('state', 'completed') : Promise.resolve({ data: [] }),
   ]);
 
@@ -3649,7 +3652,7 @@ async function reloadMembers() {
   const ids = (wm || []).map(x => x.user_id);
   let profs = [];
   if (ids.length) {
-    const r = await sb.from('profiles').select('id, full_name, phone, avatar_url').in('id', ids);
+    const r = await sb.from('profiles').select('id, full_name, phone, avatar_url, email').in('id', ids);
     profs = r.data || [];
   }
   const pmap = {};
@@ -6920,7 +6923,7 @@ function tblRowHtml(t, cols, canEdit) {
         cell = tblFmtDate(t.created_at); break;
       case 'deadline':
         cell = canEdit
-          ? '<input class="cell-inp" type="date" value="' + (t.deadline ? t.deadline.slice(0,10) : '') + '" onchange="tblUpdate(' + t.id + ',\'deadline\',this.value?new Date(this.value).toISOString():null)">'
+          ? '<input class="cell-inp" type="datetime-local" value="' + (t.deadline ? toInputDt(t.deadline) : '') + '" onchange="tblUpdate(' + t.id + ',\'deadline\',this.value?new Date(this.value+\'+05:00\').toISOString():null)">'
           : tblFmtDate(t.deadline); break;
       case 'priority':
         cell = tblPrioSelect(t, canEdit); break;
@@ -7061,7 +7064,7 @@ function tblNewRowHtml(cols) {
       case 'assignee':
         cell = '<select id="tblNewAsg" class="cell-sel"><option value="">—</option>' + (wsMembers||[]).map(m=>'<option value="'+m.user_id+'">'+escapeHtml(m.user_id===me.id?(myProfile.full_name||'Siz'):((m.profile&&m.profile.full_name)||'A\'zo'))+'</option>').join('') + '</select>'; break;
       case 'deadline':
-        cell = '<input id="tblNewDl" class="cell-inp" type="date">'; break;
+        cell = '<input id="tblNewDl" class="cell-inp" type="datetime-local">'; break;
       case 'priority':
         cell = '<select id="tblNewPrio" class="cell-sel">' + Array.from({length:11},(_,i)=>'<option value="'+i+'">'+(i===0?'—':'P'+i)+'</option>').join('') + '</select>'; break;
       case 'status':
@@ -7082,7 +7085,7 @@ async function tblSaveNewRow() {
     department_id: $('tblNewDept')?.value || null,
     title,
     description: null,
-    deadline: $('tblNewDl')?.value ? new Date($('tblNewDl').value).toISOString() : null,
+    deadline: $('tblNewDl')?.value ? new Date($('tblNewDl').value+'+05:00').toISOString() : null,
     priority_level: parseInt($('tblNewPrio')?.value || '0', 10) || 0,
     created_by: me.id,
     assigned_to: $('tblNewAsg')?.value || null,
@@ -8401,7 +8404,7 @@ async function renderTeam() {
   const isOwner2 = isWorkspaceOwner();
 
   // ---- HODIMLAR JADVALI ----
-  const cols = ['№', '', 'To\'liq ism', 'Telefon', 'Lavozim', 'Rol', ''];
+  const cols = ['№', '', 'To\'liq ism', 'Telefon', 'Email', 'Lavozim', 'Rol', ''];
   $('teamTblHead').innerHTML = '<tr>' + cols.map((c, i) =>
     '<th style="padding:9px 12px;text-align:left;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;">' + escapeHtml(c) + '</th>').join('') + '</tr>';
 
@@ -8415,6 +8418,8 @@ async function renderTeam() {
     const p = m.profile || {};
     const isMe = m.user_id === me.id;
     const name = p.full_name || (isMe ? 'Siz' : 'A\'zo');
+    const email = p.email || (isMe ? (me.email || '') : '');
+    const phone = p.phone || '';
     const canChange = canManage && m.role !== 'owner' && !isMe;
     const roleBadge = m.role === 'owner' ? '<span class="badge ok">Egasi</span>'
       : (m.role === 'admin' ? '<span class="badge" style="background:#DDEBFF;color:#1E40AF;">Admin</span>' : '<span class="badge muted">A\'zo</span>');
@@ -8429,16 +8434,28 @@ async function renderTeam() {
       ? '<button class="cell-asg-btn" onclick="teamOpenPosDrop(event,\'' + m.user_id + '\')">' + (pos ? escapeHtml(pos) : '<span style="color:var(--muted)">— tanlang —</span>') + ' <span style="opacity:.5">▾</span></button>'
       : (pos ? escapeHtml(pos) : '—');
     const td = 'padding:8px 12px;border-top:1px solid var(--line);font-size:13px;vertical-align:middle;white-space:nowrap;';
+    // Editable hujayralar (owner/admin)
+    const phoneCell = canManage
+      ? '<span class="team-edit" contenteditable="true" data-uid="' + m.user_id + '" data-field="phone" onblur="teamSaveField(this)" onkeydown="teamEditKey(event,this)" style="display:inline-block;min-width:110px;padding:3px 6px;border:1px solid transparent;border-radius:6px;outline:none;">' + escapeHtml(phone || '') + '</span>'
+      : escapeHtml(phone || '—');
+    let emailCell;
+    if (canManage) {
+      emailCell = '<div style="display:flex;align-items:center;gap:6px;">' +
+        '<span class="team-edit" contenteditable="true" data-uid="' + m.user_id + '" data-field="email" onblur="teamSaveField(this)" onkeydown="teamEditKey(event,this)" style="flex:1;min-width:150px;padding:3px 6px;border:1px solid transparent;border-radius:6px;outline:none;">' + escapeHtml(email || '') + '</span>' +
+        (email ? '<button title="Email qayta yuborish" onclick="teamResendEmail(\'' + m.user_id + '\',\'' + email.replace(/'/g, "\\'") + '\')" style="flex:0 0 auto;background:none;border:1px solid var(--line);border-radius:6px;padding:3px 7px;cursor:pointer;font-size:13px;">📧</button>' : '') +
+      '</div>';
+    } else emailCell = escapeHtml(email || '—');
     return '<tr>' +
       '<td style="' + td + 'color:var(--muted);">' + (i + 1) + '</td>' +
       '<td style="' + td + '">' + avatarHtml(name, null, p.avatar_url) + '</td>' +
       '<td style="' + td + 'font-weight:500;">' + escapeHtml(name) + (isMe ? ' <span style="color:var(--muted);font-weight:400;">(siz)</span>' : '') + '</td>' +
-      '<td style="' + td + 'color:var(--muted);">' + escapeHtml(p.phone || '—') + '</td>' +
+      '<td style="' + td + 'color:var(--muted);">' + phoneCell + '</td>' +
+      '<td style="' + td + 'color:var(--muted);">' + emailCell + '</td>' +
       '<td style="' + td + 'min-width:150px;">' + posCell + '</td>' +
       '<td style="' + td + '">' + roleCell + '</td>' +
       '<td style="' + td + '">' + (canChange ? '<button class="link-btn" onclick="removeMember(\'' + m.user_id + '\')" style="color:var(--danger);">O\'chirish</button>' : '') + '</td>' +
     '</tr>';
-  }).join('') || '<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--muted);">A\'zo yo\'q</td></tr>';
+  }).join('') || '<tr><td colspan="8" style="padding:24px;text-align:center;color:var(--muted);">A\'zo yo\'q</td></tr>';
 
   // ---- Takliflar ----
   if (canManage) {
@@ -8496,6 +8513,44 @@ function teamPosAddFromSearch() {
   teamAddPosition(v);
   const uid = _teamPosUid; teamClosePosDrop();
   if (uid) { teamSetMemberPos(uid, v); renderTeam(); }
+}
+
+// ---- Profil inline tahrirlash (telefon/email) ----
+function teamEditKey(ev, el) {
+  if (ev.key === 'Enter') { ev.preventDefault(); el.blur(); }
+  if (ev.key === 'Escape') { el.blur(); }
+}
+async function teamSaveField(el) {
+  const uid = el.dataset.uid, field = el.dataset.field;
+  const val = (el.textContent || '').trim();
+  const m = wsMembers.find(x => x.user_id === uid);
+  const oldVal = m && m.profile ? (m.profile[field] || '') : '';
+  if (val === oldVal) return;
+  if (field === 'email' && val && !/^\S+@\S+\.\S+$/.test(val)) { toast('Email noto\'g\'ri', 'err'); el.textContent = oldVal; return; }
+  try {
+    const { error } = await sb.from('profiles').update({ [field]: val || null }).eq('id', uid);
+    if (error) throw error;
+    if (m && m.profile) m.profile[field] = val;
+    el.style.borderColor = '#10B981';
+    setTimeout(() => { el.style.borderColor = 'transparent'; }, 800);
+  } catch (e) {
+    toast('Saqlanmadi: ' + (e.message || e) + ' (29-migratsiya kerak)', 'err');
+    el.textContent = oldVal;
+  }
+}
+async function teamResendEmail(uid, email) {
+  if (!email) return;
+  if (!confirm(email + ' ga parol o\'rnatish emailини qayta yuboraymi?')) return;
+  toast('Yuborilmoqda…', 'ok');
+  try {
+    const redirect = location.origin + location.pathname;
+    const { data: res, error } = await sb.functions.invoke('admin-create-employee', {
+      body: { email, workspace_id: currentWs.id, redirect_to: redirect }
+    });
+    if (error) throw error;
+    if (res && res.email_sent) toast('📧 Email qayta yuborildi: ' + email, 'ok');
+    else toast('⚠ Yuborilmadi' + (res && res.email_error ? (': ' + res.email_error) : ''), 'err');
+  } catch (e) { toast('Xato: ' + (e.message || e), 'err'); }
 }
 function openInvite() {
   if (!canManageTeam()) return;
