@@ -2887,7 +2887,7 @@ async function loadTasksFull() {
     const { data: tgu } = await sb.from('tg_bot_users').select('id').eq('linked_user_id', me.id);
     myTgIds = (tgu || []).map(x => x.id);
   } catch (e) {}
-  const orParts = ['assigned_to.eq.' + me.id, 'created_by.eq.' + me.id];
+  const orParts = ['assigned_to.eq.' + me.id, 'created_by.eq.' + me.id, 'acceptor_id.eq.' + me.id];
   if (myTgIds.length) orParts.push('assigned_to_tg_bot_user.in.(' + myTgIds.join(',') + ')');
   const { data } = await sb.from('tasks').select('*')
     .eq('workspace_id', currentWs.id)
@@ -8005,13 +8005,17 @@ async function loadKanbanColumns() {
       const accCol = kanbanColumns.find(c => c.status === 'qabul_kutilyapti');
       if (!accCol) {
         const doneC = kanbanColumns.find(c => c.status === 'completed');
-        const beforeDone = doneC ? (doneC.sort_order || 99) : 99;
-        try {
-          const { data: ac } = await sb.from('kanban_columns').insert({
-            workspace_id: currentWs.id, name: 'Qabul kutilyapti', status: 'qabul_kutilyapti', color: '#F59E0B', sort_order: Math.max(1, beforeDone - 0.5), is_default: true
-          }).select().single();
-          if (ac) kanbanColumns.push(ac);
-        } catch (e) {}
+        const doneOrder = doneC ? (doneC.sort_order || 99) : 99;
+        // completed va undan keyingi ustunlarni +1 suramιz (yuqoridan — conflict bo'lmasin)
+        const toBump = kanbanColumns.filter(c => (c.sort_order || 0) >= doneOrder).sort((a, b) => (b.sort_order || 0) - (a.sort_order || 0));
+        for (const c of toBump) {
+          try { await sb.from('kanban_columns').update({ sort_order: (c.sort_order || 0) + 1 }).eq('id', c.id); c.sort_order = (c.sort_order || 0) + 1; } catch (e) {}
+        }
+        const { data: ac, error: acErr } = await sb.from('kanban_columns').insert({
+          workspace_id: currentWs.id, name: 'Qabul kutilyapti', status: 'qabul_kutilyapti', color: '#F59E0B', sort_order: doneOrder, is_default: true
+        }).select().single();
+        if (ac) kanbanColumns.push(ac);
+        else if (acErr) console.warn('Qabul kutilyapti ustuni qo\'shilmadi:', acErr.message);
       }
     }
     // Agar bo'sh — default 4 ta yaratamиz (backfill SQL ishlamagan bo'lsa)
