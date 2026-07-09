@@ -2064,6 +2064,13 @@ let currentWs = null;
 let myWsRole = null;
 // canManage — owner yoki admin huquqlari (workspace darajasida)
 function isOwnerLike() { return myWsRole === 'owner' || myWsRole === 'admin'; }
+// Deadline'ni faqat yaratuvchi yoki admin/owner qo'ya/o'zgartira oladi
+function canEditDeadline(task) { return isOwnerLike() || (task && task.created_by === me.id); }
+// Vazifaga tegishli barcha metama'lumot (nom, tavsif, prioritet, deadline, biriktirish, subtask)
+// — faqat vazifa bergan (yaratuvchi) yoki admin/owner o'zgartira oladi. Bajaruvchi faqat HOLATni belgilaydi.
+function canEditTaskMeta(task) { return isOwnerLike() || (task && task.created_by === me.id); }
+// Vazifani faqat admin/owner o'chira oladi
+function canDeleteTask(task) { return isOwnerLike(); }
 let myDepts = [];          // [{department_id, role}]
 let departments = [];
 let wsMembers = [];        // [{user_id, role, profile}]
@@ -4588,6 +4595,8 @@ function renderDetailBody() {
   const t = tasksCache.find(x => x.id === currentDetailId);
   if (!t) return;
   const ov = isOverdue(t);
+  // O'chirish tugmasi — faqat admin/owner
+  const _dDel = $('dDelete'); if (_dDel) _dDel.style.display = canDeleteTask(t) ? 'inline-flex' : 'none';
   const statusBtns = statusColsList().map(c => '<button class="filter-btn ' + (t.status===c.status?'active':'') + '" onclick="changeStatus('+t.id+',\''+c.status+'\')">'+escapeHtml(c.name)+'</button>').join('');
 
   // Assignee
@@ -4601,9 +4610,9 @@ function renderDetailBody() {
   }
 
   // Can edit checks
-  const canEditTask = (myWsRole==='owner')
-    || (t.department_id && myDepts.some(x => x.department_id === t.department_id && (x.role==='editor' || x.role==='admin')))
-    || t.assigned_to === me.id || t.created_by === me.id;
+  // Vazifa metama'lumotini FAQAT yaratuvchi yoki admin/owner tahrirlaydi
+  // (bajaruvchi faqat holatni belgilaydi — statusBtns alohida)
+  const canEditTask = canEditTaskMeta(t);
 
   const myDeptIds = new Set(myDepts.map(d => d.department_id));
   const transferTargets = (myWsRole==='owner') ? departments : departments.filter(d => myDeptIds.has(d.id));
@@ -4632,8 +4641,9 @@ function renderDetailBody() {
     ? '<div class="inline-edit" style="margin-bottom: 16px;"><div class="inline-edit-text ' + (descText ? '' : 'inline-edit-empty') + '" id="d-desc-text" onclick="editDesc()" style="font-size:14px; line-height:1.55; white-space:pre-wrap; min-height: 30px;">' + (descText ? escapeHtml(descText) : 'Tavsif qo\'shish…') + '</div></div>'
     : (descText ? '<div style="margin-bottom:16px; font-size:14px; line-height:1.55; white-space:pre-wrap;">'+escapeHtml(descText)+'</div>' : '');
 
-  // Deadline (inline edit)
-  const deadlineHtml = canEditTask
+  // Deadline (inline edit) — FAQAT yaratuvchi yoki admin/owner
+  const _canDl = canEditDeadline(t);
+  const deadlineHtml = _canDl
     ? '<input type="datetime-local" value="' + (t.deadline ? toInputDt(t.deadline) : '') + '" onchange="updateField(\'deadline\', this.value ? new Date(this.value + \'+05:00\').toISOString() : null)" style="padding:6px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; background: var(--surface); font-family:inherit;" />'
     : (t.deadline ? fmtDeadline(t.deadline) + (ov?' (o\'tgan)':'') : 'yo\'q');
 
@@ -4863,6 +4873,10 @@ function editDesc() {
 
 async function updateField(field, value) {
   if (!currentDetailId) return;
+  const _t0 = tasksCache.find(x => x.id === currentDetailId);
+  if (field === 'deadline' && _t0 && !canEditDeadline(_t0)) { toast('Deadline\'ni faqat vazifa yaratuvchisi yoki admin/owner o\'zgartira oladi', 'err'); renderDetailBody(); return; }
+  // Prioritet, nom, tavsif, biriktirish, bo'lim — faqat yaratuvchi yoki admin/owner
+  if (['priority_level', 'title', 'description', 'assigned_to', 'department_id'].includes(field) && _t0 && !canEditTaskMeta(_t0)) { toast('Buni faqat vazifa bergan odam yoki admin/owner o\'zgartira oladi', 'err'); renderDetailBody(); return; }
   // Eski qiymatni saqlab qo'yamiz — Telegram notify uchun
   const oldTask = tasksCache.find(x => x.id === currentDetailId);
   const oldValue = oldTask ? oldTask[field] : null;
@@ -5025,6 +5039,8 @@ async function notifyMention(userId, text, commentId) {
   } catch (e) {}
 }
 async function deleteComment(id) {
+  const _c = curDetailComments.find(c => c.id === id);
+  if (_c && !(_c.author_id === me.id || isOwnerLike())) { toast('Izohni faqat muallif yoki admin/owner o\'chira oladi', 'err'); return; }
   if (!confirm('Izohni o\'chirasizmi?')) return;
   try {
     const { error } = await sb.from('task_comments').delete().eq('id', id);
@@ -5249,6 +5265,7 @@ async function notifyStatusToTg(t, newStatus) {
 
 async function deleteCurrent() {
   if (!currentDetailId) return;
+  if (!isOwnerLike()) { toast('Vazifani faqat admin yoki owner o\'chira oladi', 'err'); return; }
   if (!confirm('Vazifani o\'chirasizmi?')) return;
   const id = currentDetailId;
   const _dt = tasksCache.find(t => t.id === id);
@@ -7031,19 +7048,19 @@ function tblRowHtml(t, cols, canEdit) {
       case 'title':
         cell = '<span class="cell-edit" onclick="openDetail(' + t.id + ')" style="cursor:pointer;font-weight:500;' + (t.status === 'completed' ? 'text-decoration:line-through;color:var(--muted);' : '') + '">' + (t.status === 'completed' ? '✓ ' : '') + escapeHtml(t.title || '(nomsiz)') + '</span>'; break;
       case 'department':
-        cell = tblDeptSelect(t, canEdit); break;
+        cell = tblDeptSelect(t, canEditTaskMeta(t)); break;
       case 'creator':
         cell = escapeHtml(tblMemberName(t.created_by)); break;
       case 'assignee':
-        cell = tblAssigneeSelect(t, canEdit); break;
+        cell = tblAssigneeSelect(t, canEditTaskMeta(t)); break;
       case 'start':
         cell = tblFmtDate(t.created_at); break;
       case 'deadline':
-        cell = canEdit
+        cell = canEditDeadline(t)
           ? '<input class="cell-inp" type="datetime-local" value="' + (t.deadline ? toInputDt(t.deadline) : '') + '" onchange="tblUpdate(' + t.id + ',\'deadline\',this.value?new Date(this.value+\'+05:00\').toISOString():null)">'
           : tblFmtDate(t.deadline); break;
       case 'priority':
-        cell = tblPrioSelect(t, canEdit); break;
+        cell = tblPrioSelect(t, canEditTaskMeta(t)); break;
       case 'status':
         cell = tblStatusSelect(t, canEdit); break;
     }
@@ -7128,6 +7145,11 @@ function tblAsgAddEmployee() { window._tblAsgForTask = _tblAsgTask; tblCloseAsgD
 async function tblUpdate(taskId, field, value) {
   // Status o'zgarishi — changeStatus orqali (acceptor mantiqи uchun)
   if (field === 'status') { await changeStatus(taskId, value); return; }
+  const _t = tasksCache.find(t => t.id === taskId);
+  // Deadline — faqat yaratuvchi yoki admin/owner
+  if (field === 'deadline' && _t && !canEditDeadline(_t)) { toast('Deadline\'ni faqat vazifa yaratuvchisi yoki admin/owner o\'zgartira oladi', 'err'); renderTasksTable(); return; }
+  // Prioritet / biriktirish / bo'lim — faqat yaratuvchi yoki admin/owner
+  if (['priority_level', 'assigned_to', 'department_id'].includes(field) && _t && !canEditTaskMeta(_t)) { toast('Buni faqat vazifa bergan odam yoki admin/owner o\'zgartira oladi', 'err'); renderTasksTable(); return; }
   const idx = tasksCache.findIndex(t => t.id === taskId);
   const old = idx >= 0 ? tasksCache[idx][field] : undefined;
   if (idx >= 0) tasksCache[idx][field] = value; // optimistik
