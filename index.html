@@ -1955,6 +1955,11 @@
         </div>
         <div class="ms-summary" id="msSummary"></div>
       </div>
+      <div class="field">
+        <label>Qabul qiluvchi (ixtiyoriy)</label>
+        <select id="cAcceptor" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:var(--surface);color:var(--ink);"><option value="">— Yo'q (oddiy vazifa)</option></select>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:5px;">Tanlansa: bajaruvchi tugatgach vazifa "Qabul kutilyapti"ga o'tadi, qabul qiluvchi tasdiqlaydi.</div>
+      </div>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
         <div class="field" style="margin-bottom:0"><label>Deadline</label><input id="cDeadline" type="datetime-local" /><div id="cPlnHint" style="display:none;font-size:11.5px;color:var(--accent-ink);background:var(--accent);opacity:.9;padding:5px 9px;border-radius:7px;margin-top:6px;"></div></div>
         <div class="field" style="margin-bottom:0"><label>Prioritet</label><select id="cPriority"><option value="0">Yo'q</option><option value="1">P1 (eng yuqori)</option><option value="2">P2</option><option value="3">P3 (yuqori)</option><option value="4">P4</option><option value="5">P5</option><option value="6">P6 (o'rta)</option><option value="7">P7</option><option value="8">P8 (past)</option><option value="9">P9</option><option value="10">P10 (eng past)</option></select></div>
@@ -3552,6 +3557,14 @@ function openCreateForDept() { openCreateInternal(currentDeptId); }
 function openCreateInternal(forceDeptId) {
   $('cTitle').value=''; $('cDesc').value=''; $('cDeadline').value=''; $('cPriority').value='0';
   const _plnH = $('cPlnHint'); if (_plnH && !window._plnPendingSchedule) _plnH.style.display = 'none';
+  // Qabul qiluvchi dropdown (A→Z)
+  const _acc = $('cAcceptor');
+  if (_acc) {
+    const opts = (wsMembers || []).map(m => ({ id: m.user_id, name: m.user_id === me.id ? (myProfile.full_name || 'Siz') : ((m.profile && m.profile.full_name) || 'A\'zo') }))
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+    _acc.innerHTML = '<option value="">— Yo\'q (oddiy vazifa)</option>' + opts.map(o => '<option value="' + o.id + '">' + escapeHtml(o.name) + '</option>').join('');
+    _acc.value = '';
+  }
   $('cNewSub').value = '';
   cPendingSubs = [];
   cPendingFiles = [];
@@ -4319,6 +4332,7 @@ async function saveCreate() {
     // Parallel insert qilish — har assignee uchun bittadan vazifa
     btn.textContent = targets.length > 1 ? ('Yaratilmoqda… 0/' + targets.length) : 'Yaratilmoqda…';
     const insertsTime = new Date().toISOString();
+    const acceptorId = ($('cAcceptor') && $('cAcceptor').value) || null;
     const inserts = targets.map(t => ({
       workspace_id: currentWs.id, department_id: deptId,
       title, description: desc || null,
@@ -4326,6 +4340,7 @@ async function saveCreate() {
       created_by: me.id,
       assigned_to: t.assigned_to || null,
       assigned_to_tg_bot_user: t.assigned_to_tg_bot_user || null,
+      acceptor_id: acceptorId,
       status: window._cQuickStatus || 'new'
     }));
     // Pending invitelar uchun ham har biriga bittadan vazifa — assigned_to NULL
@@ -4338,6 +4353,7 @@ async function saveCreate() {
         created_by: me.id,
         assigned_to: null,
         assigned_to_tg_bot_user: null,
+        acceptor_id: acceptorId,
         status: window._cQuickStatus || 'new'
       });
     });
@@ -4434,6 +4450,11 @@ async function saveCreate() {
       }
       notifyN8n('task.created', { task: t });
       logActivity('task_created', { entityType: 'task', entityId: t.id, entityTitle: t.title, details: { assignee: t.assigned_to ? tblMemberName(t.assigned_to) : null } });
+      // Qabul qiluvchiga xabar (o'zi bo'lmasa)
+      if (t.acceptor_id && t.acceptor_id !== me.id) {
+        emailNotify('task_acceptor', t.id, t.acceptor_id);
+        try { notifyMention(t.acceptor_id, 'Siz "' + t.title + '" vazifasini qabul qiluvchisiz', null); } catch (e) {}
+      }
     }
   } catch (e) {
     clearTimeout(stuckTimer);
@@ -4645,12 +4666,34 @@ function renderDetailBody() {
     : '<div class="att-empty">Hech qanday fayl yo\'q. Pastdagi tugma yoki <b>Ctrl+V</b> bilan qo\'shing.</div>';
 
   // Build body
+  // Qabul qiluvchi qatori
+  let acceptorLine = '';
+  if (t.acceptor_id) {
+    const accName = t.acceptor_id === me.id ? (myProfile.full_name || 'Siz') : ((wsMembers.find(m => m.user_id === t.acceptor_id)?.profile?.full_name) || 'A\'zo');
+    acceptorLine = '<div class="detail-row"><div class="lbl">Qabul qiluvchi</div><div class="val">✅ ' + escapeHtml(accName) + (t.acceptor_id === me.id ? ' <span style="color:var(--muted)">(siz)</span>' : '') + '</div></div>';
+  }
+  // Qabul qiluvchi uchun action banner (status = qabul kutilyapti)
+  let acceptBanner = '';
+  if (t.acceptor_id === me.id && t.status === 'qabul_kutilyapti') {
+    acceptBanner = '<div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:12px;padding:14px;margin-bottom:14px;">' +
+      '<div style="font-size:13.5px;font-weight:600;color:#92400E;margin-bottom:4px;">📤 Bu vazifа bajarildi va sizning qabulингизни kutmoqda</div>' +
+      '<div style="font-size:12.5px;color:#92400E;margin-bottom:10px;">Tekshiring: ish to\'g\'ri bajarilgan bo\'lsa qabul qiling, aks holда bajaruvchiga qaytaring.</div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+        '<button class="btn" style="background:#10B981;border-color:#10B981;" onclick="acceptTask(' + t.id + ')">✅ Qabul qildim</button>' +
+        '<button class="btn secondary" onclick="returnTask(' + t.id + ')">↩️ Qaytarish</button>' +
+      '</div></div>';
+  } else if (t.status === 'qabul_kutilyapti' && t.acceptor_id) {
+    const accName = (wsMembers.find(m => m.user_id === t.acceptor_id)?.profile?.full_name) || 'qabul qiluvchi';
+    acceptBanner = '<div style="background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:14px;font-size:12.5px;color:var(--muted);">⏳ ' + escapeHtml(accName) + ' qabul qilishини kutmoqda</div>';
+  }
   $('dBody').innerHTML =
+    acceptBanner +
     titleHtml +
     descHtml +
     '<div class="detail-row"><div class="lbl">Holat</div><div class="val"><div class="status-pick">'+statusBtns+'</div></div></div>' +
     deptHtml +
     (asgLine ? '<div class="detail-row"><div class="lbl">Biriktirildi</div><div class="val">'+escapeHtml(asgLine)+'</div></div>' : '') +
+    acceptorLine +
     '<div class="detail-row"><div class="lbl">Deadline</div><div class="val '+(ov?'task-overdue':'')+'">'+deadlineHtml+'</div></div>' +
     '<div class="detail-row"><div class="lbl">Prioritet</div><div class="val">'+prioHtml+'</div></div>' +
     '<div class="detail-row"><div class="lbl">Yaratilgan</div><div class="val">'+new Date(t.created_at).toLocaleString('uz-UZ')+'</div></div>' +
@@ -5118,6 +5161,11 @@ async function changeStatus(id, newStatus) {
   try {
     const prev = tasksCache.find(x => x.id === id);
     const oldStatus = prev ? prev.status : null;
+    // Qabul qiluvchi bor + "Bajarildi"ga o'tkazilyapti + men qabul qiluvchi EMASman
+    // → to'g'ridan "Bajarildi" emas, "Qabul kutilyapti"ga o'tadi
+    if (newStatus === 'completed' && prev && prev.acceptor_id && prev.acceptor_id !== me.id) {
+      newStatus = 'qabul_kutilyapti';
+    }
     const patch = { status: newStatus };
     if (newStatus === 'in_progress') patch.started_at = new Date().toISOString();
     if (newStatus === 'completed') patch.completed_at = new Date().toISOString();
@@ -5125,17 +5173,52 @@ async function changeStatus(id, newStatus) {
     if (error) throw error;
     const idx = tasksCache.findIndex(x => x.id === id);
     if (idx >= 0) tasksCache[idx] = data;
-    toast('✅ Holat yangilandi', 'ok');
+    toast(newStatus === 'qabul_kutilyapti' ? '📤 Qabul qiluvchiga yuborildi' : '✅ Holat yangilandi', 'ok');
     refreshActiveView();
     if (currentDetailId === id) renderDetailBody();
-    // Telegram'ga assignee xabari
     notifyStatusToTg(data, newStatus);
     notifyN8n('task.status_changed', { task: data, new_status: newStatus });
     logActivity('task_status_changed', { entityType: 'task', entityId: id, entityTitle: data.title, details: { from: statusName(oldStatus), to: statusName(newStatus) } });
-    // Email yaratuvchiga (faqat completed bo'lganda, va yaratuvchi boshqa odam bo'lsa)
+    // "Qabul kutilyapti"ga o'tса — qabul qiluvchiga xabar
+    if (newStatus === 'qabul_kutilyapti' && data.acceptor_id) {
+      emailNotify('task_acceptor', data.id, data.acceptor_id);
+      try { notifyMention(data.acceptor_id, '"' + data.title + '" bajarildi — qabul qilishingizni kutmoqda', null); } catch (e) {}
+    }
+    // Email yaratuvchiga (faqat HAQIQIY completed bo'lganda)
     if (newStatus === 'completed' && data.created_by && data.created_by !== me.id) {
       emailNotify('task_completed', data.id, data.created_by);
     }
+  } catch (e) { toast(translateErr(e.message), 'err'); }
+}
+
+// Qabul qiluvchi: "Qabul qildim" → haqiqiy Bajarildi
+async function acceptTask(id) {
+  try {
+    const { data, error } = await sb.from('tasks').update({ status: 'completed', accepted_at: new Date().toISOString(), completed_at: new Date().toISOString() }).eq('id', id).select().single();
+    if (error) throw error;
+    const idx = tasksCache.findIndex(x => x.id === id); if (idx >= 0) tasksCache[idx] = data;
+    toast('✅ Qabul qilindi — Bajarildi', 'ok');
+    refreshActiveView();
+    if (currentDetailId === id) renderDetailBody();
+    logActivity('task_accepted', { entityType: 'task', entityId: id, entityTitle: data.title });
+    // Bajaruvchi va yaratuvchiga xabar
+    if (data.assigned_to && data.assigned_to !== me.id) { emailNotify('task_completed', id, data.assigned_to); try { notifyMention(data.assigned_to, '"' + data.title + '" qabul qilindi ✅', null); } catch (e) {} }
+    if (data.created_by && data.created_by !== me.id && data.created_by !== data.assigned_to) emailNotify('task_completed', id, data.created_by);
+  } catch (e) { toast(translateErr(e.message), 'err'); }
+}
+
+// Qabul qiluvchi: "Qaytarish" → bajaruvchiga qaytadi (in_progress)
+async function returnTask(id) {
+  if (!confirm('Vazifани bajaruvchiga qaytaraymi? (Jarayonga o\'tadi)')) return;
+  try {
+    const { data, error } = await sb.from('tasks').update({ status: 'in_progress' }).eq('id', id).select().single();
+    if (error) throw error;
+    const idx = tasksCache.findIndex(x => x.id === id); if (idx >= 0) tasksCache[idx] = data;
+    toast('↩️ Bajaruvchiga qaytarildi', 'ok');
+    refreshActiveView();
+    if (currentDetailId === id) renderDetailBody();
+    logActivity('task_returned', { entityType: 'task', entityId: id, entityTitle: data.title });
+    if (data.assigned_to && data.assigned_to !== me.id) { emailNotify('task_assigned', id, data.assigned_to); try { notifyMention(data.assigned_to, '"' + data.title + '" qaytarildi — qayta ko\'ring', null); } catch (e) {} }
   } catch (e) { toast(translateErr(e.message), 'err'); }
 }
 
@@ -7029,6 +7112,8 @@ function tblAsgAddEmployee() { window._tblAsgForTask = _tblAsgTask; tblCloseAsgD
 
 // Ma'lumotни yangilash (har qanday task, id bo'yicha)
 async function tblUpdate(taskId, field, value) {
+  // Status o'zgarishi — changeStatus orqali (acceptor mantiqи uchun)
+  if (field === 'status') { await changeStatus(taskId, value); return; }
   const idx = tasksCache.findIndex(t => t.id === taskId);
   const old = idx >= 0 ? tasksCache[idx][field] : undefined;
   if (idx >= 0) tasksCache[idx][field] = value; // optimistik
@@ -7914,6 +7999,20 @@ async function loadKanbanColumns() {
         }).select().single();
         if (dc) kanbanColumns.push(dc);
       } catch (e) {}
+    }
+    // "Qabul kutilyapti" ustuni (protected) — Bajarildi'дан oldin
+    if (kanbanColumns.length && currentWs.kind === 'organization') {
+      const accCol = kanbanColumns.find(c => c.status === 'qabul_kutilyapti');
+      if (!accCol) {
+        const doneC = kanbanColumns.find(c => c.status === 'completed');
+        const beforeDone = doneC ? (doneC.sort_order || 99) : 99;
+        try {
+          const { data: ac } = await sb.from('kanban_columns').insert({
+            workspace_id: currentWs.id, name: 'Qabul kutilyapti', status: 'qabul_kutilyapti', color: '#F59E0B', sort_order: Math.max(1, beforeDone - 0.5), is_default: true
+          }).select().single();
+          if (ac) kanbanColumns.push(ac);
+        } catch (e) {}
+      }
     }
     // Agar bo'sh — default 4 ta yaratamиz (backfill SQL ishlamagan bo'lsa)
     if (!kanbanColumns.length && currentWs.kind === 'organization') {
