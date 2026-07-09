@@ -4676,15 +4676,15 @@ function renderDetailBody() {
   let acceptBanner = '';
   if (t.acceptor_id === me.id && t.status === 'qabul_kutilyapti') {
     acceptBanner = '<div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:12px;padding:14px;margin-bottom:14px;">' +
-      '<div style="font-size:13.5px;font-weight:600;color:#92400E;margin-bottom:4px;">📤 Bu vazifа bajarildi va sizning qabulингизни kutmoqda</div>' +
-      '<div style="font-size:12.5px;color:#92400E;margin-bottom:10px;">Tekshiring: ish to\'g\'ri bajarilgan bo\'lsa qabul qiling, aks holда bajaruvchiga qaytaring.</div>' +
+      '<div style="font-size:13.5px;font-weight:600;color:#92400E;margin-bottom:4px;">📤 Bu vazifa bajarildi va sizning qabulingizni kutmoqda</div>' +
+      '<div style="font-size:12.5px;color:#92400E;margin-bottom:10px;">Tekshiring: ish to\'g\'ri bajarilgan bo\'lsa qabul qiling, aks holda bajaruvchiga qaytaring.</div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
         '<button class="btn" style="background:#10B981;border-color:#10B981;" onclick="acceptTask(' + t.id + ')">✅ Qabul qildim</button>' +
         '<button class="btn secondary" onclick="returnTask(' + t.id + ')">↩️ Qaytarish</button>' +
       '</div></div>';
   } else if (t.status === 'qabul_kutilyapti' && t.acceptor_id) {
     const accName = (wsMembers.find(m => m.user_id === t.acceptor_id)?.profile?.full_name) || 'qabul qiluvchi';
-    acceptBanner = '<div style="background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:14px;font-size:12.5px;color:var(--muted);">⏳ ' + escapeHtml(accName) + ' qabul qilishини kutmoqda</div>';
+    acceptBanner = '<div style="background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:14px;font-size:12.5px;color:var(--muted);">⏳ ' + escapeHtml(accName) + ' qabul qilishini kutmoqda</div>';
   }
   $('dBody').innerHTML =
     acceptBanner +
@@ -5162,18 +5162,25 @@ async function changeStatus(id, newStatus) {
     const prev = tasksCache.find(x => x.id === id);
     const oldStatus = prev ? prev.status : null;
     // Qabul qiluvchi bor + "Bajarildi"ga o'tkazilyapti + men qabul qiluvchi EMASman
-    // → to'g'ridan "Bajarildi" emas, "Qabul kutilyapti"ga o'tadi
+    // → "Qabul kutilyapti"ga o'tadi VA vazifa qabul qiluvchiga biriktiriladi
+    let reassignToAcceptor = false;
     if (newStatus === 'completed' && prev && prev.acceptor_id && prev.acceptor_id !== me.id) {
       newStatus = 'qabul_kutilyapti';
+      reassignToAcceptor = true;
     }
     const patch = { status: newStatus };
     if (newStatus === 'in_progress') patch.started_at = new Date().toISOString();
     if (newStatus === 'completed') patch.completed_at = new Date().toISOString();
+    if (reassignToAcceptor) {
+      // Asl bajaruvchini saqlaymιz, vazifани qabul qiluvchiga biriktiramιz
+      patch.submitter_id = prev.assigned_to || me.id;
+      patch.assigned_to = prev.acceptor_id;
+    }
     const { data, error } = await sb.from('tasks').update(patch).eq('id', id).select().single();
     if (error) throw error;
     const idx = tasksCache.findIndex(x => x.id === id);
     if (idx >= 0) tasksCache[idx] = data;
-    toast(newStatus === 'qabul_kutilyapti' ? '📤 Qabul qiluvchiga yuborildi' : '✅ Holat yangilandi', 'ok');
+    toast(newStatus === 'qabul_kutilyapti' ? '📤 Qabul qiluvchiga topshirildi' : '✅ Holat yangilandi', 'ok');
     refreshActiveView();
     if (currentDetailId === id) renderDetailBody();
     notifyStatusToTg(data, newStatus);
@@ -5191,27 +5198,34 @@ async function changeStatus(id, newStatus) {
   } catch (e) { toast(translateErr(e.message), 'err'); }
 }
 
-// Qabul qiluvchi: "Qabul qildim" → haqiqiy Bajarildi
+// Qabul qiluvchi: "Qabul qildim" → haqiqiy Bajarildi (bajaruvchiga QAYTMAYDI)
 async function acceptTask(id) {
   try {
-    const { data, error } = await sb.from('tasks').update({ status: 'completed', accepted_at: new Date().toISOString(), completed_at: new Date().toISOString() }).eq('id', id).select().single();
+    const prev = tasksCache.find(x => x.id === id);
+    const patch = { status: 'completed', accepted_at: new Date().toISOString(), completed_at: new Date().toISOString() };
+    // assigned_to o'zgармaydi (qabul qiluvchida qoladi) — bajaruvchiga qaytib kutinmaydi
+    const { data, error } = await sb.from('tasks').update(patch).eq('id', id).select().single();
     if (error) throw error;
     const idx = tasksCache.findIndex(x => x.id === id); if (idx >= 0) tasksCache[idx] = data;
     toast('✅ Qabul qilindi — Bajarildi', 'ok');
     refreshActiveView();
     if (currentDetailId === id) renderDetailBody();
     logActivity('task_accepted', { entityType: 'task', entityId: id, entityTitle: data.title });
-    // Bajaruvchi va yaratuvchiga xabar
-    if (data.assigned_to && data.assigned_to !== me.id) { emailNotify('task_completed', id, data.assigned_to); try { notifyMention(data.assigned_to, '"' + data.title + '" qabul qilindi ✅', null); } catch (e) {} }
-    if (data.created_by && data.created_by !== me.id && data.created_by !== data.assigned_to) emailNotify('task_completed', id, data.created_by);
+    // Asl bajaruvchi va yaratuvchiga xabar (ish qabul qilindi)
+    const worker = (prev && prev.submitter_id) || null;
+    if (worker && worker !== me.id) { emailNotify('task_completed', id, worker); try { notifyMention(worker, '"' + data.title + '" qabul qilindi ✅', null); } catch (e) {} }
+    if (data.created_by && data.created_by !== me.id && data.created_by !== worker) emailNotify('task_completed', id, data.created_by);
   } catch (e) { toast(translateErr(e.message), 'err'); }
 }
 
-// Qabul qiluvchi: "Qaytarish" → bajaruvchiga qaytadi (in_progress)
+// Qabul qiluvchi: "Qaytarish" → asl bajaruvchiga qaytadi (in_progress)
 async function returnTask(id) {
   if (!confirm('Vazifани bajaruvchiga qaytaraymi? (Jarayonga o\'tadi)')) return;
   try {
-    const { data, error } = await sb.from('tasks').update({ status: 'in_progress' }).eq('id', id).select().single();
+    const prev = tasksCache.find(x => x.id === id);
+    const patch = { status: 'in_progress' };
+    if (prev && prev.submitter_id) patch.assigned_to = prev.submitter_id; // asl bajaruvchiga qaytaramιz
+    const { data, error } = await sb.from('tasks').update(patch).eq('id', id).select().single();
     if (error) throw error;
     const idx = tasksCache.findIndex(x => x.id === id); if (idx >= 0) tasksCache[idx] = data;
     toast('↩️ Bajaruvchiga qaytarildi', 'ok');
