@@ -1406,6 +1406,34 @@
       </div>
     </section>
 
+    <section id="page-projects" style="display:none">
+      <div class="row-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <h2 class="h2" style="margin:0">🗂 Loyihalar</h2>
+        <button class="btn" id="prjNewBtn" onclick="openCreateProject()" style="display:none">+ Yangi loyiha</button>
+      </div>
+      <div style="font-size:12.5px;color:var(--muted);margin:6px 0 16px;">Har bir loyiha ichida vazifalar ketma-ket (flow) yoki parallel ochiladi. Qaysi bosqichda ekanini shu yerdan ko'ring.</div>
+      <div id="projectsList"></div>
+    </section>
+
+    <section id="page-project" style="display:none">
+      <div style="margin-bottom:10px;"><a onclick="goPage('projects')" style="cursor:pointer;color:var(--accent-ink);font-size:13px;">← Loyihalar</a></div>
+      <div class="row-head" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h2 class="h2" id="prjTitle" style="margin:0">Loyiha</h2>
+          <div id="prjMeta" style="font-size:12.5px;color:var(--muted);margin-top:4px;"></div>
+        </div>
+        <div id="prjActions" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+      </div>
+      <div class="view-tabs" style="margin:14px 0 16px;">
+        <button class="view-tab active" data-prjtab="flow" onclick="prjSetTab('flow')">🔀 Flow</button>
+        <button class="view-tab" data-prjtab="kanban" onclick="prjSetTab('kanban')">📋 Kanban</button>
+        <button class="view-tab" data-prjtab="members" onclick="prjSetTab('members')">👥 A'zolar</button>
+      </div>
+      <div id="prjPaneFlow"></div>
+      <div id="prjPaneKanban" style="display:none"></div>
+      <div id="prjPaneMembers" style="display:none"></div>
+    </section>
+
     <section id="page-logs" style="display:none">
       <div class="row-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
         <h2 class="h2" style="margin:0">📋 Loglar (harakatlar tarixi)</h2>
@@ -2133,6 +2161,303 @@ function statusColor(val) {
   return (c && c.color) || '#94A3B8';
 }
 
+// ============ LOYIHALAR ============
+let projectsCache = [];
+let currentProjectId = null;
+let prjTasks = [];
+let prjMembers = [];
+let prjTab = 'flow';
+
+async function loadProjects() {
+  $('prjNewBtn').style.display = isOwnerLike() ? 'inline-block' : 'none';
+  const wrap = $('projectsList');
+  wrap.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);">Yuklanmoqda…</div>';
+  try {
+    const { data: projs, error } = await sb.from('projects').select('*').eq('workspace_id', currentWs.id).order('created_at', { ascending: false });
+    if (error) throw error;
+    projectsCache = projs || [];
+    // Har loyiha uchun tasklarni olamiz (flow holati uchun)
+    const ids = projectsCache.map(p => p.id);
+    let allTasks = [];
+    if (ids.length) {
+      const { data: ts } = await sb.from('tasks').select('*').in('project_id', ids);
+      allTasks = ts || [];
+    }
+    projectsCache.forEach(p => { p._tasks = allTasks.filter(t => t.project_id === p.id).sort((a, b) => (a.flow_order || 0) - (b.flow_order || 0)); });
+    renderProjectsOverview();
+  } catch (e) {
+    wrap.innerHTML = '<div style="padding:24px;color:var(--danger);">Xato: ' + escapeHtml(e.message || String(e)) + '<br><span style="font-size:12px;color:var(--muted);">34-migratsiyani ishga tushiring</span></div>';
+  }
+}
+
+// Flowda task ochilganmi? (oldingisiga bog'liq bo'lsa — oldingi tugashi kerak)
+function prjTaskOpen(t, list) {
+  if (t.status === 'completed' || t.status === 'cancelled') return true; // tugagan
+  if (!t.depends_on_prev) return true; // parallel
+  const prev = list.filter(x => (x.flow_order || 0) < (t.flow_order || 0)).sort((a, b) => (b.flow_order || 0) - (a.flow_order || 0))[0];
+  if (!prev) return true; // birinchi
+  return prev.status === 'completed';
+}
+// Loyihaning hozirgi faol taski (flowda birinchi tugallanmagan, ochiq)
+function prjCurrentTask(list) {
+  return list.find(t => t.status !== 'completed' && t.status !== 'cancelled' && prjTaskOpen(t, list)) || null;
+}
+
+function renderProjectsOverview() {
+  const wrap = $('projectsList');
+  if (!projectsCache.length) {
+    wrap.innerHTML = '<div class="empty" style="padding:40px;text-align:center;"><strong>Loyiha yo\'q</strong>' + (isOwnerLike() ? '<br><span style="color:var(--muted);font-size:13px;">Yuqoridagi "+ Yangi loyiha" tugmasi bilan yarating.</span>' : '') + '</div>';
+    return;
+  }
+  wrap.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;">' + projectsCache.map(p => {
+    const list = p._tasks || [];
+    const total = list.length;
+    const done = list.filter(t => t.status === 'completed').length;
+    const cur = prjCurrentTask(list);
+    const pct = total ? Math.round(done / total * 100) : 0;
+    const curAsg = cur && cur.assigned_to ? tblMemberName(cur.assigned_to) : null;
+    const statusBadge = p.status === 'done' ? '<span class="badge ok">Tugadi</span>' : (p.status === 'paused' ? '<span class="badge muted">To\'xtatilgan</span>' : '<span class="badge" style="background:#DDEBFF;color:#1E40AF;">Faol</span>');
+    return '<div onclick="openProject(\'' + p.id + '\')" style="border:1px solid var(--line);border-radius:14px;padding:16px;cursor:pointer;background:var(--surface);transition:border-color .12s;" onmouseover="this.style.borderColor=\'var(--accent-ink)\'" onmouseout="this.style.borderColor=\'var(--line)\'">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;"><div style="font-weight:700;font-size:15px;">' + escapeHtml(p.name) + '</div>' + statusBadge + '</div>' +
+      (p.recurrence_days ? '<div style="font-size:11.5px;color:var(--accent-ink);margin-bottom:8px;">🔁 Har ' + p.recurrence_days + ' kunda takrorlanadi</div>' : '') +
+      '<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-bottom:4px;"><span>' + done + '/' + total + ' bajarildi</span><span>' + pct + '%</span></div>' +
+      '<div style="height:7px;background:var(--surface-2);border-radius:99px;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:' + (pct === 100 ? '#10B981' : '#3B82F6') + ';border-radius:99px;"></div></div></div>' +
+      '<div style="font-size:12.5px;padding:9px 11px;background:var(--surface-2);border-radius:9px;">' +
+        (cur ? '<span style="color:var(--muted);">Hozir: </span><b>' + escapeHtml(cur.title || '') + '</b>' + (curAsg ? ' <span style="color:var(--muted);">· ' + escapeHtml(curAsg) + '</span>' : '') : '<span style="color:#10B981;">✓ Barcha vazifalar tugadi</span>') +
+      '</div></div>';
+  }).join('') + '</div>';
+}
+
+async function openProject(id) {
+  currentProjectId = id;
+  currentPage = 'project';
+  goPage('project');
+  await loadProjectDetail();
+}
+
+async function loadProjectDetail() {
+  const p = projectsCache.find(x => x.id === currentProjectId);
+  const { data: proj } = await sb.from('projects').select('*').eq('id', currentProjectId).single();
+  const project = proj || p;
+  if (!project) { goPage('projects'); return; }
+  window._curProject = project;
+  // Recurrence: agar muddати kelgan bo'lsa — qayta boshlash (faqat owner/admin)
+  if (isOwnerLike() && project.recurrence_days && project.last_reset_at) {
+    const due = new Date(project.last_reset_at).getTime() + project.recurrence_days * 86400000;
+    if (Date.now() >= due) { await prjResetRecurrence(project, true); }
+  }
+  const { data: ts } = await sb.from('tasks').select('*').eq('project_id', currentProjectId).order('flow_order', { ascending: true });
+  prjTasks = ts || [];
+  const { data: pm } = await sb.from('project_members').select('*').eq('project_id', currentProjectId);
+  prjMembers = pm || [];
+
+  $('prjTitle').textContent = project.name;
+  const total = prjTasks.length, done = prjTasks.filter(t => t.status === 'completed').length;
+  $('prjMeta').innerHTML = (project.description ? escapeHtml(project.description) + ' · ' : '') + total + ' vazifa · ' + done + ' bajarildi' + (project.recurrence_days ? ' · 🔁 har ' + project.recurrence_days + ' kunda' : '');
+  // Actions (faqat owner/admin)
+  $('prjActions').innerHTML = isOwnerLike() ? (
+    '<button class="btn sm secondary" onclick="prjEditRecurrence()">🔁 Takrorlash</button>' +
+    '<button class="btn sm secondary" onclick="prjRenameOrDelete()">⚙️ Sozlash</button>'
+  ) : '<span style="font-size:12px;color:var(--muted);">👁 Faqat ko\'rish</span>';
+  prjSetTab(prjTab || 'flow');
+}
+
+function prjSetTab(tab) {
+  prjTab = tab;
+  document.querySelectorAll('#page-project [data-prjtab]').forEach(b => b.classList.toggle('active', b.dataset.prjtab === tab));
+  $('prjPaneFlow').style.display = tab === 'flow' ? 'block' : 'none';
+  $('prjPaneKanban').style.display = tab === 'kanban' ? 'block' : 'none';
+  $('prjPaneMembers').style.display = tab === 'members' ? 'block' : 'none';
+  if (tab === 'flow') renderProjectFlow();
+  else if (tab === 'kanban') renderProjectKanban();
+  else if (tab === 'members') renderProjectMembers();
+}
+
+function renderProjectFlow() {
+  const wrap = $('prjPaneFlow');
+  const list = prjTasks.slice().sort((a, b) => (a.flow_order || 0) - (b.flow_order || 0));
+  const canEdit = isOwnerLike();
+  let html = '<div style="display:flex;flex-direction:column;gap:0;">';
+  list.forEach((t, i) => {
+    const open = prjTaskOpen(t, list);
+    const isDone = t.status === 'completed';
+    const isCur = !isDone && open && t.status !== 'cancelled';
+    const locked = !open && !isDone;
+    const asg = t.assigned_to ? tblMemberName(t.assigned_to) : null;
+    const stName = statusName(t.status);
+    let borderColor = 'var(--line)', bg = 'var(--surface)', badge = '';
+    if (isDone) { borderColor = '#10B981'; bg = 'rgba(16,185,129,.06)'; badge = '<span style="color:#10B981;font-weight:600;font-size:12px;">✓ Bajarildi</span>'; }
+    else if (isCur) { borderColor = '#3B82F6'; bg = 'rgba(59,130,246,.07)'; badge = '<span style="color:#3B82F6;font-weight:700;font-size:12px;">▶ Hozir shu bosqichda</span>'; }
+    else if (locked) { badge = '<span style="color:var(--muted);font-size:12px;">🔒 Oldingi tugashini kutmoqda</span>'; }
+
+    html += '<div style="display:flex;align-items:stretch;gap:12px;">' +
+      // chap: nomer + chiziq
+      '<div style="display:flex;flex-direction:column;align-items:center;width:34px;flex:0 0 auto;">' +
+        '<div style="width:32px;height:32px;border-radius:50%;background:' + (isDone ? '#10B981' : isCur ? '#3B82F6' : 'var(--surface-2)') + ';color:' + (isDone || isCur ? '#fff' : 'var(--muted)') + ';display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:0 0 auto;">' + (isDone ? '✓' : (i + 1)) + '</div>' +
+        (i < list.length - 1 ? '<div style="flex:1;width:2px;background:var(--line);min-height:22px;"></div>' : '') +
+      '</div>' +
+      // karta
+      '<div onclick="openDetail(' + t.id + ')" style="flex:1;border:1.5px solid ' + borderColor + ';background:' + bg + ';border-radius:12px;padding:13px 15px;margin-bottom:12px;cursor:pointer;' + (locked ? 'opacity:.6;' : '') + '">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">' +
+          '<div style="font-weight:600;font-size:14px;' + (isDone ? 'text-decoration:line-through;color:var(--muted);' : '') + '">' + escapeHtml(t.title || '(nomsiz)') + '</div>' +
+          (t.depends_on_prev ? '<span title="Oldingiga bog\'liq" style="font-size:11px;color:var(--muted);">🔗</span>' : '<span title="Parallel" style="font-size:11px;color:var(--muted);">∥</span>') +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap;">' +
+          badge +
+          (asg ? '<span style="font-size:12px;color:var(--muted);">👤 ' + escapeHtml(asg) + '</span>' : '') +
+          (t.deadline ? '<span style="font-size:12px;color:var(--muted);">⏰ ' + fmtDeadline(t.deadline) + '</span>' : '') +
+          (t.recur_days ? '<span style="font-size:11.5px;color:var(--accent-ink);">🔁 ' + t.recur_days + ' kun</span>' : '') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  });
+  html += '</div>';
+  if (!list.length) html = '<div class="empty" style="padding:32px;text-align:center;"><strong>Bosqichlar yo\'q</strong>' + (canEdit ? '<br><span style="color:var(--muted);font-size:13px;">Pastdagi tugma bilan qo\'shing.</span>' : '') + '</div>';
+  if (canEdit) {
+    html += '<button onclick="prjAddTask()" style="margin-top:6px;width:100%;padding:13px;border:1.5px dashed var(--line-strong);border-radius:12px;background:none;cursor:pointer;color:var(--accent-ink);font-weight:600;font-size:13.5px;">+ Keyingi bosqich (vazifa) qo\'shish</button>';
+  }
+  wrap.innerHTML = html;
+}
+
+function renderProjectKanban() {
+  const wrap = $('prjPaneKanban');
+  const cols = kanbanColumns.length ? kanbanColumns.slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)) : STATUS_ORDER.map((s, i) => ({ status: s, name: STATUS_LBL[s], color: '#94A3B8' }));
+  wrap.innerHTML = '<div class="kanban">' + cols.map(col => {
+    const cards = prjTasks.filter(t => t.status === col.status);
+    return '<div class="kan-col"><div class="kan-head" style="border-top:3px solid ' + (col.color || '#94A3B8') + '"><span>' + escapeHtml(col.name) + '</span><span class="kan-count">' + cards.length + '</span></div>' +
+      '<div class="kan-cards">' + cards.map(t => {
+        const asg = t.assigned_to ? tblMemberName(t.assigned_to) : '';
+        return '<div class="kan-card" onclick="openDetail(' + t.id + ')"><div class="kan-card-title">' + escapeHtml(t.title || '') + '</div>' + (asg ? '<div style="font-size:11px;color:var(--muted);margin-top:5px;">👤 ' + escapeHtml(asg) + '</div>' : '') + '</div>';
+      }).join('') + '</div></div>';
+  }).join('') + '</div>';
+}
+
+function renderProjectMembers() {
+  const wrap = $('prjPaneMembers');
+  const canEdit = isOwnerLike();
+  let html = '';
+  if (canEdit) html += '<button class="btn sm" onclick="prjInviteMember()" style="margin-bottom:14px;">+ A\'zo taklif qilish</button>';
+  html += '<div style="font-size:12.5px;color:var(--muted);margin-bottom:10px;">Taklif qilingan a\'zolar loyihani to\'liq ko\'radi, lekin o\'zgartira olmaydi (faqat ko\'rish).</div>';
+  const rows = prjMembers.map(pm => {
+    const m = wsMembers.find(x => x.user_id === pm.user_id);
+    const name = pm.user_id === me.id ? (myProfile.full_name || 'Siz') : ((m && m.profile && m.profile.full_name) || 'A\'zo');
+    const avatar = m && m.profile && m.profile.avatar_url;
+    return '<div class="item static"><div style="padding-right:10px;">' + avatarHtml(name, null, avatar) + '</div>' +
+      '<div class="item-mid"><div class="item-title">' + escapeHtml(name) + '</div><div class="item-meta">👁 Ko\'ruvchi</div></div>' +
+      (canEdit ? '<div class="item-right"><button class="link-btn" onclick="prjRemoveMember(\'' + pm.user_id + '\')" style="color:var(--danger)">Olib tashlash</button></div>' : '') +
+    '</div>';
+  }).join('');
+  html += '<div class="list">' + (rows || '<div class="empty" style="padding:20px"><strong>A\'zo yo\'q</strong></div>') + '</div>';
+  wrap.innerHTML = html;
+}
+
+// ---- Create / edit project ----
+function openCreateProject() {
+  const name = prompt('Loyiha nomi:');
+  if (!name || !name.trim()) return;
+  const rec = prompt('Har necha kunda takrorlansin? (bo\'sh = takrorlanmasin)', '');
+  const recDays = rec && parseInt(rec, 10) > 0 ? parseInt(rec, 10) : null;
+  saveProject(name.trim(), recDays);
+}
+async function saveProject(name, recDays) {
+  try {
+    const { data, error } = await sb.from('projects').insert({
+      workspace_id: currentWs.id, name, created_by: me.id,
+      recurrence_days: recDays, last_reset_at: recDays ? new Date().toISOString() : null
+    }).select().single();
+    if (error) throw error;
+    toast('✅ Loyiha yaratildi', 'ok');
+    logActivity('project_created', { entityType: 'project', entityId: data.id, entityTitle: name });
+    await loadProjects();
+    openProject(data.id);
+  } catch (e) { toast('Xato: ' + (e.message || e), 'err'); }
+}
+
+async function prjRenameOrDelete() {
+  const p = window._curProject; if (!p) return;
+  const action = prompt('"' + p.name + '"\n\nYangi nom kiriting (o\'zgartirish uchun), yoki "DELETE" deb yozing (o\'chirish uchun):', p.name);
+  if (action === null) return;
+  if (action.trim().toUpperCase() === 'DELETE') {
+    if (!confirm('Loyiha va uning barcha vazifalari o\'chiriladi. Ishonchingiz komilmi?')) return;
+    try { await sb.from('projects').delete().eq('id', p.id); toast('O\'chirildi', 'ok'); goPage('projects'); } catch (e) { toast('Xato: ' + e.message, 'err'); }
+    return;
+  }
+  if (action.trim() && action.trim() !== p.name) {
+    try { await sb.from('projects').update({ name: action.trim() }).eq('id', p.id); p.name = action.trim(); $('prjTitle').textContent = p.name; toast('Nom o\'zgartirildi', 'ok'); } catch (e) { toast('Xato', 'err'); }
+  }
+}
+
+async function prjEditRecurrence() {
+  const p = window._curProject; if (!p) return;
+  const rec = prompt('Har necha kunda takrorlansin? (0 yoki bo\'sh = o\'chirish)', p.recurrence_days || '');
+  if (rec === null) return;
+  const recDays = parseInt(rec, 10) > 0 ? parseInt(rec, 10) : null;
+  try {
+    await sb.from('projects').update({ recurrence_days: recDays, last_reset_at: recDays ? (p.last_reset_at || new Date().toISOString()) : null }).eq('id', p.id);
+    p.recurrence_days = recDays;
+    toast(recDays ? ('🔁 Har ' + recDays + ' kunda takrorlanadi') : 'Takrorlanish o\'chirildi', 'ok');
+    loadProjectDetail();
+  } catch (e) { toast('Xato', 'err'); }
+}
+
+// Recurrence — barcha tasklarni qayta "new" holatiga qaytaradi
+async function prjResetRecurrence(project, silent) {
+  try {
+    await sb.from('tasks').update({ status: 'new', completed_at: null, started_at: null }).eq('project_id', project.id);
+    await sb.from('projects').update({ last_reset_at: new Date().toISOString() }).eq('id', project.id);
+    project.last_reset_at = new Date().toISOString();
+    if (!silent) toast('🔁 Loyiha qaytadan boshlandi', 'ok');
+  } catch (e) { if (!silent) toast('Xato', 'err'); }
+}
+
+// ---- Add flow task ----
+function prjAddTask() {
+  const title = prompt('Vazifa (bosqich) nomi:');
+  if (!title || !title.trim()) return;
+  const dep = confirm('Bu vazifa OLDINGI bosqich tugagach ochilsinmi?\n\nOK = Ha (ketma-ket)\nBekor = Yo\'q (parallel, birga ochiq)');
+  prjSaveTask(title.trim(), dep);
+}
+async function prjSaveTask(title, dependsOnPrev) {
+  try {
+    const maxOrder = prjTasks.reduce((mx, t) => Math.max(mx, t.flow_order || 0), 0);
+    const { data, error } = await sb.from('tasks').insert({
+      workspace_id: currentWs.id, project_id: currentProjectId,
+      title, created_by: me.id, status: 'new',
+      flow_order: maxOrder + 1, depends_on_prev: dependsOnPrev
+    }).select().single();
+    if (error) throw error;
+    prjTasks.push(data);
+    toast('✅ Bosqich qo\'shildi', 'ok');
+    logActivity('task_created', { entityType: 'task', entityId: data.id, entityTitle: title, details: { project: (window._curProject || {}).name } });
+    renderProjectFlow();
+    loadProjectDetail();
+  } catch (e) { toast('Xato: ' + (e.message || e), 'err'); }
+}
+
+// ---- Invite / remove project member ----
+async function prjInviteMember() {
+  const candidates = (wsMembers || []).filter(m => !prjMembers.some(pm => pm.user_id === m.user_id));
+  if (!candidates.length) { toast('Barcha a\'zolar allaqachon qo\'shilgan', 'ok'); return; }
+  const listStr = candidates.map((m, i) => (i + 1) + '. ' + ((m.profile && m.profile.full_name) || 'A\'zo')).join('\n');
+  const pick = prompt('Kimni taklif qilamiz? Raqamini yozing:\n\n' + listStr);
+  const idx = parseInt(pick, 10) - 1;
+  if (isNaN(idx) || idx < 0 || idx >= candidates.length) return;
+  try {
+    await sb.from('project_members').insert({ project_id: currentProjectId, user_id: candidates[idx].user_id });
+    prjMembers.push({ project_id: currentProjectId, user_id: candidates[idx].user_id });
+    toast('✅ Taklif qilindi', 'ok');
+    renderProjectMembers();
+  } catch (e) { toast('Xato: ' + (e.message || e), 'err'); }
+}
+async function prjRemoveMember(uid) {
+  if (!confirm('Loyihadan olib tashlaymi?')) return;
+  try {
+    await sb.from('project_members').delete().eq('project_id', currentProjectId).eq('user_id', uid);
+    prjMembers = prjMembers.filter(pm => pm.user_id !== uid);
+    renderProjectMembers();
+  } catch (e) { toast('Xato', 'err'); }
+}
+
 // ============ HODIM STATISTIKASI ============
 let _hsTasks = [];
 const HS_MONTHS = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
@@ -2304,6 +2629,7 @@ function logActionMeta(action) {
     employee_added: { icon: '🧑‍💼', label: 'Xodim qo\'shdi', color: '#0EA5E9' },
     column_added: { icon: '📊', label: 'Ustun qo\'shdi', color: '#10B981' },
     column_deleted: { icon: '🗑', label: 'Ustunни o\'chirdi', color: '#EF4444' },
+    project_created: { icon: '🗂', label: 'Loyiha yaratdi', color: '#0EA5E9' },
   };
   return map[action] || { icon: '•', label: action, color: '#6B7280' };
 }
@@ -3134,6 +3460,8 @@ function renderSidebar() {
     } else {
       html += '<div style="padding: 6px 12px; font-size: 11.5px; color: var(--side-muted);">Hali yo\'q</div>';
     }
+    html += '<div class="side-section">Loyihalar</div>';
+    html += '<button class="side-link ' + (currentPage === 'projects' || currentPage === 'project' ? 'active' : '') + '" onclick="goPage(\'projects\')"><span class="ic">🗂</span> Loyihalar</button>';
     html += '<div class="side-section">Boshqaruv</div>';
     html += '<button class="side-link ' + (currentPage === 'departments' ? 'active' : '') + '" onclick="goPage(\'departments\')"><span class="ic">▦</span> Bo\'limlar ro\'yxati</button>';
     html += '<button class="side-link ' + (currentPage === 'team' ? 'active' : '') + '" onclick="goPage(\'team\')"><span class="ic">☆</span> Jamoa</button>';
@@ -3410,7 +3738,7 @@ function goPage(p) {
   currentPage = p;
   if (p !== 'department') currentDeptId = null;
   renderSidebar();
-  ['dashboard','planner','tasks','departments','department','team','integrations','tgusers','branches','positions','settings','hodimstats','logs','stats','botsettings','botcommands','profile'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
+  ['dashboard','planner','tasks','departments','department','team','projects','project','integrations','tgusers','branches','positions','settings','hodimstats','logs','stats','botsettings','botcommands','profile'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
   if (p === 'planner') plnSetTab(plnTab);
   if (p === 'tasks') {
     const titles = { mine: '📥 Mening vazifalarim', assigned: '📤 Men topshirganlar', all: '✓ Barcha vazifalar' };
@@ -3425,6 +3753,7 @@ function goPage(p) {
   if (p === 'settings') loadSettings();
   if (p === 'logs') loadLogs();
   if (p === 'hodimstats') loadHodimStats();
+  if (p === 'projects') loadProjects();
   if (p === 'branches') loadBranches();
   if (p === 'positions') loadPositions();
   if (p === 'stats') renderStats();
