@@ -1038,6 +1038,12 @@
         </div>
       </div>
 
+      <div class="view-tabs" style="margin-bottom:18px;">
+        <button class="view-tab active" data-statstab="umumiy" onclick="statsSetTab('umumiy')">📈 Umumiy</button>
+        <button class="view-tab" data-statstab="hodimlar" onclick="statsSetTab('hodimlar')">👥 Hodimlar</button>
+      </div>
+
+      <div id="statsPaneUmumiy">
       <!-- Top KPI cards -->
       <div id="statsKpiRow" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:14px;margin-bottom:24px;"></div>
 
@@ -1069,6 +1075,22 @@
           <div id="statsByAssignee"></div>
         </div>
 
+      </div>
+      </div>
+
+      <div id="statsPaneHodimlar" style="display:none">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;">
+          <select id="hsMonth" onchange="renderHodimStats()" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:var(--surface);color:var(--ink);"></select>
+          <select id="hsYear" onchange="renderHodimStats()" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:var(--surface);color:var(--ink);"></select>
+          <button class="btn sm secondary" onclick="loadHodimStats()">↻ Yangilash</button>
+        </div>
+        <div style="font-size:12.5px;color:var(--muted);margin-bottom:14px;">Samaradorlik = (tugatilgan − kechikkan) / jami × 100%. Har sonni bosib, qaysi vazifalar ekanini ko'ring.</div>
+        <div class="tbl-wrap" style="max-height:calc(100vh - 300px);">
+          <table class="xtbl" id="hsTbl" style="width:max-content;min-width:100%;">
+            <thead id="hsHead"></thead>
+            <tbody id="hsBody"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -1424,24 +1446,6 @@
     </section>
 
     <!-- Settings (faqat owner) -->
-    <section id="page-hodimstats" style="display:none">
-      <div class="row-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-        <h2 class="h2" style="margin:0">📊 Hodim statistikasi</h2>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <select id="hsMonth" onchange="loadHodimStats()" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:var(--surface);color:var(--ink);"></select>
-          <select id="hsYear" onchange="loadHodimStats()" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:var(--surface);color:var(--ink);"></select>
-          <button class="btn sm secondary" onclick="loadHodimStats()">↻ Yangilash</button>
-        </div>
-      </div>
-      <div style="font-size:12.5px;color:var(--muted);margin:8px 0 14px;">Samaradorlik = (tugatilgan − kechikkan) / jami × 100%. Har bir sonni bosib, qaysi vazifalar ekanini ko'rish mumkin.</div>
-      <div class="tbl-wrap" style="max-height:calc(100vh - 240px);">
-        <table class="xtbl" id="hsTbl" style="width:max-content;min-width:100%;">
-          <thead id="hsHead"></thead>
-          <tbody id="hsBody"></tbody>
-        </table>
-      </div>
-    </section>
-
     <section id="page-projects" style="display:none">
       <div class="row-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
         <h2 class="h2" style="margin:0">🗂 Loyihalar</h2>
@@ -2043,7 +2047,7 @@
         <div style="font-size:11.5px;color:var(--muted);margin-top:5px;">Tanlansa: bajaruvchi tugatgach vazifa "Qabul kutilyapti"ga o'tadi, qabul qiluvchi tasdiqlaydi.</div>
       </div>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-        <div class="field" style="margin-bottom:0"><label>Deadline</label><input id="cDeadline" type="datetime-local" /><div id="cPlnHint" style="display:none;font-size:11.5px;color:var(--accent-ink);background:var(--accent);opacity:.9;padding:5px 9px;border-radius:7px;margin-top:6px;"></div></div>
+        <div class="field" style="margin-bottom:0"><label>Deadline</label><div style="display:flex;gap:8px;"><input id="cDeadlineDate" type="date" style="flex:1;" /><input id="cDeadlineTime" type="time" value="18:00" style="width:110px;" /></div><div id="cPlnHint" style="display:none;font-size:11.5px;color:var(--accent-ink);background:var(--accent);opacity:.9;padding:5px 9px;border-radius:7px;margin-top:6px;"></div></div>
         <div class="field" style="margin-bottom:0"><label>Prioritet</label><select id="cPriority"><option value="0">Yo'q</option><option value="1">P1 (eng yuqori)</option><option value="2">P2</option><option value="3">P3 (yuqori)</option><option value="4">P4</option><option value="5">P5</option><option value="6">P6 (o'rta)</option><option value="7">P7</option><option value="8">P8 (past)</option><option value="9">P9</option><option value="10">P10 (eng past)</option></select></div>
       </div>
       <div class="field" style="margin-top: 12px;">
@@ -2254,7 +2258,11 @@ function uiForm(title, fields, opts) {
       if (f.type === 'textarea') input = '<textarea ' + base + ' rows="3" placeholder="' + escapeHtml(f.placeholder || '') + '">' + escapeHtml(f.value || '') + '</textarea>';
       else if (f.type === 'select') input = '<select ' + base + '>' + (f.options || []).map(o => '<option value="' + escapeHtml(o.value) + '"' + (String(o.value) === String(f.value) ? ' selected' : '') + '>' + escapeHtml(o.label) + '</option>').join('') + '</select>';
       else if (f.type === 'toggle') input = '<label class="ui-toggle"><input type="checkbox" id="uif_' + f.id + '"' + (f.value ? ' checked' : '') + '><span class="ui-toggle-track"><span class="ui-toggle-dot"></span></span><span class="ui-toggle-lbl">' + escapeHtml(f.toggleLabel || '') + '</span></label>';
-      else if (f.type === 'datetime') input = '<input type="datetime-local" ' + base + ' value="' + escapeHtml(f.value || '') + '">';
+      else if (f.type === 'datetime') {
+        const dv = f.value ? String(f.value).slice(0, 10) : '';
+        const tv = f.value && String(f.value).length >= 16 ? String(f.value).slice(11, 16) : '18:00';
+        input = '<div style="display:flex;gap:8px;"><input type="date" id="uif_' + f.id + '_d" class="ui-input" value="' + dv + '" style="flex:1;"><input type="time" id="uif_' + f.id + '_t" class="ui-input" value="' + tv + '" style="width:120px;"></div>';
+      }
       else if (f.type === 'number') input = '<input type="number" ' + base + ' value="' + escapeHtml(f.value != null ? String(f.value) : '') + '" placeholder="' + escapeHtml(f.placeholder || '') + '">';
       else input = '<input type="text" ' + base + ' value="' + escapeHtml(f.value || '') + '" placeholder="' + escapeHtml(f.placeholder || '') + '">';
       return '<div class="ui-field">' + (f.label ? '<label class="ui-label">' + escapeHtml(f.label) + '</label>' : '') + input + (f.hint ? '<div class="ui-hint">' + escapeHtml(f.hint) + '</div>' : '') + '</div>';
@@ -2275,6 +2283,12 @@ function uiForm(title, fields, opts) {
     const submit = () => {
       const values = {};
       fields.forEach(f => {
+        if (f.type === 'datetime') {
+          const d = document.getElementById('uif_' + f.id + '_d');
+          const t = document.getElementById('uif_' + f.id + '_t');
+          values[f.id] = (d && d.value) ? (d.value + 'T' + ((t && t.value) || '18:00')) : '';
+          return;
+        }
         const el = document.getElementById('uif_' + f.id);
         if (!el) return;
         values[f.id] = f.type === 'toggle' ? el.checked : el.value;
@@ -2615,6 +2629,14 @@ async function prjRemoveMember(uid) {
 // ============ HODIM STATISTIKASI ============
 let _hsTasks = [];
 const HS_MONTHS = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+
+function statsSetTab(tab) {
+  document.querySelectorAll('#page-stats [data-statstab]').forEach(b => b.classList.toggle('active', b.dataset.statstab === tab));
+  const u = $('statsPaneUmumiy'), h = $('statsPaneHodimlar');
+  if (u) u.style.display = tab === 'umumiy' ? 'block' : 'none';
+  if (h) h.style.display = tab === 'hodimlar' ? 'block' : 'none';
+  if (tab === 'hodimlar') loadHodimStats();
+}
 
 function hsInitFilters() {
   const mSel = $('hsMonth'), ySel = $('hsYear');
@@ -3620,7 +3642,6 @@ function renderSidebar() {
     html += '<button class="side-link ' + (currentPage === 'departments' ? 'active' : '') + '" onclick="goPage(\'departments\')"><span class="ic">▦</span> Bo\'limlar ro\'yxati</button>';
     html += '<button class="side-link ' + (currentPage === 'team' ? 'active' : '') + '" onclick="goPage(\'team\')"><span class="ic">☆</span> Jamoa</button>';
     if (canManage) {
-      html += '<button class="side-link ' + (currentPage === 'hodimstats' ? 'active' : '') + '" onclick="goPage(\'hodimstats\')"><span class="ic">📊</span> Hodim statistikasi</button>';
       html += '<button class="side-link ' + (currentPage === 'logs' ? 'active' : '') + '" onclick="goPage(\'logs\')"><span class="ic">📋</span> Loglar</button>';
     }
     if (canManage) {
@@ -3885,14 +3906,14 @@ function toggleTgSidebar() {
 
 function goPage(p) {
   // Rol himoyasi: oddiy a'zo faqat ruxsat etilган sahifalarга kira oladi
-  const managerOnlyPages = ['stats', 'orgchart', 'integrations', 'tgusers', 'branches', 'positions', 'settings', 'hodimstats', 'logs', 'botsettings', 'botcommands'];
+  const managerOnlyPages = ['stats', 'orgchart', 'integrations', 'tgusers', 'branches', 'positions', 'settings', 'logs', 'botsettings', 'botcommands'];
   if (managerOnlyPages.includes(p) && !isOwnerLike()) {
     p = 'dashboard';
   }
   currentPage = p;
   if (p !== 'department') currentDeptId = null;
   renderSidebar();
-  ['dashboard','planner','tasks','departments','department','team','projects','project','integrations','tgusers','branches','positions','settings','hodimstats','logs','stats','botsettings','botcommands','profile'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
+  ['dashboard','planner','tasks','departments','department','team','projects','project','integrations','tgusers','branches','positions','settings','logs','stats','botsettings','botcommands','profile'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
   if (p === 'planner') plnSetTab(plnTab);
   if (p === 'tasks') {
     const titles = { mine: '📥 Mening vazifalarim', assigned: '📤 Men topshirganlar', all: '✓ Barcha vazifalar' };
@@ -3906,11 +3927,10 @@ function goPage(p) {
   if (p === 'dashboard') updateDashboard(null);
   if (p === 'settings') loadSettings();
   if (p === 'logs') loadLogs();
-  if (p === 'hodimstats') loadHodimStats();
   if (p === 'projects') loadProjects();
   if (p === 'branches') loadBranches();
   if (p === 'positions') loadPositions();
-  if (p === 'stats') renderStats();
+  if (p === 'stats') { statsSetTab('umumiy'); renderStats(); }
   if (p === 'botsettings') loadBotSettings();
   if (p === 'botcommands') loadBotCommands();
   if (p === 'orgchart') loadOrgChart();
@@ -4219,7 +4239,7 @@ let _createPasteHandler = null;
 function openCreate() { openCreateInternal(null); }
 function openCreateForDept() { openCreateInternal(currentDeptId); }
 function openCreateInternal(forceDeptId) {
-  $('cTitle').value=''; $('cDesc').value=''; $('cDeadline').value=''; $('cPriority').value='0';
+  $('cTitle').value=''; $('cDesc').value=''; $('cDeadlineDate').value=''; $('cDeadlineTime').value='18:00'; $('cPriority').value='0';
   const _plnH = $('cPlnHint'); if (_plnH && !window._plnPendingSchedule) _plnH.style.display = 'none';
   // Qabul qiluvchi dropdown (A→Z)
   const _acc = $('cAcceptor');
@@ -4968,7 +4988,9 @@ async function xlsConfirmImport() {
 async function saveCreate() {
   const title = $('cTitle').value.trim();
   const desc = $('cDesc').value.trim();
-  const deadline = $('cDeadline').value;
+  const dlDate = $('cDeadlineDate').value;
+  const dlTime = $('cDeadlineTime').value || '18:00';
+  const deadline = dlDate ? (dlDate + 'T' + dlTime) : '';
   const deptId = $('cDept').value || null;
   let prio = parseInt($('cPriority').value, 10); if (isNaN(prio)||prio<0) prio=0; if (prio>10) prio=10;
   if (!title) { showMsg($('cMsg'), 'Nomi kerak.', 'err'); return; }
@@ -7360,6 +7382,13 @@ function refreshActiveView() {
     else if (currentTasksView === 'table') renderTasksTable();
   }
   else if (currentPage === 'stats') renderStats();
+  else if (currentPage === 'project') {
+    // prjTasks'ni tasksCache'dagi yangi holat bilan darrov sinxronlaymιz (kechikishsiz)
+    prjTasks = prjTasks.map(pt => tasksCache.find(t => t.id === pt.id) || pt);
+    if (prjTab === 'flow') renderProjectFlow();
+    else if (prjTab === 'kanban') renderProjectKanban();
+    else if (prjTab === 'members') renderProjectMembers();
+  }
   else if (currentPage === 'department') {
     if (currentDeptView === 'kanban') renderKanban();
     else if (currentDeptView === 'list') renderDeptList();
@@ -8272,8 +8301,9 @@ function plnOpenCreate(dateStr, startMin, durMin) {
   window._plnPendingSchedule = { date: dateStr, start: startMin, dur: durMin };
   openCreate();
   setTimeout(() => {
-    const dl = $('cDeadline');
-    if (dl) dl.value = dateStr + 'T' + plnMinLabel(startMin);
+    const dd = $('cDeadlineDate'), dt = $('cDeadlineTime');
+    if (dd) dd.value = dateStr;
+    if (dt) dt.value = plnMinLabel(startMin);
     // O'zimni bajaruvchi qilib tanlaymιz (reja = mening jadvalim)
     if (typeof msIsSelected === 'function' && !msIsSelected('me', 'me')) {
       msSelected.push({ type: 'me', id: 'me', label: (myProfile.full_name || 'Men') });
