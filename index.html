@@ -653,6 +653,42 @@
     .search-row select { width: 100%; }
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  /* ==== Chiroyli modal tizimi (iOS-style) ==== */
+  .ui-modal-bd { position:fixed; inset:0; background:rgba(15,20,23,.5); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; z-index:9000; padding:16px; opacity:0; transition:opacity .18s ease; }
+  .ui-modal-bd.show { opacity:1; }
+  .ui-modal { background:var(--surface); border-radius:22px; width:100%; max-width:440px; box-shadow:0 24px 70px rgba(0,0,0,.35); transform:scale(.94) translateY(8px); transition:transform .2s cubic-bezier(.34,1.56,.64,1); overflow:hidden; }
+  .ui-modal-bd.show .ui-modal { transform:scale(1) translateY(0); }
+  .ui-modal-sm { max-width:360px; }
+  .ui-modal-head { display:flex; align-items:center; justify-content:space-between; padding:18px 20px 6px; }
+  .ui-modal-title { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:18px; color:var(--ink); }
+  .ui-x { background:var(--surface-2); border:none; width:30px; height:30px; border-radius:50%; font-size:18px; color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; }
+  .ui-x:hover { background:var(--line); }
+  .ui-modal-body { padding:14px 20px 4px; }
+  .ui-modal-sm .ui-modal-body { padding:26px 24px 8px; text-align:center; }
+  .ui-modal-icon { width:54px; height:54px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; }
+  .ui-modal-sm .ui-modal-title { display:block; margin-bottom:6px; font-size:17px; }
+  .ui-modal-msg { font-size:13.5px; color:var(--muted); line-height:1.5; }
+  .ui-field { margin-bottom:14px; }
+  .ui-label { display:block; font-size:12.5px; font-weight:600; color:var(--muted); margin-bottom:6px; }
+  .ui-input { width:100%; box-sizing:border-box; padding:11px 13px; border:1.5px solid var(--line); border-radius:12px; font-family:inherit; font-size:14px; background:var(--surface); color:var(--ink); outline:none; transition:border-color .12s; }
+  .ui-input:focus { border-color:var(--accent-ink); }
+  textarea.ui-input { resize:vertical; }
+  .ui-hint { font-size:11.5px; color:var(--muted); margin-top:5px; }
+  .ui-toggle { display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none; }
+  .ui-toggle input { display:none; }
+  .ui-toggle-track { width:46px; height:28px; border-radius:99px; background:var(--line); position:relative; transition:background .18s; flex:0 0 auto; }
+  .ui-toggle-dot { position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,.2); transition:transform .18s cubic-bezier(.34,1.56,.64,1); }
+  .ui-toggle input:checked + .ui-toggle-track { background:#34C759; }
+  .ui-toggle input:checked + .ui-toggle-track .ui-toggle-dot { transform:translateX(18px); }
+  .ui-toggle-lbl { font-size:13.5px; color:var(--ink); font-weight:500; }
+  .ui-modal-actions { display:flex; gap:10px; padding:14px 20px 20px; }
+  .ui-btn { flex:1; padding:12px; border-radius:13px; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; border:none; transition:filter .12s, background .12s; }
+  .ui-btn-ghost { background:var(--surface-2); color:var(--ink); }
+  .ui-btn-ghost:hover { background:var(--line); }
+  .ui-btn-primary { background:var(--accent-ink); color:#fff; }
+  .ui-btn-primary:hover { filter:brightness(1.08); }
+  .ui-btn-danger { background:#EF4444; color:#fff; }
+  .ui-btn-danger:hover { filter:brightness(1.08); }
 </style>
 </head>
 <body>
@@ -2161,6 +2197,97 @@ function statusColor(val) {
   return (c && c.color) || '#94A3B8';
 }
 
+// ============ CHIROYLI MODAL TIZIMI (prompt/confirm o'rniga) ============
+function uiEnsureModalRoot() {
+  let root = document.getElementById('uiModalRoot');
+  if (!root) {
+    root = document.createElement('div');
+    root.id = 'uiModalRoot';
+    document.body.appendChild(root);
+  }
+  return root;
+}
+
+// Chiroyli tasdiqlash: uiConfirm(title, message, {okText, danger}) → Promise<bool>
+function uiConfirm(title, message, opts) {
+  opts = opts || {};
+  return new Promise(resolve => {
+    const root = uiEnsureModalRoot();
+    const bd = document.createElement('div');
+    bd.className = 'ui-modal-bd';
+    bd.innerHTML =
+      '<div class="ui-modal ui-modal-sm">' +
+        '<div class="ui-modal-body">' +
+          '<div class="ui-modal-icon" style="background:' + (opts.danger ? 'rgba(239,68,68,.12)' : 'rgba(59,130,246,.12)') + ';">' +
+            (opts.danger
+              ? '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>'
+              : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>') +
+          '</div>' +
+          '<div class="ui-modal-title">' + escapeHtml(title) + '</div>' +
+          (message ? '<div class="ui-modal-msg">' + escapeHtml(message) + '</div>' : '') +
+        '</div>' +
+        '<div class="ui-modal-actions">' +
+          '<button class="ui-btn ui-btn-ghost" data-act="cancel">Bekor</button>' +
+          '<button class="ui-btn ' + (opts.danger ? 'ui-btn-danger' : 'ui-btn-primary') + '" data-act="ok">' + escapeHtml(opts.okText || 'Ha') + '</button>' +
+        '</div>' +
+      '</div>';
+    root.appendChild(bd);
+    requestAnimationFrame(() => bd.classList.add('show'));
+    const close = (val) => { bd.classList.remove('show'); setTimeout(() => bd.remove(), 180); resolve(val); };
+    bd.querySelector('[data-act="ok"]').onclick = () => close(true);
+    bd.querySelector('[data-act="cancel"]').onclick = () => close(false);
+    bd.onclick = (e) => { if (e.target === bd) close(false); };
+  });
+}
+
+// Chiroyli forma: uiForm(title, fields[], {okText}) → Promise<values|null>
+// field: {id, label, type: text|number|textarea|select|datetime|toggle, value, placeholder, options:[{value,label}], hint}
+function uiForm(title, fields, opts) {
+  opts = opts || {};
+  return new Promise(resolve => {
+    const root = uiEnsureModalRoot();
+    const bd = document.createElement('div');
+    bd.className = 'ui-modal-bd';
+    const fieldsHtml = fields.map(f => {
+      let input = '';
+      const base = 'id="uif_' + f.id + '" class="ui-input"';
+      if (f.type === 'textarea') input = '<textarea ' + base + ' rows="3" placeholder="' + escapeHtml(f.placeholder || '') + '">' + escapeHtml(f.value || '') + '</textarea>';
+      else if (f.type === 'select') input = '<select ' + base + '>' + (f.options || []).map(o => '<option value="' + escapeHtml(o.value) + '"' + (String(o.value) === String(f.value) ? ' selected' : '') + '>' + escapeHtml(o.label) + '</option>').join('') + '</select>';
+      else if (f.type === 'toggle') input = '<label class="ui-toggle"><input type="checkbox" id="uif_' + f.id + '"' + (f.value ? ' checked' : '') + '><span class="ui-toggle-track"><span class="ui-toggle-dot"></span></span><span class="ui-toggle-lbl">' + escapeHtml(f.toggleLabel || '') + '</span></label>';
+      else if (f.type === 'datetime') input = '<input type="datetime-local" ' + base + ' value="' + escapeHtml(f.value || '') + '">';
+      else if (f.type === 'number') input = '<input type="number" ' + base + ' value="' + escapeHtml(f.value != null ? String(f.value) : '') + '" placeholder="' + escapeHtml(f.placeholder || '') + '">';
+      else input = '<input type="text" ' + base + ' value="' + escapeHtml(f.value || '') + '" placeholder="' + escapeHtml(f.placeholder || '') + '">';
+      return '<div class="ui-field">' + (f.label ? '<label class="ui-label">' + escapeHtml(f.label) + '</label>' : '') + input + (f.hint ? '<div class="ui-hint">' + escapeHtml(f.hint) + '</div>' : '') + '</div>';
+    }).join('');
+    bd.innerHTML =
+      '<div class="ui-modal">' +
+        '<div class="ui-modal-head"><div class="ui-modal-title">' + escapeHtml(title) + '</div><button class="ui-x" data-act="cancel">×</button></div>' +
+        '<div class="ui-modal-body">' + fieldsHtml + '</div>' +
+        '<div class="ui-modal-actions">' +
+          '<button class="ui-btn ui-btn-ghost" data-act="cancel">Bekor</button>' +
+          '<button class="ui-btn ui-btn-primary" data-act="ok">' + escapeHtml(opts.okText || 'Saqlash') + '</button>' +
+        '</div>' +
+      '</div>';
+    root.appendChild(bd);
+    requestAnimationFrame(() => bd.classList.add('show'));
+    const first = bd.querySelector('.ui-input'); if (first) setTimeout(() => first.focus(), 60);
+    const close = (val) => { bd.classList.remove('show'); setTimeout(() => bd.remove(), 180); resolve(val); };
+    const submit = () => {
+      const values = {};
+      fields.forEach(f => {
+        const el = document.getElementById('uif_' + f.id);
+        if (!el) return;
+        values[f.id] = f.type === 'toggle' ? el.checked : el.value;
+      });
+      close(values);
+    };
+    bd.querySelector('[data-act="ok"]').onclick = submit;
+    bd.querySelectorAll('[data-act="cancel"]').forEach(b => b.onclick = () => close(null));
+    bd.onclick = (e) => { if (e.target === bd) close(null); };
+    bd.querySelectorAll('input:not([type=checkbox])').forEach(inp => inp.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); }));
+  });
+}
+
 // ============ LOYIHALAR ============
 let projectsCache = [];
 let currentProjectId = null;
@@ -2257,7 +2384,8 @@ async function loadProjectDetail() {
   // Actions (faqat owner/admin)
   $('prjActions').innerHTML = isOwnerLike() ? (
     '<button class="btn sm secondary" onclick="prjEditRecurrence()">🔁 Takrorlash</button>' +
-    '<button class="btn sm secondary" onclick="prjRenameOrDelete()">⚙️ Sozlash</button>'
+    '<button class="btn sm secondary" onclick="prjRenameOrDelete()">⚙️ Sozlash</button>' +
+    '<button class="btn sm secondary" onclick="prjDeleteProject()" style="color:var(--danger);">🗑 O\'chirish</button>'
   ) : '<span style="font-size:12px;color:var(--muted);">👁 Faqat ko\'rish</span>';
   prjSetTab(prjTab || 'flow');
 }
@@ -2352,17 +2480,20 @@ function renderProjectMembers() {
 }
 
 // ---- Create / edit project ----
-function openCreateProject() {
-  const name = prompt('Loyiha nomi:');
-  if (!name || !name.trim()) return;
-  const rec = prompt('Har necha kunda takrorlansin? (bo\'sh = takrorlanmasin)', '');
-  const recDays = rec && parseInt(rec, 10) > 0 ? parseInt(rec, 10) : null;
-  saveProject(name.trim(), recDays);
+async function openCreateProject() {
+  const v = await uiForm('Yangi loyiha', [
+    { id: 'name', label: 'Loyiha nomi', type: 'text', placeholder: 'Masalan: Yangi filial ochish' },
+    { id: 'desc', label: 'Tavsif (ixtiyoriy)', type: 'textarea', placeholder: 'Qisqacha izoh...' },
+    { id: 'recur', label: 'Takrorlanish (ixtiyoriy)', type: 'number', placeholder: 'Masalan: 30', hint: 'Har necha kunda loyiha qaytadan boshlanadi. Bo\'sh = takrorlanmaydi.' }
+  ], { okText: 'Yaratish' });
+  if (!v || !v.name || !v.name.trim()) return;
+  const recDays = v.recur && parseInt(v.recur, 10) > 0 ? parseInt(v.recur, 10) : null;
+  saveProject(v.name.trim(), recDays, (v.desc || '').trim() || null);
 }
-async function saveProject(name, recDays) {
+async function saveProject(name, recDays, desc) {
   try {
     const { data, error } = await sb.from('projects').insert({
-      workspace_id: currentWs.id, name, created_by: me.id,
+      workspace_id: currentWs.id, name, description: desc || null, created_by: me.id,
       recurrence_days: recDays, last_reset_at: recDays ? new Date().toISOString() : null
     }).select().single();
     if (error) throw error;
@@ -2375,23 +2506,34 @@ async function saveProject(name, recDays) {
 
 async function prjRenameOrDelete() {
   const p = window._curProject; if (!p) return;
-  const action = prompt('"' + p.name + '"\n\nYangi nom kiriting (o\'zgartirish uchun), yoki "DELETE" deb yozing (o\'chirish uchun):', p.name);
-  if (action === null) return;
-  if (action.trim().toUpperCase() === 'DELETE') {
-    if (!confirm('Loyiha va uning barcha vazifalari o\'chiriladi. Ishonchingiz komilmi?')) return;
-    try { await sb.from('projects').delete().eq('id', p.id); toast('O\'chirildi', 'ok'); goPage('projects'); } catch (e) { toast('Xato: ' + e.message, 'err'); }
-    return;
+  const v = await uiForm('Loyihani sozlash', [
+    { id: 'name', label: 'Loyiha nomi', type: 'text', value: p.name },
+    { id: 'desc', label: 'Tavsif', type: 'textarea', value: p.description || '' }
+  ], { okText: 'Saqlash' });
+  if (!v) return;
+  if (v.name && v.name.trim() && (v.name.trim() !== p.name || (v.desc || '') !== (p.description || ''))) {
+    try {
+      await sb.from('projects').update({ name: v.name.trim(), description: (v.desc || '').trim() || null }).eq('id', p.id);
+      p.name = v.name.trim(); p.description = (v.desc || '').trim() || null;
+      $('prjTitle').textContent = p.name; loadProjectDetail(); toast('Saqlandi', 'ok');
+    } catch (e) { toast('Xato', 'err'); }
   }
-  if (action.trim() && action.trim() !== p.name) {
-    try { await sb.from('projects').update({ name: action.trim() }).eq('id', p.id); p.name = action.trim(); $('prjTitle').textContent = p.name; toast('Nom o\'zgartirildi', 'ok'); } catch (e) { toast('Xato', 'err'); }
-  }
+}
+
+async function prjDeleteProject() {
+  const p = window._curProject; if (!p) return;
+  const ok = await uiConfirm('Loyihani o\'chirish', '"' + p.name + '" va uning barcha vazifalari butunlay o\'chiriladi. Bu amalni ortga qaytarib bo\'lmaydi.', { okText: 'O\'chirish', danger: true });
+  if (!ok) return;
+  try { await sb.from('projects').delete().eq('id', p.id); toast('O\'chirildi', 'ok'); goPage('projects'); } catch (e) { toast('Xato: ' + e.message, 'err'); }
 }
 
 async function prjEditRecurrence() {
   const p = window._curProject; if (!p) return;
-  const rec = prompt('Har necha kunda takrorlansin? (0 yoki bo\'sh = o\'chirish)', p.recurrence_days || '');
-  if (rec === null) return;
-  const recDays = parseInt(rec, 10) > 0 ? parseInt(rec, 10) : null;
+  const v = await uiForm('Takrorlanish', [
+    { id: 'recur', label: 'Har necha kunda takrorlansin?', type: 'number', value: p.recurrence_days || '', placeholder: 'Masalan: 30', hint: '0 yoki bo\'sh = takrorlanishni o\'chirish. Muddat kelганда loyiha avtomatik qaytadan boshlanadi.' }
+  ], { okText: 'Saqlash' });
+  if (!v) return;
+  const recDays = parseInt(v.recur, 10) > 0 ? parseInt(v.recur, 10) : null;
   try {
     await sb.from('projects').update({ recurrence_days: recDays, last_reset_at: recDays ? (p.last_reset_at || new Date().toISOString()) : null }).eq('id', p.id);
     p.recurrence_days = recDays;
@@ -2411,25 +2553,36 @@ async function prjResetRecurrence(project, silent) {
 }
 
 // ---- Add flow task ----
-function prjAddTask() {
-  const title = prompt('Vazifa (bosqich) nomi:');
-  if (!title || !title.trim()) return;
-  const dep = confirm('Bu vazifa OLDINGI bosqich tugagach ochilsinmi?\n\nOK = Ha (ketma-ket)\nBekor = Yo\'q (parallel, birga ochiq)');
-  prjSaveTask(title.trim(), dep);
+async function prjAddTask() {
+  const memberOpts = [{ value: '', label: '— Biriktirilmagan —' }].concat(
+    (wsMembers || []).map(m => ({ value: m.user_id, label: m.user_id === me.id ? (myProfile.full_name || 'Siz') : ((m.profile && m.profile.full_name) || 'A\'zo') }))
+  );
+  const v = await uiForm('Yangi bosqich (vazifa)', [
+    { id: 'title', label: 'Vazifa nomi', type: 'text', placeholder: 'Nima qilinishi kerak?' },
+    { id: 'assignee', label: 'Kim bajaradi', type: 'select', value: '', options: memberOpts },
+    { id: 'deadline', label: 'Deadline (ixtiyoriy)', type: 'datetime' },
+    { id: 'dep', type: 'toggle', value: true, toggleLabel: 'Oldingi bosqich tugagach ochilsin (ketma-ket)' },
+    { id: 'recur', label: 'Takrorlanish (ixtiyoriy, kun)', type: 'number', placeholder: 'Masalan: 7', hint: 'Bo\'sh = takrorlanmaydi.' }
+  ], { okText: 'Qo\'shish' });
+  if (!v || !v.title || !v.title.trim()) return;
+  const deadlineIso = v.deadline ? new Date(v.deadline + '+05:00').toISOString() : null;
+  const recur = v.recur && parseInt(v.recur, 10) > 0 ? parseInt(v.recur, 10) : null;
+  prjSaveTask(v.title.trim(), !!v.dep, v.assignee || null, deadlineIso, recur);
 }
-async function prjSaveTask(title, dependsOnPrev) {
+async function prjSaveTask(title, dependsOnPrev, assignee, deadlineIso, recur) {
   try {
     const maxOrder = prjTasks.reduce((mx, t) => Math.max(mx, t.flow_order || 0), 0);
     const { data, error } = await sb.from('tasks').insert({
       workspace_id: currentWs.id, project_id: currentProjectId,
       title, created_by: me.id, status: 'new',
-      flow_order: maxOrder + 1, depends_on_prev: dependsOnPrev
+      flow_order: maxOrder + 1, depends_on_prev: dependsOnPrev,
+      assigned_to: assignee || null, deadline: deadlineIso, recur_days: recur
     }).select().single();
     if (error) throw error;
     prjTasks.push(data);
     toast('✅ Bosqich qo\'shildi', 'ok');
     logActivity('task_created', { entityType: 'task', entityId: data.id, entityTitle: title, details: { project: (window._curProject || {}).name } });
-    renderProjectFlow();
+    if (assignee && assignee !== me.id) { try { tgNotifyAssignment(data.id, { user_id: assignee }); emailNotify('task_assigned', data.id, assignee); } catch (e) {} }
     loadProjectDetail();
   } catch (e) { toast('Xato: ' + (e.message || e), 'err'); }
 }
@@ -2438,19 +2591,20 @@ async function prjSaveTask(title, dependsOnPrev) {
 async function prjInviteMember() {
   const candidates = (wsMembers || []).filter(m => !prjMembers.some(pm => pm.user_id === m.user_id));
   if (!candidates.length) { toast('Barcha a\'zolar allaqachon qo\'shilgan', 'ok'); return; }
-  const listStr = candidates.map((m, i) => (i + 1) + '. ' + ((m.profile && m.profile.full_name) || 'A\'zo')).join('\n');
-  const pick = prompt('Kimni taklif qilamiz? Raqamini yozing:\n\n' + listStr);
-  const idx = parseInt(pick, 10) - 1;
-  if (isNaN(idx) || idx < 0 || idx >= candidates.length) return;
+  const v = await uiForm('A\'zo taklif qilish', [
+    { id: 'uid', label: 'Kimni taklif qilamiz?', type: 'select', value: candidates[0].user_id, options: candidates.map(m => ({ value: m.user_id, label: (m.profile && m.profile.full_name) || 'A\'zo' })), hint: 'Taklif qilingan a\'zo loyihани to\'liq ko\'radi, lekin o\'zgartira olmaydi.' }
+  ], { okText: 'Taklif qilish' });
+  if (!v || !v.uid) return;
   try {
-    await sb.from('project_members').insert({ project_id: currentProjectId, user_id: candidates[idx].user_id });
-    prjMembers.push({ project_id: currentProjectId, user_id: candidates[idx].user_id });
+    await sb.from('project_members').insert({ project_id: currentProjectId, user_id: v.uid });
+    prjMembers.push({ project_id: currentProjectId, user_id: v.uid });
     toast('✅ Taklif qilindi', 'ok');
     renderProjectMembers();
   } catch (e) { toast('Xato: ' + (e.message || e), 'err'); }
 }
 async function prjRemoveMember(uid) {
-  if (!confirm('Loyihadan olib tashlaymi?')) return;
+  const ok = await uiConfirm('Olib tashlash', 'Bu a\'zoni loyihadan olib tashlaymi?', { okText: 'Olib tashlash', danger: true });
+  if (!ok) return;
   try {
     await sb.from('project_members').delete().eq('project_id', currentProjectId).eq('user_id', uid);
     prjMembers = prjMembers.filter(pm => pm.user_id !== uid);
