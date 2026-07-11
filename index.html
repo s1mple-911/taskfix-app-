@@ -2157,6 +2157,19 @@ function canEditDeadline(task) { return isOwnerLike() || (task && task.created_b
 function canEditTaskMeta(task) { return isOwnerLike() || (task && task.created_by === me.id); }
 // Vazifani faqat admin/owner o'chira oladi
 function canDeleteTask(task) { return isOwnerLike(); }
+// Holatni faqat: admin/owner, bajaruvchi, yaratuvchi yoki qabul qiluvchi o'zgartira oladi.
+// (Loyihaga faqat KO'RISH uchun taklif qilingan a'zo status'ni o'zgartira OLMAYDI.)
+function canChangeStatus(task) {
+  if (!task) return false;
+  if (isOwnerLike()) return true;
+  if (task.assigned_to === me.id) return true;
+  if (task.created_by === me.id) return true;
+  if (task.acceptor_id === me.id) return true;
+  if (task.submitter_id === me.id) return true;
+  // Telegram identiteti orqali biriktirilgan bo'lsa
+  if (task.assigned_to_tg_bot_user && (window._myTgBotIds || []).includes(task.assigned_to_tg_bot_user)) return true;
+  return false;
+}
 let myDepts = [];          // [{department_id, role}]
 let departments = [];
 let wsMembers = [];        // [{user_id, role, profile}]
@@ -2344,6 +2357,12 @@ function prjCurrentTask(list) {
   return list.find(t => t.status !== 'completed' && t.status !== 'cancelled' && prjTaskOpen(t, list)) || null;
 }
 
+function prjRecurLabel(p) {
+  const WD = ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
+  if (p.recurrence_type === 'weekly' && p.recurrence_weekday != null) return 'Har hafta ' + WD[p.recurrence_weekday];
+  if (p.recurrence_days) return 'Har ' + p.recurrence_days + ' kunda';
+  return null;
+}
 function renderProjectsOverview() {
   const wrap = $('projectsList');
   if (!projectsCache.length) {
@@ -2360,7 +2379,7 @@ function renderProjectsOverview() {
     const statusBadge = p.status === 'done' ? '<span class="badge ok">Tugadi</span>' : (p.status === 'paused' ? '<span class="badge muted">To\'xtatilgan</span>' : '<span class="badge" style="background:#DDEBFF;color:#1E40AF;">Faol</span>');
     return '<div onclick="openProject(\'' + p.id + '\')" style="border:1px solid var(--line);border-radius:14px;padding:16px;cursor:pointer;background:var(--surface);transition:border-color .12s;" onmouseover="this.style.borderColor=\'var(--accent-ink)\'" onmouseout="this.style.borderColor=\'var(--line)\'">' +
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;"><div style="font-weight:700;font-size:15px;">' + escapeHtml(p.name) + '</div>' + statusBadge + '</div>' +
-      (p.recurrence_days ? '<div style="font-size:11.5px;color:var(--accent-ink);margin-bottom:8px;">🔁 Har ' + p.recurrence_days + ' kunda takrorlanadi</div>' : '') +
+      (prjRecurLabel(p) ? '<div style="font-size:11.5px;color:var(--accent-ink);margin-bottom:8px;">🔁 ' + prjRecurLabel(p) + '</div>' : '') +
       '<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-bottom:4px;"><span>' + done + '/' + total + ' bajarildi</span><span>' + pct + '%</span></div>' +
       '<div style="height:7px;background:var(--surface-2);border-radius:99px;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:' + (pct === 100 ? '#10B981' : '#3B82F6') + ';border-radius:99px;"></div></div></div>' +
       '<div style="font-size:12.5px;padding:9px 11px;background:var(--surface-2);border-radius:9px;">' +
@@ -2382,10 +2401,22 @@ async function loadProjectDetail() {
   const project = proj || p;
   if (!project) { goPage('projects'); return; }
   window._curProject = project;
-  // Recurrence: agar muddати kelgan bo'lsa — qayta boshlash (faqat owner/admin)
-  if (isOwnerLike() && project.recurrence_days && project.last_reset_at) {
-    const due = new Date(project.last_reset_at).getTime() + project.recurrence_days * 86400000;
-    if (Date.now() >= due) { await prjResetRecurrence(project, true); }
+  // Recurrence: agar muddati kelgan bo'lsa — qayta boshlash (faqat owner/admin)
+  if (isOwnerLike() && project.last_reset_at) {
+    let due = false;
+    if (project.recurrence_type === 'weekly' && project.recurrence_weekday != null) {
+      // Bugun belgilangan kunmi va bu hafta hali reset bo'lmaganmi?
+      const now = new Date();
+      const last = new Date(project.last_reset_at);
+      if (now.getDay() === project.recurrence_weekday) {
+        // bugun o'sha kun; agar oxirgi reset bugundan oldin bo'lsa — qayta boshlaymιz
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+        if (last.getTime() < startOfToday) due = true;
+      }
+    } else if (project.recurrence_days) {
+      due = Date.now() >= (new Date(project.last_reset_at).getTime() + project.recurrence_days * 86400000);
+    }
+    if (due) { await prjResetRecurrence(project, true); }
   }
   const { data: ts } = await sb.from('tasks').select('*').eq('project_id', currentProjectId).order('flow_order', { ascending: true });
   prjTasks = ts || [];
@@ -2394,7 +2425,7 @@ async function loadProjectDetail() {
 
   $('prjTitle').textContent = project.name;
   const total = prjTasks.length, done = prjTasks.filter(t => t.status === 'completed').length;
-  $('prjMeta').innerHTML = (project.description ? escapeHtml(project.description) + ' · ' : '') + total + ' vazifa · ' + done + ' bajarildi' + (project.recurrence_days ? ' · 🔁 har ' + project.recurrence_days + ' kunda' : '');
+  $('prjMeta').innerHTML = (project.description ? escapeHtml(project.description) + ' · ' : '') + total + ' vazifa · ' + done + ' bajarildi' + (prjRecurLabel(project) ? ' · 🔁 ' + prjRecurLabel(project) : '');
   // Actions (faqat owner/admin)
   $('prjActions').innerHTML = isOwnerLike() ? (
     '<button class="btn sm secondary" onclick="prjEditRecurrence()">🔁 Takrorlash</button>' +
@@ -2466,10 +2497,11 @@ function renderProjectKanban() {
   const cols = kanbanColumns.length ? kanbanColumns.slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)) : STATUS_ORDER.map((s, i) => ({ status: s, name: STATUS_LBL[s], color: '#94A3B8' }));
   wrap.innerHTML = '<div class="kanban">' + cols.map(col => {
     const cards = prjTasks.filter(t => t.status === col.status);
-    return '<div class="kan-col"><div class="kan-head" style="border-top:3px solid ' + (col.color || '#94A3B8') + '"><span>' + escapeHtml(col.name) + '</span><span class="kan-count">' + cards.length + '</span></div>' +
+    return '<div class="kan-col" ondragover="kanDragOver(event)" ondragleave="kanDragLeave(event)" ondrop="kanDrop(event, \'' + col.status + '\')"><div class="kan-head" style="border-top:3px solid ' + (col.color || '#94A3B8') + '"><span>' + escapeHtml(col.name) + '</span><span class="kan-count">' + cards.length + '</span></div>' +
       '<div class="kan-cards">' + cards.map(t => {
         const asg = t.assigned_to ? tblMemberName(t.assigned_to) : '';
-        return '<div class="kan-card" onclick="openDetail(' + t.id + ')"><div class="kan-card-title">' + escapeHtml(t.title || '') + '</div>' + (asg ? '<div style="font-size:11px;color:var(--muted);margin-top:5px;">👤 ' + escapeHtml(asg) + '</div>' : '') + '</div>';
+        const isDone = t.status === 'completed';
+        return '<div class="kan-card' + (isDone ? ' kan-card-done' : '') + '" draggable="true" data-id="' + t.id + '" ondragstart="kanDragStart(event, ' + t.id + ')" ondragend="kanDragEnd(event)" onclick="openDetail(' + t.id + ')"><div class="kan-card-title' + (isDone ? ' done' : '') + '">' + (isDone ? '✓ ' : '') + escapeHtml(t.title || '') + '</div>' + (asg ? '<div style="font-size:11px;color:var(--muted);margin-top:5px;">👤 ' + escapeHtml(asg) + '</div>' : '') + '</div>';
       }).join('') + '</div></div>';
   }).join('') + '</div>';
 }
@@ -2543,17 +2575,30 @@ async function prjDeleteProject() {
 
 async function prjEditRecurrence() {
   const p = window._curProject; if (!p) return;
+  const WD = ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
   const v = await uiForm('Takrorlanish', [
-    { id: 'recur', label: 'Har necha kunda takrorlansin?', type: 'number', value: p.recurrence_days || '', placeholder: 'Masalan: 30', hint: '0 yoki bo\'sh = takrorlanishni o\'chirish. Muddat kelганда loyiha avtomatik qaytadan boshlanadi.' }
+    { id: 'type', label: 'Takrorlanish turi', type: 'select', value: p.recurrence_type || 'none', options: [
+      { value: 'none', label: 'Takrorlanmaydi' },
+      { value: 'days', label: 'Har necha kunda' },
+      { value: 'weekly', label: 'Har hafta (kun tanlash)' }
+    ], hint: 'Muddat kelganda loyiha avtomatik qaytadan boshlanadi.' },
+    { id: 'days', label: 'Har necha kunda? (agar "har necha kunda" tanlansa)', type: 'number', value: p.recurrence_type === 'days' ? (p.recurrence_days || '') : '', placeholder: 'Masalan: 30' },
+    { id: 'weekday', label: 'Qaysi kun? (agar "har hafta" tanlansa)', type: 'select', value: p.recurrence_weekday != null ? p.recurrence_weekday : 1, options: WD.map((w, i) => ({ value: i, label: w })) }
   ], { okText: 'Saqlash' });
   if (!v) return;
-  const recDays = parseInt(v.recur, 10) > 0 ? parseInt(v.recur, 10) : null;
+  let patch = { recurrence_type: v.type, recurrence_days: null, recurrence_weekday: null, last_reset_at: null };
+  if (v.type === 'days') {
+    const d = parseInt(v.days, 10); if (!(d > 0)) { toast('Kun sonini kiriting', 'err'); return; }
+    patch.recurrence_days = d; patch.last_reset_at = p.last_reset_at || new Date().toISOString();
+  } else if (v.type === 'weekly') {
+    patch.recurrence_weekday = parseInt(v.weekday, 10); patch.last_reset_at = p.last_reset_at || new Date().toISOString();
+  } else { patch.recurrence_type = 'none'; }
   try {
-    await sb.from('projects').update({ recurrence_days: recDays, last_reset_at: recDays ? (p.last_reset_at || new Date().toISOString()) : null }).eq('id', p.id);
-    p.recurrence_days = recDays;
-    toast(recDays ? ('🔁 Har ' + recDays + ' kunda takrorlanadi') : 'Takrorlanish o\'chirildi', 'ok');
+    await sb.from('projects').update(patch).eq('id', p.id);
+    Object.assign(p, patch);
+    toast(v.type === 'weekly' ? ('🔁 Har hafta ' + WD[patch.recurrence_weekday]) : (v.type === 'days' ? ('🔁 Har ' + patch.recurrence_days + ' kunda') : 'Takrorlanish o\'chirildi'), 'ok');
     loadProjectDetail();
-  } catch (e) { toast('Xato', 'err'); }
+  } catch (e) { toast('Xato: ' + (e.message || e), 'err'); }
 }
 
 // Recurrence — barcha tasklarni qayta "new" holatiga qaytaradi
@@ -5276,7 +5321,10 @@ function renderDetailBody() {
   const ov = isOverdue(t);
   // O'chirish tugmasi — faqat admin/owner
   const _dDel = $('dDelete'); if (_dDel) _dDel.style.display = canDeleteTask(t) ? 'inline-flex' : 'none';
-  const statusBtns = statusColsList().map(c => '<button class="filter-btn ' + (t.status===c.status?'active':'') + '" onclick="changeStatus('+t.id+',\''+c.status+'\')">'+escapeHtml(c.name)+'</button>').join('');
+  const _canStatus = canChangeStatus(t);
+  const statusBtns = _canStatus
+    ? statusColsList().map(c => '<button class="filter-btn ' + (t.status===c.status?'active':'') + '" onclick="changeStatus('+t.id+',\''+c.status+'\')">'+escapeHtml(c.name)+'</button>').join('')
+    : '<span class="filter-btn active" style="cursor:default;">' + escapeHtml(statusName(t.status)) + '</span> <span style="font-size:11.5px;color:var(--muted);margin-left:6px;">👁 faqat ko\'rish</span>';
 
   // Assignee
   let asgLine = '';
@@ -5864,6 +5912,7 @@ function closeDetail() { $('detailBd').classList.remove('show'); currentDetailId
 async function changeStatus(id, newStatus) {
   try {
     const prev = tasksCache.find(x => x.id === id);
+    if (!canChangeStatus(prev)) { toast('Bu vazifa holatini o\'zgartira olmaysiz (faqat ko\'rish)', 'err'); refreshActiveView(); if (currentDetailId === id) renderDetailBody(); return; }
     const oldStatus = prev ? prev.status : null;
     // Qabul qiluvchi bor + "Bajarildi"ga o'tkazilyapti + men qabul qiluvchi EMASman
     // → "Qabul kutilyapti"ga o'tadi VA vazifa qabul qiluvchiga biriktiriladi
@@ -5906,6 +5955,7 @@ async function changeStatus(id, newStatus) {
 async function acceptTask(id) {
   try {
     const prev = tasksCache.find(x => x.id === id);
+    if (!prev || (prev.acceptor_id !== me.id && !isOwnerLike())) { toast('Faqat qabul qiluvchi tasdiqlaydi', 'err'); return; }
     const patch = { status: 'completed', accepted_at: new Date().toISOString(), completed_at: new Date().toISOString() };
     // assigned_to o'zgармaydi (qabul qiluvchida qoladi) — bajaruvchiga qaytib kutinmaydi
     const { data, error } = await sb.from('tasks').update(patch).eq('id', id).select().single();
@@ -5924,6 +5974,8 @@ async function acceptTask(id) {
 
 // Qabul qiluvchi: "Qaytarish" → asl bajaruvchiga qaytadi (in_progress)
 async function returnTask(id) {
+  const _rt = tasksCache.find(x => x.id === id);
+  if (!_rt || (_rt.acceptor_id !== me.id && !isOwnerLike())) { toast('Faqat qabul qiluvchi qaytaradi', 'err'); return; }
   if (!confirm('Vazifани bajaruvchiga qaytaraymi? (Jarayonga o\'tadi)')) return;
   try {
     const prev = tasksCache.find(x => x.id === id);
