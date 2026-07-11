@@ -1388,6 +1388,24 @@
     </section>
 
     <!-- Settings (faqat owner) -->
+    <section id="page-hodimstats" style="display:none">
+      <div class="row-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <h2 class="h2" style="margin:0">📊 Hodim statistikasi</h2>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <select id="hsMonth" onchange="loadHodimStats()" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:var(--surface);color:var(--ink);"></select>
+          <select id="hsYear" onchange="loadHodimStats()" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:var(--surface);color:var(--ink);"></select>
+          <button class="btn sm secondary" onclick="loadHodimStats()">↻ Yangilash</button>
+        </div>
+      </div>
+      <div style="font-size:12.5px;color:var(--muted);margin:8px 0 14px;">Samaradorlik = (tugatilgan − kechikkan) / jami × 100%. Har bir sonni bosib, qaysi vazifalar ekanini ko'rish mumkin.</div>
+      <div class="tbl-wrap" style="max-height:calc(100vh - 240px);">
+        <table class="xtbl" id="hsTbl" style="width:max-content;min-width:100%;">
+          <thead id="hsHead"></thead>
+          <tbody id="hsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
     <section id="page-logs" style="display:none">
       <div class="row-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
         <h2 class="h2" style="margin:0">📋 Loglar (harakatlar tarixi)</h2>
@@ -2115,6 +2133,153 @@ function statusColor(val) {
   return (c && c.color) || '#94A3B8';
 }
 
+// ============ HODIM STATISTIKASI ============
+let _hsTasks = [];
+const HS_MONTHS = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+
+function hsInitFilters() {
+  const mSel = $('hsMonth'), ySel = $('hsYear');
+  if (!mSel || !ySel) return;
+  const now = new Date();
+  if (!mSel.options.length) {
+    mSel.innerHTML = '<option value="-1">Butun yil</option>' + HS_MONTHS.map((m, i) => '<option value="' + i + '">' + m + '</option>').join('');
+    mSel.value = now.getUTCMonth();
+  }
+  if (!ySel.options.length) {
+    const y = now.getUTCFullYear();
+    ySel.innerHTML = [y - 1, y, y + 1].map(yy => '<option value="' + yy + '">' + yy + '</option>').join('');
+    ySel.value = y;
+  }
+}
+
+async function loadHodimStats() {
+  if (!isOwnerLike()) { $('hsBody').innerHTML = '<tr><td style="padding:24px;color:var(--danger);">Faqat admin/owner</td></tr>'; return; }
+  hsInitFilters();
+  $('hsBody').innerHTML = '<tr><td colspan="9" style="padding:24px;text-align:center;color:var(--muted);">Yuklanmoqda…</td></tr>';
+  try {
+    const { data, error } = await sb.from('tasks').select('*').eq('workspace_id', currentWs.id);
+    if (error) throw error;
+    _hsTasks = data || [];
+    renderHodimStats();
+  } catch (e) {
+    $('hsBody').innerHTML = '<tr><td colspan="9" style="padding:24px;color:var(--danger);">Xato: ' + escapeHtml(e.message || String(e)) + '</td></tr>';
+  }
+}
+
+function hsInPeriod(t) {
+  const m = parseInt($('hsMonth').value, 10);
+  const y = parseInt($('hsYear').value, 10);
+  const d = new Date(t.created_at);
+  if (d.getUTCFullYear() !== y) return false;
+  if (m >= 0 && d.getUTCMonth() !== m) return false;
+  return true;
+}
+
+function hsIsLate(t) {
+  // deadline'dan o'tib yopilgan (tugatilgan, completed_at > deadline)
+  return t.status === 'completed' && t.deadline && t.completed_at && new Date(t.completed_at).getTime() > new Date(t.deadline).getTime();
+}
+
+function hsMemberTasks(uid) {
+  return _hsTasks.filter(t => t.assigned_to === uid && hsInPeriod(t));
+}
+
+function hsStatsFor(uid) {
+  const list = hsMemberTasks(uid);
+  const jami = list.length;
+  const tugatilgan = list.filter(t => t.status === 'completed').length;
+  const jarayonda = list.filter(t => t.status === 'in_progress').length;
+  const faol = list.filter(t => t.status !== 'completed' && t.status !== 'cancelled').length;
+  const kechikkan = list.filter(hsIsLate).length;
+  const samaradorlik = jami > 0 ? Math.round(((tugatilgan - kechikkan) / jami) * 100) : 0;
+  return { jami, tugatilgan, jarayonda, faol, kechikkan, samaradorlik };
+}
+
+function hsEffColor(pct) {
+  if (pct >= 80) return '#10B981';
+  if (pct >= 50) return '#F59E0B';
+  return '#EF4444';
+}
+
+function renderHodimStats() {
+  const cols = ['№', 'Hodim', 'Jami', 'Jarayonda', 'Tugatilgan', 'Faol', 'Kechikkan', 'Samaradorlik'];
+  $('hsHead').innerHTML = '<tr>' + cols.map(c =>
+    '<th style="padding:10px 12px;text-align:left;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;">' + escapeHtml(c) + '</th>').join('') + '</tr>';
+
+  const rows = (wsMembers || []).map(m => {
+    const uid = m.user_id;
+    const name = uid === me.id ? (myProfile.full_name || 'Siz') : ((m.profile && m.profile.full_name) || 'A\'zo');
+    const avatar = (m.profile && m.profile.avatar_url) || null;
+    return { uid, name, avatar, s: hsStatsFor(uid) };
+  }).filter(r => r.s.jami > 0).sort((a, b) => b.s.samaradorlik - a.s.samaradorlik || b.s.jami - a.s.jami);
+
+  if (!rows.length) { $('hsBody').innerHTML = '<tr><td colspan="8" style="padding:28px;text-align:center;color:var(--muted);">Bu davrda biriktirilgan vazifa yo\'q</td></tr>'; return; }
+
+  const td = 'padding:9px 12px;border-top:1px solid var(--line);font-size:13px;vertical-align:middle;white-space:nowrap;';
+  const clickable = (val, uid, kind, color) => val > 0
+    ? '<button onclick="hsShowTasks(\'' + uid + '\',\'' + kind + '\')" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:' + (color || 'var(--accent-ink)') + ';padding:2px 8px;border-radius:6px;">' + val + '</button>'
+    : '<span style="color:var(--muted);padding:2px 8px;">0</span>';
+
+  $('hsBody').innerHTML = rows.map((r, i) => {
+    const s = r.s;
+    const effColor = hsEffColor(s.samaradorlik);
+    return '<tr>' +
+      '<td style="' + td + 'color:var(--muted);">' + (i + 1) + '</td>' +
+      '<td style="' + td + '"><div style="display:flex;align-items:center;gap:9px;">' + avatarHtml(r.name, null, r.avatar) + '<span style="font-weight:500;">' + escapeHtml(r.name) + '</span></div></td>' +
+      '<td style="' + td + '">' + clickable(s.jami, r.uid, 'jami', 'var(--ink)') + '</td>' +
+      '<td style="' + td + '">' + clickable(s.jarayonda, r.uid, 'jarayonda', '#3B82F6') + '</td>' +
+      '<td style="' + td + '">' + clickable(s.tugatilgan, r.uid, 'tugatilgan', '#10B981') + '</td>' +
+      '<td style="' + td + '">' + clickable(s.faol, r.uid, 'faol', '#8B5CF6') + '</td>' +
+      '<td style="' + td + '">' + clickable(s.kechikkan, r.uid, 'kechikkan', '#EF4444') + '</td>' +
+      '<td style="' + td + 'min-width:160px;">' +
+        '<div style="display:flex;align-items:center;gap:8px;">' +
+          '<div style="flex:1;height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden;min-width:70px;"><div style="height:100%;width:' + Math.max(0, Math.min(100, s.samaradorlik)) + '%;background:' + effColor + ';border-radius:99px;"></div></div>' +
+          '<span style="font-weight:700;font-size:13px;color:' + effColor + ';min-width:38px;text-align:right;">' + s.samaradorlik + '%</span>' +
+        '</div>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function hsShowTasks(uid, kind) {
+  let list = hsMemberTasks(uid);
+  const labels = { jami: 'Barcha vazifalar', jarayonda: 'Jarayondagi', tugatilgan: 'Tugatilgan', faol: 'Faol', kechikkan: 'Kechikib yopilgan' };
+  if (kind === 'jarayonda') list = list.filter(t => t.status === 'in_progress');
+  else if (kind === 'tugatilgan') list = list.filter(t => t.status === 'completed');
+  else if (kind === 'faol') list = list.filter(t => t.status !== 'completed' && t.status !== 'cancelled');
+  else if (kind === 'kechikkan') list = list.filter(hsIsLate);
+  const name = uid === me.id ? (myProfile.full_name || 'Siz') : ((wsMembers.find(m => m.user_id === uid)?.profile?.full_name) || 'A\'zo');
+
+  const itemsHtml = list.length ? list.map(t => {
+    const st = statusName(t.status);
+    const stColor = statusColor(t.status);
+    const late = hsIsLate(t);
+    const dl = t.deadline ? fmtDeadline(t.deadline) : '—';
+    return '<div onclick="closeHsModal();openDetail(' + t.id + ')" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;margin-bottom:7px;">' +
+      '<span style="width:9px;height:9px;border-radius:50%;background:' + stColor + ';flex:0 0 auto;"></span>' +
+      '<div style="flex:1;min-width:0;"><div style="font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(t.title || '(nomsiz)') + '</div>' +
+      '<div style="font-size:11.5px;color:var(--muted);">' + escapeHtml(st) + ' · ⏰ ' + dl + (late ? ' · <span style="color:#EF4444;">kechikkan</span>' : '') + '</div></div>' +
+      '<span style="color:var(--muted);font-size:16px;">›</span></div>';
+  }).join('') : '<div style="padding:24px;text-align:center;color:var(--muted);">Vazifa yo\'q</div>';
+
+  let modal = $('hsModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'hsModal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,20,23,.55);backdrop-filter:blur(3px);display:flex;justify-content:center;align-items:flex-start;padding-top:8vh;z-index:400;padding-left:16px;padding-right:16px;';
+    modal.onclick = (e) => { if (e.target === modal) closeHsModal(); };
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = '<div style="background:var(--surface);border-radius:16px;max-width:520px;width:100%;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);">' +
+    '<div style="padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;">' +
+      '<div><div style="font-weight:700;font-size:15px;">' + escapeHtml(name) + '</div><div style="font-size:12px;color:var(--muted);">' + (labels[kind] || '') + ' · ' + list.length + ' ta</div></div>' +
+      '<button onclick="closeHsModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1;">×</button>' +
+    '</div>' +
+    '<div style="padding:14px 16px;overflow-y:auto;">' + itemsHtml + '</div></div>';
+  modal.style.display = 'flex';
+}
+function closeHsModal() { const m = $('hsModal'); if (m) m.style.display = 'none'; }
+
 // ============ LOGLAR (audit ko'rinishi) ============
 let _logsCache = [];
 async function loadLogs() {
@@ -2814,10 +2979,17 @@ function setupRealtime() {
       const row = payload.new || payload.old;
       if (!row) return;
       const idx = tasksCache.findIndex(t => t.id === row.id);
+      const belongsToMe = (tk) => tk && (tk.assigned_to === me.id || tk.created_by === me.id || tk.acceptor_id === me.id || tk.submitter_id === me.id || isOwnerLike());
       if (ev === 'INSERT') {
-        if (idx < 0) tasksCache.unshift(payload.new);
+        if (idx < 0 && belongsToMe(payload.new)) tasksCache.unshift(payload.new);
       } else if (ev === 'UPDATE') {
-        if (idx >= 0) tasksCache[idx] = payload.new; else tasksCache.unshift(payload.new);
+        if (idx >= 0) {
+          // Endi menga tegishli bo'lmasa — olib tashlaymιz (masalan boshqaga biriktirildi)
+          if (belongsToMe(payload.new)) tasksCache[idx] = payload.new;
+          else tasksCache.splice(idx, 1);
+        } else if (belongsToMe(payload.new)) {
+          tasksCache.unshift(payload.new);
+        }
       } else if (ev === 'DELETE') {
         if (idx >= 0) tasksCache.splice(idx, 1);
         if (currentDetailId === row.id) closeDetail();
@@ -2966,6 +3138,7 @@ function renderSidebar() {
     html += '<button class="side-link ' + (currentPage === 'departments' ? 'active' : '') + '" onclick="goPage(\'departments\')"><span class="ic">▦</span> Bo\'limlar ro\'yxati</button>';
     html += '<button class="side-link ' + (currentPage === 'team' ? 'active' : '') + '" onclick="goPage(\'team\')"><span class="ic">☆</span> Jamoa</button>';
     if (canManage) {
+      html += '<button class="side-link ' + (currentPage === 'hodimstats' ? 'active' : '') + '" onclick="goPage(\'hodimstats\')"><span class="ic">📊</span> Hodim statistikasi</button>';
       html += '<button class="side-link ' + (currentPage === 'logs' ? 'active' : '') + '" onclick="goPage(\'logs\')"><span class="ic">📋</span> Loglar</button>';
     }
     if (canManage) {
@@ -3019,7 +3192,7 @@ function updateDashboard(sub) {
     return d.getUTCDate() === today.getUTCDate() && d.getUTCMonth() === today.getUTCMonth() && d.getUTCFullYear() === today.getUTCFullYear();
   };
 
-  const active = tasksCache.filter(t => t.status === 'new' || t.status === 'in_progress');
+  const active = tasksCache.filter(t => t.status === 'new' || t.status === 'in_progress' || t.status === 'qabul_kutilyapti');
   const overdue = tasksCache.filter(isOver);
   const today = tasksCache.filter(isToday);
   const done = tasksCache.filter(t => t.status === 'completed');
@@ -3230,14 +3403,14 @@ function toggleTgSidebar() {
 
 function goPage(p) {
   // Rol himoyasi: oddiy a'zo faqat ruxsat etilган sahifalarга kira oladi
-  const managerOnlyPages = ['stats', 'orgchart', 'integrations', 'tgusers', 'branches', 'positions', 'settings', 'logs', 'botsettings', 'botcommands'];
+  const managerOnlyPages = ['stats', 'orgchart', 'integrations', 'tgusers', 'branches', 'positions', 'settings', 'hodimstats', 'logs', 'botsettings', 'botcommands'];
   if (managerOnlyPages.includes(p) && !isOwnerLike()) {
     p = 'dashboard';
   }
   currentPage = p;
   if (p !== 'department') currentDeptId = null;
   renderSidebar();
-  ['dashboard','planner','tasks','departments','department','team','integrations','tgusers','branches','positions','settings','logs','stats','botsettings','botcommands','profile'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
+  ['dashboard','planner','tasks','departments','department','team','integrations','tgusers','branches','positions','settings','hodimstats','logs','stats','botsettings','botcommands','profile'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
   if (p === 'planner') plnSetTab(plnTab);
   if (p === 'tasks') {
     const titles = { mine: '📥 Mening vazifalarim', assigned: '📤 Men topshirganlar', all: '✓ Barcha vazifalar' };
@@ -3251,6 +3424,7 @@ function goPage(p) {
   if (p === 'dashboard') updateDashboard(null);
   if (p === 'settings') loadSettings();
   if (p === 'logs') loadLogs();
+  if (p === 'hodimstats') loadHodimStats();
   if (p === 'branches') loadBranches();
   if (p === 'positions') loadPositions();
   if (p === 'stats') renderStats();
@@ -4676,11 +4850,20 @@ function renderDetailBody() {
     : '<div class="att-empty">Hech qanday fayl yo\'q. Pastdagi tugma yoki <b>Ctrl+V</b> bilan qo\'shing.</div>';
 
   // Build body
-  // Qabul qiluvchi qatori
+  // Qabul qiluvchi + tarix qatorlari
+  const _nm = (uid) => uid === me.id ? (myProfile.full_name || 'Siz') : ((wsMembers.find(m => m.user_id === uid)?.profile?.full_name) || 'A\'zo');
   let acceptorLine = '';
   if (t.acceptor_id) {
-    const accName = t.acceptor_id === me.id ? (myProfile.full_name || 'Siz') : ((wsMembers.find(m => m.user_id === t.acceptor_id)?.profile?.full_name) || 'A\'zo');
-    acceptorLine = '<div class="detail-row"><div class="lbl">Qabul qiluvchi</div><div class="val">✅ ' + escapeHtml(accName) + (t.acceptor_id === me.id ? ' <span style="color:var(--muted)">(siz)</span>' : '') + '</div></div>';
+    // Qabul qiluvchi
+    acceptorLine += '<div class="detail-row"><div class="lbl">Qabul qiluvchi</div><div class="val">' + escapeHtml(_nm(t.acceptor_id)) + (t.acceptor_id === me.id ? ' <span style="color:var(--muted)">(siz)</span>' : '') + '</div></div>';
+    // Kim bajarib topshirgan (submitter) — agar qabul jarayonidan o'tgan bo'lsa
+    if (t.submitter_id) {
+      acceptorLine += '<div class="detail-row"><div class="lbl">Bajarib topshirdi</div><div class="val">' + escapeHtml(_nm(t.submitter_id)) + '</div></div>';
+    }
+    // Qabul qilingan vaqt
+    if (t.accepted_at) {
+      acceptorLine += '<div class="detail-row"><div class="lbl">Qabul qilindi</div><div class="val">✅ ' + escapeHtml(_nm(t.acceptor_id)) + ' · ' + fmtDeadline(t.accepted_at) + '</div></div>';
+    }
   }
   // Qabul qiluvchi uchun action banner (status = qabul kutilyapti)
   let acceptBanner = '';
@@ -7726,7 +7909,9 @@ function plnDayDrop(ev, dateStr) {
 }
 
 function tkFilteredTasks() {
-  let list = applyTaskScope((tasksCache || []).slice());
+  // Dublikatlarni id bo'yicha olib tashlaymιz (realtime/filtr xavfsizligi)
+  const seen = new Set();
+  let list = applyTaskScope((tasksCache || []).filter(t => { if (seen.has(t.id)) return false; seen.add(t.id); return true; }));
   const q = ($('tkSearch')?.value || '').trim().toLowerCase();
   if (q) list = list.filter(t => (t.title||'').toLowerCase().includes(q) || (t.description||'').toLowerCase().includes(q));
   const asgF = $('tkAsgFilter')?.value || 'all';
