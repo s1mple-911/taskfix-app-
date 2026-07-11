@@ -689,6 +689,8 @@
   .ui-btn-primary:hover { filter:brightness(1.08); }
   .ui-btn-danger { background:#EF4444; color:#fff; }
   .ui-btn-danger:hover { filter:brightness(1.08); }
+  .dl-chip { padding:5px 11px; border:1px solid var(--line); border-radius:99px; background:var(--surface); font-size:12px; color:var(--muted); cursor:pointer; font-family:inherit; transition:all .12s; }
+  .dl-chip:hover { border-color:var(--accent-ink); color:var(--accent-ink); background:var(--accent); }
 </style>
 </head>
 <body>
@@ -2047,7 +2049,15 @@
         <div style="font-size:11.5px;color:var(--muted);margin-top:5px;">Tanlansa: bajaruvchi tugatgach vazifa "Qabul kutilyapti"ga o'tadi, qabul qiluvchi tasdiqlaydi.</div>
       </div>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-        <div class="field" style="margin-bottom:0"><label>Deadline</label><div style="display:flex;gap:8px;"><input id="cDeadlineDate" type="date" style="flex:1;" /><input id="cDeadlineTime" type="time" value="18:00" style="width:110px;" /></div><div id="cPlnHint" style="display:none;font-size:11.5px;color:var(--accent-ink);background:var(--accent);opacity:.9;padding:5px 9px;border-radius:7px;margin-top:6px;"></div></div>
+        <div class="field" style="margin-bottom:0"><label>Deadline</label><div style="display:flex;gap:8px;"><input id="cDeadlineDate" type="date" style="flex:1;" /><input id="cDeadlineTime" type="time" value="18:00" style="width:110px;" /></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">
+          <button type="button" class="dl-chip" onclick="setDeadlineRel(0)">Bugun</button>
+          <button type="button" class="dl-chip" onclick="setDeadlineRel(1)">Ertaga</button>
+          <button type="button" class="dl-chip" onclick="setDeadlineRel(2)">+2 kun</button>
+          <button type="button" class="dl-chip" onclick="setDeadlineRel(3)">+3 kun</button>
+          <button type="button" class="dl-chip" onclick="setDeadlineRel(7)">+1 hafta</button>
+        </div>
+        <div id="cPlnHint" style="display:none;font-size:11.5px;color:var(--accent-ink);background:var(--accent);opacity:.9;padding:5px 9px;border-radius:7px;margin-top:6px;"></div></div>
         <div class="field" style="margin-bottom:0"><label>Prioritet</label><select id="cPriority"><option value="0">Yo'q</option><option value="1">P1 (eng yuqori)</option><option value="2">P2</option><option value="3">P3 (yuqori)</option><option value="4">P4</option><option value="5">P5</option><option value="6">P6 (o'rta)</option><option value="7">P7</option><option value="8">P8 (past)</option><option value="9">P9</option><option value="10">P10 (eng past)</option></select></div>
       </div>
       <div class="field" style="margin-top: 12px;">
@@ -2161,6 +2171,7 @@ function canDeleteTask(task) { return isOwnerLike(); }
 // (Loyihaga faqat KO'RISH uchun taklif qilingan a'zo status'ni o'zgartira OLMAYDI.)
 function canChangeStatus(task) {
   if (!task) return false;
+  if (task.is_locked) return false; // navbati kelmagan — hech kim o'zgartira olmaydi
   if (isOwnerLike()) return true;
   if (task.assigned_to === me.id) return true;
   if (task.created_by === me.id) return true;
@@ -2212,6 +2223,14 @@ function statusName(val) {
 function statusColor(val) {
   const c = (kanbanColumns || []).find(x => x.status === val);
   return (c && c.color) || '#94A3B8';
+}
+
+function setDeadlineRel(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), dd = String(d.getDate()).padStart(2, '0');
+  const dateEl = $('cDeadlineDate'); if (dateEl) dateEl.value = y + '-' + m + '-' + dd;
+  const timeEl = $('cDeadlineTime'); if (timeEl && !timeEl.value) timeEl.value = '18:00';
 }
 
 // ============ CHIROYLI MODAL TIZIMI (prompt/confirm o'rniga) ============
@@ -2631,17 +2650,23 @@ async function prjAddTask() {
 async function prjSaveTask(title, dependsOnPrev, assignee, deadlineIso, recur) {
   try {
     const maxOrder = prjTasks.reduce((mx, t) => Math.max(mx, t.flow_order || 0), 0);
+    // Bloklanganmi? Oldingi bosqich bo'lsa va u tugamagan bo'lsa — bloklangan
+    const prevTasks = prjTasks.filter(t => (t.flow_order || 0) <= maxOrder).sort((a, b) => (b.flow_order || 0) - (a.flow_order || 0));
+    const prev = prevTasks[0];
+    const locked = dependsOnPrev && prev && prev.status !== 'completed';
     const { data, error } = await sb.from('tasks').insert({
       workspace_id: currentWs.id, project_id: currentProjectId,
       title, created_by: me.id, status: 'new',
       flow_order: maxOrder + 1, depends_on_prev: dependsOnPrev,
-      assigned_to: assignee || null, deadline: deadlineIso, recur_days: recur
+      assigned_to: assignee || null, deadline: deadlineIso, recur_days: recur,
+      is_locked: !!locked
     }).select().single();
     if (error) throw error;
     prjTasks.push(data);
     toast('✅ Bosqich qo\'shildi', 'ok');
     logActivity('task_created', { entityType: 'task', entityId: data.id, entityTitle: title, details: { project: (window._curProject || {}).name } });
-    if (assignee && assignee !== me.id) { try { tgNotifyAssignment(data.id, { user_id: assignee }); emailNotify('task_assigned', data.id, assignee); } catch (e) {} }
+    // Xabar faqat OCHIQ (bloklanmagan) bo'lsa va biriktirilgan bo'lsa
+    if (!locked && assignee && assignee !== me.id) { try { tgNotifyAssignment(data.id, { user_id: assignee }); emailNotify('task_assigned', data.id, assignee); } catch (e) {} }
     loadProjectDetail();
   } catch (e) { toast('Xato: ' + (e.message || e), 'err'); }
 }
@@ -3740,9 +3765,10 @@ function updateDashboard(sub) {
     return d.getUTCDate() === today.getUTCDate() && d.getUTCMonth() === today.getUTCMonth() && d.getUTCFullYear() === today.getUTCFullYear();
   };
 
-  const active = tasksCache.filter(t => t.status === 'new' || t.status === 'in_progress' || t.status === 'qabul_kutilyapti');
-  const overdue = tasksCache.filter(isOver);
-  const today = tasksCache.filter(isToday);
+  const _vis = tasksCache.filter(t => !t.is_locked); // bloklangan flow tasklar ko'rinmaydi
+  const active = _vis.filter(t => t.status === 'new' || t.status === 'in_progress' || t.status === 'qabul_kutilyapti');
+  const overdue = _vis.filter(isOver);
+  const today = _vis.filter(isToday);
   const done = tasksCache.filter(t => t.status === 'completed');
 
   if ($('statActive')) $('statActive').textContent = active.length;
@@ -3760,7 +3786,7 @@ function updateDashboard(sub) {
   }
   // Due soon (in next 3 days, not completed)
   const limit = now + 3 * 24 * 60 * 60 * 1000;
-  const due = tasksCache.filter(t => t.deadline && t.status !== 'completed' && t.status !== 'cancelled' && new Date(t.deadline).getTime() <= limit)
+  const due = _vis.filter(t => t.deadline && t.status !== 'completed' && t.status !== 'cancelled' && new Date(t.deadline).getTime() <= limit)
     .sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime())
     .slice(0, 6);
   if ($('dashDueSoon')) {
@@ -4202,6 +4228,8 @@ function onTasksSearch() {
 
 // Task scope (sidebar bo'limlari) — barcha view ishlatadi
 function applyTaskScope(list) {
+  // Navbati kelmagan (bloklangan) flow tasklar hech qaysi umumiy ko'rinishda chiqmaydi
+  list = list.filter(t => !t.is_locked);
   if (taskScope === 'mine') {
     const myTgIds = window._myTgBotIds || [];
     list = list.filter(t => t.assigned_to === me.id || (t.assigned_to_tg_bot_user && myTgIds.includes(t.assigned_to_tg_bot_user)));
@@ -5948,7 +5976,26 @@ async function changeStatus(id, newStatus) {
     if (newStatus === 'completed' && data.created_by && data.created_by !== me.id) {
       emailNotify('task_completed', data.id, data.created_by);
     }
+    // Loyiha flow taski — trigger is_locked'ni yangiladi; qayta yuklaymιz
+    if (data.project_id) { await prjReloadTasks(data.project_id); }
   } catch (e) { toast(translateErr(e.message), 'err'); }
+}
+
+// Loyiha tasklarini qayta yuklab, tasksCache + prjTasks + ko'rinishni yangilaydi
+async function prjReloadTasks(projectId) {
+  try {
+    const { data: ts } = await sb.from('tasks').select('*').eq('project_id', projectId);
+    if (!ts) return;
+    ts.forEach(nt => {
+      const ci = tasksCache.findIndex(x => x.id === nt.id);
+      if (ci >= 0) tasksCache[ci] = nt; else if (!nt.is_locked) tasksCache.unshift(nt);
+    });
+    if (currentProjectId === projectId) {
+      prjTasks = prjTasks.map(pt => ts.find(x => x.id === pt.id) || pt);
+      ts.forEach(nt => { if (!prjTasks.some(x => x.id === nt.id)) prjTasks.push(nt); });
+    }
+    refreshActiveView();
+  } catch (e) {}
 }
 
 // Qabul qiluvchi: "Qabul qildim" → haqiqiy Bajarildi (bajaruvchiga QAYTMAYDI)
@@ -5965,6 +6012,7 @@ async function acceptTask(id) {
     refreshActiveView();
     if (currentDetailId === id) renderDetailBody();
     logActivity('task_accepted', { entityType: 'task', entityId: id, entityTitle: data.title });
+    if (data.project_id) { await prjReloadTasks(data.project_id); }
     // Asl bajaruvchi va yaratuvchiga xabar (ish qabul qilindi)
     const worker = (prev && prev.submitter_id) || null;
     if (worker && worker !== me.id) { emailNotify('task_completed', id, worker); try { notifyMention(worker, '"' + data.title + '" qabul qilindi ✅', null); } catch (e) {} }
@@ -8282,6 +8330,7 @@ function renderPlnUnscheduled() {
   const sched = plnGetSchedule();
   // Mening vazifalarim: menga biriktirilган yoki men yaratган, tugallanmagan, rejaга qo'yilmagan
   const mine = (tasksCache || []).filter(t =>
+    !t.is_locked &&
     (t.assigned_to === me.id || t.created_by === me.id) &&
     t.status !== 'completed' && t.status !== 'cancelled' &&
     !sched[t.id]
