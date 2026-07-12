@@ -2058,6 +2058,16 @@
           <button type="button" class="dl-chip" onclick="setDeadlineRel(7)">+1 hafta</button>
         </div>
         <div id="cPlnHint" style="display:none;font-size:11.5px;color:var(--accent-ink);background:var(--accent);opacity:.9;padding:5px 9px;border-radius:7px;margin-top:6px;"></div></div>
+      <div class="field" style="margin-top:12px;">
+        <label>Takrorlanish (ixtiyoriy)</label>
+        <select id="cRecur" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:var(--surface);color:var(--ink);">
+          <option value="">Takrorlanmaydi</option>
+          <option value="1">Har kuni</option>
+          <option value="7">Har hafta</option>
+          <option value="30">Har oy</option>
+        </select>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:5px;">Vazifa bajarilgach, keyingi muddat bilan avtomatik qayta yaratiladi.</div>
+      </div>
         <div class="field" style="margin-bottom:0"><label>Prioritet</label><select id="cPriority"><option value="0">Yo'q</option><option value="1">P1 (eng yuqori)</option><option value="2">P2</option><option value="3">P3 (yuqori)</option><option value="4">P4</option><option value="5">P5</option><option value="6">P6 (o'rta)</option><option value="7">P7</option><option value="8">P8 (past)</option><option value="9">P9</option><option value="10">P10 (eng past)</option></select></div>
       </div>
       <div class="field" style="margin-top: 12px;">
@@ -4312,7 +4322,7 @@ let _createPasteHandler = null;
 function openCreate() { openCreateInternal(null); }
 function openCreateForDept() { openCreateInternal(currentDeptId); }
 function openCreateInternal(forceDeptId) {
-  $('cTitle').value=''; $('cDesc').value=''; $('cDeadlineDate').value=''; $('cDeadlineTime').value='18:00'; $('cPriority').value='0';
+  $('cTitle').value=''; $('cDesc').value=''; $('cDeadlineDate').value=''; $('cDeadlineTime').value='18:00'; $('cPriority').value='0'; if ($('cRecur')) $('cRecur').value='';
   const _plnH = $('cPlnHint'); if (_plnH && !window._plnPendingSchedule) _plnH.style.display = 'none';
   // Qabul qiluvchi dropdown (A→Z)
   const _acc = $('cAcceptor');
@@ -5092,6 +5102,7 @@ async function saveCreate() {
     btn.textContent = targets.length > 1 ? ('Yaratilmoqda… 0/' + targets.length) : 'Yaratilmoqda…';
     const insertsTime = new Date().toISOString();
     const acceptorId = ($('cAcceptor') && $('cAcceptor').value) || null;
+    const recurDays = ($('cRecur') && parseInt($('cRecur').value, 10)) || null;
     const inserts = targets.map(t => ({
       workspace_id: currentWs.id, department_id: deptId,
       title, description: desc || null,
@@ -5100,6 +5111,7 @@ async function saveCreate() {
       assigned_to: t.assigned_to || null,
       assigned_to_tg_bot_user: t.assigned_to_tg_bot_user || null,
       acceptor_id: acceptorId,
+      recur_days: recurDays,
       status: window._cQuickStatus || 'new'
     }));
     // Pending invitelar uchun ham har biriga bittadan vazifa — assigned_to NULL
@@ -5113,6 +5125,7 @@ async function saveCreate() {
         assigned_to: null,
         assigned_to_tg_bot_user: null,
         acceptor_id: acceptorId,
+        recur_days: recurDays,
         status: window._cQuickStatus || 'new'
       });
     });
@@ -5977,8 +5990,50 @@ async function changeStatus(id, newStatus) {
       emailNotify('task_completed', data.id, data.created_by);
     }
     // Loyiha flow taski — trigger is_locked'ni yangiladi; qayta yuklaymιz
-    if (data.project_id) { await prjReloadTasks(data.project_id); }
+    if (data.project_id) { if (data.status === 'completed') await prjShiftNextDeadline(data); await prjReloadTasks(data.project_id); }
+    if (data.status === 'completed') await maybeRecurTask(data);
   } catch (e) { toast(translateErr(e.message), 'err'); }
+}
+
+// Takrorlanuvchi vazifa bajarilgach — keyingi nusxani avtomatik yaratadi (loyihasiz tasklar uchun)
+async function maybeRecurTask(task) {
+  try {
+    if (!task || task.project_id || !task.recur_days) return; // loyiha tasklari alohida takrorlanadi
+    const base = task.deadline ? new Date(task.deadline).getTime() : Date.now();
+    const newDl = new Date(base + task.recur_days * 86400000).toISOString();
+    const { data, error } = await sb.from('tasks').insert({
+      workspace_id: task.workspace_id, department_id: task.department_id || null,
+      title: task.title, description: task.description || null,
+      assigned_to: task.assigned_to || null, assigned_to_tg_bot_user: task.assigned_to_tg_bot_user || null,
+      acceptor_id: task.acceptor_id || null, priority_level: task.priority_level || 0,
+      created_by: task.created_by || me.id, recur_days: task.recur_days,
+      deadline: newDl, status: 'new'
+    }).select().single();
+    if (error) throw error;
+    if (data && !data.is_locked) tasksCache.unshift(data);
+    const per = task.recur_days === 1 ? 'ertaga' : task.recur_days === 7 ? 'keyingi hafta' : 'keyingi oy';
+    toast('🔁 Takror vazifa yaratildi (' + per + ')', 'ok');
+    if (data.assigned_to && data.assigned_to !== me.id) { try { emailNotify('task_assigned', data.id, data.assigned_to); } catch (e) {} }
+  } catch (e) {}
+}
+
+// Kechikkan bo'lsa — kechikish vaqtini keyingi flow taskning deadline'iga qo'shadi
+async function prjShiftNextDeadline(task) {
+  try {
+    if (!task || !task.project_id || !task.deadline || !task.completed_at) return;
+    const delay = new Date(task.completed_at).getTime() - new Date(task.deadline).getTime();
+    if (delay <= 0) return; // o'z vaqtida yoki erta tugadi
+    const { data: all } = await sb.from('tasks').select('id,flow_order,deadline,assigned_to,title').eq('project_id', task.project_id).order('flow_order', { ascending: true });
+    if (!all) return;
+    const next = all.filter(x => (x.flow_order || 0) > (task.flow_order || 0)).sort((a, b) => (a.flow_order || 0) - (b.flow_order || 0))[0];
+    if (!next || !next.deadline) return;
+    const newDl = new Date(new Date(next.deadline).getTime() + delay).toISOString();
+    await sb.from('tasks').update({ deadline: newDl }).eq('id', next.id);
+    const ni = tasksCache.findIndex(x => x.id === next.id); if (ni >= 0) tasksCache[ni].deadline = newDl;
+    const pi = prjTasks.findIndex(x => x.id === next.id); if (pi >= 0) prjTasks[pi].deadline = newDl;
+    const hrs = Math.round(delay / 3600000 * 10) / 10;
+    toast('⏱ Kechikish (' + hrs + ' soat) keyingi bosqich deadline\'iga qo\'shildi', 'ok');
+  } catch (e) {}
 }
 
 // Loyiha tasklarini qayta yuklab, tasksCache + prjTasks + ko'rinishni yangilaydi
@@ -6012,7 +6067,8 @@ async function acceptTask(id) {
     refreshActiveView();
     if (currentDetailId === id) renderDetailBody();
     logActivity('task_accepted', { entityType: 'task', entityId: id, entityTitle: data.title });
-    if (data.project_id) { await prjReloadTasks(data.project_id); }
+    if (data.project_id) { await prjShiftNextDeadline(data); await prjReloadTasks(data.project_id); }
+    await maybeRecurTask(data);
     // Asl bajaruvchi va yaratuvchiga xabar (ish qabul qilindi)
     const worker = (prev && prev.submitter_id) || null;
     if (worker && worker !== me.id) { emailNotify('task_completed', id, worker); try { notifyMention(worker, '"' + data.title + '" qabul qilindi ✅', null); } catch (e) {} }
