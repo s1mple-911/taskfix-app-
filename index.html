@@ -2517,6 +2517,7 @@ async function openProject(id) {
   currentProjectId = id;
   currentPage = 'project';
   goPage('project');
+  rtSetHash('#/projects/' + encodeURIComponent(id));
   await loadProjectDetail();
 }
 
@@ -3568,7 +3569,13 @@ async function bootstrap() {
 
   await loadCurrentContext();
   showApp();
-  goPage('dashboard');
+  // Hash-routing: F5 yoki to'g'ridan havola bilan kelsa — o'sha sahifani tiklaymiz.
+  // Taklif-vazifa oqimi ustuvor (u hashni allaqachon tozalagan, 3551).
+  if (!_inviteTaskId && (window.location.hash || '').indexOf('#/') === 0) {
+    rtRouteFromHash();
+  } else {
+    goPage('dashboard');
+  }
   // Taklif orqali biriktirilgan vazifani ochamiz
   if (_inviteTaskId) {
     goPage('tasks');
@@ -3635,10 +3642,24 @@ async function loadCurrentContext() {
   tblLoadSettings();
 
   // "Mening vazifalarim" uchun — mening Telegram identitetlarim
-  try {
-    const { data: tgu } = await sb.from('tg_bot_users').select('id').eq('linked_user_id', me.id);
+  //
+  // ⚠️ loadTasksFull() dagi bilan bir xil xato shu yerda ham bor edi: error
+  // tekshirilmagan, catch esa hech qachon ishlamaydi (supabase-js tashlamaydi).
+  // Bu yerda oqibati boshqacha va yashirinroq — so'rov yiqilsa _myTgBotIds=[]
+  // bo'ladi va Telegram orqali biriktirilgan vazifa "meniki emas" deb
+  // hisoblanadi: "Mening vazifalarim" filtri (applyTaskScope, 4370) uni
+  // yashiradi, canSeeTask (2287) esa false qaytaradi. Vazifa serverdan
+  // KELGAN bo'lsa ham ekranda ko'rinmaydi.
+  //
+  // Owner uchun loadTasksFull() bu so'rovni umuman qilmaydi (u erta qaytadi),
+  // shuning uchun bu chaqiruv ortiqcha emas — ikkalasi ham kerak.
+  const { data: tgu, error: tguErr } = await sb.from('tg_bot_users').select('id').eq('linked_user_id', me.id);
+  if (tguErr) {
+    window._myTgBotIds = [];
+    loadTasksErr('Telegram identiteti o\'qilmadi — "Mening vazifalarim" to\'liq bo\'lmasligi mumkin', tguErr);
+  } else {
     window._myTgBotIds = (tgu || []).map(x => x.id);
-  } catch (e) { window._myTgBotIds = []; }
+  }
 
   setupRealtime();
   renderSidebar();
@@ -3729,27 +3750,54 @@ function teardownRealtime() {
   if (_rtChannel) { try { sb.removeChannel(_rtChannel); } catch(e){} _rtChannel = null; }
 }
 
+// ⚠️ BO'SH RO'YXAT va YUKLAB BO'LMADI — IKKI BOSHQA HOLAT.
+//
+// Avval bu funksiya xatoni jimgina yutardi: hamma joyda `const { data } = ...`
+// yozilgan, error esa tekshirilmagan. supabase-js xatoda TASHLAMAYDI — u
+// { data: null, error } qaytaradi. Ya'ni RLS yoki 500 xatosida data=null →
+// tasksCache=[] → ekranda "vazifa yo'q". Foydalanuvchi buni "menda vazifa yo'q"
+// deb o'qiydi, aslida esa "so'rov yiqildi". Sabab hech qayerda ko'rinmasdi.
+//
+// Shu sababli `try { … } catch (e) {}` ham foydasiz edi: tashlanmagan xatoni
+// catch ushlamaydi. U himoya emas, himoya ko'rinishi edi.
+function loadTasksErr(prefix, error) {
+  // Toast — toza Uzbek, foydalanuvchi uchun. console — xom xato, diagnostika uchun:
+  // translateErr() RLS ni "Ruxsat yo'q" ga aylantiradi, bu ekranda to'g'ri, lekin
+  // nosozlikni izlayotgan odamga yetarli emas.
+  console.error('[loadTasksFull] ' + prefix, error);
+  toast(prefix + ': ' + translateErr(error.message), 'err');
+}
+
 async function loadTasksFull() {
   if (!currentWs) { tasksCache = []; return; }
   // Owner/admin — hamma vazifa
   if (isOwnerLike()) {
-    const { data } = await sb.from('tasks').select('*').eq('workspace_id', currentWs.id).order('created_at', { ascending: false });
+    const { data, error } = await sb.from('tasks').select('*').eq('workspace_id', currentWs.id).order('created_at', { ascending: false });
+    // Xatoda tasksCache ga TEGMAYMIZ. Eski (to'g'ri) ro'yxat qolgani — uni
+    // bo'sh qilib qo'yishdan yaxshi. Birinchi yuklashda u allaqachon [].
+    if (error) { loadTasksErr('Vazifalarni yuklab bo\'lmadi', error); return; }
     tasksCache = data || [];
     return;
   }
   // Oddiy a'zo — o'ziga tegishli barcha vazifalar:
   // (a) assigned_to = men, (b) men yaratgan, (c) Telegram identitetimga biriktirilgan
+  //
+  // ⚠️ Bu so'rov yiqilsa (c) sharti quyidagi or() dan TUSHIB QOLADI va Telegram
+  // orqali biriktirilgan vazifalar ro'yxatdan jimgina yo'qoladi — qolgani esa
+  // to'liqdek ko'rinadi. Shuning uchun to'xtamaymiz (a va b baribir kerak), lekin
+  // ro'yxat to'liqmasligini AYTAMIZ.
   let myTgIds = [];
-  try {
-    const { data: tgu } = await sb.from('tg_bot_users').select('id').eq('linked_user_id', me.id);
-    myTgIds = (tgu || []).map(x => x.id);
-  } catch (e) {}
+  const { data: tgu, error: tgErr } = await sb.from('tg_bot_users').select('id').eq('linked_user_id', me.id);
+  if (tgErr) loadTasksErr('Telegram identiteti o\'qilmadi — ro\'yxat to\'liq bo\'lmasligi mumkin', tgErr);
+  else myTgIds = (tgu || []).map(x => x.id);
+
   const orParts = ['assigned_to.eq.' + me.id, 'created_by.eq.' + me.id, 'acceptor_id.eq.' + me.id];
   if (myTgIds.length) orParts.push('assigned_to_tg_bot_user.in.(' + myTgIds.join(',') + ')');
-  const { data } = await sb.from('tasks').select('*')
+  const { data, error } = await sb.from('tasks').select('*')
     .eq('workspace_id', currentWs.id)
     .or(orParts.join(','))
     .order('created_at', { ascending: false });
+  if (error) { loadTasksErr('Vazifalarni yuklab bo\'lmadi', error); return; }
   tasksCache = data || [];
 }
 
@@ -4114,6 +4162,31 @@ function goPage(p) {
   if (p === 'botcommands') loadBotCommands();
   if (p === 'orgchart') loadOrgChart();
   if (p === 'profile') loadProfilePage();
+  // Hash-routing: oddiy sahifa URL'ini yangilaymiz. Parametrli sahifalar
+  // (employee/project/department) o'z hashini o'zlari yozadi (uid/id bilan).
+  if (p !== 'employee' && p !== 'project' && p !== 'department') rtSetHash('#/' + p);
+}
+
+// ============ Hash-routing (rt*) — orqaga tugmasi + F5 ============
+// history.pushState hashchange/popstate hodisasini QO'ZG'ATMAYDI — shu bois
+// loop bo'lmaydi. Faqat brauzer orqaga/oldinga (popstate) marshrutni tiklaydi.
+function rtSetHash(h) {
+  try { if (h !== (window.location.hash || '')) history.pushState(null, '', h); } catch (e) {}
+}
+
+// Joriy location.hash'ni o'qib, mos sahifani ochadi. rtSetHash idempotent
+// bo'lgani uchun bu yerdan chaqirilgan goPage/openEmployee qayta push qilmaydi.
+function rtRouteFromHash() {
+  const h = window.location.hash || '';
+  if (h.indexOf('#/') !== 0) { goPage('dashboard'); return; }
+  const parts = h.slice(2).split('/');
+  const seg0 = parts[0] || 'dashboard';
+  if (seg0 === 'team' && parts[1] === 'employee' && parts[2]) { openEmployee(decodeURIComponent(parts[2])); return; }
+  if (seg0 === 'projects' && parts[1]) { openProject(decodeURIComponent(parts[1])); return; }
+  if (seg0 === 'department' && parts[1]) { goDept(decodeURIComponent(parts[1])); return; }
+  const known = ['dashboard','planner','tasks','departments','team','projects','integrations','tgusers','branches','positions','settings','logs','stats','botsettings','botcommands','profile','orgchart'];
+  if (known.indexOf(seg0) !== -1) { goPage(seg0); return; }
+  goPage('dashboard');   // noma'lum hash — jimgina bosh sahifaga
 }
 
 function goProfilePage() {
@@ -4320,6 +4393,7 @@ function goDept(deptId) {
   ['dashboard','tasks','departments','department','team','integrations','tgusers','branches','positions','settings','stats','botsettings','botcommands','orgchart'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === 'department' ? 'block' : 'none'); });
   renderDeptHeader();
   setDeptView('kanban');
+  rtSetHash('#/department/' + encodeURIComponent(deptId));
 }
 
 // ============ TASKS (workspace-wide list) ============
@@ -9509,6 +9583,8 @@ async function loadHrData(force) {
     empDepts = {};
     (dmR.data || []).forEach(function (x) { (empDepts[x.user_id] = empDepts[x.user_id] || []).push(x.department_id); });
     _hrLoadedWs = wsId; _hrError = '';
+    // Rasmlar: photo_path (Storage) -> signed URL, batch, keshli. Xato bo'lsa jimgina o'tadi (avatar initsiallarga tushadi).
+    try { await prefetchPhotoUrls(detR.data || []); } catch (e) { console.warn('prefetchPhotoUrls:', e && e.message); }
     return true;
   } catch (e) {
     _hrLoadedWs = null;
@@ -9516,6 +9592,56 @@ async function loadHrData(force) {
     positionsCache = []; empRolesCache = []; empDetails = {}; empBranches = {}; empDepts = {};
     return false;
   }
+}
+
+// ---- Rasm (Storage photo_path -> signed URL), keshli + batch ----
+// _photoUrlCache: user_id -> { url, exp }  (exp = millisekundlarda amal qilish muddati)
+let _photoUrlCache = {};
+const PHOTO_BUCKET = 'employee-photos';
+const PHOTO_TTL_SEC = 3600;
+
+// empDetails ro'yxatidan hali keshlanmagan (yoki muddati tugagan) photo_path'larni
+// BITTA createSignedUrls chaqirig'ida oladi. 126 alohida so'rov QILMAYDI.
+async function prefetchPhotoUrls(rows) {
+  const now = Date.now();
+  const need = [];   // { uid, path }
+  (rows || []).forEach(function (d) {
+    if (!d || !d.photo_path) return;
+    const c = _photoUrlCache[d.user_id];
+    if (c && c.exp > now) return;   // hali yaroqli
+    need.push({ uid: d.user_id, path: d.photo_path });
+  });
+  if (!need.length) return;
+  const paths = need.map(function (x) { return x.path; });
+  const { data, error } = await sb.storage.from(PHOTO_BUCKET).createSignedUrls(paths, PHOTO_TTL_SEC);
+  if (error) { console.warn('createSignedUrls:', error.message); return; }
+  const exp = now + (PHOTO_TTL_SEC - 60) * 1000;   // 1 daqiqa zaxira
+  (data || []).forEach(function (item, i) {
+    if (item && item.signedUrl && !item.error) {
+      _photoUrlCache[need[i].uid] = { url: item.signedUrl, exp: exp };
+    }
+    // xato / o'lik havola -> keshlamaymiz, getPhotoUrl null qaytaradi, avatar initsiallarga tushadi
+  });
+}
+
+// Keshdan signed URL. Yaroqli bo'lsa qaytaradi, aks holda null (chaqiruvchi fallback qiladi).
+function getPhotoUrl(uid) {
+  const c = _photoUrlCache[uid];
+  if (c && c.exp > Date.now()) return c.url;
+  return null;
+}
+
+// Hodim avatari uchun eng yaxshi rasm manbai: signed URL (photo_path) -> Google Drive havolasi -> profil avatari.
+function empAvatarUrl(uid, d, p) {
+  return getPhotoUrl(uid) || hrSafeUrl(d && d.photo_url) || (p && p.avatar_url) || null;
+}
+
+// Bir hodimning photo_path'ini keshga majburan qayta yuklaydi (rasm yuklangandan keyin).
+async function refreshPhotoUrl(uid) {
+  const d = empDetails[uid];
+  if (!d || !d.photo_path) { delete _photoUrlCache[uid]; return; }
+  delete _photoUrlCache[uid];
+  await prefetchPhotoUrls([d]);
 }
 
 // Bir martalik: localStorage'dagi eski lavozimlar → DB. Faqat owner/admin.
@@ -9865,7 +9991,7 @@ function renderTeamTable() {
 
     return '<tr class="team-row-link" onclick="teamRowClick(event,\'' + m.user_id + '\')">' +
       '<td style="' + td + 'color:var(--muted);">' + (start + i + 1) + '</td>' +
-      '<td style="' + td + '">' + avatarHtml(nm.full, null, hrSafeUrl(d.photo_url) || p.avatar_url || null) + '</td>' +
+      '<td style="' + td + '">' + avatarHtml(nm.full, null, empAvatarUrl(m.user_id, d, p)) + '</td>' +
       '<td style="' + td + 'font-weight:500;">' + escapeHtml(nm.full) + (isMe ? ' <span style="color:var(--muted);font-weight:400;">(siz)</span>' : '') + '</td>' +
       '<td style="' + td + '">' + (nm.first ? escapeHtml(nm.first) : '<span style="color:var(--muted)">—</span>') + '</td>' +
       '<td style="' + td + '">' + (nm.last ? escapeHtml(nm.last) : '<span style="color:var(--muted)">—</span>') + '</td>' +
@@ -10165,6 +10291,7 @@ function openEmployee(uid) {
   if (!canManageTeam() && uid !== me.id) { toast('Faqat o\'z ma\'lumotingizni ko\'rishingiz mumkin', 'err'); return; }
   _empDtlUid = uid;
   goPage('employee');
+  rtSetHash('#/team/employee/' + encodeURIComponent(uid));
 }
 
 function empToggleNoAddr() {
@@ -10238,7 +10365,7 @@ async function renderEmployee() {
     return '<option value="' + w.v + '"' + (d.work_type === w.v ? ' selected' : '') + '>' + escapeHtml(w.l) + '</option>';
   }).join('');
   const schHtml = HR_SCHEDULE_TYPES.map(function (s) {
-    return '<label><input type="radio" name="edtSched" value="' + s.v + '"' + (d.schedule_type === s.v ? ' checked' : '') + dis + '><span>' + escapeHtml(s.l) + '</span></label>';
+    return '<label><input type="radio" name="edtSched" value="' + s.v + '"' + (d.schedule_type === s.v ? ' checked' : '') + ' onchange="schOnModeChange()"' + dis + '><span>' + escapeHtml(s.l) + '</span></label>';
   }).join('');
   const wd = Array.isArray(d.weekend_days) ? d.weekend_days.map(Number) : [];
   const wdHtml = HR_WEEKDAYS.map(function (lbl, i) {
@@ -10263,7 +10390,7 @@ async function renderEmployee() {
   // ---- Asosiy ----
   html += '<div class="hr-card"><h3>Asosiy</h3>' +
     '<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">' +
-      '<div style="flex:0 0 auto;" id="edtPhotoBox">' + avatarHtml(nm.full, 'lg', hrSafeUrl(d.photo_url) || p.avatar_url || null) + '</div>' +
+      '<div style="flex:0 0 auto;" id="edtPhotoBox">' + avatarHtml(nm.full, 'lg', empAvatarUrl(uid, d, p)) + '</div>' +
       '<div style="flex:1;min-width:240px;"><div class="hr-grid">' +
         '<div class="hr-f"><label class="hr-lbl">Ism</label><input class="hr-in" id="edtFirst" value="' + escapeHtml(nm.first) + '"' + dis + '></div>' +
         '<div class="hr-f"><label class="hr-lbl">Familiya</label><input class="hr-in" id="edtLast" value="' + escapeHtml(nm.last) + '"' + dis + '></div>' +
@@ -10301,12 +10428,29 @@ async function renderEmployee() {
     '<div class="hr-f"><label class="hr-lbl">Tugashi</label><input type="date" class="hr-in" id="edtCtrEnd" value="' + escapeHtml(d.contract_end ? String(d.contract_end).slice(0, 10) : '') + '"' + dis + '></div>' +
   '</div></div>';
 
-  // ---- Ish jadvali ----
+  // ---- Ish jadvali (3 rejim: Haftalik / Oylik / Moslashuvchan) ----
+  const schMode = d.schedule_type || 'weekly';
+  const schCount = (d.monthly_off_count != null) ? String(d.monthly_off_count) : '';
+  const schPos = d.monthly_off_position || 'end';
+  const schShow = function (mode) { return schMode === mode ? '' : 'display:none;'; };
   html += '<div class="hr-card"><h3>Ish jadvali</h3><div class="hr-grid">' +
     '<div class="hr-f wide"><label class="hr-lbl">Jadval turi</label><div class="hr-pick">' + schHtml + '</div></div>' +
     '<div class="hr-f"><label class="hr-lbl">Ish vaqti boshlanishi</label><input type="time" class="hr-in" id="edtWorkStart" value="' + escapeHtml(d.work_start ? String(d.work_start).slice(0, 5) : '') + '"' + dis + '></div>' +
     '<div class="hr-f"><label class="hr-lbl">Ish vaqti tugashi</label><input type="time" class="hr-in" id="edtWorkEnd" value="' + escapeHtml(d.work_end ? String(d.work_end).slice(0, 5) : '') + '"' + dis + '></div>' +
-    '<div class="hr-f wide"><label class="hr-lbl">Haftalik dam olish kunlari</label><div class="hr-pick">' + wdHtml + '</div></div>' +
+    // Haftalik — hafta kunlari (dam olish)
+    '<div class="hr-f wide" id="schWeeklyBox" style="' + schShow('weekly') + '"><label class="hr-lbl">Haftalik dam olish kunlari</label><div class="hr-pick">' + wdHtml + '</div></div>' +
+    // Oylik — N kun ketma-ket, oy boshi/oxiridan
+    '<div class="hr-f" id="schMonthlyCountBox" style="' + schShow('monthly') + '"><label class="hr-lbl">Dam olish kunlari hajmi</label><input type="number" min="0" max="31" step="1" class="hr-in" id="schMonthlyCount" value="' + escapeHtml(schCount) + '" placeholder="5"' + dis + '></div>' +
+    '<div class="hr-f" id="schMonthlyPosBox" style="' + schShow('monthly') + '"><label class="hr-lbl">Dam olish kunlari turi</label><div class="hr-pick">' +
+        '<label><input type="radio" name="schPos" id="schPosStart" value="start"' + (schPos === 'start' ? ' checked' : '') + dis + '><span>Boshlash</span></label>' +
+        '<label><input type="radio" name="schPos" id="schPosEnd" value="end"' + (schPos !== 'start' ? ' checked' : '') + dis + '><span>Tugash</span></label>' +
+      '</div><div class="hr-hint">Masalan: Tugash + 5 → har oyning oxirgi 5 kuni dam.</div></div>' +
+    // Moslashuvchan — kalendar
+    '<div class="hr-f wide" id="schFlexBox" style="' + schShow('flexible') + '"><label class="hr-lbl">Dam olish kunlari (kalendar)</label>' +
+      '<div id="schCalWrap"><div class="hr-hint">Kalendar yuklanmoqda…</div></div>' +
+      '<div class="hr-hint">Kunni bosib dam kunini belgilang (yashil). Saqlash uchun pastdagi «Kunlarni saqlash».</div></div>' +
+    // Kunlarni saqlash — naqshdan employee_schedule_days qayta hosil qiladi
+    (canManage ? '<div class="hr-f wide"><button class="btn secondary" id="schSaveDaysBtn" onclick="schSaveDays()">📅 Kunlarni saqlash</button><div class="hr-hint">Tanlangan rejim naqshidan ish kunlarini qayta hisoblaydi (employee_schedule_days).</div></div>' : '') +
   '</div></div>';
 
   // ---- Hujjatlar (employee_links) ----
@@ -10338,6 +10482,192 @@ async function renderEmployee() {
 
   body.innerHTML = html;
   empToggleNoAddr();
+  if (schMode === 'flexible') schInitFlex(uid);
+}
+
+// ============ Ish jadvali — 3 rejim yordamchilari ============
+// Moslashuvchan (flexible) rejim uchun tanlangan dam kunlari (YYYY-MM-DD Set) va kalendar kursori.
+let _schOffDays = null;         // Set<string> yoki null (yuklanmagan) — joriy tanlangan dam kunlari
+let _schOffOriginal = null;     // Set<string> — DB'dagi boshlanғich 'off' kunlar (deselect'ni aniqlash uchun)
+let _schCalCursor = null;       // Date (oy ko'rsatkichi)
+let _schFlexLoadedUid = null;
+
+// Radio o'zgarganda mos maydon bloklarini ko'rsatadi/yashiradi.
+function schOnModeChange() {
+  const sel = document.querySelector('input[name="edtSched"]:checked');
+  const mode = sel ? sel.value : 'weekly';
+  const setDisp = function (id, on) { const el = $(id); if (el) el.style.display = on ? '' : 'none'; };
+  setDisp('schWeeklyBox', mode === 'weekly');
+  setDisp('schMonthlyCountBox', mode === 'monthly');
+  setDisp('schMonthlyPosBox', mode === 'monthly');
+  setDisp('schFlexBox', mode === 'flexible');
+  if (mode === 'flexible') schInitFlex(_empDtlUid);
+}
+
+// Moslashuvchan: employee_schedule_days'dan 'off' kunlarini yuklab, kalendarni chizadi.
+async function schInitFlex(uid) {
+  if (!uid || !currentWs) return;
+  if (!_schCalCursor) { const t = new Date(); _schCalCursor = new Date(t.getFullYear(), t.getMonth(), 1); }
+  // Faqat bir marta yuklaymiz (rejim almashtirilganda qayta so'ramaymiz)
+  if (_schFlexLoadedUid !== uid || _schOffDays === null) {
+    _schOffDays = new Set();
+    try {
+      const { data, error } = await sb.from('employee_schedule_days')
+        .select('date, day_type').eq('workspace_id', currentWs.id).eq('user_id', uid);
+      if (error) throw error;
+      (data || []).forEach(function (r) { if (r.day_type === 'off') _schOffDays.add(String(r.date).slice(0, 10)); });
+      _schOffOriginal = new Set(_schOffDays);
+      _schFlexLoadedUid = uid;
+    } catch (e) {
+      const w = $('schCalWrap');
+      if (w) w.innerHTML = '<div class="hr-hint" style="color:var(--danger);">Kunlar yuklanmadi: ' + escapeHtml(e.message || String(e)) + '</div>';
+      return;
+    }
+  }
+  schRenderCal();
+}
+
+function schCalNav(dir) {
+  if (!_schCalCursor) return;
+  _schCalCursor = new Date(_schCalCursor.getFullYear(), _schCalCursor.getMonth() + dir, 1);
+  schRenderCal();
+}
+
+function schToggleDay(iso) {
+  if (!_schOffDays) return;
+  if (_schOffDays.has(iso)) _schOffDays.delete(iso); else _schOffDays.add(iso);
+  schRenderCal();
+}
+
+// 2 oy yonma-yon kalendar. Tanlangan dam kunlari yashil.
+function schRenderCal() {
+  const wrap = $('schCalWrap');
+  if (!wrap || !_schCalCursor) return;
+  const ro = !canManageTeam();
+  const monthHtml = function (base) {
+    const y = base.getFullYear(), mo = base.getMonth();
+    const first = new Date(y, mo, 1);
+    const startPad = (first.getDay() + 6) % 7;   // Dushanba = 0
+    const daysInMonth = new Date(y, mo + 1, 0).getDate();
+    const title = base.toLocaleDateString('uz-UZ', { month: 'long', year: 'numeric' });
+    let cells = '';
+    ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya'].forEach(function (w) {
+      cells += '<div style="text-align:center;font-size:11px;color:var(--muted);padding:4px 0;">' + w + '</div>';
+    });
+    for (let i = 0; i < startPad; i++) cells += '<div></div>';
+    for (let day = 1; day <= daysInMonth; day++) {
+      const iso = y + '-' + String(mo + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+      const off = _schOffDays.has(iso);
+      const bg = off ? 'background:#10B981;color:#fff;font-weight:600;' : 'background:var(--panel,#fff);';
+      const clickAttr = ro ? '' : ' onclick="schToggleDay(\'' + iso + '\')"';
+      const cur = ro ? 'default' : 'pointer';
+      cells += '<div' + clickAttr + ' style="text-align:center;padding:7px 0;border-radius:6px;cursor:' + cur + ';border:1px solid var(--border,#e5e7eb);' + bg + '">' + day + '</div>';
+    }
+    return '<div style="flex:1;min-width:220px;"><div style="text-align:center;font-weight:600;margin-bottom:6px;text-transform:capitalize;">' + escapeHtml(title) + '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;">' + cells + '</div></div>';
+  };
+  const next = new Date(_schCalCursor.getFullYear(), _schCalCursor.getMonth() + 1, 1);
+  const count = _schOffDays ? _schOffDays.size : 0;
+  wrap.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">' +
+      '<button type="button" class="btn sm secondary" onclick="schCalNav(-1)">‹</button>' +
+      '<span class="hr-hint">Tanlangan dam kunlari: ' + count + '</span>' +
+      '<button type="button" class="btn sm secondary" onclick="schCalNav(1)">›</button>' +
+    '</div>' +
+    '<div style="display:flex;gap:16px;flex-wrap:wrap;">' + monthHtml(_schCalCursor) + monthHtml(next) + '</div>';
+}
+
+// Sana yordamchilari (schSaveDays uchun) — vaqt zonasidan xoli, mahalliy sana
+function schIso(dt) { return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0'); }
+
+// "Kunlarni saqlash" — tanlangan rejim naqshidan employee_schedule_days ni qayta hosil qiladi.
+async function schSaveDays() {
+  const uid = _empDtlUid;
+  if (!uid || !canManageTeam() || !currentWs) return;
+  const schedEl = document.querySelector('input[name="edtSched"]:checked');
+  const mode = schedEl ? schedEl.value : 'weekly';
+  const workStart = ($('edtWorkStart') && $('edtWorkStart').value) || null;
+  const workEnd = ($('edtWorkEnd') && $('edtWorkEnd').value) || null;
+
+  // Sana oralig'i: shartnoma davri (bor bo'lsa), aks holda joriy oy boshidan +1 yil.
+  let startStr = ($('edtCtrStart') && $('edtCtrStart').value) || '';
+  let endStr = ($('edtCtrEnd') && $('edtCtrEnd').value) || '';
+  const rows = [];
+
+  if (mode === 'flexible') {
+    if (!_schOffDays) { toast('Kalendar hali yuklanmadi', 'err'); return; }
+    // Joriy tanlangan → off; oldin off bo'lib endi olib tashlangan → on
+    _schOffDays.forEach(function (iso) { rows.push({ workspace_id: currentWs.id, user_id: uid, date: iso, day_type: 'off', start_time: null, end_time: null }); });
+    if (_schOffOriginal) {
+      _schOffOriginal.forEach(function (iso) {
+        if (!_schOffDays.has(iso)) rows.push({ workspace_id: currentWs.id, user_id: uid, date: iso, day_type: 'on', start_time: workStart, end_time: workEnd });
+      });
+    }
+    if (!rows.length) { toast('O\'zgarish yo\'q', 'ok'); return; }
+  } else {
+    // weekly / monthly — oraliq bo'yicha har kunni hisoblaymiz
+    if (!startStr || !endStr) {
+      const t = new Date();
+      const s = new Date(t.getFullYear(), t.getMonth(), 1);
+      const e = new Date(t.getFullYear() + 1, t.getMonth(), 0);
+      startStr = schIso(s); endStr = schIso(e);
+    }
+    if (endStr < startStr) { toast('Shartnoma tugashi boshlanishidan oldin — oraliq noto\'g\'ri', 'err'); return; }
+    const start = new Date(startStr + 'T00:00:00');
+    const end = new Date(endStr + 'T00:00:00');
+    const dayCount = Math.round((end - start) / 86400000) + 1;
+    if (dayCount > 800) { toast('Oraliq juda katta (' + dayCount + ' kun). Shartnoma sanalarini aniqlang.', 'err'); return; }
+
+    let weekend = [];
+    if (mode === 'weekly') {
+      HR_WEEKDAYS.forEach(function (_l, i) { const cb = $('edtWd_' + i); if (cb && cb.checked) weekend.push(i); });
+    }
+    let mCount = 0, mPos = 'end';
+    if (mode === 'monthly') {
+      mCount = parseInt(($('schMonthlyCount') && $('schMonthlyCount').value) || '0', 10) || 0;
+      const posEl = document.querySelector('input[name="schPos"]:checked');
+      mPos = posEl ? posEl.value : 'end';
+    }
+    for (let cur = new Date(start); cur <= end; cur.setDate(cur.getDate() + 1)) {
+      let off = false;
+      if (mode === 'weekly') {
+        off = weekend.indexOf(cur.getDay()) !== -1;
+      } else if (mode === 'monthly' && mCount > 0) {
+        const dom = cur.getDate();
+        const dim = new Date(cur.getFullYear(), cur.getMonth() + 1, 0).getDate();
+        off = (mPos === 'start') ? (dom <= mCount) : (dom > dim - mCount);
+      }
+      rows.push({
+        workspace_id: currentWs.id, user_id: uid, date: schIso(cur),
+        day_type: off ? 'off' : 'on',
+        start_time: off ? null : workStart, end_time: off ? null : workEnd,
+      });
+    }
+  }
+
+  const offN = rows.filter(function (r) { return r.day_type === 'off'; }).length;
+  const ok = await uiConfirm('Kunlarni qayta hisoblash',
+    'Bu hodimning ' + rows.length + ' ta ish kuni qayta hisoblanadi (' + offN + ' dam kuni). Mavjud kunlar ustiga yoziladi. Davom etamizmi?',
+    { danger: true, okText: 'Qayta hisoblash' });
+  if (!ok) return;
+
+  const btn = $('schSaveDaysBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saqlanmoqda…'; }
+  try {
+    for (let i = 0; i < rows.length; i += 800) {
+      const chunk = rows.slice(i, i + 800);
+      const { error } = await sb.from('employee_schedule_days').upsert(chunk, { onConflict: 'workspace_id,user_id,date' });
+      if (error) throw error;
+    }
+    // Moslashuvchan: boshlanғich holatni yangilaymiz
+    if (mode === 'flexible') _schOffOriginal = new Set(_schOffDays);
+    toast('✓ ' + rows.length + ' kun saqlandi (' + offN + ' dam kuni)', 'ok');
+    logActivity('schedule_days_regenerated', { entityType: 'employee', entityId: uid, entityTitle: 'Ish jadvali', details: { mode: mode, days: rows.length, off: offN } });
+  } catch (e) {
+    toast('Kunlarni saqlashda xato: ' + (e.message || String(e)), 'err');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '📅 Kunlarni saqlash'; }
+  }
 }
 
 async function empDtlSave() {
@@ -10364,8 +10694,22 @@ async function empDtlSave() {
   const schedType = schedEl ? schedEl.value : null;
   const workStart = $('edtWorkStart').value || null;
   const workEnd = $('edtWorkEnd').value || null;
+  // Dam kunlari faqat Haftalik rejimda saqlanadi; boshqa rejimda bo'shatiladi.
   const weekend = [];
-  HR_WEEKDAYS.forEach(function (_l, i) { const cb = $('edtWd_' + i); if (cb && cb.checked) weekend.push(i); });
+  if (schedType === 'weekly') {
+    HR_WEEKDAYS.forEach(function (_l, i) { const cb = $('edtWd_' + i); if (cb && cb.checked) weekend.push(i); });
+  }
+  // Oylik naqsh maydonlari
+  let monthlyCount = null, monthlyPos = null;
+  if (schedType === 'monthly') {
+    const mcRaw = String(($('schMonthlyCount') && $('schMonthlyCount').value) || '').trim();
+    monthlyCount = mcRaw === '' ? null : parseInt(mcRaw, 10);
+    if (mcRaw !== '' && (!isFinite(monthlyCount) || monthlyCount < 0 || monthlyCount > 31)) {
+      toast('Dam olish kunlari hajmi 0–31 oralig\'ida butun son bo\'lishi kerak', 'err'); return;
+    }
+    const posEl = document.querySelector('input[name="schPos"]:checked');
+    monthlyPos = posEl ? posEl.value : 'end';
+  }
 
   // ---- Validatsiya ----
   if (!hrValidUrl(photo)) { toast('Rasm havolasi noto\'g\'ri — http:// yoki https:// bilan boshlansin', 'err'); return; }
@@ -10384,11 +10728,19 @@ async function empDtlSave() {
     work_type: workType || null, radius: radius,
     schedule_type: schedType || null, weekend_days: weekend,
     work_start: workStart || null, work_end: workEnd || null,
+    monthly_off_count: monthlyCount, monthly_off_position: monthlyPos,
   };
 
   if (btn) { btn.disabled = true; btn.textContent = 'Saqlanmoqda…'; }
   try {
-    const { data, error } = await sb.from('employee_details').upsert(payload, { onConflict: 'workspace_id,user_id' }).select().single();
+    let { data, error } = await sb.from('employee_details').upsert(payload, { onConflict: 'workspace_id,user_id' }).select().single();
+    if (error && /monthly_off/.test(error.message || '')) {
+      // 43-migratsiya hali ishga tushmagan — oylik ustunlarsiz qayta urinamiz, aniq ogohlantirish beramiz
+      const p2 = Object.assign({}, payload); delete p2.monthly_off_count; delete p2.monthly_off_position;
+      const retry = await sb.from('employee_details').upsert(p2, { onConflict: 'workspace_id,user_id' }).select().single();
+      data = retry.data; error = retry.error;
+      if (!error) toast('Saqlandi, lekin Oylik jadval uchun 43-migratsiya kerak (monthly_off ustunlari yo\'q)', 'err');
+    }
     if (error) throw error;
     empDetails[uid] = data;
 
@@ -10613,6 +10965,19 @@ function hrNormName(s) {
     return Object.prototype.hasOwnProperty.call(HR_CYR_HOMOGLYPH, ch) ? HR_CYR_HOMOGLYPH[ch] : ch;
   });
   return out.replace(/\s+/g, ' ').trim();
+}
+
+// Ikki ismni SOLISHTIRISH uchun kalit — hech qayerga yozilmaydi.
+// hrNormName() dan farqi: kichik harfga tushiriladi va apostrof butunlay
+// tashlanadi, ya'ni "O'ral" / "Oral" / "o'ral" bir xil sanaladi.
+//
+// ⚠️ cleanup_duplicate_staff.sql:48 dagi cleanup_norm_name() BILAN BIR XIL
+// natija berishi SHART. Farq qilsa: preflight bir juftlikni bloker deb
+// ko'rsatadi, tozalash skripti esa uni topmaydi (yoki aksincha) — ya'ni
+// ikkita vosita bir xil ma'lumot haqida qarama-qarshi javob beradi.
+// Birini o'zgartirsangiz — ikkinchisini ham.
+function hrNameKey(s) {
+  return hrNormName(s).toLowerCase().replace(/['`‘’ʼʻ՚′]/g, '');
 }
 
 // vacation_type → employee_details.schedule_type
@@ -11075,6 +11440,83 @@ async function hrImportPreflight() {
       if (hit) tgHits.push({ row: r._row, name: hit.full_name || '—', phone: r.phone_e164 });
     });
 
+    // 5b) Bu odam TaskFix'da ALLAQACHON bormi (telefon bo'yicha) → BLOKER
+    //
+    // NEGA: EF mavjud odamni faqat SINTETIK email bo'yicha qidiradi
+    // (auth_user_id_by_email). Haqiqiy emaili bor odam — 'feruzbek…@gmail.com' —
+    // hech qachon topilmaydi, shuning uchun unga IKKINCHI akkaunt yaratiladi.
+    // Aynan shu Feruzbek bilan sodir bo'lgan (cleanup_duplicate_staff.sql).
+    //
+    // NEGA MIJOZDA: odamning haqiqiy telefoni auth.users.phone da EMAS — u yerda
+    // bo'lganida createUser "already registered" berardi va import to'xtardi.
+    // U profiles.phone da, va wsMembers uni allaqachon yuklab qo'ygan
+    // (profil: id, full_name, phone, email). service_role kerak emas.
+    //
+    // NEGA FAQAT BLOKER, avtomatik bog'lash EMAS: profiles.phone — erkin matn
+    // (setProfPhone, edtPhone, Jamoa inline tahriri — hammasi faqat .trim()
+    // qiladi), ya'ni terish xatosi bo'lishi mumkin. Telefon mos + ism boshqa =
+    // ikki boshqa odam bo'lishi mumkin, ularni birlashtirsak qaytarib ajratib
+    // bo'lmaydi. To'xtash arzon, noto'g'ri birlashtirish qimmat.
+    // ⚠️ wsMembers'ni ISHLATMAYMIZ — u workspace yuklanganda o'qilgan va
+    // loadHrData() uni yangilamaydi. Sahifa ochilgandan keyin qo'shilgan
+    // foydalanuvchi unda yo'q → 5b uni ko'rmaydi → aynan biz to'sayotgan
+    // dublikat sirg'alib o'tadi. Preflight bir martalik amal, so'rov arzon.
+    //
+    // Xato bo'lsa — THROW. 4-bosqichdagi kabi tashqi catch uni ushlaydi va
+    // preflight umuman ochilmaydi, ya'ni Import tugmasiga yetib bo'lmaydi.
+    // Jimgina davom etsak — himoya o'chib qolgani bilinmasdi.
+    const { data: wmRows, error: wmErr } = await sb.from('workspace_members')
+      .select('user_id').eq('workspace_id', currentWs.id);
+    if (wmErr) throw wmErr;
+    const wmIds = (wmRows || []).map(function (x) { return x.user_id; });
+
+    let memProfs = [];
+    if (wmIds.length) {
+      const { data: mpr, error: mprErr } = await sb.from('profiles')
+        .select('id, full_name, phone, email').in('id', wmIds);
+      if (mprErr) throw mprErr;
+      memProfs = mpr || [];
+    }
+
+    const memByDigits = {};
+    memProfs.forEach(function (pf) {
+      // Sintetik emailli akkaunt — importning O'ZI yaratgani. Uni "mavjud odam"
+      // deb hisoblasak, import o'zining oldingi yurishini bloker deb ko'rardi
+      // va qayta yurgizish umuman imkonsiz bo'lardi.
+      if (String(pf.email || '').toLowerCase().endsWith('@' + HR_IMP_EMAIL_DOMAIN)) return;
+      const ph = hrImportNormPhone(pf.phone);
+      if (!ph.ok) return;   // telefoni yo'q yoki axlat → hech kim bilan mos kelmasin
+      (memByDigits[ph.e164] = memByDigits[ph.e164] || []).push(pf);
+    });
+
+    _hrImpRows.forEach(function (r) {
+      if (!r.phone_e164) return;
+      // _known = staff_import_map da bor → EF uni map orqali topadi va
+      // createUser ga umuman bormaydi. Dublikat xavfi yo'q, tegmaymiz.
+      if (r._known) return;
+      const hits = memByDigits[r.phone_e164] || [];
+      if (!hits.length) return;
+
+      const desc = function (pf) {
+        return (pf.email || pf.id) + (pf.full_name ? ' ("' + pf.full_name + '")' : '');
+      };
+
+      if (hits.length > 1) {
+        r.errors.push('telefon ' + r.phone_e164 + ' bir nechta mavjud akkauntda: ' +
+          hits.map(desc).join(', ') + ' — qaysi biri ekani noma\'lum, qo\'lda hal qiling');
+        return;
+      }
+      const pf = hits[0];
+      if (r.full_name && hrNameKey(pf.full_name) === hrNameKey(r.full_name)) {
+        r.errors.push('bu odam TaskFix\'da allaqachon bor: ' + desc(pf) +
+          ' — yangi akkaunt yaratilsa dublikat bo\'lardi. staff_import_map ga qo\'lda bog\'lang.');
+      } else {
+        r.errors.push('telefon ' + r.phone_e164 + ' mavjud akkauntga mos, LEKIN ism boshqa: ' +
+          'manbada "' + (r.full_name || '—') + '", TaskFix\'da ' + desc(pf) +
+          ' — ikki boshqa odam bo\'lishi mumkin, qo\'lda tekshiring');
+      }
+    });
+
     const blocked = _hrImpRows.filter(function (r) { return r.errors.length; });
     const ok = _hrImpRows.filter(function (r) { return !r.errors.length; });
 
@@ -11275,7 +11717,7 @@ async function hrImportWriteDetails(rows, results) {
 
   const out = {
     branches: 0, roles: 0, positions: 0,
-    profiles: 0, details: 0, empBranches: 0, days: 0,
+    profiles: 0, profilesKept: 0, details: 0, empBranches: 0, days: 0,
     managers: 0, managersUnresolved: [],
     skipped: 0, errors: [],
   };
@@ -11288,6 +11730,30 @@ async function hrImportWriteDetails(rows, results) {
   (results || []).forEach(function (r) {
     if (r && r.user_id) uidBy[String(r.source_id)] = r.user_id;
   });
+
+  // Mavjud profillar — BITTA so'rovda (126 ta alohida so'rov QILMAYMIZ).
+  // 4-bosqichda "bo'sh maydonnigina to'ldirish" qarori shu ma'lumotga tayanadi.
+  // wsMembers YARAMAYDI: u importdan OLDIN yuklangan, endigina yaratilgan
+  // userlar unda yo'q.
+  const profBy = {};
+  let profReadOk = true;
+  const allUids = Object.keys(uidBy).map(function (k) { return uidBy[k]; });
+  if (allUids.length) {
+    try {
+      const { data: pfs, error: pfe } = await sb.from('profiles')
+        .select('id, full_name, phone').in('id', allUids);
+      if (pfe) throw pfe;
+      (pfs || []).forEach(function (x) { profBy[x.id] = x; });
+    } catch (e) {
+      // ⚠️ O'qiy olmasak profilga UMUMAN TEGMAYMIZ.
+      // Vasvasa: profBy bo'sh qolsin, "hamma maydon bo'sh" deb hisoblansin.
+      // Bu XATO bo'lardi — aynan biz to'sayotgan bosib o'tish qaytadi, ustiga
+      // jimgina. Mavjud qiymatni bilmasak — yozmaymiz. Profil kam muhim,
+      // odamning ismini yo'qotish esa qaytarib bo'lmaydi.
+      profReadOk = false;
+      err('mavjud profillarni o\'qish (profil yozuvi o\'tkazib yuborildi)', e);
+    }
+  }
 
   const doc = _hrImpDoc || {};
   const srcBranches = Array.isArray(doc.branches) ? doc.branches : [];
@@ -11360,12 +11826,37 @@ async function hrImportWriteDetails(rows, results) {
       // profiles — empSave (10404) shu naqshni ishlatadi: manager a'zoning
       // profilini yangilay oladi. Qator auth.users trigger'i bilan paydo
       // bo'ladi; 0 qator qaytsa — trigger ishlamagan, buni bilishimiz kerak.
-      const { data: pr, error: pe } = await sb.from('profiles')
-        .update({ full_name: r.full_name, phone: r.phone_e164 })
-        .eq('id', uid).select('id');
-      if (pe) throw pe;
-      if (pr && pr.length) out.profiles++;
-      else err('profil ' + r.source_id, new Error('profiles qatori topilmadi'));
+      //
+      // ⚠️ FAQAT BO'SH MAYDON TO'LDIRILADI — mavjud odamni BOSIB O'TMAYMIZ.
+      // Shartsiz update mavjud odamning ismini aros_staff nomiga almashtirib
+      // yuborardi, telefonini esa qayta yozardi. Manba — ma'lumotnoma, haqiqat
+      // manbai emas.
+      //
+      // Bu bugun ham kerak: EF sintetik email bo'yicha adopt qiladi
+      // (index.ts:422-440), ya'ni qayta import qilinganda qator ALLAQACHON
+      // mavjud foydalanuvchiga tegadi. Telefon bo'yicha adopt qo'shilsa —
+      // qamrovi yanada kengayadi.
+      //
+      // Yangi yaratilgan userda profil bo'sh → hamma maydon to'ladi, ya'ni
+      // xatti-harakat avvalgidek. O'zgarish faqat mavjud odamlarga tegishli.
+      const prevProf = profBy[uid] || {};
+      const profUpd = {};
+      if (profReadOk) {
+        if (!String(prevProf.full_name || '').trim() && r.full_name) profUpd.full_name = r.full_name;
+        if (!String(prevProf.phone || '').trim() && r.phone_e164) profUpd.phone = r.phone_e164;
+      }
+      // profReadOk=false → profUpd bo'sh → hech narsa yozilmaydi (yuqoriga qarang).
+
+      if (Object.keys(profUpd).length) {
+        const { data: pr, error: pe } = await sb.from('profiles')
+          .update(profUpd).eq('id', uid).select('id');
+        if (pe) throw pe;
+        if (pr && pr.length) out.profiles++;
+        else err('profil ' + r.source_id, new Error('profiles qatori topilmadi'));
+      } else {
+        // Profil allaqachon to'la — tegmadik. Bu XATO EMAS, kutilgan holat.
+        out.profilesKept++;
+      }
 
       const d = r.details;
       const { error: de } = await sb.from('employee_details').upsert({
@@ -12790,6 +13281,13 @@ function scrollCmdToActive() {
     if (me && currentWs) {
       try { await sb.auth.refreshSession(); setupRealtime(); } catch (e) {}
     }
+  });
+
+  // Hash-routing: brauzer orqaga/oldinga → mos sahifani tiklaymiz.
+  // Faqat app hashlari (#/...) uchun; auth (recovery/invite) hashlariga tegmaymiz.
+  window.addEventListener('popstate', () => {
+    if (!me) return;
+    if ((window.location.hash || '').indexOf('#/') === 0) rtRouteFromHash();
   });
 
   document.addEventListener('keydown', e => {
