@@ -1,0 +1,8 @@
+# aros_staff eksporti — 5.7 MB, 126 hodimning shaxsiy ma'lumoti
+# (telefon, manzil, shartnoma havolasi, rasm). Repo'ga hech qachon tushmasin.
+aros_staff_export.json
+aros_staff_export*.json
+
+# Muhit
+.env
+.env.*

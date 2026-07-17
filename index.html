@@ -477,6 +477,31 @@
   .tbl-sv:hover { color:var(--ink); }
   .tbl-sv.active { color:#0F1417; border-bottom-color:#0F1417; font-weight:700; background:rgba(15,20,23,.05); border-radius:8px 8px 0 0; }
   .tbl-toolbar { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  /* ---- Jamoa (HR): filtr / sahifalash ---- */
+  .team-flt { border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:8px; padding:7px 9px; font-size:12.5px; font-family:inherit; cursor:pointer; }
+  .team-flt:focus { outline:none; border-color:var(--accent); }
+  .team-flt-lbl { font-size:12px; color:var(--muted); white-space:nowrap; }
+  .team-pager { display:flex; align-items:center; gap:10px; margin-top:12px; }
+  .team-row-link { cursor:pointer; }
+  .team-chip { display:inline-block; padding:2px 7px; margin:1px 3px 1px 0; border-radius:10px; font-size:11px; background:var(--surface-2); border:1px solid var(--line); color:var(--muted); white-space:nowrap; }
+  /* ---- Hodim detali (HR forma) ---- */
+  .hr-card { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin-bottom:14px; }
+  .hr-card h3 { margin:0 0 14px; font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+  .hr-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px; }
+  .hr-f { display:flex; flex-direction:column; gap:6px; min-width:0; }
+  .hr-f.wide { grid-column:1/-1; }
+  .hr-lbl { font-size:12px; color:var(--muted); font-weight:500; }
+  .hr-in { border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:8px; padding:9px 11px; font-size:13.5px; font-family:inherit; width:100%; box-sizing:border-box; }
+  .hr-in:focus { outline:none; border-color:var(--accent); }
+  .hr-in:disabled, .hr-in[readonly] { background:var(--surface-2); color:var(--muted); cursor:not-allowed; }
+  .hr-hint { font-size:11.5px; color:var(--muted); }
+  .hr-pick { display:flex; flex-wrap:wrap; gap:6px; }
+  .hr-pick label { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-size:12.5px; cursor:pointer; background:var(--surface); user-select:none; }
+  .hr-pick label:hover { border-color:var(--accent); }
+  .hr-pick input:disabled + span { color:var(--muted); }
+  .hr-link-row { display:flex; align-items:center; gap:10px; padding:9px 2px; border-top:1px solid var(--line); font-size:13px; }
+  .hr-link-row a { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hr-ro-note { padding:9px 12px; border:1px solid var(--line); background:var(--surface-2); border-radius:8px; font-size:12.5px; color:var(--muted); margin-bottom:14px; }
   .tbl-wrap { overflow:auto; border:1px solid var(--line); border-radius:10px; max-height:calc(100vh - 260px); position:relative; background:var(--surface); }
   .xtbl { border-collapse:separate; border-spacing:0; font-size:13px; width:max-content; min-width:100%; }
   .xtbl thead th { position:sticky; top:0; z-index:5; background:var(--surface-2); border-bottom:1px solid var(--line); border-right:1px solid var(--line); padding:0; font-weight:600; color:var(--ink); text-align:left; white-space:nowrap; vertical-align:middle; }
@@ -1098,17 +1123,48 @@
 
     <!-- Team (workspace) -->
     <section id="page-team" style="display:none">
-      <div class="row-head"><h2 class="h2" style="margin:0">Jamoa</h2><button class="btn" id="inviteBtn" onclick="openInvite()" style="display:none">+ Xodim taklif qilish</button></div>
+      <div class="row-head">
+        <h2 class="h2" style="margin:0">Jamoa</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn secondary" id="hrImportBtn" onclick="hrImportOpen()" style="display:none">⬆ Import (JSON)</button>
+          <button class="btn" id="inviteBtn" onclick="openInvite()" style="display:none">+ Xodim taklif qilish</button>
+        </div>
+      </div>
       <div class="view-tabs" style="margin:6px 0 16px;">
         <button class="view-tab active" data-teamtab="hodimlar" onclick="teamSetTab('hodimlar')">👥 Hodimlar</button>
         <button class="view-tab" data-teamtab="tashkilot" onclick="teamSetTab('tashkilot')">🏢 Tashkilot</button>
       </div>
       <div id="teamPaneHodimlar">
-        <div class="tbl-wrap" style="max-height:calc(100vh - 240px);">
+        <div class="tbl-toolbar" style="flex-wrap:wrap;">
+          <input type="text" class="search-input" id="teamSearch" placeholder="🔍 Ism, familiya, telefon yoki email..." oninput="teamOnFilterChange()" style="max-width:280px;" />
+          <select class="team-flt" id="teamFltBranch" onchange="teamOnFilterChange()"></select>
+          <select class="team-flt" id="teamFltPos" onchange="teamOnFilterChange()"></select>
+          <span class="team-flt-lbl">Shartnoma:</span>
+          <input type="date" class="team-flt" id="teamFltFrom" onchange="teamOnFilterChange()" title="Shu sanada amal qilgan shartnomalar" />
+          <span class="team-flt-lbl">—</span>
+          <input type="date" class="team-flt" id="teamFltTo" onchange="teamOnFilterChange()" title="Shu sanada amal qilgan shartnomalar" />
+          <button class="btn sm secondary" id="teamClearFlt" onclick="teamResetFilters()" style="display:none;">✕ Tozalash</button>
+          <div style="flex:1"></div>
+          <span id="teamCount" style="font-size:11.5px;color:var(--muted);"></span>
+        </div>
+        <div id="teamHrWarn" style="display:none;margin-bottom:12px;padding:10px 12px;border:1px solid #F5C2C7;background:#FDF2F2;color:#B42318;border-radius:8px;font-size:13px;"></div>
+        <div class="tbl-wrap" style="max-height:calc(100vh - 300px);">
           <table class="xtbl" id="teamTbl" style="width:max-content;min-width:100%;">
             <thead id="teamTblHead"></thead>
             <tbody id="teamTblBody"></tbody>
           </table>
+        </div>
+        <div class="team-pager" id="teamPager" style="display:none;">
+          <span class="team-flt-lbl">Sahifada:</span>
+          <select class="team-flt" id="teamPerPage" onchange="teamSetPerPage(this.value)">
+            <option value="10">10</option>
+            <option value="25" selected>25</option>
+            <option value="50">50</option>
+          </select>
+          <div style="flex:1"></div>
+          <button class="btn sm secondary" id="teamPrev" onclick="teamGoPage(-1)">‹ Oldingi</button>
+          <span id="teamPageInfo" style="font-size:12.5px;color:var(--muted);min-width:120px;text-align:center;"></span>
+          <button class="btn sm secondary" id="teamNext" onclick="teamGoPage(1)">Keyingi ›</button>
         </div>
         <div id="invitesWrap" style="margin-top: 22px; display:none;">
           <div style="margin-bottom: 10px; font-size: 13px; color: var(--muted);">Yuborilgan takliflar</div>
@@ -1116,6 +1172,18 @@
         </div>
       </div>
       <div id="teamPaneTashkilot" style="display:none"></div>
+    </section>
+
+    <!-- Hodim detali (HR) -->
+    <section id="page-employee" style="display:none">
+      <div class="row-head">
+        <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+          <button class="btn sm secondary" onclick="goPage('team')">◀ Jamoa</button>
+          <h2 class="h2" style="margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="empDtlTitle">Hodim</h2>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;" id="empDtlActions"></div>
+      </div>
+      <div id="empDtlBody"></div>
     </section>
 
     <!-- Integrations -->
@@ -1252,7 +1320,7 @@
 
         <div style="display:flex; gap:10px; margin-top: 12px;">
           <button class="btn" id="bsSaveBtn" onclick="saveBotSettings()">Saqlash</button>
-          <button class="btn secondary" onclick="resetBotSettings()">Default'gа qaytarish</button>
+          <button class="btn secondary" onclick="resetBotSettings()">Default'ga qaytarish</button>
         </div>
         <div class="msg" id="bsMsg"></div>
       </div>
@@ -1260,13 +1328,13 @@
       <div class="settings-section">
         <h3>Telegram'da admin sifatida bog'lanish</h3>
         <div style="font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 12px;">
-          Bog'langandan keyin, yangi foydalanuvchilar ro'yxatdan o'tganda <b>siz Telegram'дa darrov xabar olasiz</b> va botda Tasdiqlash/Bekor tugmalarini bosa olasiz.
+          Bog'langandan keyin, yangi foydalanuvchilar ro'yxatdan o'tganda <b>siz Telegram'da darrov xabar olasiz</b> va botda Tasdiqlash/Bekor tugmalarini bosa olasiz.
           <br><br>
           ℹ Link 1 soat davomida amal qiladi va faqat bir marta ishlatiladi.
         </div>
         <button class="btn" onclick="generateAdminLink()">🔗 Bog'lash linkini olish</button>
         <div id="bsAdminLinkResult" style="display:none;margin-top:14px;padding:12px;background:var(--surface-2);border-radius:8px;border:1px solid var(--line);">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Linkni Telegram'дa oching:</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Linkni Telegram'da oching:</div>
           <a id="bsAdminLink" href="#" target="_blank" style="display:block;font-size:14px;font-weight:600;color:var(--accent-ink);word-break:break-all;text-decoration:none;"></a>
           <div style="font-size:11px;color:var(--muted);margin-top:6px;">Yoki nusxalab oling: <button class="link-btn" onclick="copyAdminLink()" style="color:var(--accent-ink);">📋 Nusxalash</button></div>
         </div>
@@ -1290,7 +1358,7 @@
         <button class="btn" onclick="openCmdEdit(null)">+ Yangi komanda</button>
       </div>
       <div style="margin-bottom: 18px; font-size: 13.5px; color: var(--muted); line-height: 1.5;">
-        Foydalanuvchilar botgа yozadigan maxsus komandalar (masalan <code style="background:#F0EFEA;padding:1px 6px;border-radius:4px;">/info</code>). Har bir komanda — matn javobi.
+        Foydalanuvchilar botga yozadigan maxsus komandalar (masalan <code style="background:#F0EFEA;padding:1px 6px;border-radius:4px;">/info</code>). Har bir komanda — matn javobi.
         <br><br>
         ℹ Tizim komandalari (<code>/start, /help, /cancel, /vazifalarim</code>) doimo ishlaydi va o'chirib bo'lmaydi.
       </div>
@@ -1518,8 +1586,8 @@
       </div>
 
       <div class="settings-section">
-        <h3>📊 Excel'дан vazifa import</h3>
-        <p style="font-size:12.5px;color:var(--muted);margin:0 0 12px;">Bir nechta vazifани bir vaqtда Excel fayldан yuklang. Shablonни yuklab, to'ldiring va import qiling. Bajaruvchи bo'sh qolса — keyin Jadvalда tanlaysiz.</p>
+        <h3>📊 Excel'dan vazifa import</h3>
+        <p style="font-size:12.5px;color:var(--muted);margin:0 0 12px;">Bir nechta vazifani bir vaqtda Excel fayldan yuklang. Shablonni yuklab, to'ldiring va import qiling. Bajaruvchi bo'sh qolsa — keyin Jadvalda tanlaysiz.</p>
         <input type="file" id="xlsFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="onXlsPick(this)" />
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <button class="btn secondary" onclick="xlsDownloadTemplate()">⬇ Shablon yuklab olish</button>
@@ -1649,7 +1717,7 @@
           <option value="completed">Tugatilgan</option>
           <option value="cancelled">Bekor</option>
         </select>
-        <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">Bu column'gа ko'chirilgan vazifa qaysi statusга tushadi</div>
+        <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">Bu column'ga ko'chirilgan vazifa qaysi statusga tushadi</div>
       </div>
       <div class="field">
         <label>Rang</label>
@@ -1682,7 +1750,7 @@
     </div>
     <div class="modal-body">
       <div class="step-num">Webhook URL</div>
-      <p style="font-size:13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.55;">Vazifa hodisalari (yaratildi, holat o'zgardi, biriktirildi) sizning n8n instance'ingizdagi webhook'gа JSON sifatida yuboriladi.</p>
+      <p style="font-size:13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.55;">Vazifa hodisalari (yaratildi, holat o'zgardi, biriktirildi) sizning n8n instance'ingizdagi webhook'ga JSON sifatida yuboriladi.</p>
       <div class="field">
         <label>Webhook URL *</label>
         <input id="n8nUrl" type="text" placeholder="https://n8n.example.com/webhook/tasks" />
@@ -1767,7 +1835,7 @@
 
 <div class="modal-backdrop" id="ocAddBd">
   <div class="modal">
-    <div class="modal-head"><h3 id="ocAddTitle">Tashkilotgа qo'shish</h3><button class="x-btn" onclick="closeOcAdd()">×</button></div>
+    <div class="modal-head"><h3 id="ocAddTitle">Tashkilotga qo'shish</h3><button class="x-btn" onclick="closeOcAdd()">×</button></div>
     <div class="modal-body">
       <div class="field">
         <label>Odam tanlang *</label>
@@ -1812,8 +1880,8 @@
         </div>
       </div>
       <div style="display: flex; gap: 8px; margin-top: 14px;">
-        <button class="btn secondary" style="flex:1;" onclick="shareInviteTelegram()">📤 Telegram'gа yuborish</button>
-        <button class="btn secondary" style="flex:1;" onclick="shareInviteWhatsapp()">💬 WhatsApp'gа yuborish</button>
+        <button class="btn secondary" style="flex:1;" onclick="shareInviteTelegram()">📤 Telegram'ga yuborish</button>
+        <button class="btn secondary" style="flex:1;" onclick="shareInviteWhatsapp()">💬 WhatsApp'ga yuborish</button>
       </div>
     </div>
     <div class="modal-foot">
@@ -1861,6 +1929,34 @@
     <div class="modal-foot">
       <button class="btn secondary" onclick="closeAddEmployeeModal()">Bekor</button>
       <button class="btn" id="empSaveBtn" onclick="saveNewEmployee()">Yaratish va biriktirish</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hodim import (aros_staff JSON) — KARKAS. Maydon xaritasi hali stub. -->
+<div class="modal-backdrop" id="hrImportBd" style="z-index: 160;">
+  <div class="modal" style="max-width: 880px;">
+    <div class="modal-head"><h3>⬆ Hodimlarni import qilish (JSON)</h3><button class="x-btn" onclick="hrImportClose()">×</button></div>
+    <div class="modal-body">
+      <div id="hrImpStep1">
+        <div class="field">
+          <label>aros_staff eksport fayli</label>
+          <input type="file" id="hrImpFile" accept=".json,application/json" onchange="hrImportFilePicked()" style="width:100%;box-sizing:border-box;font-size:13px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);">
+          <div id="hrImpFileInfo" style="font-size:12px;margin-top:8px;min-height:18px;"></div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:4px;">
+            <code>aros_staff_export.json</code> — fayl serverga yuklanmaydi, faqat brauzerda o'qiladi.
+          </div>
+        </div>
+      </div>
+      <div id="hrImpPreflight" style="display:none;"></div>
+      <div id="hrImpReport" style="display:none;"></div>
+      <div class="msg" id="hrImpMsg"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn secondary" onclick="hrImportClose()">Yopish</button>
+      <button class="btn secondary" id="hrImpBackBtn" onclick="hrImportBack()" style="display:none;">◀ Orqaga</button>
+      <button class="btn" id="hrImpCheckBtn" onclick="hrImportPreflight()">Tekshirish</button>
+      <button class="btn" id="hrImpRunBtn" onclick="hrImportRun()" style="display:none;">Import qilish</button>
     </div>
   </div>
 </div>
@@ -1988,7 +2084,7 @@
         <div class="field">
           <label>Bot token (BotFather'dan)</label>
           <input id="onbBotToken" type="text" placeholder="123456:ABC-..." />
-          <div style="font-size:11.5px;color:var(--muted);margin-top:4px;">@BotFather'gа /newbot yuborib oling. Bo'sh qoldirsangiz keyin Settings'dan qo'shasiz.</div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:4px;">@BotFather'ga /newbot yuborib oling. Bo'sh qoldirsangiz keyin Settings'dan qo'shasiz.</div>
         </div>
       </div>
 
@@ -2084,7 +2180,7 @@
         <input type="file" id="cFileInput" multiple style="display:none" onchange="onCreateFilePick(this)" />
         <div style="display:flex; gap:8px; margin-top: 6px; align-items: center; flex-wrap: wrap;">
           <button class="upload-btn" onclick="document.getElementById('cFileInput').click()">📎 Fayl tanlash</button>
-          <span class="att-hint">💡 Yoki <b>Ctrl+V</b> (Mac: <b>⌘+V</b>) — clipboard'дан paste qiling</span>
+          <span class="att-hint">💡 Yoki <b>Ctrl+V</b> (Mac: <b>⌘+V</b>) — clipboard'dan paste qiling</span>
         </div>
       </div>
       <div class="msg" id="cMsg"></div>
@@ -2156,7 +2252,7 @@
 // ====================== CONFIG ======================
 const SUPABASE_URL = 'https://nnpsbwsppgxbytlfloth.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_ouA6pp3DwJjQkDJrWPi8QQ_30CUo51t';
-// Aros Market kompaniyasi — faqat shu workspace'да Aros warehouse_id maydoni ko'rinadi
+// Aros Market kompaniyasi — faqat shu workspace'da Aros warehouse_id maydoni ko'rinadi
 const AROS_WS_ID = '12b22aa6-dc45-4197-ae84-2e32e3cd56c2';
 function isArosWs() { return currentWs && currentWs.id === AROS_WS_ID; }
 // ====================================================
@@ -2204,7 +2300,7 @@ let notifs = [];
 let currentDeptId = null;
 let currentDeptView = 'kanban';
 let currentTasksView = 'list';
-let taskScope = 'all'; // 'all' | 'mine' (menga biriktirilган) | 'assigned' (men topshirган)
+let taskScope = 'all'; // 'all' | 'mine' (menga biriktirilgan) | 'assigned' (men topshirgan)
 let tkCalCursor = new Date();
 let deptTeamCache = [];   // department_members for current dept
 let calCursor = new Date();  // month displayed in calendar
@@ -2218,7 +2314,7 @@ const ROLE_DEPT = { viewer: 'Ko\'ruvchi', editor: 'Tahrirlovchi', admin: 'Boshqa
 const STATUS_LBL = { new: 'Yangi', in_progress: 'Jarayonda', completed: 'Tugallangan', cancelled: 'Bekor' };
 const STATUS_ORDER = ['new', 'in_progress', 'completed', 'cancelled'];
 
-// Statuslar HAMMA joyда kanban ustunlaridan olinadi
+// Statuslar HAMMA joyda kanban ustunlaridan olinadi
 function statusColsList() {
   if (kanbanColumns && kanbanColumns.length) {
     return kanbanColumns.slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
@@ -2438,7 +2534,7 @@ async function loadProjectDetail() {
       const now = new Date();
       const last = new Date(project.last_reset_at);
       if (now.getDay() === project.recurrence_weekday) {
-        // bugun o'sha kun; agar oxirgi reset bugundan oldin bo'lsa — qayta boshlaymιz
+        // bugun o'sha kun; agar oxirgi reset bugundan oldin bo'lsa — qayta boshlaymiz
         const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
         if (last.getTime() < startOfToday) due = true;
       }
@@ -2686,7 +2782,7 @@ async function prjInviteMember() {
   const candidates = (wsMembers || []).filter(m => !prjMembers.some(pm => pm.user_id === m.user_id));
   if (!candidates.length) { toast('Barcha a\'zolar allaqachon qo\'shilgan', 'ok'); return; }
   const v = await uiForm('A\'zo taklif qilish', [
-    { id: 'uid', label: 'Kimni taklif qilamiz?', type: 'select', value: candidates[0].user_id, options: candidates.map(m => ({ value: m.user_id, label: (m.profile && m.profile.full_name) || 'A\'zo' })), hint: 'Taklif qilingan a\'zo loyihани to\'liq ko\'radi, lekin o\'zgartira olmaydi.' }
+    { id: 'uid', label: 'Kimni taklif qilamiz?', type: 'select', value: candidates[0].user_id, options: candidates.map(m => ({ value: m.user_id, label: (m.profile && m.profile.full_name) || 'A\'zo' })), hint: 'Taklif qilingan a\'zo loyihani to\'liq ko\'radi, lekin o\'zgartira olmaydi.' }
   ], { okText: 'Taklif qilish' });
   if (!v || !v.uid) return;
   try {
@@ -2864,7 +2960,7 @@ function closeHsModal() { const m = $('hsModal'); if (m) m.style.display = 'none
 // ============ LOGLAR (audit ko'rinishi) ============
 let _logsCache = [];
 async function loadLogs() {
-  const wrap = $('logsList'); if (wrap) wrap.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);">Yuklanmoqда…</div>';
+  const wrap = $('logsList'); if (wrap) wrap.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);">Yuklanmoqda…</div>';
   try {
     const { data, error } = await sb.from('activity_logs').select('*').eq('workspace_id', currentWs.id).order('created_at', { ascending: false }).limit(500);
     if (error) throw error;
@@ -2878,13 +2974,13 @@ async function loadLogs() {
 function logActionMeta(action) {
   const map = {
     task_created: { icon: '➕', label: 'Vazifa yaratdi', color: '#10B981' },
-    task_status_changed: { icon: '🔄', label: 'Holatни o\'zgartirdi', color: '#3B82F6' },
+    task_status_changed: { icon: '🔄', label: 'Holatni o\'zgartirdi', color: '#3B82F6' },
     task_assigned: { icon: '👤', label: 'Biriktirdi', color: '#8B5CF6' },
     task_updated: { icon: '✏️', label: 'Tahrirladi', color: '#6B7280' },
-    task_deleted: { icon: '🗑', label: 'Vazifани o\'chirdi', color: '#EF4444' },
+    task_deleted: { icon: '🗑', label: 'Vazifani o\'chirdi', color: '#EF4444' },
     employee_added: { icon: '🧑‍💼', label: 'Xodim qo\'shdi', color: '#0EA5E9' },
     column_added: { icon: '📊', label: 'Ustun qo\'shdi', color: '#10B981' },
-    column_deleted: { icon: '🗑', label: 'Ustunни o\'chirdi', color: '#EF4444' },
+    column_deleted: { icon: '🗑', label: 'Ustunni o\'chirdi', color: '#EF4444' },
     project_created: { icon: '🗂', label: 'Loyiha yaratdi', color: '#0EA5E9' },
   };
   return map[action] || { icon: '•', label: action, color: '#6B7280' };
@@ -2965,7 +3061,7 @@ async function logActivity(action, opts) {
       entity_title: opts.entityTitle || null,
       details: opts.details || null,
     });
-    // Ochiq bo'lsa — jonli yangilaymιz
+    // Ochiq bo'lsa — jonli yangilaymiz
     if (currentPage === 'logs') loadLogs();
   } catch (e) { /* log yozilmasa ham asosiy ish davom etadi */ }
 }
@@ -3074,7 +3170,7 @@ async function saveNewPassword() {
   } catch (e) { showMsg($('rMsg'), translateErr(e.message), 'err'); btn.disabled=false; btn.textContent='Saqlash va kirish'; }
 }
 
-// Taklif orqali kelган foydalanuvchi — faqat parol o'rnatadi (ism qulflangan)
+// Taklif orqali kelgan foydalanuvchi — faqat parol o'rnatadi (ism qulflangan)
 function showInviteSetPassword(session) {
   $('loadingView').style.display = 'none';
   $('authShell').style.display = 'grid';
@@ -3084,7 +3180,7 @@ function showInviteSetPassword(session) {
   $('resetStep').style.display = 'none';
   $('inviteSetPwStep').style.display = 'block';
   hideMsg($('invPwMsg'));
-  // Ism va emailни user metadata'дан to'ldiramιz (qulflangan)
+  // Ism va emailni user metadata'dan to'ldiramiz (qulflangan)
   const u = session && session.user ? session.user : {};
   const meta = u.user_metadata || {};
   const fullName = meta.full_name || meta.name || '';
@@ -3101,10 +3197,10 @@ async function saveInvitePassword() {
   if (p1 !== p2) { showMsg($('invPwMsg'), 'Parollar mos kelmadi', 'err'); return; }
   btn.disabled = true; btn.textContent = 'Saqlanmoqda…';
   try {
-    // Parolni o'rnatamιz (foydalanuvchi allaqachon tizimda — invite token bilan)
+    // Parolni o'rnatamiz (foydalanuvchi allaqachon tizimda — invite token bilan)
     const { error } = await sb.auth.updateUser({ password: p1 });
     if (error) throw error;
-    // URL'ни tozalaymιz (hash'даgi tokenlarни olib tashlaymιz)
+    // URL'ni tozalaymiz (hash'dagi tokenlarni olib tashlaymiz)
     if (window.history.replaceState) window.history.replaceState({}, '', window.location.pathname);
     window._inviteSetPw = false;
     toast('✅ Xush kelibsiz!', 'ok');
@@ -3118,7 +3214,7 @@ function toggleProfileMenu(e) {
   const menu = $('profileMenu');
   if (!menu) return;
   const isOpen = menu.classList.contains('show');
-  // Yopilgan bo'lsa, ochamιz va outside-click listener qo'shamιz
+  // Yopilgan bo'lsa, ochamiz va outside-click listener qo'shamiz
   if (!isOpen) {
     menu.classList.add('show');
     setTimeout(() => {
@@ -3171,7 +3267,7 @@ async function renderBranches() {
   if (!visible.length) { list.innerHTML = ''; empty.style.display = 'block'; empty.innerHTML = '<strong>Topilmadi</strong>Qidiruv natijasi bo\'sh.'; return; }
   empty.style.display = 'none';
 
-  // Har filial uchun xodimlar sonи
+  // Har filial uchun xodimlar soni
   const counts = {};
   try {
     const tgIntg = integrationsCache.find(i => i.tool === 'telegram');
@@ -3260,7 +3356,7 @@ async function saveBranch() {
   else if (mgrRaw && mgrRaw.startsWith('tg:')) manager_tg_bot_user_id = mgrRaw.slice(3);
   const payload = { name, external_id: externalId, address, manager_user_id, manager_tg_bot_user_id };
   const btn = $('brSaveBtn');
-  btn.disabled = true; btn.textContent = 'Saqlanmoqда…';
+  btn.disabled = true; btn.textContent = 'Saqlanmoqda…';
   try {
     if (curBranchEdit) {
       const { data, error } = await sb.from('branches').update(payload).eq('id', curBranchEdit.id).select().single();
@@ -3415,7 +3511,7 @@ async function notifyN8n(event, payload) {
   // n8n integratsiyasi yoqilganmi?
   const n8n = integrationsCache.find(i => i.tool === 'n8n' && i.is_enabled);
   if (!n8n) return;
-  // Webhook URL'ni olish — integrations_safe'дa bot_username field'да saqlanadi
+  // Webhook URL'ni olish — integrations_safe'da bot_username field'da saqlanadi
   const url = n8n.bot_username; // we stored URL there for read-back
   if (!url) return;
   try {
@@ -3436,7 +3532,7 @@ async function bootstrap() {
   const { data: prof } = await sb.from('profiles').select('*').eq('id', me.id).maybeSingle();
   myProfile = prof || { id: me.id };
 
-  // Taklif havolasi orqali kelgan bo'lsa — qabul qilamiz (workspace'gа qo'shilish + vazifaga biriktirish)
+  // Taklif havolasi orqali kelgan bo'lsa — qabul qilamiz (workspace'ga qo'shilish + vazifaga biriktirish)
   let _inviteTaskId = null, _inviteWsId = null;
   let _pendingInvite = null;
   try { _pendingInvite = sessionStorage.getItem('pending_invite'); } catch (e) {}
@@ -3463,7 +3559,7 @@ async function bootstrap() {
   if (!workspaces.length) { toast('Workspace topilmadi — qaytadan kiring', 'err'); return; }
 
   const stored = localStorage.getItem('current_ws_' + me.id);
-  // Taklif orqali kirsa — o'sha workspace'ni ochamиz
+  // Taklif orqali kirsa — o'sha workspace'ni ochamiz
   if (_inviteWsId && workspaces.find(w => w.id === _inviteWsId)) {
     currentWs = workspaces.find(w => w.id === _inviteWsId);
   } else {
@@ -3473,7 +3569,7 @@ async function bootstrap() {
   await loadCurrentContext();
   showApp();
   goPage('dashboard');
-  // Taklif orqali biriktirilgan vazifani ochamιz
+  // Taklif orqali biriktirilgan vazifani ochamiz
   if (_inviteTaskId) {
     goPage('tasks');
     setTimeout(() => { try { openDetail(_inviteTaskId); } catch (e) {} }, 400);
@@ -3495,7 +3591,7 @@ async function loadCurrentContext() {
   const wsId = currentWs.id;
   const isOrg = currentWs.kind === 'organization';
 
-  // ─── Hammasini PARALLEL chaqiramιz (9 query birga, ~80% tez) ───
+  // ─── Hammasini PARALLEL chaqiramiz (9 query birga, ~80% tez) ───
   const [
     myMemberR, myDeptsR, deptsR, wsMembersR,
     intgsR, branchesR, subR
@@ -3535,7 +3631,7 @@ async function loadCurrentContext() {
   // Tasks + kanban — parallel
   await Promise.all([loadTasksFull(), loadKanbanColumns()]);
 
-  // Jadval sozlamalarини (kenglik, tartib, filtr, sort) tiklaymιz
+  // Jadval sozlamalarini (kenglik, tartib, filtr, sort) tiklaymiz
   tblLoadSettings();
 
   // "Mening vazifalarim" uchun — mening Telegram identitetlarim
@@ -3566,7 +3662,7 @@ function setupRealtime() {
         if (idx < 0 && belongsToMe(payload.new)) tasksCache.unshift(payload.new);
       } else if (ev === 'UPDATE') {
         if (idx >= 0) {
-          // Endi menga tegishli bo'lmasa — olib tashlaymιz (masalan boshqaga biriktirildi)
+          // Endi menga tegishli bo'lmasa — olib tashlaymiz (masalan boshqaga biriktirildi)
           if (belongsToMe(payload.new)) tasksCache[idx] = payload.new;
           else tasksCache.splice(idx, 1);
         } else if (belongsToMe(payload.new)) {
@@ -3642,7 +3738,7 @@ async function loadTasksFull() {
     return;
   }
   // Oddiy a'zo — o'ziga tegishli barcha vazifalar:
-  // (a) assigned_to = men, (b) men yaratган, (c) Telegram identitetimga biriktirilган
+  // (a) assigned_to = men, (b) men yaratgan, (c) Telegram identitetimga biriktirilgan
   let myTgIds = [];
   try {
     const { data: tgu } = await sb.from('tg_bot_users').select('id').eq('linked_user_id', me.id);
@@ -3747,7 +3843,7 @@ function renderSidebar() {
         }
       }
       html += '<button class="side-link ' + (currentPage === 'branches' ? 'active' : '') + '" onclick="goPage(\'branches\')"><span class="ic">▢</span> Filiallar</button>';
-      // Lavozimlar — vaqtincha yashirilган (kerak bo'lsa qaytaramιz)
+      // Lavozimlar — vaqtincha yashirilgan (kerak bo'lsa qaytaramiz)
       // html += '<button class="side-link ' + (currentPage === 'positions' ? 'active' : '') + '" onclick="goPage(\'positions\')"><span class="ic">⌬</span> Lavozimlar</button>';
     }
   }
@@ -3756,7 +3852,7 @@ function renderSidebar() {
   }
   $('sideNav').innerHTML = html;
 
-  // Viewer'дан yaratish tugmalarini yashiramiz
+  // Viewer'dan yaratish tugmalarini yashiramiz
   const editable = canEditWorkspace();
   const newBtns = ['deptNewBtn'];
   newBtns.forEach(id => { const b = $(id); if (b) b.style.display = editable ? 'inline-block' : 'none'; });
@@ -3792,7 +3888,7 @@ function updateDashboard(sub) {
   if ($('dashMyTasks')) {
     $('dashMyTasks').innerHTML = mine.length
       ? mine.map(t => taskItemHtml(t, true)).join('')
-      : '<div class="empty" style="padding: 20px;"><strong>Bo\'sh</strong>Mengа biriktirilgan faol vazifa yo\'q.</div>';
+      : '<div class="empty" style="padding: 20px;"><strong>Bo\'sh</strong>Menga biriktirilgan faol vazifa yo\'q.</div>';
   }
   // Due soon (in next 3 days, not completed)
   const limit = now + 3 * 24 * 60 * 60 * 1000;
@@ -3935,7 +4031,7 @@ async function onbFinish() {
           }).select().single();
           if (ie) throw ie;
 
-          // c) setWebhook — Telegram'ni Edge Function'gа yo'naltirish
+          // c) setWebhook — Telegram'ni Edge Function'ga yo'naltirish
           // secret_token = integration_id → Edge Function bu orqali workspace topadi
           const webhookUrl = SUPABASE_URL + '/functions/v1/tg-webhook';
           const swResp = await fetch(
@@ -3959,7 +4055,7 @@ async function onbFinish() {
       }
     }
 
-    // 5. Workspaces qayta yuklab, yangi'gа o'tish
+    // 5. Workspaces qayta yuklab, yangi'ga o'tish
     await loadWorkspaces();
     currentWs = workspaces.find(w => w.id === ws.id);
     await loadCurrentContext();
@@ -3986,15 +4082,16 @@ function toggleTgSidebar() {
 }
 
 function goPage(p) {
-  // Rol himoyasi: oddiy a'zo faqat ruxsat etilган sahifalarга kira oladi
+  // Rol himoyasi: oddiy a'zo faqat ruxsat etilgan sahifalarga kira oladi
   const managerOnlyPages = ['stats', 'orgchart', 'integrations', 'tgusers', 'branches', 'positions', 'settings', 'logs', 'botsettings', 'botcommands'];
   if (managerOnlyPages.includes(p) && !isOwnerLike()) {
     p = 'dashboard';
   }
   currentPage = p;
   if (p !== 'department') currentDeptId = null;
+  if (p !== 'employee') _empDtlUid = null;
   renderSidebar();
-  ['dashboard','planner','tasks','departments','department','team','projects','project','integrations','tgusers','branches','positions','settings','logs','stats','botsettings','botcommands','profile'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
+  ['dashboard','planner','tasks','departments','department','team','employee','projects','project','integrations','tgusers','branches','positions','settings','logs','stats','botsettings','botcommands','profile'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
   if (p === 'planner') plnSetTab(plnTab);
   if (p === 'tasks') {
     const titles = { mine: '📥 Mening vazifalarim', assigned: '📤 Men topshirganlar', all: '✓ Barcha vazifalar' };
@@ -4003,6 +4100,7 @@ function goPage(p) {
   }
   if (p === 'departments') renderDeptsList();
   if (p === 'team') { _teamTab = 'hodimlar'; teamSetTab('hodimlar'); renderTeam(); }
+  if (p === 'employee') renderEmployee();
   if (p === 'integrations') loadIntegrations();
   if (p === 'tgusers') loadTgUsers();
   if (p === 'dashboard') updateDashboard(null);
@@ -4097,7 +4195,7 @@ async function uploadAvatar(ev) {
     toast('⏳ Yuklanmoqda...', 'ok');
     const ext = (file.name.split('.').pop() || 'png').toLowerCase();
     const path = me.id + '/avatar_' + Date.now() + '.' + ext;
-    // Storage'gа yuklash
+    // Storage'ga yuklash
     const { error: upErr } = await sb.storage.from('avatars').upload(path, file, { upsert: true, contentType: file.type });
     if (upErr) {
       if (/bucket|not found/i.test(upErr.message)) {
@@ -4111,7 +4209,7 @@ async function uploadAvatar(ev) {
     const url = pub.publicUrl;
     // Eski rasmni olib tashlash (ixtiyoriy)
     const oldUrl = myProfile?.avatar_url;
-    // DB'gа yozish
+    // DB'ga yozish
     const { error: dbErr } = await sb.from('profiles').update({ avatar_url: url }).eq('id', me.id);
     if (dbErr) throw dbErr;
     if (!myProfile) myProfile = {};
@@ -4150,7 +4248,7 @@ async function removeAvatar() {
     // Sidebar avatar — initials'ga qaytaramiz
     const sav = $('userAv');
     if (sav) sav.innerHTML = initials(myProfile?.full_name || me.email);
-    // Eski rasmni storage'дan o'chirish
+    // Eski rasmni storage'dan o'chirish
     if (oldUrl) {
       try {
         const oldPath = oldUrl.split('/avatars/')[1];
@@ -4370,7 +4468,7 @@ function msIsSelected(type, id) {
 }
 
 // ============ YANGI XODIM QO'SHISH (Add Employee) ============
-function openAddEmployeeModal() {
+async function openAddEmployeeModal() {
   // Reset
   $('empFirstName').value = '';
   $('empLastName').value = '';
@@ -4378,7 +4476,8 @@ function openAddEmployeeModal() {
   $('empPhone').value = '';
   $('empPosition').value = '';
   hideMsg($('empMsg'));
-  // Lavozim datalist — Jamoadagi lavozimlar
+  // Lavozim datalist — Jamoadagi lavozimlar (DB'dan)
+  await loadHrData();
   const dl = $('empPosList');
   if (dl) dl.innerHTML = teamPositions().map(p => '<option value="' + escapeHtml(p) + '"></option>').join('');
   // Filial select to'ldirish
@@ -4428,12 +4527,12 @@ function copyInviteLink() {
   } catch (e) { toast('Nusxa olib bo\'lmadi, qo\'lda tanlang', 'err'); }
 }
 function shareInviteTelegram() {
-  const text = 'Sizni TaskFix\'gа taklif qildim. Ro\'yxatdan o\'tish uchun havolani oching:\n' + _lastInviteLink;
-  const url = 'https://t.me/share/url?url=' + encodeURIComponent(_lastInviteLink) + '&text=' + encodeURIComponent('Sizni TaskFix\'gа taklif qildim');
+  const text = 'Sizni TaskFix\'ga taklif qildim. Ro\'yxatdan o\'tish uchun havolani oching:\n' + _lastInviteLink;
+  const url = 'https://t.me/share/url?url=' + encodeURIComponent(_lastInviteLink) + '&text=' + encodeURIComponent('Sizni TaskFix\'ga taklif qildim');
   window.open(url, '_blank');
 }
 function shareInviteWhatsapp() {
-  const text = 'Sizni TaskFix\'gа taklif qildim. Ro\'yxatdan o\'tish uchun havolani oching: ' + _lastInviteLink;
+  const text = 'Sizni TaskFix\'ga taklif qildim. Ro\'yxatdan o\'tish uchun havolani oching: ' + _lastInviteLink;
   const url = 'https://wa.me/?text=' + encodeURIComponent(text);
   window.open(url, '_blank');
 }
@@ -4492,7 +4591,7 @@ async function saveNewEmployee() {
     });
     if (fnErr) {
       let detail = fnErr.message || 'Edge Function xatosi';
-      // Non-2xx javob tanasиdан aniq sababни o'qiymιz
+      // Non-2xx javob tanasidan aniq sababni o'qiymiz
       try {
         if (fnErr.context && typeof fnErr.context.json === 'function') {
           const eb = await fnErr.context.json();
@@ -4516,10 +4615,10 @@ async function saveNewEmployee() {
 
     const newUserId = res.user_id;
 
-    // A'zolar ro'yxatini yangilaymιz — darrov ko'rinsin
+    // A'zolar ro'yxatini yangilaymiz — darrov ko'rinsin
     await reloadMembers();
 
-    // Jadval'даgi "Bajaruvchi"дан chaqirilган bo'lsa — o'sha task'ga biriktiramιz
+    // Jadval'dagi "Bajaruvchi"dan chaqirilgan bo'lsa — o'sha task'ga biriktiramiz
     if (window._tblAsgForTask != null) {
       const tid = window._tblAsgForTask; window._tblAsgForTask = null;
       logActivity('employee_added', { entityType: 'employee', entityTitle: fullName || email, details: { email } });
@@ -4530,12 +4629,12 @@ async function saveNewEmployee() {
       return;
     }
 
-    // Real a'zo sifatida vazifaga biriktiramιz (ghost emas — haqiqiy user)
+    // Real a'zo sifatida vazifaga biriktiramiz (ghost emas — haqiqiy user)
     if (!msSelected.find(s => s.type === 'user' && s.id === newUserId)) {
       msSelected.push({ type: 'user', id: newUserId, label: fullName || email });
     }
 
-    // Multi-select panel + summary'ni yangilaymιz — yangi xodim tanlangan (tick) holatда chiqsin
+    // Multi-select panel + summary'ni yangilaymiz — yangi xodim tanlangan (tick) holatda chiqsin
     msUpdateSummary();
     if ($('msInput')) $('msInput').value = '';
     msFilter();
@@ -4546,7 +4645,7 @@ async function saveNewEmployee() {
     if (res.email_sent) {
       toast('📧 Parol o\'rnatish emaili yuborildi: ' + email, 'ok');
     } else {
-      toast('⚠ Email yuborilmadi' + (res.email_error ? (': ' + res.email_error) : '') + ' — Supabase SMTP sozlamasини tekshiring', 'err');
+      toast('⚠ Email yuborilmadi' + (res.email_error ? (': ' + res.email_error) : '') + ' — Supabase SMTP sozlamasini tekshiring', 'err');
     }
   } catch (e) {
     showMsg($('empMsg'), 'Xato: ' + (e.message || e), 'err');
@@ -4590,7 +4689,7 @@ function msUpdateSummary() {
 function plnUpdateHintVisibility() {
   const hint = $('cPlnHint');
   if (!hint || !window._plnPendingSchedule) { if (hint) hint.style.display = 'none'; return; }
-  // Boshqa xodim tanlanган bo'lsa — reja o'zimга emas → yashiramιz
+  // Boshqa xodim tanlangan bo'lsa — reja o'zimga emas → yashiramiz
   const hasOther = msSelected.some(s => !(s.type === 'me' || (s.type === 'user' && s.id === me.id)));
   hint.style.display = hasOther ? 'none' : 'block';
 }
@@ -4863,13 +4962,13 @@ function closeCreate() {
   $('createBd').classList.remove('show');
   detachCreatePaste();
   window._cQuickStatus = null;
-  window._plnPendingSchedule = null; // planner reja holatini tozalaymιz (leak oldini olish)
+  window._plnPendingSchedule = null; // planner reja holatini tozalaymiz (leak oldini olish)
   const _plnH = $('cPlnHint'); if (_plnH) _plnH.style.display = 'none';
   const cBtn = $('cBtn');
   if (cBtn) { cBtn.disabled = false; cBtn.textContent = 'Yaratish'; }
 }
 
-// ============ EXCEL'дан OMMAVIY VAZIFA IMPORT ============
+// ============ EXCEL'dan OMMAVIY VAZIFA IMPORT ============
 let _xlsRows = [];
 
 function xlsDownloadTemplate() {
@@ -4898,7 +4997,7 @@ async function onXlsPick(input) {
     _xlsRows = rows;
     xlsShowPreview(rows);
   } catch (e) {
-    toast("Excel o'qishда xato: " + (e.message || e), 'err');
+    toast("Excel o'qishda xato: " + (e.message || e), 'err');
   }
 }
 
@@ -4925,7 +5024,7 @@ function xlsResolveMember(val) {
     m = (wsMembers || []).find(x => { const p = memberPhone(x); return p && (p === digits || p.endsWith(digits) || digits.endsWith(p)); });
     if (m) return m.user_id;
   }
-  // 3. Fuzzy — FAQAT bitta mos kelса (noaniqlikni oldini olish)
+  // 3. Fuzzy — FAQAT bitta mos kelsa (noaniqlikni oldini olish)
   const matches = (wsMembers || []).filter(x => { const fn = memberName(x); return fn && (fn.includes(n) || n.includes(fn)); });
   if (matches.length === 1) return matches[0].user_id;
   return null; // topilmadi yoki noaniq → bo'sh
@@ -4954,7 +5053,7 @@ function xlsParseDate(v) {
   return null;
 }
 
-// Bitta qatorни task obyektiga aylantirish
+// Bitta qatorni task obyektiga aylantirish
 function xlsRowToTask(row) {
   const title = String(xlsGet(row, ['nomi', 'name', 'vazifa', 'title']) || '').trim();
   if (!title) return null;
@@ -5014,7 +5113,7 @@ function xlsShowPreview(rows) {
     '<div class="modal modal-wide" onclick="event.stopPropagation()">' +
       '<div class="modal-head"><h3>📊 Import — ' + tasks.length + ' ta vazifa</h3><button class="x-btn" onclick="xlsClosePreview()">×</button></div>' +
       '<div class="modal-body">' +
-        '<p style="font-size:12.5px;color:var(--muted);margin:0 0 12px;">Quyidagi vazifalar yaratiladi. Bajaruvchi/Bo\'lim/Status nomlar bo\'yicha avtomatik moslashtirildi. <b>Bajaruvchi majburiy emas</b> — bo\'sh qolса, keyin <b>Jadval</b> ko\'rinishида "Bajaruvchi" ustunидан tanlaysiz.</p>' +
+        '<p style="font-size:12.5px;color:var(--muted);margin:0 0 12px;">Quyidagi vazifalar yaratiladi. Bajaruvchi/Bo\'lim/Status nomlar bo\'yicha avtomatik moslashtirildi. <b>Bajaruvchi majburiy emas</b> — bo\'sh qolsa, keyin <b>Jadval</b> ko\'rinishida "Bajaruvchi" ustunidan tanlaysiz.</p>' +
         '<div style="overflow:auto;max-height:50vh;border:1px solid var(--line);border-radius:10px;">' +
         '<table style="width:100%;border-collapse:collapse;font-size:12.5px;">' +
         '<thead><tr style="position:sticky;top:0;background:var(--surface-2);">' +
@@ -5035,12 +5134,12 @@ async function xlsConfirmImport() {
   const btn = document.getElementById('xlsImportBtn');
   if (btn) { btn.disabled = true; btn.textContent = 'Yaratilyapti…'; }
   try {
-    // 500 tadan bo'lib yozamιz (juda katta bo'lса)
+    // 500 tadan bo'lib yozamiz (juda katta bo'lsa)
     const chunk = 200;
     let created = 0;
     for (let i = 0; i < tasks.length; i += chunk) {
       const part = tasks.slice(i, i + chunk).map(t => {
-        const { _asgRaw, ...clean } = t; // preview maydonini olib tashlaymιz
+        const { _asgRaw, ...clean } = t; // preview maydonini olib tashlaymiz
         return clean;
       });
       const { data, error } = await sb.from('tasks').insert(part).select();
@@ -5052,12 +5151,12 @@ async function xlsConfirmImport() {
     closeCreate();
     const noAsg = tasks.filter(t => !t.assigned_to).length;
     toast('✅ ' + created + ' ta vazifa yaratildi', 'ok');
-    // Bajaruvchi tanlanmaganlar bo'lsa — Jadval view'ga o'tib, biriktirishга taklif qilamιz
+    // Bajaruvchi tanlanmaganlar bo'lsa — Jadval view'ga o'tib, biriktirishga taklif qilamiz
     if (noAsg > 0) {
       taskScope = 'all';
       goPage('tasks');
       setTasksView('table');
-      setTimeout(() => toast('👥 ' + noAsg + ' ta vazifага bajaruvchi tanlanmagan — Jadvalда "Bajaruvchi" ustunидан tanlang', 'ok'), 700);
+      setTimeout(() => toast('👥 ' + noAsg + ' ta vazifaga bajaruvchi tanlanmagan — Jadvalda "Bajaruvchi" ustunidan tanlang', 'ok'), 700);
     } else {
       refreshActiveView();
     }
@@ -5147,7 +5246,7 @@ async function saveCreate() {
         // Stale connection — insert ehtimol muvaffaqiyatli, lekin javob kelmadi
         btn.textContent = 'Tekshirilmoqda…';
         await new Promise(r => setTimeout(r, 800));
-        // DB'дan oxirgi yaratilgan vazifalarni tekshiramiz
+        // DB'dan oxirgi yaratilgan vazifalarni tekshiramiz
         const { data: recent } = await sb.from('tasks')
           .select('*')
           .eq('workspace_id', currentWs.id)
@@ -5171,7 +5270,7 @@ async function saveCreate() {
     if (error) throw error;
     if (!data || !data.length) throw new Error('Vazifa yaratildi, lekin javob bo\'sh keldi. Sahifani yangilang.');
 
-    // Subtasks va fayllarni faqat birinchi vazifaga qo'shamиz (yoki barchasiga? — barchasiga foydaliroq)
+    // Subtasks va fayllarni faqat birinchi vazifaga qo'shamiz (yoki barchasiga? — barchasiga foydaliroq)
     // Soddasi: birinchi vazifaga (asosiy reference)
     const firstTask = data[0];
     if (cPendingSubs.length && firstTask) {
@@ -5187,7 +5286,7 @@ async function saveCreate() {
 
     // Local cache va UI yangilash
     data.forEach(d => tasksCache.unshift(d));
-    // Planner orqali yaratilган bo'lsa — FAQAT o'zimga biriktirilган bo'lsa rejaга qo'shamιz
+    // Planner orqali yaratilgan bo'lsa — FAQAT o'zimga biriktirilgan bo'lsa rejaga qo'shamiz
     if (window._plnPendingSchedule && data[0]) {
       const t0 = data[0];
       const isMine = (t0.assigned_to === me.id) || (!t0.assigned_to && !t0.assigned_to_tg_bot_user);
@@ -5201,7 +5300,7 @@ async function saveCreate() {
     toast(targets.length > 1 ? ('✅ ' + targets.length + ' ta vazifa yaratildi') : '✅ Vazifa yaratildi', 'ok');
     refreshActiveView();
 
-    // Pending invitelar uchun yaratilgan vazifalar pending_task_id'gа yoziladi
+    // Pending invitelar uchun yaratilgan vazifalar pending_task_id'ga yoziladi
     // Inserts oxirida pending invite uchun ghost task'lar qo'shilgan
     if (pendingInvites && pendingInvites.length) {
       const ghostStart = targets.length;
@@ -5258,7 +5357,7 @@ function msResolveAssignees() {
     } else if (s.type === 'user') {
       out.set('user:'+s.id, { assigned_to: s.id });
     } else if (s.type === 'tg') {
-      // Agar TG user saytga ulangan bo'lsa — auth user sifatida olamиz
+      // Agar TG user saytga ulangan bo'lsa — auth user sifatida olamiz
       const u = tgUsersCache.find(x => x.id === s.id);
       if (u && u.linked_user_id) out.set('user:'+u.linked_user_id, { assigned_to: u.linked_user_id });
       else out.set('tg:'+s.id, { assigned_to_tg_bot_user: s.id });
@@ -5296,7 +5395,7 @@ let _detailPasteHandler = null;
 async function openDetail(id) {
   let t = tasksCache.find(x => x.id === id);
   if (!t) {
-    // Cache'да yo'q (masalan belgilanган, lekin biriktirilmagan) — bevosita o'qiymιz
+    // Cache'da yo'q (masalan belgilangan, lekin biriktirilmagan) — bevosita o'qiymiz
     try {
       const { data } = await sb.from('tasks').select('*').eq('id', id).maybeSingle();
       if (data) { t = data; tasksCache.unshift(data); }
@@ -5308,7 +5407,7 @@ async function openDetail(id) {
   $('dBody').innerHTML = '<div style="text-align:center; padding: 30px; color: var(--muted); font-size: 13px;">⏳ Yuklanmoqda…</div>';
   $('detailBd').classList.add('show');
 
-  // Paralel ravishda hammasini yuklaymиz
+  // Paralel ravishda hammasini yuklaymiz
   const [subsRes, cmtsRes, attsRes] = await Promise.all([
     sb.from('task_subtasks').select('*').eq('task_id', id).order('sort_order', { ascending: true }).order('id', { ascending: true }),
     sb.from('task_comments').select('*').eq('task_id', id).order('created_at', { ascending: true }),
@@ -5496,7 +5595,7 @@ function renderDetailBody() {
       (canEditTask ? '<div style="display:flex; align-items:center; gap:10px; margin-top:10px;">' +
         '<input type="file" id="attInput" multiple style="display:none" onchange="onAttPick(this)" />' +
         '<button class="upload-btn" onclick="document.getElementById(\'attInput\').click()">📎 Fayl yuklash</button>' +
-        '<span class="att-hint">💡 Yoki Ctrl+V (Mac: ⌘+V) — clipboard\'дан paste</span>' +
+        '<span class="att-hint">💡 Yoki Ctrl+V (Mac: ⌘+V) — clipboard\'dan paste</span>' +
       '</div>' : '') +
     '</div>' +
 
@@ -5512,7 +5611,7 @@ function renderCommentItem(c, canDelete) {
   const author = c.author_id ? (wsMembers.find(m => m.user_id === c.author_id) || {}).profile : null;
   const authorName = author && author.full_name ? author.full_name : 'Foydalanuvchi';
   const fromTg = /^\[Telegram:/.test(c.comment_text || '');
-  // Telegram: [Telegram: Ism]\nMatn formatini ajratib olamиz
+  // Telegram: [Telegram: Ism]\nMatn formatini ajratib olamiz
   let displayText = c.comment_text || '';
   let displayAuthor = authorName;
   if (fromTg) {
@@ -5526,7 +5625,7 @@ function renderCommentItem(c, canDelete) {
   const av = avatarHtml(displayAuthor, 'sm', authorAvatarUrl);
   const time = relTime(c.created_at);
   const canDel = canDelete && (c.author_id === me.id || isOwnerLike());
-  // @mention'larni ajratib ko'rsatamιz
+  // @mention'larni ajratib ko'rsatamiz
   let textHtml = escapeHtml(displayText);
   (wsMembers || []).forEach(mm => {
     const nm = (mm.profile && mm.profile.full_name) || '';
@@ -5667,7 +5766,7 @@ async function updateField(field, value) {
     renderDetailBody();
     refreshActiveView();
     toast('✓ Saqlandi', 'ok');
-    // Telegram'gа tahrirlangan xabar yuborish (faqat asosiy maydonlar uchun)
+    // Telegram'ga tahrirlangan xabar yuborish (faqat asosiy maydonlar uchun)
     if (['title','description','deadline','priority_level','status','assigned_to','assigned_to_tg_bot_user'].includes(field)) {
       tgNotifyTaskEdit(data, field, oldValue, value);
     }
@@ -5725,7 +5824,7 @@ function cmtMentionInput(inp) {
   const drop = document.getElementById('cmtMentionDrop');
   const val = inp.value;
   const pos = inp.selectionStart || val.length;
-  // @dan keyingi so'zni topamιz
+  // @dan keyingi so'zni topamiz
   const before = val.slice(0, pos);
   const m = before.match(/@([\p{L}\w'\- ]{0,20})$/u);
   if (!m) { if (drop) drop.style.display = 'none'; _cmtMentionList = []; return; }
@@ -5762,7 +5861,7 @@ function cmtMentionPick(i) {
   const newPos = (before + '@' + mm.name + ' ').length;
   try { inp.setSelectionRange(newPos, newPos); } catch (e) {}
 }
-// Matndan belgilanган a'zolarni topadi
+// Matndan belgilangan a'zolarni topadi
 function cmtParseMentions(text) {
   const mentioned = [];
   (wsMembers || []).forEach(mm => {
@@ -5786,9 +5885,9 @@ async function addComment() {
     input.value = '';
     const drop = document.getElementById('cmtMentionDrop'); if (drop) drop.style.display = 'none';
     renderDetailBody();
-    // Telegram'gа yuborish — assignee'gа
+    // Telegram'ga yuborish — assignee'ga
     notifyCommentToTg(text);
-    // Belgilanган a'zolarга bildirishnoma + Telegram
+    // Belgilangan a'zolarga bildirishnoma + Telegram
     mentions.forEach(mn => notifyMention(mn.user_id, text, data.id));
     if (mentions.length) toast('🔔 ' + mentions.length + ' kishi belgilandi', 'ok');
   } catch (e) { toast(translateErr(e.message), 'err'); }
@@ -5802,7 +5901,7 @@ async function notifyMention(userId, text, commentId) {
   try {
     await sb.from('notifications').insert({
       workspace_id: currentWs.id, user_id: userId, kind: 'mention',
-      title: 'Sizni izohда belgilashdi',
+      title: 'Sizni izohda belgilashdi',
       body: (myProfile.full_name || me.email) + ': ' + text.slice(0, 120),
       meta: { task_id: currentDetailId, workspace_id: currentWs.id, comment_id: commentId || null }
     });
@@ -5872,7 +5971,7 @@ async function uploadAttachment(taskId, file) {
   }
 }
 
-// Sokin versiya — create modal'дан pending fayllar uchun
+// Sokin versiya — create modal'dan pending fayllar uchun
 async function uploadAttachmentSilent(taskId, file) {
   if (!taskId || !file) return null;
   if (file.size > 20 * 1024 * 1024) { toast(file.name + ' — 20MB dan katta', 'err'); return null; }
@@ -5966,7 +6065,7 @@ async function changeStatus(id, newStatus) {
     if (newStatus === 'in_progress') patch.started_at = new Date().toISOString();
     if (newStatus === 'completed') patch.completed_at = new Date().toISOString();
     if (reassignToAcceptor) {
-      // Asl bajaruvchini saqlaymιz, vazifани qabul qiluvchiga biriktiramιz
+      // Asl bajaruvchini saqlaymiz, vazifani qabul qiluvchiga biriktiramiz
       patch.submitter_id = prev.assigned_to || me.id;
       patch.assigned_to = prev.acceptor_id;
     }
@@ -5980,7 +6079,7 @@ async function changeStatus(id, newStatus) {
     notifyStatusToTg(data, newStatus);
     notifyN8n('task.status_changed', { task: data, new_status: newStatus });
     logActivity('task_status_changed', { entityType: 'task', entityId: id, entityTitle: data.title, details: { from: statusName(oldStatus), to: statusName(newStatus) } });
-    // "Qabul kutilyapti"ga o'tса — qabul qiluvchiga xabar
+    // "Qabul kutilyapti"ga o'tsa — qabul qiluvchiga xabar
     if (newStatus === 'qabul_kutilyapti' && data.acceptor_id) {
       emailNotify('task_acceptor', data.id, data.acceptor_id);
       try { notifyMention(data.acceptor_id, '"' + data.title + '" bajarildi — qabul qilishingizni kutmoqda', null); } catch (e) {}
@@ -5989,7 +6088,7 @@ async function changeStatus(id, newStatus) {
     if (newStatus === 'completed' && data.created_by && data.created_by !== me.id) {
       emailNotify('task_completed', data.id, data.created_by);
     }
-    // Loyiha flow taski — trigger is_locked'ni yangiladi; qayta yuklaymιz
+    // Loyiha flow taski — trigger is_locked'ni yangiladi; qayta yuklaymiz
     if (data.project_id) { if (data.status === 'completed') await prjShiftNextDeadline(data); await prjReloadTasks(data.project_id); }
     if (data.status === 'completed') await maybeRecurTask(data);
   } catch (e) { toast(translateErr(e.message), 'err'); }
@@ -6059,7 +6158,7 @@ async function acceptTask(id) {
     const prev = tasksCache.find(x => x.id === id);
     if (!prev || (prev.acceptor_id !== me.id && !isOwnerLike())) { toast('Faqat qabul qiluvchi tasdiqlaydi', 'err'); return; }
     const patch = { status: 'completed', accepted_at: new Date().toISOString(), completed_at: new Date().toISOString() };
-    // assigned_to o'zgармaydi (qabul qiluvchida qoladi) — bajaruvchiga qaytib kutinmaydi
+    // assigned_to o'zgarmaydi (qabul qiluvchida qoladi) — bajaruvchiga qaytib kutinmaydi
     const { data, error } = await sb.from('tasks').update(patch).eq('id', id).select().single();
     if (error) throw error;
     const idx = tasksCache.findIndex(x => x.id === id); if (idx >= 0) tasksCache[idx] = data;
@@ -6080,11 +6179,11 @@ async function acceptTask(id) {
 async function returnTask(id) {
   const _rt = tasksCache.find(x => x.id === id);
   if (!_rt || (_rt.acceptor_id !== me.id && !isOwnerLike())) { toast('Faqat qabul qiluvchi qaytaradi', 'err'); return; }
-  if (!confirm('Vazifани bajaruvchiga qaytaraymi? (Jarayonga o\'tadi)')) return;
+  if (!confirm('Vazifani bajaruvchiga qaytaraymi? (Jarayonga o\'tadi)')) return;
   try {
     const prev = tasksCache.find(x => x.id === id);
     const patch = { status: 'in_progress' };
-    if (prev && prev.submitter_id) patch.assigned_to = prev.submitter_id; // asl bajaruvchiga qaytaramιz
+    if (prev && prev.submitter_id) patch.assigned_to = prev.submitter_id; // asl bajaruvchiga qaytaramiz
     const { data, error } = await sb.from('tasks').update(patch).eq('id', id).select().single();
     if (error) throw error;
     const idx = tasksCache.findIndex(x => x.id === id); if (idx >= 0) tasksCache[idx] = data;
@@ -6534,7 +6633,7 @@ function ocStartConnect(e, sourceId) {
     document.removeEventListener('touchend', onUp);
 
     if (targetId) {
-      // Mavjud node ustigа tashlangan → bog'lash (target ning boshlig'i = source)
+      // Mavjud node ustiga tashlangan → bog'lash (target ning boshlig'i = source)
       await applyManagerChange(targetId, sourceId);
     } else {
       // Bo'sh joyga tashlangan → Add modal ochiladi, parent oldindan tanlangan
@@ -6550,7 +6649,7 @@ function ocStartConnect(e, sourceId) {
 
 // Add modal'ni belgilangan koordinatalarda ochish (drop pos uchun)
 function ocOpenAddModalAtPos(parentId, dropX, dropY) {
-  // _ocDropPos ni vaqtincha o'zgaruvchida saqlaymιz
+  // _ocDropPos ni vaqtincha o'zgaruvchida saqlaymiz
   window._ocDropPos = { x: dropX, y: dropY };
   ocOpenAddModal(parentId);
 }
@@ -6673,7 +6772,7 @@ async function ocOpenAddModal(parentNodeId) {
 
   $('ocAddSearch').value = '';
   renderOcAddList();
-  $('ocAddTitle').textContent = parentNodeId ? 'Pastdagi xodim qo\'shish' : 'Tashkilotgа yangi xodim';
+  $('ocAddTitle').textContent = parentNodeId ? 'Pastdagi xodim qo\'shish' : 'Tashkilotga yangi xodim';
   $('ocAddBd').classList.add('show');
   setTimeout(() => $('ocAddSearch').focus(), 50);
 }
@@ -6894,7 +6993,7 @@ async function ocContSave() {
       if (resp.error) {
         const m = resp.error.message;
         if (/relation .* does not exist/i.test(m)) {
-          throw new Error("Migration 19 ishga tushirilmagan! Supabase'дa 19_org_containers.sql ni ishlating.");
+          throw new Error("Migration 19 ishga tushirilmagan! Supabase'da 19_org_containers.sql ni ishlating.");
         }
         throw new Error(m);
       }
@@ -7049,9 +7148,9 @@ async function applyManagerChange(childNodeId, managerNodeId) {
 }
 // ============ BOT SOZLAMALARI ============
 const DEFAULT_BOT_SETTINGS = {
-  welcome_message: "👋 Assalomu alaykum!\n\nBotgа xush kelibsiz. Davom etish uchun iltimos to'liq <b>ism va familyangizni</b> yuboring:",
+  welcome_message: "👋 Assalomu alaykum!\n\nBotga xush kelibsiz. Davom etish uchun iltimos to'liq <b>ism va familyangizni</b> yuboring:",
   approval_required: true,
-  registered_message: "🎉 <b>Tabriklaymиz!</b>\n\nSiz tizimga muvaffaqiyatli qo'shildingiz. Endi /help — yordam, /vazifalarim — vazifalaringiz.",
+  registered_message: "🎉 <b>Tabriklaymiz!</b>\n\nSiz tizimga muvaffaqiyatli qo'shildingiz. Endi /help — yordam, /vazifalarim — vazifalaringiz.",
   pending_message: "⏳ Sizning arizangiz tasdiqlashga yuborildi. Iltimos kuting.",
   rejected_message: "❌ Sizning ro'yxatdan o'tishingiz bekor qilindi.\n\nQayta urinish uchun /start ni bosing.",
   fallback_message: "ℹ Noma'lum xabar. /help — barcha komandalar."
@@ -7081,7 +7180,7 @@ async function loadBotSettings() {
   }
   $('bsBotInfo').innerHTML =
     '✅ Bot ulangan: <b>@' + escapeHtml(intg.bot_username || 'bot') + '</b><br>' +
-    '<span style="font-size:12px;color:var(--muted);">Webhook avtomatik tarzda Supabase Edge Function\'gа yo\'naltirilgan.</span>';
+    '<span style="font-size:12px;color:var(--muted);">Webhook avtomatik tarzda Supabase Edge Function\'ga yo\'naltirilgan.</span>';
   document.querySelectorAll('#page-botsettings .settings-section').forEach(s => s.style.display = 'block');
 
   // Settings olamiz
@@ -7155,7 +7254,7 @@ async function resetBotWebhook() {
   if (!confirm('Webhook\'ni qayta o\'rnatishni xohlaysizmi?')) return;
 
   // bot_token integration config ichida — service_role kerak. Frontend'dan
-  // to'g'ridan o'qib bo'lmaydi. Buning o'rniga maxsus Edge Function chaqirishimиz kerak,
+  // to'g'ridan o'qib bo'lmaydi. Buning o'rniga maxsus Edge Function chaqirishimiz kerak,
   // yoki tg-verify Edge Function bizning siri (config.bot_token)dan o'qib qayta setWebhook qiladi.
   // Hozircha: foydalanuvchi qo'lda qayta sozlashi mumkin (Integratsiyalar sahifasidan).
   showMsg($('bsWebhookMsg'),
@@ -7170,7 +7269,7 @@ async function generateAdminLink() {
   if (!_curBotIntg) { toast('Bot ulanmagan', 'err'); return; }
   hideMsg($('bsAdminLinkMsg'));
   try {
-    // Random token yaratamиz
+    // Random token yaratamiz
     const token = 'al_' + Math.random().toString(36).slice(2, 12) + Math.random().toString(36).slice(2, 12);
     const { error } = await sb.from('admin_link_tokens').insert({
       token,
@@ -7539,7 +7638,7 @@ function refreshActiveView() {
   }
   else if (currentPage === 'stats') renderStats();
   else if (currentPage === 'project') {
-    // prjTasks'ni tasksCache'dagi yangi holat bilan darrov sinxronlaymιz (kechikishsiz)
+    // prjTasks'ni tasksCache'dagi yangi holat bilan darrov sinxronlaymiz (kechikishsiz)
     prjTasks = prjTasks.map(pt => tasksCache.find(t => t.id === pt.id) || pt);
     if (prjTab === 'flow') renderProjectFlow();
     else if (prjTab === 'kanban') renderProjectKanban();
@@ -7555,7 +7654,7 @@ function refreshActiveView() {
 // Sidebar bo'limlari: Mening vazifalarim / Men topshirganlar / Barcha
 function goTaskScope(scope) {
   taskScope = scope;
-  // Planfix'даgidek — kanban ko'rinishда ochamιz
+  // Planfix'dagidek — kanban ko'rinishda ochamiz
   currentTasksView = 'kanban';
   goPage('tasks');
   const titles = { mine: '📥 Mening vazifalarim', assigned: '📤 Men topshirganlar', all: '✓ Barcha vazifalar' };
@@ -7585,7 +7684,7 @@ let tblFilters = {};                          // colKey -> Set of allowed values
 let tblColWidths = {};                        // colKey -> px
 let tblColOrder = null;                       // massiv (reorder)
 
-// ---- Jadval sozlamalarини saqlash (localStorage, workspace bo'yicha) ----
+// ---- Jadval sozlamalarini saqlash (localStorage, workspace bo'yicha) ----
 function tblSaveSettings() {
   if (!currentWs) return;
   // Filtrlar Set → massiv
@@ -7604,7 +7703,7 @@ function tblSaveSettings() {
 }
 function tblLoadSettings() {
   if (!currentWs) return;
-  // Avval defaultга qaytaramιz (boshqa workspace sozlamasi o'tib ketmasin)
+  // Avval defaultga qaytaramiz (boshqa workspace sozlamasi o'tib ketmasin)
   tblSort = { col: null, dir: 1 };
   tblColWidths = {};
   tblColOrder = null;
@@ -7638,7 +7737,7 @@ const TBL_COL_META = {
 
 let _tblAttachSet = null; // task_id'lar to'plami (fayli borlar)
 
-// ---- Custom ustunlar (localStorage'да saqlanadi, workspace bo'yicha) ----
+// ---- Custom ustunlar (localStorage'da saqlanadi, workspace bo'yicha) ----
 function tblCustomCols() {
   if (!currentWs) return [];
   try { return JSON.parse(localStorage.getItem('tblCols_' + currentWs.id) || '[]'); } catch (e) { return []; }
@@ -7682,7 +7781,7 @@ function tblDeleteColumn(key) {
 
 function tblColKeys() {
   const base = (tblColOrder && tblColOrder.length) ? tblColOrder.slice() : TBL_COLS_DEFAULT.slice();
-  // Custom ustunlar oxiriga qo'shiladi (agar tartibда bo'lmasa)
+  // Custom ustunlar oxiriga qo'shiladi (agar tartibda bo'lmasa)
   tblCustomCols().forEach(c => { if (!base.includes(c.key)) base.push(c.key); });
   return base;
 }
@@ -7779,14 +7878,14 @@ function tblGetTasks() {
 
 async function renderTasksTable() {
   if (!$('xtblHead')) return;
-  // Saqlangan subview tab'ini faollashtiramιz
+  // Saqlangan subview tab'ini faollashtiramiz
   document.querySelectorAll('#tblSubviews [data-sv]').forEach(b => b.classList.toggle('active', b.dataset.sv === tblSubview));
-  // Shift+Enter = yangi qator (bir marta bog'laymιz)
+  // Shift+Enter = yangi qator (bir marta bog'laymiz)
   if (!window._tblKeyBound) {
     window._tblKeyBound = true;
     document.addEventListener('keydown', (e) => {
       if (currentPage === 'tasks' && currentTasksView === 'table' && e.shiftKey && e.key === 'Enter') {
-        // Agar inline qatorда yozayotган bo'lsa — saqlaymιz, aks holda ochamιz
+        // Agar inline qatorda yozayotgan bo'lsa — saqlaymiz, aks holda ochamiz
         if (_tblNewRowOpen && document.activeElement && document.activeElement.id === 'tblNewTitle') {
           e.preventDefault(); tblSaveNewRow();
         } else {
@@ -7928,7 +8027,7 @@ function tblStatusSelect(t, canEdit) {
     return '<span class="status-pill" style="background:' + (cur.color || '#E5E7EB') + '33;color:var(--ink);">' + escapeHtml(cur.name) + '</span>';
   }
   let opts = cols.map(c => '<option value="' + escapeHtml(c.status) + '" ' + (t.status === c.status ? 'selected' : '') + '>' + escapeHtml(c.name) + '</option>').join('');
-  // Agar joriy status kanban'да yo'q bo'lsa ham ko'rsatamiz
+  // Agar joriy status kanban'da yo'q bo'lsa ham ko'rsatamiz
   if (!cols.find(c => c.status === t.status)) {
     opts = '<option value="' + escapeHtml(t.status||'') + '" selected>' + escapeHtml(cur.name) + '</option>' + opts;
   }
@@ -7992,9 +8091,9 @@ function tblAsgRenderList(q) {
 function tblAsgPick(userId) { const tid = _tblAsgTask; tblCloseAsgDrop(); if (tid != null) tblUpdate(tid, 'assigned_to', userId); }
 function tblAsgAddEmployee() { window._tblAsgForTask = _tblAsgTask; tblCloseAsgDrop(); openAddEmployeeModal(); }
 
-// Ma'lumotни yangilash (har qanday task, id bo'yicha)
+// Ma'lumotni yangilash (har qanday task, id bo'yicha)
 async function tblUpdate(taskId, field, value) {
-  // Status o'zgarishi — changeStatus orqali (acceptor mantiqи uchun)
+  // Status o'zgarishi — changeStatus orqali (acceptor mantiqi uchun)
   if (field === 'status') { await changeStatus(taskId, value); return; }
   const _t = tasksCache.find(t => t.id === taskId);
   // Deadline — faqat yaratuvchi yoki admin/owner
@@ -8007,7 +8106,7 @@ async function tblUpdate(taskId, field, value) {
   try {
     const { error } = await sb.from('tasks').update({ [field]: value }).eq('id', taskId);
     if (error) throw error;
-    // Bajaruvchi o'zgarган bo'lsa — yangi odamға email + TG xabar
+    // Bajaruvchi o'zgargan bo'lsa — yangi odamga email + TG xabar
     if (field === 'assigned_to' && value && value !== old && value !== me.id) {
       tgNotifyAssignment(taskId, { user_id: value });
       emailNotify('task_assigned', taskId, value);
@@ -8017,16 +8116,16 @@ async function tblUpdate(taskId, field, value) {
     if (field === 'assigned_to') logActivity('task_assigned', { entityType: 'task', entityId: taskId, entityTitle: _tt && _tt.title, details: { from: old ? tblMemberName(old) : '—', to: value ? tblMemberName(value) : '—' } });
     else if (field === 'status') logActivity('task_status_changed', { entityType: 'task', entityId: taskId, entityTitle: _tt && _tt.title, details: { from: statusName(old), to: statusName(value) } });
     else logActivity('task_updated', { entityType: 'task', entityId: taskId, entityTitle: _tt && _tt.title, details: { field, to: value } });
-    // Realtime boshqa joylarni yangilaydi; jadvalни ham qayta chizamиz
+    // Realtime boshqa joylarni yangilaydi; jadvalni ham qayta chizamiz
     renderTasksTable();
   } catch (e) {
-    if (idx >= 0) tasksCache[idx][field] = old; // qaytaramιz
+    if (idx >= 0) tasksCache[idx][field] = old; // qaytaramiz
     toast('Xato: ' + (e.message || e), 'err');
     renderTasksTable();
   }
 }
 
-// Yangi qator — jadval ичida inline (modal emas)
+// Yangi qator — jadval ichida inline (modal emas)
 let _tblNewRowOpen = false;
 function tblAddRow() {
   if (!canEditWorkspace()) { toast('Bunga huquqingiz yo\'q', 'err'); return; }
@@ -8102,7 +8201,7 @@ function tblToggleSort(key) {
   tblSaveSettings(); renderTasksTable();
 }
 
-// ---- Excel-uslub header menyu: sort + filter bitta joyда ----
+// ---- Excel-uslub header menyu: sort + filter bitta joyda ----
 function tblOpenHeaderMenu(ev, key) {
   ev.stopPropagation();
   document.querySelectorAll('.tbl-filter-pop').forEach(p => p.remove());
@@ -8164,7 +8263,7 @@ function tblGetTasksNoFilter(exceptKey) {
 }
 function tblFilterToggle(key, val, on) {
   if (!tblFilters[key]) {
-    // Boshlanishда hamma variant bor deb hisoblaymιz
+    // Boshlanishda hamma variant bor deb hisoblaymiz
     const all = [...new Set(tblGetTasksNoFilter(key).map(t => String(tblCellValue(t, key))))];
     tblFilters[key] = new Set(all);
   }
@@ -8175,7 +8274,7 @@ function tblFilterAll(key, on) {
   if (on) { delete tblFilters[key]; }
   else { tblFilters[key] = new Set(); }
   tblSaveSettings(); renderTasksTable();
-  // popover'ni yangilaymιz
+  // popover'ni yangilaymiz
   document.querySelectorAll('.tbl-filter-pop').forEach(p => p.remove());
 }
 
@@ -8183,7 +8282,7 @@ function tblFilterAll(key, on) {
 let _tblResize = null;
 function tblResizeStart(ev, key) {
   ev.stopPropagation(); ev.preventDefault();
-  // Resize paytida drag (ko'chirish) ni o'chiramιz — aks holda brauzer drag boshlaydi
+  // Resize paytida drag (ko'chirish) ni o'chiramiz — aks holda brauzer drag boshlaydi
   document.querySelectorAll('#xtblHead th').forEach(th => th.setAttribute('draggable', 'false'));
   document.body.style.userSelect = 'none';
   document.body.style.cursor = 'col-resize';
@@ -8197,7 +8296,7 @@ function tblResizeMove(ev) {
   const dw = ev.clientX - _tblResize.startX;
   tblColWidths[_tblResize.key] = Math.max(42, _tblResize.startW + dw);
   const w = tblColWidths[_tblResize.key];
-  // Header + shu ustundagi barcha kataklarни darrov yangilaymιz (silliq)
+  // Header + shu ustundagi barcha kataklarni darrov yangilaymiz (silliq)
   const th = document.querySelector('#xtblHead th[data-col="' + _tblResize.key + '"]');
   if (th) { th.style.width = w + 'px'; th.style.minWidth = w + 'px'; th.style.maxWidth = w + 'px'; }
 }
@@ -8207,7 +8306,7 @@ function tblResizeEnd() {
   document.body.style.cursor = '';
   document.removeEventListener('mousemove', tblResizeMove);
   document.removeEventListener('mouseup', tblResizeEnd);
-  // Drag'ни qayta yoqamιz
+  // Drag'ni qayta yoqamiz
   document.querySelectorAll('#xtblHead th').forEach(th => th.setAttribute('draggable', 'true'));
   tblSaveSettings(); renderTasksTable();
 }
@@ -8247,7 +8346,7 @@ function tblDragEnd(ev) {
   _tblDragCol = null;
 }
 
-// Attach cache tozalash (task o'zgarganда qayta yuklash uchun emas — attach kamdan-kam o'zgaradi)
+// Attach cache tozalash (task o'zgarganda qayta yuklash uchun emas — attach kamdan-kam o'zgaradi)
 function tblResetAttachCache() { _tblAttachSet = null; }
 
 
@@ -8307,7 +8406,7 @@ function plnSetTab(tab) {
   if (isSchedule) {
     renderPlanner();
   } else {
-    taskScope = tab; // mine=menga assign qilinган, assigned=men topshirган, all=barchasi
+    taskScope = tab; // mine=menga assign qilingan, assigned=men topshirgan, all=barchasi
     renderTasksKanban('plnKanGrid');
   }
 }
@@ -8384,7 +8483,7 @@ function renderPlnUnscheduled() {
   const wrap = $('plnUnscheduled');
   if (!wrap) return;
   const sched = plnGetSchedule();
-  // Mening vazifalarim: menga biriktirilган yoki men yaratган, tugallanmagan, rejaга qo'yilmagan
+  // Mening vazifalarim: menga biriktirilgan yoki men yaratgan, tugallanmagan, rejaga qo'yilmagan
   const mine = (tasksCache || []).filter(t =>
     !t.is_locked &&
     (t.assigned_to === me.id || t.created_by === me.id) &&
@@ -8400,7 +8499,7 @@ function renderPlnUnscheduled() {
   }).join('');
 }
 
-// Bo'sh katakka bosish → o'sha kun/soatда vazifa yaratish
+// Bo'sh katakka bosish → o'sha kun/soatda vazifa yaratish
 // ---- Yordamchi ----
 function plnMinLabel(min) { min = Math.max(0, Math.round(min)); return String(Math.floor(min/60)).padStart(2,'0') + ':' + String(Math.round(min%60)).padStart(2,'0'); }
 function plnYToMin(y) { return PLN_H_START * 60 + (y / PLN_HPX) * 60; }
@@ -8453,7 +8552,7 @@ function plnSelUp(ev) {
   plnOpenCreate(ds, startMin, endMin - startMin);
 }
 
-// Bo'sh joyга bosilганда — TO'LIQ vazifa modali
+// Bo'sh joyga bosilganda — TO'LIQ vazifa modali
 function plnOpenCreate(dateStr, startMin, durMin) {
   window._plnPendingSchedule = { date: dateStr, start: startMin, dur: durMin };
   openCreate();
@@ -8461,7 +8560,7 @@ function plnOpenCreate(dateStr, startMin, durMin) {
     const dd = $('cDeadlineDate'), dt = $('cDeadlineTime');
     if (dd) dd.value = dateStr;
     if (dt) dt.value = plnMinLabel(startMin);
-    // O'zimni bajaruvchi qilib tanlaymιz (reja = mening jadvalim)
+    // O'zimni bajaruvchi qilib tanlaymiz (reja = mening jadvalim)
     if (typeof msIsSelected === 'function' && !msIsSelected('me', 'me')) {
       msSelected.push({ type: 'me', id: 'me', label: (myProfile.full_name || 'Men') });
       if (typeof msUpdateSummary === 'function') msUpdateSummary();
@@ -8493,7 +8592,7 @@ function plnBlockMouseDown(ev, taskId, mode) {
   document.addEventListener('mousemove', plnMoveMove);
   document.addEventListener('mouseup', plnMoveUp);
 }
-// clientX/Y qaysi kun ustunида ekanini aniqlaydi
+// clientX/Y qaysi kun ustunida ekanini aniqlaydi
 function plnDayAtPoint(x, y) {
   const days = document.querySelectorAll('#plnCal .pln-day');
   for (const d of days) {
@@ -8511,11 +8610,11 @@ function plnMoveMove(ev) {
   const dMin = (dy / PLN_HPX) * 60;
 
   if (_plnMove.mode === 'move') {
-    // Snap qilinган boshlanish (label + yakuniy qiymat uchun)
+    // Snap qilingan boshlanish (label + yakuniy qiymat uchun)
     let newStart = plnSnap(_plnMove.origStart + dMin);
     newStart = Math.max(PLN_H_START*60, Math.min((PLN_H_END+1)*60 - _plnMove.origDur, newStart));
     _plnMove.newStart = newStart;
-    // Qaysi kun ustuni ustidamιz (faqat qiymatni yozamιz — DOM ko'chirmaymιz!)
+    // Qaysi kun ustuni ustidamiz (faqat qiymatni yozamiz — DOM ko'chirmaymiz!)
     const targetDate = plnDayAtPoint(ev.clientX, ev.clientY);
     if (targetDate) _plnMove.newDate = targetDate;
     // SILLIQ: faqat transform (reflow yo'q). Gorizontal = ustun kengligiga snap
@@ -8557,7 +8656,7 @@ function plnMoveUp(ev) {
   toast('✓ Saqlandi', 'ok');
 }
 
-// ---- Panel'дан drag (HTML5) ----
+// ---- Panel'dan drag (HTML5) ----
 let _plnDragTask = null;
 function plnTaskDragStart(ev, taskId) {
   _plnDragTask = taskId;
@@ -8579,7 +8678,7 @@ function plnDayDrop(ev, dateStr) {
 }
 
 function tkFilteredTasks() {
-  // Dublikatlarni id bo'yicha olib tashlaymιz (realtime/filtr xavfsizligi)
+  // Dublikatlarni id bo'yicha olib tashlaymiz (realtime/filtr xavfsizligi)
   const seen = new Set();
   let list = applyTaskScope((tasksCache || []).filter(t => { if (seen.has(t.id)) return false; seen.add(t.id); return true; }));
   const q = ($('tkSearch')?.value || '').trim().toLowerCase();
@@ -8725,7 +8824,7 @@ async function renderDeptsList() {
   if (!visible.length) { wrap.innerHTML = ''; empty.style.display = 'block'; empty.innerHTML = q ? '<strong>Topilmadi</strong>Qidiruv natijasi bo\'sh.' : '<strong>Hali bo\'lim yo\'q</strong>Bo\'limlar (IT, HR, Savdo, ...) yarating.'; return; }
   empty.style.display = 'none';
 
-  // Xodim sonini olamиz
+  // Xodim sonini olamiz
   const deptIds = visible.map(d => d.id);
   let memberCounts = {};
   if (deptIds.length) {
@@ -8861,14 +8960,14 @@ async function loadKanbanColumns() {
     const { data, error } = await sb.from('kanban_columns').select('*').eq('workspace_id', currentWs.id).order('sort_order', { ascending: true });
     if (error) throw error;
     kanbanColumns = data || [];
-    // DEDUP: har status FAQAT bitta ustunда bo'lsin (aks holда task ikki joyда chiqadi)
+    // DEDUP: har status FAQAT bitta ustunda bo'lsin (aks holda task ikki joyda chiqadi)
     // is_default ustunlar statusni saqlaydi; dublikatlar yangi unikal status oladi.
     {
       const seen = new Set();
       const ordered = kanbanColumns.slice().sort((a, b) => (b.is_default ? 1 : 0) - (a.is_default ? 1 : 0) || (a.sort_order || 0) - (b.sort_order || 0));
       for (const col of ordered) {
         if (!seen.has(col.status)) { seen.add(col.status); continue; }
-        // Dublikat — yangi unikal status hosil qilamιz
+        // Dublikat — yangi unikal status hosil qilamiz
         let base = String(col.name || 'status').toLowerCase().trim().replace(/'/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 30) || 'status';
         let ns = base, i = 1;
         while (seen.has(ns)) { ns = base + '_' + (++i); }
@@ -8876,12 +8975,12 @@ async function loadKanbanColumns() {
         try { await sb.from('kanban_columns').update({ status: ns }).eq('id', col.id); col.status = ns; } catch (e) {}
       }
     }
-    // "Bajarildi" (completed) ustuni — protected. Nomi eski bo'lsa yangilaymιz.
+    // "Bajarildi" (completed) ustuni — protected. Nomi eski bo'lsa yangilaymiz.
     const doneCol = kanbanColumns.find(c => c.status === 'completed');
     if (doneCol && doneCol.name !== 'Bajarildi' && (doneCol.name === 'Tugatilgan' || doneCol.name === 'Tugallangan')) {
       try { await sb.from('kanban_columns').update({ name: 'Bajarildi', is_default: true }).eq('id', doneCol.id); doneCol.name = 'Bajarildi'; doneCol.is_default = true; } catch (e) {}
     }
-    // Agar completed ustuni umuman yo'q bo'lsa — qo'shamιz (protected)
+    // Agar completed ustuni umuman yo'q bo'lsa — qo'shamiz (protected)
     if (kanbanColumns.length && !doneCol && currentWs.kind === 'organization') {
       const sortMax = kanbanColumns.reduce((a, c) => Math.max(a, c.sort_order || 0), 0);
       try {
@@ -8891,13 +8990,13 @@ async function loadKanbanColumns() {
         if (dc) kanbanColumns.push(dc);
       } catch (e) {}
     }
-    // "Qabul kutilyapti" ustuni (protected) — Bajarildi'дан oldin
+    // "Qabul kutilyapti" ustuni (protected) — Bajarildi'dan oldin
     if (kanbanColumns.length && currentWs.kind === 'organization') {
       const accCol = kanbanColumns.find(c => c.status === 'qabul_kutilyapti');
       if (!accCol) {
         const doneC = kanbanColumns.find(c => c.status === 'completed');
         const doneOrder = doneC ? (doneC.sort_order || 99) : 99;
-        // completed va undan keyingi ustunlarni +1 suramιz (yuqoridan — conflict bo'lmasin)
+        // completed va undan keyingi ustunlarni +1 suramiz (yuqoridan — conflict bo'lmasin)
         const toBump = kanbanColumns.filter(c => (c.sort_order || 0) >= doneOrder).sort((a, b) => (b.sort_order || 0) - (a.sort_order || 0));
         for (const c of toBump) {
           try { await sb.from('kanban_columns').update({ sort_order: (c.sort_order || 0) + 1 }).eq('id', c.id); c.sort_order = (c.sort_order || 0) + 1; } catch (e) {}
@@ -8909,11 +9008,11 @@ async function loadKanbanColumns() {
         else if (acErr) console.warn('Qabul kutilyapti ustuni qo\'shilmadi:', acErr.message);
       }
     }
-    // Agar bo'sh — default 4 ta yaratamиz (backfill SQL ishlamagan bo'lsa)
+    // Agar bo'sh — default 4 ta yaratamiz (backfill SQL ishlamagan bo'lsa)
     if (!kanbanColumns.length && currentWs.kind === 'organization') {
       const defaults = [
         { workspace_id: currentWs.id, name: 'Yangi', status: 'new', color: '#94A3B8', sort_order: 1, is_default: true },
-        { workspace_id: currentWs.id, name: 'Jarayonда', status: 'in_progress', color: '#3B82F6', sort_order: 2, is_default: true },
+        { workspace_id: currentWs.id, name: 'Jarayonda', status: 'in_progress', color: '#3B82F6', sort_order: 2, is_default: true },
         { workspace_id: currentWs.id, name: 'Bajarildi', status: 'completed', color: '#10B981', sort_order: 3, is_default: true },
         { workspace_id: currentWs.id, name: 'Bekor', status: 'cancelled', color: '#EF4444', sort_order: 4, is_default: true },
       ];
@@ -8955,9 +9054,9 @@ function renderKanban() {
   const cols = kanbanColumns.length ? kanbanColumns : STATUS_ORDER.map((s, i) => ({ id: 'fallback-'+s, name: STATUS_LBL[s], status: s, color: '#94A3B8', sort_order: i+1, is_default: true }));
 
   grid.innerHTML = cols.map(col => {
-    // Vazifalarni shu column'ga group qilamиz:
+    // Vazifalarni shu column'ga group qilamiz:
     // 1) Kanban_column_id mos kelsa
-    // 2) Yoki status mos kelsa va boshqa column'дa explicit emas
+    // 2) Yoki status mos kelsa va boshqa column'da explicit emas
     const cards = tasks.filter(t => {
       // future: t.kanban_column_id === col.id
       // hozir: status orqali
@@ -9011,16 +9110,16 @@ function renderKanban() {
 
 function quickAddToColumn(status) {
   openCreateInternal(currentDeptId);
-  // Vazifa yaratilgach status'ni patch qilamиz (yaratish paytida status — default 'new')
-  // Soddasi: prompt orqali nomни darrov yaratish:
+  // Vazifa yaratilgach status'ni patch qilamiz (yaratish paytida status — default 'new')
+  // Soddasi: prompt orqali nomni darrov yaratish:
   setTimeout(() => {
-    // Set a flag — keyin saveCreate'дa status'ни o'zgartiramиz
+    // Set a flag — keyin saveCreate'da status'ni o'zgartiramiz
     window._cQuickStatus = status;
   }, 50);
 }
 
 function openAddColumnModal() {
-  if (currentWs.kind !== 'organization') { toast('Faqat kompaniya workspace\'дa', 'err'); return; }
+  if (currentWs.kind !== 'organization') { toast('Faqat kompaniya workspace\'da', 'err'); return; }
   $('kcName').value = '';
   $('kcStatus').value = 'in_progress';
   kcSetColor('#3B82F6');
@@ -9048,7 +9147,7 @@ async function saveNewColumn() {
   if (!name) { showMsg($('kcMsg'), 'Nomi kerak', 'err'); return; }
   const status = slugStatus(name);
   const btn = $('kcSaveBtn');
-  btn.disabled = true; btn.textContent = 'Saqlanmoqда…';
+  btn.disabled = true; btn.textContent = 'Saqlanmoqda…';
   try {
     const sortMax = kanbanColumns.reduce((a, c) => Math.max(a, c.sort_order || 0), 0);
     const { data, error } = await sb.from('kanban_columns').insert({
@@ -9060,7 +9159,7 @@ async function saveNewColumn() {
     closeAddColumnModal();
     rerenderActiveKanban();
     if (currentDetailId) renderDetailBody();
-    toast('\u2713 "' + name + '" ustuni qo\'shildi \u2014 status hamma joyда paydo bo\'ldi', 'ok');
+    toast('\u2713 "' + name + '" ustuni qo\'shildi \u2014 status hamma joyda paydo bo\'ldi', 'ok');
   } catch (e) {
     showMsg($('kcMsg'), translateErr(e.message), 'err');
     btn.disabled = false; btn.textContent = 'Yaratish';
@@ -9090,7 +9189,7 @@ function editColName(colId, el) {
     if (!newName || newName === original) { el.textContent = original; return; }
     try {
       if (isFb) {
-        // Fallback bo'lsa — DBда yo'q, yaratish kerak
+        // Fallback bo'lsa — DBda yo'q, yaratish kerak
         const sortMax = kanbanColumns.reduce((m,c)=>Math.max(m, c.sort_order||0), 0);
         const { data, error } = await sb.from('kanban_columns').insert({
           workspace_id: currentWs.id, name: newName, status: col.status, color: col.color || '#94A3B8',
@@ -9117,7 +9216,7 @@ function editColName(colId, el) {
 async function deleteColumn(colId) {
   const col = kanbanColumns.find(c => c.id === colId); if (!col) return;
   if (col.is_default) { toast('Default column o\'chirilmaydi', 'err'); return; }
-  if (!confirm('"'+col.name+'" column\'ni o\'chirasizmi? Ichidagi vazifalar boshqa column\'gа avtomatik tushadi.')) return;
+  if (!confirm('"'+col.name+'" column\'ni o\'chirasizmi? Ichidagi vazifalar boshqa column\'ga avtomatik tushadi.')) return;
   try {
     const { error } = await sb.from('kanban_columns').delete().eq('id', colId);
     if (error) throw error;
@@ -9163,13 +9262,13 @@ function colDragOver(e) {
   const tgtId = colEl.dataset.col;
   if (tgtId === dragColId) return;
   document.querySelectorAll('.kan-col').forEach(c => { c.classList.remove('col-drop-target-left', 'col-drop-target-right'); });
-  // Drop'ни chap yoki o'ng tomonni aniqlash
+  // Drop'ni chap yoki o'ng tomonni aniqlash
   const rect = colEl.getBoundingClientRect();
   const isLeft = (e.clientX - rect.left) < rect.width / 2;
   colEl.classList.add(isLeft ? 'col-drop-target-left' : 'col-drop-target-right');
 }
 function colDragLeave(e) {
-  // Yumshoq leave — boshqa elementga kirsak avtomatik clean bo'ladi over'дa
+  // Yumshoq leave — boshqa elementga kirsak avtomatik clean bo'ladi over'da
 }
 async function colDrop(e, tgtColId) {
   e.preventDefault();
@@ -9184,7 +9283,7 @@ async function colDrop(e, tgtColId) {
 }
 
 async function reorderColumn(srcId, tgtId, before) {
-  // Yangi tartibni qurib chiqamиz
+  // Yangi tartibni qurib chiqamiz
   const sorted = kanbanColumns.slice().sort((a, b) => (a.sort_order||0) - (b.sort_order||0));
   const srcIdx = sorted.findIndex(c => c.id === srcId);
   const tgtIdx = sorted.findIndex(c => c.id === tgtId);
@@ -9193,10 +9292,10 @@ async function reorderColumn(srcId, tgtId, before) {
   let insertAt = sorted.findIndex(c => c.id === tgtId);
   if (!before) insertAt += 1;
   sorted.splice(insertAt, 0, moved);
-  // Yangi sort_order qiymatlarini hisoblaymiz va DB'gа yozamiz
+  // Yangi sort_order qiymatlarini hisoblaymiz va DB'ga yozamiz
   const updates = sorted.map((c, i) => ({ id: c.id, sort_order: i + 1 }));
   try {
-    // Mahalliy state'ni darrov yangilaymиz
+    // Mahalliy state'ni darrov yangilaymiz
     updates.forEach(u => {
       const c = kanbanColumns.find(x => x.id === u.id);
       if (c) c.sort_order = u.sort_order;
@@ -9372,26 +9471,147 @@ function canEditWorkspace() { return isOwnerLike() || myWsRole === 'member'; }
 function isWorkspaceOwner() { return myWsRole === 'owner'; }
 
 // ---- Lavozimlar (hozircha localStorage — faqat view) ----
-function teamPosKey() { return 'positions_' + (currentWs ? currentWs.id : 'x'); }
-function teamMemberPosKey() { return 'memberPos_' + (currentWs ? currentWs.id : 'x'); }
-function teamStoredPositions() { try { return JSON.parse(localStorage.getItem(teamPosKey()) || '[]'); } catch (e) { return []; } }
-function teamMemberPosMap() { try { return JSON.parse(localStorage.getItem(teamMemberPosKey()) || '{}'); } catch (e) { return {}; } }
-function teamPositions() {
-  const set = new Set(teamStoredPositions());
-  const mp = teamMemberPosMap();
-  Object.values(mp).forEach(v => { if (v) set.add(v); });
-  return [...set].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+// ============ HR: ma'lumot qatlami (39-migratsiya) ============
+// Lavozim/rol/kadrlar ma'lumoti — localStorage EMAS, DB.
+let positionsCache = [];   // [{id, name}]
+let empRolesCache = [];    // [{id, code, label}]
+let empDetails = {};       // user_id -> employee_details qatori
+let empBranches = {};      // user_id -> [branch_id, ...]
+let empDepts = {};         // user_id -> [department_id, ...]  (mavjud department_members'dan)
+let _hrLoadedWs = null;
+let _hrError = '';
+
+async function loadHrData(force) {
+  if (!currentWs) return false;
+  if (!force && _hrLoadedWs === currentWs.id) return true;
+  const wsId = currentWs.id;
+  const isOrg = currentWs.kind === 'organization';
+  try {
+    const [posR, rolesR, detR, brR, dmR] = await Promise.all([
+      sb.from('positions').select('id, name').eq('workspace_id', wsId),
+      sb.from('employee_roles').select('id, code, label').eq('workspace_id', wsId),
+      sb.from('employee_details').select('*').eq('workspace_id', wsId),
+      sb.from('employee_branches').select('user_id, branch_id').eq('workspace_id', wsId),
+      // Bo'limlar uchun alohida jadval yo'q — mavjud department_members ishlatiladi
+      isOrg ? sb.from('department_members').select('user_id, department_id, departments!inner(workspace_id)').eq('departments.workspace_id', wsId) : Promise.resolve({ data: [] }),
+    ]);
+    if (posR.error) throw posR.error;
+    if (rolesR.error) throw rolesR.error;
+    if (detR.error) throw detR.error;
+    if (brR.error) throw brR.error;
+    if (dmR.error) throw dmR.error;
+    positionsCache = (posR.data || []).sort(function (a, b) { return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }); });
+    empRolesCache = (rolesR.data || []).sort(function (a, b) { return a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }); });
+    empDetails = {};
+    (detR.data || []).forEach(function (d) { empDetails[d.user_id] = d; });
+    empBranches = {};
+    (brR.data || []).forEach(function (x) { (empBranches[x.user_id] = empBranches[x.user_id] || []).push(x.branch_id); });
+    empDepts = {};
+    (dmR.data || []).forEach(function (x) { (empDepts[x.user_id] = empDepts[x.user_id] || []).push(x.department_id); });
+    _hrLoadedWs = wsId; _hrError = '';
+    return true;
+  } catch (e) {
+    _hrLoadedWs = null;
+    _hrError = e.message || String(e);
+    positionsCache = []; empRolesCache = []; empDetails = {}; empBranches = {}; empDepts = {};
+    return false;
+  }
 }
-function teamAddPosition(name) {
-  name = (name || '').trim(); if (!name) return;
-  const arr = teamStoredPositions();
-  if (!arr.some(x => x.toLowerCase() === name.toLowerCase())) { arr.push(name); localStorage.setItem(teamPosKey(), JSON.stringify(arr)); }
+
+// Bir martalik: localStorage'dagi eski lavozimlar → DB. Faqat owner/admin.
+async function hrMigrateLocalPositions() {
+  if (!currentWs || !isOwnerLike()) return;
+  const posKey = 'positions_' + currentWs.id;
+  const mpKey = 'memberPos_' + currentWs.id;
+  let stored = [], mp = {};
+  try { stored = JSON.parse(localStorage.getItem(posKey) || '[]'); } catch (e) { stored = []; }
+  try { mp = JSON.parse(localStorage.getItem(mpKey) || '{}'); } catch (e) { mp = {}; }
+  const names = new Set();
+  stored.forEach(function (n) { if (n && String(n).trim()) names.add(String(n).trim()); });
+  Object.keys(mp).forEach(function (uid) { const v = mp[uid]; if (v && String(v).trim()) names.add(String(v).trim()); });
+  if (!names.size) {
+    // Ko'chiradigan narsa yo'q — bo'sh kalitlarni olib tashlaymiz
+    localStorage.removeItem(posKey); localStorage.removeItem(mpKey);
+    return;
+  }
+  try {
+    const rows = Array.from(names).map(function (n) { return { workspace_id: currentWs.id, name: n }; });
+    const { error: insErr } = await sb.from('positions').upsert(rows, { onConflict: 'workspace_id,name', ignoreDuplicates: true });
+    if (insErr) throw insErr;
+    await loadHrData(true);
+
+    const byName = {};
+    positionsCache.forEach(function (p) { byName[p.name.toLowerCase()] = p.id; });
+    const detRows = [];
+    Object.keys(mp).forEach(function (uid) {
+      const nm = String(mp[uid] || '').trim();
+      if (!nm) return;
+      const pid = byName[nm.toLowerCase()];
+      if (!pid) return;
+      // DB'dagi qiymat ustun — localStorage uni bosib o'tmasin
+      if (empDetails[uid] && empDetails[uid].position_id) return;
+      detRows.push({ workspace_id: currentWs.id, user_id: uid, position_id: pid });
+    });
+    if (detRows.length) {
+      const { error: dErr } = await sb.from('employee_details').upsert(detRows, { onConflict: 'workspace_id,user_id' });
+      if (dErr) throw dErr;
+    }
+    // Faqat DB'ga muvaffaqiyatli yozilgandan KEYIN tozalaymiz
+    localStorage.removeItem(posKey);
+    localStorage.removeItem(mpKey);
+    await loadHrData(true);
+    toast('✓ ' + names.size + ' lavozim DB\'ga ko\'chirildi (' + detRows.length + ' hodimga biriktirildi)', 'ok');
+    logActivity('positions_migrated', { entityType: 'position', entityTitle: 'Lavozimlar', details: { positions: names.size, members: detRows.length } });
+  } catch (e) {
+    // localStorage tegilmaydi — keyingi safar qayta urinamiz
+    toast('Lavozimlarni ko\'chirib bo\'lmadi: ' + (e.message || e), 'err');
+  }
 }
-function teamMemberPos(uid) { return teamMemberPosMap()[uid] || ''; }
-function teamSetMemberPos(uid, pos) {
-  const mp = teamMemberPosMap();
-  if (pos) mp[uid] = pos; else delete mp[uid];
-  localStorage.setItem(teamMemberPosKey(), JSON.stringify(mp));
+
+// ---- Lavozim yordamchilari (DB) ----
+function teamPositions() { return positionsCache.map(function (p) { return p.name; }); }
+function teamPosByName(name) {
+  const n = String(name || '').trim().toLowerCase();
+  return positionsCache.find(function (p) { return p.name.toLowerCase() === n; }) || null;
+}
+function teamMemberPos(uid) {
+  const d = empDetails[uid];
+  if (!d || !d.position_id) return '';
+  const p = positionsCache.find(function (x) { return x.id === d.position_id; });
+  return p ? p.name : '';
+}
+// Yangi lavozim qo'shadi (yoki mavjudini qaytaradi) → position id
+async function teamAddPosition(name) {
+  name = String(name || '').trim();
+  if (!name || !currentWs) return null;
+  const ex = teamPosByName(name);
+  if (ex) return ex.id;
+  const { data, error } = await sb.from('positions').insert({ workspace_id: currentWs.id, name: name }).select().single();
+  if (error) {
+    // Poyga holati: boshqa birov ayni damda qo'shgan bo'lishi mumkin
+    await loadHrData(true);
+    const again = teamPosByName(name);
+    if (again) return again.id;
+    throw error;
+  }
+  positionsCache.push(data);
+  positionsCache.sort(function (a, b) { return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }); });
+  logActivity('position_created', { entityType: 'position', entityId: data.id, entityTitle: name });
+  return data.id;
+}
+// Hodimga lavozim biriktiradi. pos = nom (bo'sh bo'lsa — tozalaydi)
+async function teamSetMemberPos(uid, pos) {
+  if (!currentWs) return;
+  let pid = null;
+  if (pos) {
+    const p = teamPosByName(pos);
+    pid = p ? p.id : await teamAddPosition(pos);
+  }
+  const { data, error } = await sb.from('employee_details')
+    .upsert({ workspace_id: currentWs.id, user_id: uid, position_id: pid }, { onConflict: 'workspace_id,user_id' })
+    .select().single();
+  if (error) throw error;
+  empDetails[uid] = data;
 }
 
 // ---- Sub-tab: Hodimlar / Tashkilot ----
@@ -9402,7 +9622,7 @@ function teamSetTab(tab) {
   $('teamPaneHodimlar').style.display = tab === 'hodimlar' ? 'block' : 'none';
   $('teamPaneTashkilot').style.display = tab === 'tashkilot' ? 'block' : 'none';
   if (tab === 'tashkilot') {
-    // Org chart elementini Jamoa ichiga ko'chiramιz (bir marta) va yuklaymιz
+    // Org chart elementini Jamoa ichiga ko'chiramiz (bir marta) va yuklaymiz
     const oc = $('page-orgchart');
     if (oc && oc.parentElement !== $('teamPaneTashkilot')) {
       oc.style.display = 'block';
@@ -9412,27 +9632,189 @@ function teamSetTab(tab) {
   }
 }
 
+// ---- Filtr / saralash / sahifalash holati ----
+let _teamSearch = '';
+let _teamFltBranchId = '';
+let _teamFltPosId = '';
+let _teamFltFrom = '';
+let _teamFltTo = '';
+let _teamSortDir = 1;      // 1 = A→Z, -1 = Z→A
+let _teamPage = 1;
+let _teamPerPage = 25;
+let _hrMigratedWs = null;
+
+// Filtr/sahifa/saralash — faqat jadvalni qayta chizadi (DB so'rovisiz)
+function teamOnFilterChange() {
+  _teamSearch = String(($('teamSearch') && $('teamSearch').value) || '').trim().toLowerCase();
+  _teamFltBranchId = ($('teamFltBranch') && $('teamFltBranch').value) || '';
+  _teamFltPosId = ($('teamFltPos') && $('teamFltPos').value) || '';
+  _teamFltFrom = ($('teamFltFrom') && $('teamFltFrom').value) || '';
+  _teamFltTo = ($('teamFltTo') && $('teamFltTo').value) || '';
+  _teamPage = 1;
+  renderTeamTable();
+}
+function teamResetFilters() {
+  ['teamSearch', 'teamFltFrom', 'teamFltTo', 'teamFltBranch', 'teamFltPos'].forEach(function (id) {
+    const el = $(id); if (el) el.value = '';
+  });
+  teamOnFilterChange();
+}
+function teamSetPerPage(v) { _teamPerPage = parseInt(v, 10) || 25; _teamPage = 1; renderTeamTable(); }
+function teamGoPage(delta) { _teamPage += delta; renderTeamTable(); }
+function teamToggleSort() { _teamSortDir = -_teamSortDir; renderTeamTable(); }
+
+// dd.mm.yyyy ('YYYY-MM-DD' → ko'rsatish uchun)
+function hrFmtDate(d) {
+  if (!d) return '';
+  const s = String(d).slice(0, 10).split('-');
+  if (s.length !== 3) return String(d);
+  return s[2] + '.' + s[1] + '.' + s[0];
+}
+
+// Ism/familiya. employee_details bo'sh bo'lsa — full_name'dan taxminiy
+// ajratamiz (faqat KO'RSATISH uchun; DB'ga yozilmaydi).
+// Ilova full_name'ni "Ism Familiya" tartibida yaratadi (sendInvite'ga qarang).
+function teamEmpName(m) {
+  const d = empDetails[m.user_id] || {};
+  const p = m.profile || {};
+  const isMe = m.user_id === me.id;
+  const full = (isMe && myProfile && myProfile.full_name) ? myProfile.full_name : (p.full_name || '');
+  let first = d.first_name || '';
+  let last = d.last_name || '';
+  if (!first && !last && full) {
+    const parts = full.trim().split(/\s+/);
+    first = parts[0] || '';
+    last = parts.slice(1).join(' ');
+  }
+  return { full: full || (isMe ? 'Siz' : 'A\'zo'), first: first, last: last };
+}
+
+// Shartnoma davri [from..to] oralig'i bilan kesishadimi?
+function teamContractOverlaps(d, from, to) {
+  if (!from && !to) return true;
+  const s = d.contract_start || null;
+  const e = d.contract_end || null;
+  if (!s && !e) return false;              // shartnoma sanasi yo'q — sana filtrida chiqmaydi
+  if (from && e && e < from) return false; // allaqachon tugagan
+  if (to && s && s > to) return false;     // hali boshlanmagan
+  return true;
+}
+
+function teamMatches(m) {
+  const d = empDetails[m.user_id] || {};
+  const p = m.profile || {};
+  const isMe = m.user_id === me.id;
+  const nm = teamEmpName(m);
+  const email = p.email || (isMe ? (me.email || '') : '');
+  const phone = p.phone || '';
+  if (_teamSearch) {
+    const hay = (nm.full + ' ' + nm.first + ' ' + nm.last + ' ' + phone + ' ' + email).toLowerCase();
+    if (hay.indexOf(_teamSearch) === -1) return false;
+  }
+  if (_teamFltBranchId && (empBranches[m.user_id] || []).indexOf(_teamFltBranchId) === -1) return false;
+  if (_teamFltPosId && d.position_id !== _teamFltPosId) return false;
+  if ((_teamFltFrom || _teamFltTo) && !teamContractOverlaps(d, _teamFltFrom, _teamFltTo)) return false;
+  return true;
+}
+
+function teamFillFilters() {
+  const bSel = $('teamFltBranch');
+  if (bSel) {
+    bSel.innerHTML = '<option value="">Barcha filiallar</option>' + (branchesCache || []).map(function (b) {
+      return '<option value="' + b.id + '"' + (_teamFltBranchId === b.id ? ' selected' : '') + '>' + escapeHtml(b.name) + '</option>';
+    }).join('');
+  }
+  const pSel = $('teamFltPos');
+  if (pSel) {
+    pSel.innerHTML = '<option value="">Barcha lavozimlar</option>' + positionsCache.map(function (p) {
+      return '<option value="' + p.id + '"' + (_teamFltPosId === p.id ? ' selected' : '') + '>' + escapeHtml(p.name) + '</option>';
+    }).join('');
+  }
+  const anyFlt = !!(_teamSearch || _teamFltBranchId || _teamFltPosId || _teamFltFrom || _teamFltTo);
+  const cb = $('teamClearFlt'); if (cb) cb.style.display = anyFlt ? 'inline-flex' : 'none';
+}
+
+// Qator bosilganda hodim detali ochiladi — lekin inline tahrir/tugma/select bosilsa YO'Q
+function teamRowClick(ev, uid) {
+  if (ev.target.closest('.team-edit, button, select, input, a')) return;
+  openEmployee(uid);
+}
+
+// To'liq yangilash: HR ma'lumoti + jadval + takliflar (DB so'rovlari bor)
 async function renderTeam() {
-  $('inviteBtn').style.display = canManageTeam() ? 'inline-block' : 'none';
-  $('invitesWrap').style.display = canManageTeam() ? 'block' : 'none';
+  const canManage = canManageTeam();
+  $('inviteBtn').style.display = canManage ? 'inline-block' : 'none';
+  $('hrImportBtn').style.display = canManage ? 'inline-block' : 'none';
+  $('invitesWrap').style.display = canManage ? 'block' : 'none';
+
+  // HR ma'lumoti (lavozim/rol/kadrlar/filiallar) — workspace uchun bir marta
+  const hrOk = await loadHrData();
+  const warn = $('teamHrWarn');
+  if (warn) {
+    warn.style.display = hrOk ? 'none' : 'block';
+    if (!hrOk) warn.innerHTML = '⚠ HR ma\'lumoti yuklanmadi — <b>38 va 39-migratsiyani ishga tushiring</b>.<br><span style="color:var(--muted);font-size:12px;">' + escapeHtml(_hrError) + '</span>';
+  }
+  // localStorage → DB ko'chirish (bir marta, faqat owner/admin)
+  if (hrOk && canManage && _hrMigratedWs !== currentWs.id) {
+    _hrMigratedWs = currentWs.id;
+    await hrMigrateLocalPositions();
+  }
+  renderTeamTable();
+  await renderInvites();
+}
+
+// Faqat jadval — qidiruv/filtr/sahifalashda shu chaqiriladi (DB so'rovi YO'Q)
+function renderTeamTable() {
   const canManage = canManageTeam();
   const isOwner2 = isWorkspaceOwner();
+  teamFillFilters();
 
   // ---- HODIMLAR JADVALI ----
-  const cols = ['№', '', 'To\'liq ism', 'Telefon', 'Email', 'Lavozim', 'Rol', ''];
-  $('teamTblHead').innerHTML = '<tr>' + cols.map((c, i) =>
-    '<th style="padding:9px 12px;text-align:left;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;">' + escapeHtml(c) + '</th>').join('') + '</tr>';
+  const th = 'padding:9px 12px;text-align:left;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;';
+  const sortArrow = _teamSortDir === 1 ? ' ▲' : ' ▼';
+  $('teamTblHead').innerHTML = '<tr>' +
+    '<th style="' + th + '">№</th>' +
+    '<th style="' + th + '"></th>' +
+    '<th style="' + th + 'cursor:pointer;" onclick="teamToggleSort()" title="Saralash">To\'liq ism' + sortArrow + '</th>' +
+    '<th style="' + th + '">Ism</th>' +
+    '<th style="' + th + '">Familiya</th>' +
+    '<th style="' + th + '">Telefon</th>' +
+    '<th style="' + th + '">Email</th>' +
+    '<th style="' + th + '">Filial va bo\'limlar</th>' +
+    '<th style="' + th + '">Lavozim</th>' +
+    '<th style="' + th + '">Shartnoma</th>' +
+    '<th style="' + th + '">Rol</th>' +
+    '<th style="' + th + '"></th>' +
+  '</tr>';
 
-  const rows = (wsMembers || []).slice().sort((a, b) => {
-    const an = (a.user_id === me.id ? (myProfile.full_name || '') : ((a.profile && a.profile.full_name) || '')) || '';
-    const bn = (b.user_id === me.id ? (myProfile.full_name || '') : ((b.profile && b.profile.full_name) || '')) || '';
-    return an.localeCompare(bn, undefined, { sensitivity: 'base' });
+  const all = (wsMembers || []).filter(teamMatches).sort(function (a, b) {
+    const an = teamEmpName(a).full, bn = teamEmpName(b).full;
+    return an.localeCompare(bn, undefined, { sensitivity: 'base' }) * _teamSortDir;
   });
 
-  $('teamTblBody').innerHTML = rows.map((m, i) => {
+  // ---- Sahifalash ----
+  const total = all.length;
+  const pageCount = Math.max(1, Math.ceil(total / _teamPerPage));
+  if (_teamPage > pageCount) _teamPage = pageCount;
+  if (_teamPage < 1) _teamPage = 1;
+  const start = (_teamPage - 1) * _teamPerPage;
+  const rows = all.slice(start, start + _teamPerPage);
+
+  const pager = $('teamPager');
+  if (pager) {
+    pager.style.display = total > _teamPerPage ? 'flex' : 'none';
+    $('teamPageInfo').textContent = _teamPage + ' / ' + pageCount;
+    $('teamPrev').disabled = _teamPage <= 1;
+    $('teamNext').disabled = _teamPage >= pageCount;
+  }
+  const cnt = $('teamCount');
+  if (cnt) cnt.textContent = total === (wsMembers || []).length ? (total + ' hodim') : (total + ' / ' + (wsMembers || []).length + ' hodim');
+
+  $('teamTblBody').innerHTML = rows.map(function (m, i) {
     const p = m.profile || {};
+    const d = empDetails[m.user_id] || {};
     const isMe = m.user_id === me.id;
-    const name = p.full_name || (isMe ? 'Siz' : 'A\'zo');
+    const nm = teamEmpName(m);
     const email = p.email || (isMe ? (me.email || '') : '');
     const phone = p.phone || '';
     const canChange = canManage && m.role !== 'owner' && !isMe;
@@ -9460,37 +9842,63 @@ async function renderTeam() {
         (email ? '<button title="Email qayta yuborish" onclick="teamResendEmail(\'' + m.user_id + '\',\'' + email.replace(/'/g, "\\'") + '\')" style="flex:0 0 auto;background:none;border:1px solid var(--line);border-radius:6px;padding:3px 7px;cursor:pointer;font-size:13px;">📧</button>' : '') +
       '</div>';
     } else emailCell = escapeHtml(email || '—');
-    return '<tr>' +
-      '<td style="' + td + 'color:var(--muted);">' + (i + 1) + '</td>' +
-      '<td style="' + td + '">' + avatarHtml(name, null, p.avatar_url) + '</td>' +
-      '<td style="' + td + 'font-weight:500;">' + escapeHtml(name) + (isMe ? ' <span style="color:var(--muted);font-weight:400;">(siz)</span>' : '') + '</td>' +
+
+    // Filial va bo'limlar
+    const chips = (empBranches[m.user_id] || []).map(function (id) {
+      const b = (branchesCache || []).find(function (x) { return x.id === id; });
+      return b ? '<span class="team-chip">🏢 ' + escapeHtml(b.name) + '</span>' : '';
+    }).concat((empDepts[m.user_id] || []).map(function (id) {
+      const dp = (departments || []).find(function (x) { return x.id === id; });
+      return dp ? '<span class="team-chip">▦ ' + escapeHtml(dp.name) + '</span>' : '';
+    })).filter(Boolean).join('');
+    const brCell = chips || '<span style="color:var(--muted)">—</span>';
+
+    // Shartnoma (boshlanish–tugash)
+    const ctrSafe = hrSafeUrl(d.contract_url);
+    let ctrCell;
+    if (d.contract_start || d.contract_end) {
+      ctrCell = escapeHtml(hrFmtDate(d.contract_start) || '…') + ' – ' + escapeHtml(hrFmtDate(d.contract_end) || '…');
+      if (ctrSafe) ctrCell = '<a href="' + escapeHtml(ctrSafe) + '" target="_blank" rel="noopener noreferrer" title="Shartnomani ochish">📄 ' + ctrCell + '</a>';
+    } else if (ctrSafe) {
+      ctrCell = '<a href="' + escapeHtml(ctrSafe) + '" target="_blank" rel="noopener noreferrer">📄 Shartnoma</a>';
+    } else ctrCell = '<span style="color:var(--muted)">—</span>';
+
+    return '<tr class="team-row-link" onclick="teamRowClick(event,\'' + m.user_id + '\')">' +
+      '<td style="' + td + 'color:var(--muted);">' + (start + i + 1) + '</td>' +
+      '<td style="' + td + '">' + avatarHtml(nm.full, null, hrSafeUrl(d.photo_url) || p.avatar_url || null) + '</td>' +
+      '<td style="' + td + 'font-weight:500;">' + escapeHtml(nm.full) + (isMe ? ' <span style="color:var(--muted);font-weight:400;">(siz)</span>' : '') + '</td>' +
+      '<td style="' + td + '">' + (nm.first ? escapeHtml(nm.first) : '<span style="color:var(--muted)">—</span>') + '</td>' +
+      '<td style="' + td + '">' + (nm.last ? escapeHtml(nm.last) : '<span style="color:var(--muted)">—</span>') + '</td>' +
       '<td style="' + td + 'color:var(--muted);">' + phoneCell + '</td>' +
       '<td style="' + td + 'color:var(--muted);">' + emailCell + '</td>' +
+      '<td style="' + td + 'white-space:normal;min-width:180px;max-width:260px;">' + brCell + '</td>' +
       '<td style="' + td + 'min-width:150px;">' + posCell + '</td>' +
+      '<td style="' + td + 'color:var(--muted);">' + ctrCell + '</td>' +
       '<td style="' + td + '">' + roleCell + '</td>' +
       '<td style="' + td + '">' + (canChange ? '<button class="link-btn" onclick="removeMember(\'' + m.user_id + '\')" style="color:var(--danger);">O\'chirish</button>' : '') + '</td>' +
     '</tr>';
-  }).join('') || '<tr><td colspan="8" style="padding:24px;text-align:center;color:var(--muted);">A\'zo yo\'q</td></tr>';
+  }).join('') || '<tr><td colspan="12" style="padding:24px;text-align:center;color:var(--muted);">' + (total === 0 && (wsMembers || []).length ? 'Filtrga mos hodim topilmadi' : 'A\'zo yo\'q') + '</td></tr>';
 
-  // ---- Takliflar ----
-  if (canManage) {
-    const { data: invs } = await sb.from('invitations').select('*').eq('workspace_id', currentWs.id).eq('status', 'pending').order('created_at', { ascending: false });
-    const list = $('invitesList');
-    if (!invs || !invs.length) { list.innerHTML = '<div class="empty" style="padding:20px"><strong>Ochiq taklif yo\'q</strong></div>'; }
-    else {
-      list.innerHTML = invs.map(inv => {
-        const deptNames = (inv.departments || []).map(x => { const d = departments.find(z => z.id === x.department_id); return d ? d.name + ' (' + ROLE_DEPT[x.role] + ')' : ''; }).filter(Boolean).join(', ');
-        let label = inv.email;
-        if (!inv.email && inv.tg_bot_user_id) { const bu = tgUsersCache.find(u => u.id === inv.tg_bot_user_id); label = bu ? '✈ ' + (bu.full_name || bu.tg_username || 'TG user') : '✈ TG user'; }
-        return '<div class="item static"><div class="dot ts-new"></div>' +
-          '<div class="item-mid"><div class="item-title">' + escapeHtml(label || '—') + '</div><div class="item-meta">' + (deptNames ? escapeHtml(deptNames) : 'bo\'lim yo\'q') + '</div></div>' +
-          '<div class="item-right"><button class="link-btn" onclick="cancelInvite(\'' + inv.id + '\')" style="color:var(--danger)">Bekor</button></div></div>';
-      }).join('');
-    }
-  }
 }
 
-// ---- Lavozim dropdown (jadval ичida) ----
+// ---- Takliflar (DB so'rovi — faqat kerak bo'lganda) ----
+async function renderInvites() {
+  if (!canManageTeam()) return;
+  const { data: invs } = await sb.from('invitations').select('*').eq('workspace_id', currentWs.id).eq('status', 'pending').order('created_at', { ascending: false });
+  const list = $('invitesList');
+  if (!list) return;
+  if (!invs || !invs.length) { list.innerHTML = '<div class="empty" style="padding:20px"><strong>Ochiq taklif yo\'q</strong></div>'; return; }
+  list.innerHTML = invs.map(inv => {
+    const deptNames = (inv.departments || []).map(x => { const d = departments.find(z => z.id === x.department_id); return d ? d.name + ' (' + ROLE_DEPT[x.role] + ')' : ''; }).filter(Boolean).join(', ');
+    let label = inv.email;
+    if (!inv.email && inv.tg_bot_user_id) { const bu = tgUsersCache.find(u => u.id === inv.tg_bot_user_id); label = bu ? '✈ ' + (bu.full_name || bu.tg_username || 'TG user') : '✈ TG user'; }
+    return '<div class="item static"><div class="dot ts-new"></div>' +
+      '<div class="item-mid"><div class="item-title">' + escapeHtml(label || '—') + '</div><div class="item-meta">' + (deptNames ? escapeHtml(deptNames) : 'bo\'lim yo\'q') + '</div></div>' +
+      '<div class="item-right"><button class="link-btn" onclick="cancelInvite(\'' + inv.id + '\')" style="color:var(--danger)">Bekor</button></div></div>';
+  }).join('');
+}
+
+// ---- Lavozim dropdown (jadval ichida) ----
 let _teamPosUid = null;
 function teamOpenPosDrop(ev, uid) {
   ev.stopPropagation();
@@ -9521,13 +9929,21 @@ function teamPosRenderList(q) {
   if (!list.length) html += '<div style="padding:10px 12px;color:var(--muted);font-size:12.5px;">Yo\'q — pastdan qo\'shing</div>';
   $('teamPosList').innerHTML = html;
 }
-function teamPosPick(pos) { const uid = _teamPosUid; teamClosePosDrop(); if (uid) { teamSetMemberPos(uid, pos); renderTeam(); } }
-function teamPosAddFromSearch() {
+async function teamPosPick(pos) {
+  const uid = _teamPosUid; teamClosePosDrop();
+  if (!uid) return;
+  try { await teamSetMemberPos(uid, pos); renderTeamTable(); }
+  catch (e) { toast('Lavozim saqlanmadi: ' + (e.message || e), 'err'); }
+}
+async function teamPosAddFromSearch() {
   const v = ($('teamPosSearch') && $('teamPosSearch').value || '').trim();
   if (!v) return;
-  teamAddPosition(v);
   const uid = _teamPosUid; teamClosePosDrop();
-  if (uid) { teamSetMemberPos(uid, v); renderTeam(); }
+  try {
+    await teamAddPosition(v);
+    if (uid) await teamSetMemberPos(uid, v);
+    renderTeamTable();
+  } catch (e) { toast('Lavozim qo\'shilmadi: ' + (e.message || e), 'err'); }
 }
 
 // ---- Profil inline tahrirlash (telefon/email) ----
@@ -9553,9 +9969,12 @@ async function teamSaveField(el) {
     el.textContent = oldVal;
   }
 }
-async function teamResendEmail(uid, email) {
+async function teamResendEmail(uid, email, skipConfirm) {
   if (!email) return;
-  if (!confirm(email + ' ga parol o\'rnatish emailини qayta yuboraymi?')) return;
+  if (!skipConfirm) {
+    const ok = await uiConfirm('Emailni qayta yuborish', email + ' ga parol o\'rnatish emailini qayta yuboraymi?', { okText: 'Yuborish' });
+    if (!ok) return;
+  }
   toast('Yuborilmoqda…', 'ok');
   try {
     const redirect = location.origin + location.pathname;
@@ -9606,7 +10025,7 @@ async function sendInvite() {
   if (!picks.length) { showMsg($('iMsg'), 'Kamida bitta bo\'limni tanlang.', 'err'); return; }
   btn.disabled = true; btn.textContent = 'Yuborilmoqda…';
 
-  // ── EMAIL yo'li — darrov yaratamιz (admin-create-employee) + email + bo'limlar ──
+  // ── EMAIL yo'li — darrov yaratamiz (admin-create-employee) + email + bo'limlar ──
   if (!isFromTg) {
     try {
       const fullName = (firstName + ' ' + lastName).trim();
@@ -9621,7 +10040,7 @@ async function sendInvite() {
       }
       if (!res || !res.ok) throw new Error((res && ((res.error||'') + (res.detail?(': '+res.detail):''))) || 'Xato');
       const newUserId = res.user_id;
-      // Bo'limlarга qo'shamιz
+      // Bo'limlarga qo'shamiz
       if (newUserId && picks.length) {
         const rows = picks.map(p => ({ department_id: p.department_id, user_id: newUserId, role: p.role }));
         try { await sb.from('department_members').upsert(rows, { onConflict: 'department_id,user_id' }); } catch(e){}
@@ -9639,7 +10058,7 @@ async function sendInvite() {
     return;
   }
 
-  // ── TG yo'li (mavjud botdagi userни saytga taklif) — eski invitations oqimi ──
+  // ── TG yo'li (mavjud botdagi userni saytga taklif) — eski invitations oqimi ──
   try {
     const payload = { workspace_id: currentWs.id, ws_role: 'member', departments: picks, invited_by: me.id, invited_by_name: myProfile.full_name || me.email, status: 'pending' };
     payload.tg_bot_user_id = inviteFromTgUserId;
@@ -9672,7 +10091,7 @@ function closeInvite() {
 async function cancelInvite(id) {
   if (!confirm('Taklifni bekor qilasizmi?')) return;
   try {
-    // Avval o'chirib ko'ramиz (toza yo'l). Agar RLS yoki FK to'sib qo'ysa, status'ni yangilab cancelled qilamиz.
+    // Avval o'chirib ko'ramiz (toza yo'l). Agar RLS yoki FK to'sib qo'ysa, status'ni yangilab cancelled qilamiz.
     const { data: del, error: delErr } = await sb.from('invitations').delete().eq('id', id).select();
     if (delErr) {
       // Fallback: status='cancelled'
@@ -9707,7 +10126,7 @@ async function changeWsRole(uid, role) {
     const { data: upd, error } = await sb.from('workspace_members').update({ role }).eq('workspace_id', currentWs.id).eq('user_id', uid).select();
     if (error) throw error;
     if (!upd || !upd.length) {
-      toast('⚠ Rol o\'zgarмади (ruxsat yo\'q). 26-migratsiyani ishga tushiring.', 'err');
+      toast('⚠ Rol o\'zgarmadi (ruxsat yo\'q). 26-migratsiyani ishga tushiring.', 'err');
       return;
     }
     const i = wsMembers.findIndex(x => x.user_id === uid); if (i>=0) wsMembers[i].role = role;
@@ -9718,6 +10137,1430 @@ async function changeWsRole(uid, role) {
 async function removeMember(uid) {
   if (!confirm('A\'zoni o\'chirasizmi?')) return;
   try { const { error } = await sb.from('workspace_members').delete().eq('workspace_id', currentWs.id).eq('user_id', uid); if (error) throw error; wsMembers = wsMembers.filter(x => x.user_id !== uid); toast('O\'chirildi', 'ok'); if (currentPage === 'team') renderTeam(); } catch (e) { toast(translateErr(e.message), 'err'); }
+}
+
+// ============ HODIM DETALI (HR) ============
+let _empDtlUid = null;
+let _empDtlLinks = [];
+let _empLinksErr = '';
+
+const HR_WORK_TYPES = [{ v: 'offline', l: 'Offline' }, { v: 'online', l: 'Online' }, { v: 'hybrid', l: 'Gibrid' }];
+const HR_SCHEDULE_TYPES = [{ v: 'weekly', l: 'Haftalik' }, { v: 'monthly', l: 'Oylik' }, { v: 'flexible', l: 'Moslashuvchan' }];
+// 0 = Yakshanba … 6 = Shanba (JS Date.getDay() bilan bir xil — weekend_days shu tartibda)
+const HR_WEEKDAYS = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
+
+function hrValidUrl(u) {
+  u = String(u || '').trim();
+  if (!u) return true;                    // bo'sh — ruxsat
+  return /^https?:\/\/\S+$/i.test(u);
+}
+// Faqat http(s) havolalarni qaytaradi — javascript: kabi sxemalarni to'sadi
+function hrSafeUrl(u) {
+  u = String(u || '').trim();
+  return /^https?:\/\//i.test(u) ? u : '';
+}
+
+function openEmployee(uid) {
+  if (!uid) return;
+  if (!canManageTeam() && uid !== me.id) { toast('Faqat o\'z ma\'lumotingizni ko\'rishingiz mumkin', 'err'); return; }
+  _empDtlUid = uid;
+  goPage('employee');
+}
+
+function empToggleNoAddr() {
+  const cb = $('edtNoAddr'), a = $('edtAddr');
+  if (!cb || !a) return;
+  a.disabled = cb.checked || !canManageTeam();
+  if (cb.checked) a.value = '';
+}
+
+function empPhotoPreview() {
+  const box = $('edtPhotoBox');
+  if (!box) return;
+  const url = hrSafeUrl(($('edtPhotoUrl') && $('edtPhotoUrl').value) || '');
+  const nmv = $('empDtlTitle') ? $('empDtlTitle').textContent : '';
+  box.innerHTML = avatarHtml(nmv, 'lg', url || null);
+}
+
+async function renderEmployee() {
+  const uid = _empDtlUid;
+  const body = $('empDtlBody');
+  if (!uid || !currentWs || !body) { goPage('team'); return; }
+  const canManage = canManageTeam();
+  const ro = !canManage;   // hodim o'zinikini faqat KO'RADI — tahrirlamaydi (RLS ham shunday)
+  // Himoya: a'zo faqat o'zinikini ochadi (openEmployee ham tekshiradi — bu ikkinchi qatlam)
+  if (!canManage && uid !== me.id) { toast('Faqat o\'z ma\'lumotingizni ko\'rishingiz mumkin', 'err'); goPage('team'); return; }
+
+  body.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);">Yuklanmoqda…</div>';
+  $('empDtlActions').innerHTML = '';
+
+  const hrOk = await loadHrData();
+  if (!hrOk) {
+    body.innerHTML = '<div class="hr-card" style="border-color:#F5C2C7;background:#FDF2F2;color:#B42318;">⚠ HR ma\'lumoti yuklanmadi — <b>38 va 39-migratsiyani ishga tushiring</b>.<div style="color:var(--muted);font-size:12px;margin-top:6px;">' + escapeHtml(_hrError) + '</div></div>';
+    return;
+  }
+
+  const m = (wsMembers || []).find(function (x) { return x.user_id === uid; });
+  if (!m) { toast('Hodim topilmadi', 'err'); goPage('team'); return; }
+
+  const p = m.profile || {};
+  const d = empDetails[uid] || {};
+  const nm = teamEmpName(m);
+  const email = p.email || (uid === me.id ? (me.email || '') : '');
+  $('empDtlTitle').textContent = nm.full;
+
+  // ---- Hujjatlar (38-migratsiya) ----
+  _empDtlLinks = []; _empLinksErr = '';
+  try {
+    const { data: links, error } = await sb.from('employee_links').select('*')
+      .eq('workspace_id', currentWs.id).eq('user_id', uid).order('created_at', { ascending: false });
+    if (error) throw error;
+    _empDtlLinks = links || [];
+  } catch (e) { _empLinksErr = e.message || String(e); }
+
+  // ---- Amallar ----
+  $('empDtlActions').innerHTML = canManage
+    ? '<button class="btn sm secondary" onclick="empChangePassword()">🔑 Parolni o\'zgartirish</button>' +
+      '<button class="btn" id="empDtlSaveBtn" onclick="empDtlSave()">Saqlash</button>'
+    : '';
+
+  const dis = ro ? ' disabled' : '';
+  const roleBadge = m.role === 'owner' ? '<span class="badge ok">Egasi</span>'
+    : (m.role === 'admin' ? '<span class="badge" style="background:#DDEBFF;color:#1E40AF;">Admin</span>' : '<span class="badge muted">A\'zo</span>');
+
+  const roleOpts = '<option value="">— tanlanmagan —</option>' + empRolesCache.map(function (r) {
+    return '<option value="' + r.id + '"' + (d.role_id === r.id ? ' selected' : '') + '>' + escapeHtml(r.label) + '</option>';
+  }).join('');
+  const posOpts = '<option value="">— tanlanmagan —</option>' + positionsCache.map(function (x) {
+    return '<option value="' + x.id + '"' + (d.position_id === x.id ? ' selected' : '') + '>' + escapeHtml(x.name) + '</option>';
+  }).join('');
+  const wtOpts = '<option value="">— tanlanmagan —</option>' + HR_WORK_TYPES.map(function (w) {
+    return '<option value="' + w.v + '"' + (d.work_type === w.v ? ' selected' : '') + '>' + escapeHtml(w.l) + '</option>';
+  }).join('');
+  const schHtml = HR_SCHEDULE_TYPES.map(function (s) {
+    return '<label><input type="radio" name="edtSched" value="' + s.v + '"' + (d.schedule_type === s.v ? ' checked' : '') + dis + '><span>' + escapeHtml(s.l) + '</span></label>';
+  }).join('');
+  const wd = Array.isArray(d.weekend_days) ? d.weekend_days.map(Number) : [];
+  const wdHtml = HR_WEEKDAYS.map(function (lbl, i) {
+    return '<label><input type="checkbox" id="edtWd_' + i + '"' + (wd.indexOf(i) !== -1 ? ' checked' : '') + dis + '><span>' + escapeHtml(lbl) + '</span></label>';
+  }).join('');
+  const bIds = empBranches[uid] || [];
+  const brHtml = (branchesCache || []).length
+    ? (branchesCache || []).map(function (b) {
+        return '<label><input type="checkbox" data-edtbr="' + b.id + '"' + (bIds.indexOf(b.id) !== -1 ? ' checked' : '') + dis + '><span>🏢 ' + escapeHtml(b.name) + '</span></label>';
+      }).join('')
+    : '<span class="hr-hint">Filial yo\'q — Filiallar sahifasida yarating.</span>';
+  const dIds = empDepts[uid] || [];
+  const dpHtml = (departments || []).length
+    ? (departments || []).map(function (dp) {
+        return '<label><input type="checkbox" data-edtdp="' + dp.id + '"' + (dIds.indexOf(dp.id) !== -1 ? ' checked' : '') + dis + '><span>▦ ' + escapeHtml(dp.name) + '</span></label>';
+      }).join('')
+    : '<span class="hr-hint">Bo\'lim yo\'q.</span>';
+
+  let html = '';
+  if (ro) html += '<div class="hr-ro-note">👁 Ko\'rish rejimi — o\'z ma\'lumotingizni ko\'rmoqdasiz. Tahrirlash uchun owner yoki adminga murojaat qiling.</div>';
+
+  // ---- Asosiy ----
+  html += '<div class="hr-card"><h3>Asosiy</h3>' +
+    '<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">' +
+      '<div style="flex:0 0 auto;" id="edtPhotoBox">' + avatarHtml(nm.full, 'lg', hrSafeUrl(d.photo_url) || p.avatar_url || null) + '</div>' +
+      '<div style="flex:1;min-width:240px;"><div class="hr-grid">' +
+        '<div class="hr-f"><label class="hr-lbl">Ism</label><input class="hr-in" id="edtFirst" value="' + escapeHtml(nm.first) + '"' + dis + '></div>' +
+        '<div class="hr-f"><label class="hr-lbl">Familiya</label><input class="hr-in" id="edtLast" value="' + escapeHtml(nm.last) + '"' + dis + '></div>' +
+        '<div class="hr-f"><label class="hr-lbl">Telefon</label><input class="hr-in" id="edtPhone" value="' + escapeHtml(p.phone || '') + '" placeholder="+998 90 123 45 67"' + dis + '></div>' +
+        '<div class="hr-f"><label class="hr-lbl">Email</label><input class="hr-in" id="edtEmail2" value="' + escapeHtml(email) + '" readonly><div class="hr-hint">Jamoa jadvalidan o\'zgartiriladi.</div></div>' +
+        '<div class="hr-f wide"><label class="hr-lbl">Rasm — Google Drive havolasi</label><input class="hr-in" id="edtPhotoUrl" value="' + escapeHtml(d.photo_url || '') + '" placeholder="https://drive.google.com/..." oninput="empPhotoPreview()"' + dis + '><div class="hr-hint">Fayl saqlanmaydi — faqat havola.</div></div>' +
+        '<div class="hr-f"><label class="hr-lbl">Roli</label><div style="display:flex;gap:6px;"><select class="hr-in" id="edtRole"' + dis + '>' + roleOpts + '</select>' +
+          (ro ? '' : '<button class="btn sm secondary" onclick="empAddRoleInline()" title="Yangi rol qo\'shish">＋</button>') +
+        '</div><div class="hr-hint">TaskFix ruxsat rolidan alohida.</div></div>' +
+        '<div class="hr-f"><label class="hr-lbl">TaskFix roli (ruxsat)</label><div style="padding:8px 0;">' + roleBadge + '</div><div class="hr-hint">Jamoa jadvalidan o\'zgartiriladi.</div></div>' +
+      '</div></div>' +
+    '</div></div>';
+
+  // ---- Ish joyi ----
+  html += '<div class="hr-card"><h3>Ish joyi</h3><div class="hr-grid">' +
+    '<div class="hr-f"><label class="hr-lbl">Lavozim</label><div style="display:flex;gap:6px;"><select class="hr-in" id="edtPos"' + dis + '>' + posOpts + '</select>' +
+      (ro ? '' : '<button class="btn sm secondary" onclick="empAddPosInline()" title="Yangi lavozim qo\'shish">＋</button>') + '</div></div>' +
+    '<div class="hr-f"><label class="hr-lbl">Ish turi</label><select class="hr-in" id="edtWorkType"' + dis + '>' + wtOpts + '</select></div>' +
+    '<div class="hr-f"><label class="hr-lbl">Radius (metr)</label><input type="number" min="0" step="1" class="hr-in" id="edtRadius" value="' + escapeHtml(d.radius != null ? String(d.radius) : '') + '" placeholder="100"' + dis + '></div>' +
+    '<div class="hr-f wide"><label class="hr-lbl">Filiallar</label><div class="hr-pick">' + brHtml + '</div></div>' +
+    '<div class="hr-f wide"><label class="hr-lbl">Bo\'limlar</label><div class="hr-pick">' + dpHtml + '</div><div class="hr-hint">Yangi bo\'limga qo\'shilganda rol — Tahrirlovchi.</div></div>' +
+    '<div class="hr-f wide"><label class="hr-lbl">Manzil</label><input class="hr-in" id="edtAddr" value="' + escapeHtml(d.address || '') + '"' + (ro || d.no_address ? ' disabled' : '') + '></div>' +
+    '<div class="hr-f"><label class="hr-lbl">&nbsp;</label><div class="hr-pick"><label><input type="checkbox" id="edtNoAddr"' + (d.no_address ? ' checked' : '') + ' onchange="empToggleNoAddr()"' + dis + '><span>Manzilsiz</span></label></div></div>' +
+    '<div class="hr-f wide"><label class="hr-lbl">Qo\'shimcha manzil</label><input class="hr-in" id="edtAddrExtra" value="' + escapeHtml(d.address_extra || '') + '"' + dis + '></div>' +
+  '</div></div>';
+
+  // ---- Shartnoma ----
+  const ctrSafe = hrSafeUrl(d.contract_url);
+  html += '<div class="hr-card"><h3>Shartnoma</h3><div class="hr-grid">' +
+    '<div class="hr-f wide"><label class="hr-lbl">Shartnoma — Google Docs/Drive havolasi</label><div style="display:flex;gap:6px;">' +
+      '<input class="hr-in" id="edtCtrUrl" value="' + escapeHtml(d.contract_url || '') + '" placeholder="https://docs.google.com/..."' + dis + '>' +
+      (ctrSafe ? '<a class="btn sm secondary" href="' + escapeHtml(ctrSafe) + '" target="_blank" rel="noopener noreferrer">Ochish</a>' : '') +
+    '</div></div>' +
+    '<div class="hr-f"><label class="hr-lbl">Boshlanishi</label><input type="date" class="hr-in" id="edtCtrStart" value="' + escapeHtml(d.contract_start ? String(d.contract_start).slice(0, 10) : '') + '"' + dis + '></div>' +
+    '<div class="hr-f"><label class="hr-lbl">Tugashi</label><input type="date" class="hr-in" id="edtCtrEnd" value="' + escapeHtml(d.contract_end ? String(d.contract_end).slice(0, 10) : '') + '"' + dis + '></div>' +
+  '</div></div>';
+
+  // ---- Ish jadvali ----
+  html += '<div class="hr-card"><h3>Ish jadvali</h3><div class="hr-grid">' +
+    '<div class="hr-f wide"><label class="hr-lbl">Jadval turi</label><div class="hr-pick">' + schHtml + '</div></div>' +
+    '<div class="hr-f"><label class="hr-lbl">Ish vaqti boshlanishi</label><input type="time" class="hr-in" id="edtWorkStart" value="' + escapeHtml(d.work_start ? String(d.work_start).slice(0, 5) : '') + '"' + dis + '></div>' +
+    '<div class="hr-f"><label class="hr-lbl">Ish vaqti tugashi</label><input type="time" class="hr-in" id="edtWorkEnd" value="' + escapeHtml(d.work_end ? String(d.work_end).slice(0, 5) : '') + '"' + dis + '></div>' +
+    '<div class="hr-f wide"><label class="hr-lbl">Haftalik dam olish kunlari</label><div class="hr-pick">' + wdHtml + '</div></div>' +
+  '</div></div>';
+
+  // ---- Hujjatlar (employee_links) ----
+  let linksHtml;
+  if (_empLinksErr) {
+    linksHtml = '<div style="color:#B42318;font-size:12.5px;">⚠ Hujjatlar yuklanmadi — <b>38-migratsiyani ishga tushiring</b>.<div style="color:var(--muted);margin-top:4px;">' + escapeHtml(_empLinksErr) + '</div></div>';
+  } else if (!_empDtlLinks.length) {
+    linksHtml = '<div class="hr-hint">Hujjat yo\'q.</div>';
+  } else {
+    linksHtml = _empDtlLinks.map(function (l) {
+      const su = hrSafeUrl(l.url);
+      const urlCell = su
+        ? '<a style="flex:1;min-width:0;" href="' + escapeHtml(su) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(l.url) + '</a>'
+        : '<span style="flex:1;min-width:0;color:var(--danger);font-size:12px;">' + escapeHtml(l.url) + ' — havola noto\'g\'ri</span>';
+      return '<div class="hr-link-row">' +
+        '<span style="flex:0 0 auto;">📄</span>' +
+        '<span style="flex:0 0 140px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(l.title) + '</span>' +
+        urlCell +
+        (l.note ? '<span class="hr-hint" style="flex:0 0 auto;">' + escapeHtml(l.note) + '</span>' : '') +
+        (canManage ? '<button class="link-btn" style="color:var(--danger);flex:0 0 auto;" onclick="empDelLink(\'' + l.id + '\')">O\'chirish</button>' : '') +
+      '</div>';
+    }).join('');
+  }
+  html += '<div class="hr-card">' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;">' +
+      '<h3 style="margin:0;">Hujjatlar</h3>' +
+      (canManage && !_empLinksErr ? '<button class="btn sm secondary" onclick="empAddLink()">＋ Havola qo\'shish</button>' : '') +
+    '</div>' + linksHtml + '</div>';
+
+  body.innerHTML = html;
+  empToggleNoAddr();
+}
+
+async function empDtlSave() {
+  const uid = _empDtlUid;
+  if (!uid || !canManageTeam() || !currentWs) return;
+  const btn = $('empDtlSaveBtn');
+
+  const first = String($('edtFirst').value || '').trim();
+  const last = String($('edtLast').value || '').trim();
+  const photo = String($('edtPhotoUrl').value || '').trim();
+  const phone = String($('edtPhone').value || '').trim();
+  const addr = String($('edtAddr').value || '').trim();
+  const noAddr = $('edtNoAddr').checked;
+  const addrExtra = String($('edtAddrExtra').value || '').trim();
+  const ctrUrl = String($('edtCtrUrl').value || '').trim();
+  const ctrStart = $('edtCtrStart').value || null;
+  const ctrEnd = $('edtCtrEnd').value || null;
+  const roleId = $('edtRole').value || null;
+  const posId = $('edtPos').value || null;
+  const workType = $('edtWorkType').value || null;
+  const radiusRaw = String($('edtRadius').value || '').trim();
+  const radius = radiusRaw === '' ? null : parseInt(radiusRaw, 10);
+  const schedEl = document.querySelector('input[name="edtSched"]:checked');
+  const schedType = schedEl ? schedEl.value : null;
+  const workStart = $('edtWorkStart').value || null;
+  const workEnd = $('edtWorkEnd').value || null;
+  const weekend = [];
+  HR_WEEKDAYS.forEach(function (_l, i) { const cb = $('edtWd_' + i); if (cb && cb.checked) weekend.push(i); });
+
+  // ---- Validatsiya ----
+  if (!hrValidUrl(photo)) { toast('Rasm havolasi noto\'g\'ri — http:// yoki https:// bilan boshlansin', 'err'); return; }
+  if (!hrValidUrl(ctrUrl)) { toast('Shartnoma havolasi noto\'g\'ri — http:// yoki https:// bilan boshlansin', 'err'); return; }
+  if (!noAddr && !addr) { toast('Manzil kiriting yoki "Manzilsiz"ni belgilang', 'err'); return; }
+  if (radiusRaw !== '' && (!isFinite(radius) || radius < 0)) { toast('Radius musbat butun son bo\'lishi kerak', 'err'); return; }
+  if (ctrStart && ctrEnd && ctrEnd < ctrStart) { toast('Shartnoma tugashi boshlanishidan oldin bo\'la olmaydi', 'err'); return; }
+
+  const payload = {
+    workspace_id: currentWs.id, user_id: uid,
+    first_name: first || null, last_name: last || null,
+    photo_url: photo || null,
+    address: noAddr ? null : (addr || null), no_address: noAddr, address_extra: addrExtra || null,
+    contract_url: ctrUrl || null, contract_start: ctrStart, contract_end: ctrEnd,
+    role_id: roleId || null, position_id: posId || null,
+    work_type: workType || null, radius: radius,
+    schedule_type: schedType || null, weekend_days: weekend,
+    work_start: workStart || null, work_end: workEnd || null,
+  };
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Saqlanmoqda…'; }
+  try {
+    const { data, error } = await sb.from('employee_details').upsert(payload, { onConflict: 'workspace_id,user_id' }).select().single();
+    if (error) throw error;
+    empDetails[uid] = data;
+
+    // Telefon va to'liq ism — profiles jadvalida
+    const m = (wsMembers || []).find(function (x) { return x.user_id === uid; });
+    const oldPhone = (m && m.profile && m.profile.phone) || '';
+    const oldFull = (m && m.profile && m.profile.full_name) || '';
+    const newFull = (first + ' ' + last).trim();
+    const profUpd = {};
+    if (phone !== oldPhone) profUpd.phone = phone || null;
+    if (newFull && newFull !== oldFull) profUpd.full_name = newFull;
+    if (Object.keys(profUpd).length) {
+      const { error: pe } = await sb.from('profiles').update(profUpd).eq('id', uid);
+      if (pe) throw pe;
+      if (m && m.profile) Object.assign(m.profile, profUpd);
+      if (uid === me.id && myProfile) Object.assign(myProfile, profUpd);
+    }
+
+    await empSyncBranches(uid);
+    await empSyncDepts(uid);
+    await loadHrData(true);
+
+    toast('✓ Saqlandi', 'ok');
+    logActivity('employee_updated', { entityType: 'employee', entityId: uid, entityTitle: newFull || oldFull });
+    renderEmployee();
+  } catch (e) {
+    toast('Saqlanmadi: ' + (e.message || e), 'err');
+  }
+  if (btn) { btn.disabled = false; btn.textContent = 'Saqlash'; }
+}
+
+async function empSyncBranches(uid) {
+  const want = [];
+  document.querySelectorAll('#empDtlBody input[data-edtbr]').forEach(function (cb) { if (cb.checked) want.push(cb.dataset.edtbr); });
+  const have = empBranches[uid] || [];
+  const toAdd = want.filter(function (x) { return have.indexOf(x) === -1; });
+  const toDel = have.filter(function (x) { return want.indexOf(x) === -1; });
+  if (toAdd.length) {
+    const rows = toAdd.map(function (bid) { return { workspace_id: currentWs.id, user_id: uid, branch_id: bid }; });
+    const { error } = await sb.from('employee_branches').upsert(rows, { onConflict: 'workspace_id,user_id,branch_id', ignoreDuplicates: true });
+    if (error) throw error;
+  }
+  if (toDel.length) {
+    const { error } = await sb.from('employee_branches').delete().eq('workspace_id', currentWs.id).eq('user_id', uid).in('branch_id', toDel);
+    if (error) throw error;
+  }
+}
+
+async function empSyncDepts(uid) {
+  if (currentWs.kind !== 'organization') return;
+  const want = [];
+  document.querySelectorAll('#empDtlBody input[data-edtdp]').forEach(function (cb) { if (cb.checked) want.push(cb.dataset.edtdp); });
+  const have = empDepts[uid] || [];
+  const toAdd = want.filter(function (x) { return have.indexOf(x) === -1; });
+  const toDel = have.filter(function (x) { return want.indexOf(x) === -1; });
+  if (toAdd.length) {
+    const rows = toAdd.map(function (did) { return { department_id: did, user_id: uid, role: 'editor' }; });
+    const { error } = await sb.from('department_members').upsert(rows, { onConflict: 'department_id,user_id', ignoreDuplicates: true });
+    if (error) throw error;
+  }
+  if (toDel.length) {
+    const { error } = await sb.from('department_members').delete().eq('user_id', uid).in('department_id', toDel);
+    if (error) throw error;
+  }
+}
+
+async function empAddPosInline() {
+  const vals = await uiForm('Yangi lavozim', [
+    { id: 'name', label: 'Lavozim nomi', type: 'text', placeholder: 'Sotuvchi' },
+  ], { okText: 'Qo\'shish' });
+  if (!vals) return;
+  const name = String(vals.name || '').trim();
+  if (!name) { toast('Nomi majburiy', 'err'); return; }
+  try {
+    const id = await teamAddPosition(name);
+    const sel = $('edtPos');
+    if (sel) {
+      sel.innerHTML = '<option value="">— tanlanmagan —</option>' + positionsCache.map(function (x) {
+        return '<option value="' + x.id + '">' + escapeHtml(x.name) + '</option>';
+      }).join('');
+      sel.value = id;
+    }
+    toast('✓ Lavozim qo\'shildi — biriktirish uchun "Saqlash"ni bosing', 'ok');
+  } catch (e) { toast('Qo\'shilmadi: ' + (e.message || e), 'err'); }
+}
+
+async function empAddRoleInline() {
+  const vals = await uiForm('Yangi rol', [
+    { id: 'code', label: 'Kod', type: 'text', placeholder: 'DEVELOPER', hint: 'Lotin harflari — import shu kod bo\'yicha moslashtiradi' },
+    { id: 'label', label: 'Nomi', type: 'text', placeholder: 'Dasturchi' },
+  ], { okText: 'Qo\'shish' });
+  if (!vals) return;
+  const code = String(vals.code || '').trim().toUpperCase();
+  const label = String(vals.label || '').trim() || code;
+  if (!code) { toast('Kod majburiy', 'err'); return; }
+  try {
+    const { data, error } = await sb.from('employee_roles').insert({ workspace_id: currentWs.id, code: code, label: label }).select().single();
+    if (error) throw error;
+    empRolesCache.push(data);
+    empRolesCache.sort(function (a, b) { return a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }); });
+    const sel = $('edtRole');
+    if (sel) {
+      sel.innerHTML = '<option value="">— tanlanmagan —</option>' + empRolesCache.map(function (r) {
+        return '<option value="' + r.id + '">' + escapeHtml(r.label) + '</option>';
+      }).join('');
+      sel.value = data.id;
+    }
+    logActivity('employee_role_created', { entityType: 'employee', entityId: data.id, entityTitle: label });
+    toast('✓ Rol qo\'shildi — biriktirish uchun "Saqlash"ni bosing', 'ok');
+  } catch (e) { toast('Qo\'shilmadi: ' + (e.message || e), 'err'); }
+}
+
+async function empAddLink() {
+  const uid = _empDtlUid;
+  if (!uid || !canManageTeam()) return;
+  const vals = await uiForm('Hujjat havolasi qo\'shish', [
+    { id: 'title', label: 'Nomi', type: 'text', placeholder: 'Diplom, Pasport, Buyruq…' },
+    { id: 'url', label: 'Google Drive havolasi', type: 'text', placeholder: 'https://drive.google.com/...' },
+    { id: 'note', label: 'Izoh (ixtiyoriy)', type: 'textarea', placeholder: '' },
+  ], { okText: 'Qo\'shish' });
+  if (!vals) return;
+  const title = String(vals.title || '').trim();
+  const url = String(vals.url || '').trim();
+  if (!title) { toast('Nomi majburiy', 'err'); return; }
+  if (!url || !hrValidUrl(url)) { toast('Havola noto\'g\'ri — http:// yoki https:// bilan boshlansin', 'err'); return; }
+  try {
+    const { error } = await sb.from('employee_links').insert({
+      workspace_id: currentWs.id, user_id: uid, title: title, url: url,
+      note: String(vals.note || '').trim() || null, created_by: me.id,
+    });
+    if (error) throw error;
+    toast('✓ Havola qo\'shildi', 'ok');
+    logActivity('employee_link_added', { entityType: 'employee', entityId: uid, entityTitle: title });
+    renderEmployee();
+  } catch (e) { toast('Qo\'shilmadi: ' + (e.message || e), 'err'); }
+}
+
+async function empDelLink(id) {
+  if (!canManageTeam()) return;
+  const l = _empDtlLinks.find(function (x) { return x.id === id; });
+  const title = l ? l.title : 'Havola';
+  const ok = await uiConfirm('Havolani o\'chirish', '"' + title + '" o\'chirilsinmi? Google Drive\'dagi faylning o\'ziga tegilmaydi.', { okText: 'O\'chirish', danger: true });
+  if (!ok) return;
+  try {
+    const { error } = await sb.from('employee_links').delete().eq('id', id);
+    if (error) throw error;
+    toast('✓ O\'chirildi', 'ok');
+    logActivity('employee_link_removed', { entityType: 'employee', entityId: _empDtlUid, entityTitle: title });
+    renderEmployee();
+  } catch (e) { toast('O\'chirilmadi: ' + (e.message || e), 'err'); }
+}
+
+async function empChangePassword() {
+  const uid = _empDtlUid;
+  if (!uid || !canManageTeam()) return;
+  const m = (wsMembers || []).find(function (x) { return x.user_id === uid; });
+  const email = (m && m.profile && m.profile.email) || (uid === me.id ? (me.email || '') : '');
+  if (!email) { toast('Email yo\'q — avval Jamoa jadvalida email kiriting', 'err'); return; }
+  const ok = await uiConfirm('Parolni o\'zgartirish', email + ' manziliga parol o\'rnatish havolasi yuborilsinmi?', { okText: 'Yuborish' });
+  if (!ok) return;
+  await teamResendEmail(uid, email, true);
+}
+
+// ============ HODIM IMPORT (aros_staff JSON) ============
+//
+// Quvur: fayl → xaritalash → normalizatsiya → pre-flight → quruq yurgizish
+//        → import (identitet + ma'lumot) → rasm → hisobot.
+//
+// Ish taqsimoti:
+//   Edge Function (service_role) — auth user, workspace_members,
+//                                  staff_import_map, rasm (Storage)
+//   Mijoz (RLS, owner)          — branches, employee_roles, positions,
+//                                  employee_details, employee_branches,
+//                                  employee_schedule_days, legacy_id_map
+//
+// Bog'lash: legacy_id_map (filial/lavozim/rol) + staff_import_map (hodim).
+// Domen jadvallarida legacy_id ustuni YO'Q — 40:28-34 ga qarang.
+//
+// Manba tuzilishi va o'lchangan faktlar: BRIEF_IMPORT.md
+
+const HR_IMP_SOURCE = 'aros_staff';
+const HR_IMP_EMAIL_DOMAIN = 'staff.taskfix.org';
+const HR_IMP_CHUNK = 25;   // admin-import-staff'dagi MAX_ROWS_PER_CALL bilan bir xil
+const HR_IMP_PHOTO_CHUNK = 10;  // MAX_PHOTOS_PER_CALL bilan bir xil
+const HR_IMP_MAX_FILE = 50 * 1024 * 1024;   // haqiqiy eksport ~5.7 MB
+const HR_IMP_DAY_CHUNK = 1000;  // ~40 412 ish kuni — bitta insert timeout beradi
+// Manbadagi o'rinbosar matn — ism EMAS (31 filialdan 14 tasida).
+const HR_IMP_MGR_PLACEHOLDER = 'Manager of branch not found.';
+
+let _hrImpRows = [];       // xaritalangan qatorlar
+let _hrImpFileText = null; // tanlangan faylning xom matni
+let _hrImpDoc = null;      // butun eksport hujjati (branches, roles, counts…)
+let _hrImpPre = null;      // pre-flight natijasi
+let _hrLegacy = {};        // entity_type -> { legacy_id: target_uuid }
+
+// ---- Nom normalizatsiyasi ----
+// Manbada LOTIN so'zlar ichida kirilcha harflar bor (eksport tahlili):
+//   user_id 15  → "Bаhodir Abdullayev"   — 'а' kirilcha (U+0430)
+//   filial 24   → "Маrketing bo'limi"    — 'М' (U+041C), 'а' (U+0430)
+// Va typografik apostrof: "To’xtasinov", "O’ral", "Ro’ziyev" (U+2019).
+//
+// DIQQAT: bu HOMOGLIF xaritasi — transliteratsiya EMAS.
+// Har kirilcha harf O'ZIGA O'XSHAGAN lotin harfiga o'tadi:
+//   р → p (r EMAS), с → c (s EMAS), у → y (u EMAS), Н → H (n EMAS), В → B (v EMAS).
+// Chunki maqsad — "ko'zga lotin ko'ringan, aslida kirilcha" harfni tuzatish.
+const HR_CYR_HOMOGLYPH = {
+  'а': 'a', 'е': 'e', 'о': 'o', 'р': 'p', 'с': 'c', 'х': 'x', 'у': 'y', 'ѕ': 's',
+  'і': 'i', 'ј': 'j', 'ԁ': 'd', 'ѐ': 'e', 'ё': 'e',
+  'А': 'A', 'В': 'B', 'Е': 'E', 'К': 'K', 'М': 'M', 'Н': 'H', 'О': 'O',
+  'Р': 'P', 'С': 'C', 'Т': 'T', 'У': 'Y', 'Х': 'X', 'Ѕ': 'S', 'І': 'I', 'Ј': 'J',
+};
+
+function hrHasCyrillic(s) { return /[Ѐ-ӿ]/.test(String(s || '')); }
+
+function hrNormName(s) {
+  if (s === null || s === undefined) return '';
+  let out = String(s);
+  // Typografik apostroflar → oddiy '
+  out = out.replace(/[‘’ʼʻ՚′]/g, "'");
+  // Kirill homoglif → lotin
+  out = out.replace(/[Ѐ-ӿ]/g, function (ch) {
+    return Object.prototype.hasOwnProperty.call(HR_CYR_HOMOGLYPH, ch) ? HR_CYR_HOMOGLYPH[ch] : ch;
+  });
+  return out.replace(/\s+/g, ' ').trim();
+}
+
+// vacation_type → employee_details.schedule_type
+// Manbada: weekly 67, custom 58, monthly 1.
+// TaskFix CHECK (39:147): weekly | monthly | flexible — 'custom' YO'Q.
+// To'g'ridan-to'g'ri yozsak 58 hodim yiqilardi. 'custom' = tartibsiz jadval
+// = 'flexible'. Yo'qotish yo'q: haqiqat manbai baribir employee_schedule_days,
+// bu ustun faqat UI'da qisqa ko'rsatish uchun.
+const HR_SCHED_MAP = { weekly: 'weekly', monthly: 'monthly', flexible: 'flexible', custom: 'flexible' };
+
+// ────────────────────────────────────────────────────────────
+// STUB #1 — MAYDON XARITASI  (aros_staff_export.json → quvur shakli)
+//
+// Manba tuzilishi BRIEF_IMPORT.md §1 da hujjatlashtirilgan.
+//
+// Qaytaradi:
+//   {
+//     source_id: '3',                 // ← user_id (employment_id EMAS! §2.4)
+//     phone_raw, first_name, last_name, full_name,
+//     legacy: { branch: [1,2], position: [7], role: [3], department: [] },
+//     details: { … },                 // employee_details ustunlari
+//     days:    [ {date, day_type, start_time, end_time} ],
+//     image_url, links: [], errors: []
+//   }
+// ────────────────────────────────────────────────────────────
+function hrImportMapRow(raw, idx) {
+  const out = {
+    _row: idx + 1,
+    _raw: raw,
+    source_id: null,
+    phone_raw: null,
+    first_name: null,
+    last_name: null,
+    full_name: null,
+    legacy: { branch: [], position: [], role: [], department: [] },
+    details: {},
+    days: [],
+    image_url: null,
+    links: [],
+    errors: [],
+  };
+  if (!raw || typeof raw !== 'object') { out.errors.push('qator obyekt emas'); return out; }
+
+  // ---- Kalit: user_id ----
+  // §2.4: employment_id ≠ user_id (employment 106 → user 115). Odam = user_id.
+  if (raw.user_id === null || raw.user_id === undefined || raw.user_id === '') {
+    out.errors.push('user_id yo\'q');
+  } else {
+    out.source_id = String(raw.user_id);
+  }
+
+  out.phone_raw = raw.phone;
+
+  // ---- Ism ----
+  const rawFirst = raw.first_name === null || raw.first_name === undefined ? '' : String(raw.first_name);
+  const rawLast = raw.last_name === null || raw.last_name === undefined ? '' : String(raw.last_name);
+  const rawFull = (rawFirst + ' ' + rawLast).replace(/\s+/g, ' ').trim();
+
+  out.first_name = hrNormName(rawFirst) || null;
+  out.last_name = hrNormName(rawLast) || null;
+  out.full_name = hrNormName(rawFull) || null;
+  if (!out.full_name) out.errors.push('ism yo\'q');
+
+  // Homoglif xaritasi tugagach ham kirill qolgan bo'lsa — bu haqiqiy kirill
+  // matn (masalan "Баходир"), homoglif emas. Jimgina buzib yubormaymiz.
+  if (hrHasCyrillic(out.full_name)) {
+    out.errors.push('ismda kirill harf qoldi: "' + out.full_name + '" — homoglif emas, qo\'lda tekshiring');
+  }
+
+  // ---- Legacy id'lar (hammasi massiv — bitta hodimda 5 tagacha filial) ----
+  if (Array.isArray(raw.branches)) {
+    raw.branches.forEach(function (b) {
+      const bid = b && typeof b === 'object' ? b.id : b;
+      if (bid !== null && bid !== undefined && bid !== '') out.legacy.branch.push(bid);
+    });
+  }
+  if (raw.position_id !== null && raw.position_id !== undefined && raw.position_id !== '') {
+    out.legacy.position.push(raw.position_id);
+  }
+  if (raw.role_id !== null && raw.role_id !== undefined && raw.role_id !== '') {
+    out.legacy.role.push(raw.role_id);
+  }
+  // department — manbada YO'Q. U filial nomidan hosil qilinadi
+  // ("… bo'limi") va hrImportWriteDetails da to'ldiriladi.
+
+  if (!out.legacy.branch.length) out.errors.push('filial yo\'q');
+
+  // ---- Sanalar ----
+  const cs = hrImportNormDate(raw.contract_start);
+  const ce = hrImportNormDate(raw.contract_end);
+  if (!cs.ok) out.errors.push('contract_start: ' + cs.reason);
+  if (!ce.ok) out.errors.push('contract_end: ' + ce.reason);
+
+  // ---- work_type: CHECK (39:143) offline|online|hybrid ----
+  let workType = raw.work_type === null || raw.work_type === undefined || raw.work_type === ''
+    ? null : String(raw.work_type).toLowerCase();
+  if (workType && ['offline', 'online', 'hybrid'].indexOf(workType) === -1) {
+    out.errors.push('work_type noma\'lum: "' + workType + '" (offline|online|hybrid kutilgan)');
+    workType = null;
+  }
+
+  // ---- schedule_type: CHECK (39:147) weekly|monthly|flexible ----
+  const vt = raw.vacation_type === null || raw.vacation_type === undefined || raw.vacation_type === ''
+    ? null : String(raw.vacation_type).toLowerCase();
+  let schedType = null;
+  if (vt) {
+    if (Object.prototype.hasOwnProperty.call(HR_SCHED_MAP, vt)) schedType = HR_SCHED_MAP[vt];
+    else out.errors.push('vacation_type noma\'lum: "' + vt + '" (weekly|monthly|flexible|custom kutilgan)');
+  }
+
+  const sched = raw.schedule && typeof raw.schedule === 'object' ? raw.schedule : {};
+
+  let radius = null;
+  if (raw.radius !== null && raw.radius !== undefined && raw.radius !== '') {
+    const rn = Number(raw.radius);
+    if (isFinite(rn)) radius = Math.round(rn);
+    else out.errors.push('radius son emas: ' + raw.radius);
+  }
+
+  out.details = {
+    first_name: out.first_name,
+    last_name: out.last_name,
+    address: raw.no_address ? null : (raw.address ? String(raw.address) : null),
+    no_address: !!raw.no_address,
+    contract_url: raw.contract_url ? String(raw.contract_url) : null,
+    contract_start: cs.date,
+    contract_end: ce.date,
+    work_type: workType,
+    radius: radius,
+    schedule_type: schedType,
+    weekend_days: Array.isArray(sched.weekend_days) ? sched.weekend_days : [],
+    work_start: sched.work_start || null,
+    work_end: sched.work_end || null,
+    // 41-migratsiya ustunlari — bog'lash emas, fakt
+    legacy_name_raw: rawFull || null,
+    legacy_employment_id: raw.employment_id === null || raw.employment_id === undefined ? null : raw.employment_id,
+    hired_at: raw.created_at || null,
+    lat: raw.lat === null || raw.lat === undefined || raw.lat === '' ? null : Number(raw.lat),
+    lng: raw.lng === null || raw.lng === undefined || raw.lng === '' ? null : Number(raw.lng),
+  };
+
+  // ---- Ish kunlari ----
+  // Naqshga aylantirilmaydi — manbada ish vaqti xilma-xil (08:30–20:00,
+  // 09:00–21:00 …), naqsh ma'lumotning katta qismini yo'qotardi.
+  if (Array.isArray(raw.days)) {
+    raw.days.forEach(function (d) {
+      if (!d || typeof d !== 'object') return;
+      const dt = hrImportNormDate(d.date);
+      if (!dt.ok || !dt.date) { out.errors.push('ish kuni sanasi yaroqsiz: ' + JSON.stringify(d.date)); return; }
+      const type = String(d.day_type || '').toLowerCase();
+      // 41-migratsiyada CHECK (day_type IN ('on','off')). Uchinchi qiymat
+      // chiqsa — import'da EMAS, shu yerda ushlaymiz.
+      if (type !== 'on' && type !== 'off') {
+        out.errors.push('day_type noma\'lum: "' + d.day_type + '" (' + dt.date + ')');
+        return;
+      }
+      // Vaqt 'off' kunda ham SAQLANADI. Manbada 4544 ta 'off' kunda
+      // start_time/end_time bor — ular hodimning odatiy jadvali.
+      // Tashlab yuborish "to'liq import" emas edi; day_type baribir
+      // ishlamasligini aytib turibdi.
+      out.days.push({
+        date: dt.date,
+        day_type: type,
+        start_time: d.start_time || null,
+        end_time: d.end_time || null,
+      });
+    });
+  }
+
+  // ---- Rasm ----
+  // Storage'ga Edge Function ko'chiradi (brauzerda CORS to'sadi).
+  out.image_url = raw.image_url ? String(raw.image_url) : null;
+
+  // ---- documents ----
+  // Eksport: 126/126 hodimda BO'SH. Import qilinmaydi (BRIEF §0).
+  // employee_links uchun mantiq ATAYLAB yozilmagan.
+
+  return out;
+}
+
+// ---- STUB #2 — TELEFON → E.164 ----
+// Eksport: 126/126 allaqachon '+998XXXXXXXXX' shaklida, dublikat yo'q.
+// Baribir normalizatsiya qilamiz — manba kelajakda o'zgarishi mumkin.
+// Edge Function buni QAYTA tekshiradi (index.ts looksE164).
+function hrImportNormPhone(raw) {
+  if (raw === null || raw === undefined || String(raw).trim() === '') {
+    return { ok: false, e164: null, reason: 'telefon yo\'q' };
+  }
+  const s = String(raw).trim();
+  const digits = s.replace(/\D/g, '');
+  if (!digits) return { ok: false, e164: null, reason: 'telefonda raqam yo\'q: ' + s };
+
+  let d = digits;
+  if (d.length === 9) d = '998' + d;                       // 901234567 → milliy
+  else if (d.length === 12 && d.slice(0, 3) === '998') { /* to'g'ri */ }
+  else if (d.length === 11 && d.slice(0, 2) === '98') d = '9' + d;  // 998 dan bitta 9 tushib qolgan
+
+  const e164 = '+' + d;
+  // admin-import-staff/index.ts:80 dagi looksE164 bilan BIR XIL
+  if (!/^\+[1-9]\d{7,14}$/.test(e164)) {
+    return { ok: false, e164: null, reason: 'E.164 ga keltirib bo\'lmadi: "' + s + '" (' + digits.length + ' raqam)' };
+  }
+  return { ok: true, e164: e164, reason: null };
+}
+
+// ---- STUB #3 — SANA → 'YYYY-MM-DD' ----
+// Manbada: contract_start "2025-02-28", created_at "2024-09-25T11:40:51+05:00".
+// Bo'sh qiymat XATO EMAS — ustunlar nullable.
+function hrImportNormDate(raw) {
+  if (raw === null || raw === undefined || String(raw).trim() === '') {
+    return { ok: true, date: null, reason: null };
+  }
+  const s = String(raw).trim();
+  let y, m, d;
+
+  let mt = s.match(/^(\d{4})-(\d{2})-(\d{2})/);            // ISO (datetime ham)
+  if (mt) { y = mt[1]; m = mt[2]; d = mt[3]; }
+  else {
+    mt = s.match(/^(\d{2})[.\/](\d{2})[.\/](\d{4})$/);     // DD.MM.YYYY
+    if (mt) { y = mt[3]; m = mt[2]; d = mt[1]; }
+  }
+  if (!y) return { ok: false, date: null, reason: 'format tushunarsiz: "' + s + '"' };
+
+  // Haqiqiy sanami (2025-02-30 emasmi) — Date orqali tekshiramiz
+  const iso = y + '-' + m + '-' + d;
+  const dt = new Date(iso + 'T00:00:00Z');
+  if (isNaN(dt.getTime()) ||
+      dt.getUTCFullYear() !== Number(y) ||
+      dt.getUTCMonth() + 1 !== Number(m) ||
+      dt.getUTCDate() !== Number(d)) {
+    return { ok: false, date: null, reason: 'bunday sana yo\'q: "' + s + '"' };
+  }
+  return { ok: true, date: iso, reason: null };
+}
+
+// ---- Legacy id xaritasi (40-migratsiya) ----
+// Manbada filial/lavozim/rol RAQAMLI id bilan keladi → TaskFix UUID'ga bog'laymiz.
+async function hrLoadLegacyMap() {
+  const { data, error } = await sb.from('legacy_id_map')
+    .select('entity_type, legacy_id, target_id')
+    .eq('workspace_id', currentWs.id).eq('source_system', HR_IMP_SOURCE);
+  if (error) throw error;
+  _hrLegacy = {};
+  (data || []).forEach(function (x) {
+    if (!_hrLegacy[x.entity_type]) _hrLegacy[x.entity_type] = {};
+    _hrLegacy[x.entity_type][String(x.legacy_id)] = x.target_id;
+  });
+}
+function hrLegacyResolve(type, legacyId) {
+  if (legacyId === null || legacyId === undefined || legacyId === '') return null;
+  const m = _hrLegacy[type] || {};
+  return m[String(legacyId)] || null;
+}
+
+// Bog'lanishni yozadi + keshni yangilaydi (keyingi qatorlar darrov ko'rsin).
+// Idempotent: qayta yurgizishda upsert o'sha qatorni yangilaydi.
+async function hrLegacyPut(type, legacyId, targetId, note) {
+  const { error } = await sb.from('legacy_id_map').upsert({
+    workspace_id: currentWs.id,
+    source_system: HR_IMP_SOURCE,
+    entity_type: type,
+    legacy_id: String(legacyId),
+    target_id: targetId,
+    note: note || null,
+    created_by: me.id,
+  }, { onConflict: 'workspace_id,source_system,entity_type,legacy_id' });
+  if (error) throw error;
+  if (!_hrLegacy[type]) _hrLegacy[type] = {};
+  _hrLegacy[type][String(legacyId)] = targetId;
+}
+
+// employee_roles uchun get-or-create.
+// positions'da teamAddPosition (9584) bor edi, rol uchun bunday helper yo'q edi.
+// Kalit — code (39:91 da UNIQUE), name emas.
+async function hrAddRole(code, label) {
+  code = String(code || '').trim().toUpperCase();
+  if (!code || !currentWs) return null;
+  const ex = (empRolesCache || []).find(function (r) { return String(r.code).toUpperCase() === code; });
+  if (ex) return ex.id;
+  const { data, error } = await sb.from('employee_roles')
+    .insert({ workspace_id: currentWs.id, code: code, label: label || code })
+    .select().single();
+  if (error) {
+    // Poyga holati — teamAddPosition'dagi naqsh
+    await loadHrData(true);
+    const again = (empRolesCache || []).find(function (r) { return String(r.code).toUpperCase() === code; });
+    if (again) return again.id;
+    throw error;
+  }
+  empRolesCache.push(data);
+  return data.id;
+}
+
+// Telefondan deterministik email — Edge Function ham aynan shuni kutadi
+function hrImportEmail(e164) { return String(e164).replace(/^\+/, '') + '@' + HR_IMP_EMAIL_DOMAIN; }
+
+function hrImportOpen() {
+  if (!isOwnerLike()) { toast('Faqat owner yoki admin import qila oladi', 'err'); return; }
+  $('hrImpFile').value = '';
+  $('hrImpFileInfo').textContent = '';
+  _hrImpFileText = null; _hrImpRows = []; _hrImpPre = null; _hrImpDoc = null;
+  hrImportBack();
+  hideMsg($('hrImpMsg'));
+  $('hrImportBd').classList.add('show');
+}
+
+// Fayldan o'qish — textarea'ga paste QILINMAYDI.
+// Eksport 5.7 MB: shuncha matnni textarea'ga tashlash brauzerni qotiradi.
+async function hrImportFilePicked() {
+  const inp = $('hrImpFile');
+  const info = $('hrImpFileInfo');
+  hideMsg($('hrImpMsg'));
+  _hrImpFileText = null; _hrImpRows = []; _hrImpPre = null; _hrImpDoc = null;
+  hrImportBack();
+
+  const f = inp.files && inp.files[0];
+  if (!f) { info.textContent = ''; return; }
+
+  const mb = (f.size / 1024 / 1024).toFixed(1);
+  if (f.size > HR_IMP_MAX_FILE) {
+    info.textContent = '';
+    showMsg($('hrImpMsg'), 'Fayl juda katta: ' + mb + ' MB (' + Math.round(HR_IMP_MAX_FILE / 1024 / 1024) + ' MB gacha)', 'err');
+    inp.value = '';
+    return;
+  }
+
+  info.textContent = 'O\'qilmoqda…';
+  try {
+    _hrImpFileText = await f.text();
+  } catch (e) {
+    info.textContent = '';
+    showMsg($('hrImpMsg'), 'Faylni o\'qib bo\'lmadi: ' + (e.message || e), 'err');
+    inp.value = '';
+    return;
+  }
+
+  // Darrov qisqa xulosa — foydalanuvchi to'g'ri faylni tanlaganini ko'rsin
+  const p = hrImportParseJson(_hrImpFileText);
+  if (!p.ok) {
+    info.textContent = f.name + ' — ' + mb + ' MB';
+    showMsg($('hrImpMsg'), p.reason, 'err');
+    return;
+  }
+  const c = (p.doc && p.doc.counts) || {};
+  const bits = [mb + ' MB', p.rows.length + ' hodim'];
+  if (c.total_day_rows) bits.push(Number(c.total_day_rows).toLocaleString('ru-RU') + ' ish kuni');
+  if (p.doc && Array.isArray(p.doc.branches)) bits.push(p.doc.branches.length + ' filial');
+  info.innerHTML = '✓ <b>' + escapeHtml(f.name) + '</b> · ' + escapeHtml(bits.join(' · '));
+}
+function hrImportClose() { $('hrImportBd').classList.remove('show'); }
+function hrImportBack() {
+  $('hrImpStep1').style.display = 'block';
+  $('hrImpPreflight').style.display = 'none';
+  $('hrImpReport').style.display = 'none';
+  $('hrImpBackBtn').style.display = 'none';
+  $('hrImpRunBtn').style.display = 'none';
+  $('hrImpCheckBtn').style.display = 'inline-block';
+}
+
+// JSON o'qish — aros_staff eksporti: { employees: [...], branches: [...], roles: [...] }
+// 'employees' BIRINCHI: eksportning haqiqiy kaliti aynan shu. Qolganlari zaxira.
+// Butun hujjat `doc` da qaytariladi — top-level branches/roles filial va rol
+// yaratishda kerak (hrImportWriteDetails), faqat rows yetmaydi.
+function hrImportParseJson(text) {
+  let parsed;
+  try { parsed = JSON.parse(text); }
+  catch (e) { return { ok: false, reason: 'JSON o\'qib bo\'lmadi: ' + (e.message || e) }; }
+  if (Array.isArray(parsed)) return { ok: true, rows: parsed, doc: {} };
+  if (parsed && typeof parsed === 'object') {
+    const key = ['employees', 'data', 'rows', 'staff', 'items', 'result'].find(function (k) { return Array.isArray(parsed[k]); });
+    if (key) return { ok: true, rows: parsed[key], doc: parsed };
+  }
+  return { ok: false, reason: 'Massiv topilmadi — {"employees": [...]} yoki [...] kutilgan' };
+}
+
+// ---- PRE-FLIGHT: hech narsa yozilmaydi ----
+async function hrImportPreflight() {
+  const btn = $('hrImpCheckBtn');
+  hideMsg($('hrImpMsg'));
+
+  if (!_hrImpFileText) { showMsg($('hrImpMsg'), 'Avval eksport faylini tanlang', 'err'); return; }
+  const parsed = hrImportParseJson(_hrImpFileText);
+  if (!parsed.ok) { showMsg($('hrImpMsg'), parsed.reason, 'err'); return; }
+  if (!parsed.rows.length) { showMsg($('hrImpMsg'), 'Faylda hodim yo\'q', 'err'); return; }
+
+  _hrImpDoc = parsed.doc || {};
+
+  btn.disabled = true; btn.textContent = 'Tekshirilmoqda…';
+  try {
+    await loadHrData();
+    await hrLoadLegacyMap();
+
+    // 1) Xaritalash + normalizatsiya (stub'lar shu yerda chaqiriladi)
+    _hrImpRows = parsed.rows.map(function (raw, i) {
+      const r = hrImportMapRow(raw, i);
+      r.errors = r.errors || [];
+      if (!r.source_id) r.errors.push('source_id yo\'q');
+      const ph = hrImportNormPhone(r.phone_raw);
+      r.phone_e164 = ph.ok ? ph.e164 : null;
+      if (!ph.ok) r.errors.push(ph.reason);
+      r.email = r.phone_e164 ? hrImportEmail(r.phone_e164) : null;
+      return r;
+    });
+
+    // 2) Fayl ichidagi dublikatlar → BLOKER
+    const bySource = {}, byPhone = {};
+    _hrImpRows.forEach(function (r) {
+      if (r.source_id) (bySource[r.source_id] = bySource[r.source_id] || []).push(r._row);
+      if (r.phone_e164) (byPhone[r.phone_e164] = byPhone[r.phone_e164] || []).push(r._row);
+    });
+    Object.keys(bySource).forEach(function (k) {
+      if (bySource[k].length > 1) _hrImpRows.forEach(function (r) {
+        if (r.source_id === k) r.errors.push('source_id takrorlangan (' + bySource[k].join(', ') + '-qatorlar)');
+      });
+    });
+    Object.keys(byPhone).forEach(function (k) {
+      if (byPhone[k].length > 1) _hrImpRows.forEach(function (r) {
+        if (r.phone_e164 === k) r.errors.push('telefon takrorlangan (' + byPhone[k].join(', ') + '-qatorlar)');
+      });
+    });
+
+    // 3) Legacy id'lar xaritada bormi → OGOHLANTIRISH (bloklamaydi)
+    // legacy qiymatlari MASSIV — bitta hodimda 5 tagacha filial bo'lishi mumkin.
+    const unmapped = { branch: {}, position: {}, role: {}, department: {} };
+    _hrImpRows.forEach(function (r) {
+      ['branch', 'position', 'role', 'department'].forEach(function (t) {
+        const lids = (r.legacy && Array.isArray(r.legacy[t])) ? r.legacy[t] : [];
+        lids.forEach(function (lid) {
+          if (lid === null || lid === undefined || lid === '') return;
+          if (!hrLegacyResolve(t, lid)) unmapped[t][String(lid)] = (unmapped[t][String(lid)] || 0) + 1;
+        });
+      });
+    });
+
+    // 4) Avval import qilinganmi → created / updated ajratamiz
+    const ids = _hrImpRows.map(function (r) { return r.source_id; }).filter(Boolean);
+    let known = {};
+    if (ids.length) {
+      const { data: mp, error: mErr } = await sb.from('staff_import_map')
+        .select('source_id, user_id')
+        .eq('workspace_id', currentWs.id).eq('source_system', HR_IMP_SOURCE)
+        .in('source_id', ids);
+      if (mErr) throw mErr;
+      (mp || []).forEach(function (x) { known[x.source_id] = x.user_id; });
+    }
+    _hrImpRows.forEach(function (r) { r._known = !!known[r.source_id]; });
+
+    // 5) tg_bot_users bilan telefon mosligi → OGOHLANTIRISH
+    // Siz aros_staff botdan alohida dedingiz, shuning uchun bloklamaydi.
+    // Lekin ilova ikkilangan shaxsdan qochish uchun qurilgan (msFilter),
+    // shuning uchun mos kelsa ko'rsatamiz.
+    const tgHits = [];
+    _hrImpRows.forEach(function (r) {
+      if (!r.phone_e164) return;
+      const d = r.phone_e164.replace(/\D/g, '');
+      const hit = (tgUsersCache || []).find(function (u) {
+        const p = String(u.phone || '').replace(/\D/g, '');
+        return p && p.length >= 7 && (p === d || p.endsWith(d) || d.endsWith(p));
+      });
+      if (hit) tgHits.push({ row: r._row, name: hit.full_name || '—', phone: r.phone_e164 });
+    });
+
+    const blocked = _hrImpRows.filter(function (r) { return r.errors.length; });
+    const ok = _hrImpRows.filter(function (r) { return !r.errors.length; });
+
+    _hrImpPre = {
+      total: _hrImpRows.length,
+      blocked: blocked, ok: ok,
+      toCreate: ok.filter(function (r) { return !r._known; }).length,
+      toUpdate: ok.filter(function (r) { return r._known; }).length,
+      unmapped: unmapped, tgHits: tgHits,
+      dry: null,
+    };
+
+    // 6) Blokerlar bo'lmasa — serverda ham quruq yurgizib ko'ramiz
+    if (!blocked.length) {
+      _hrImpPre.dry = await hrImportInvoke(ok, { dryRun: true });
+    }
+
+    hrImportRenderPreflight();
+  } catch (e) {
+    showMsg($('hrImpMsg'), 'Tekshirib bo\'lmadi: ' + (e.message || e), 'err');
+  }
+  btn.disabled = false; btn.textContent = 'Tekshirish';
+}
+
+function hrImportRenderPreflight() {
+  const p = _hrImpPre;
+  const wrap = $('hrImpPreflight');
+  let html = '<div style="font-size:13.5px;line-height:1.7;">';
+  html += '<div style="font-weight:600;margin-bottom:8px;">Jami: ' + p.total + ' qator</div>';
+
+  if (p.blocked.length) {
+    html += '<div style="padding:10px 12px;border:1px solid #F5C2C7;background:#FDF2F2;color:#B42318;border-radius:8px;margin-bottom:10px;">' +
+      '<b>🛑 ' + p.blocked.length + ' bloker — hech narsa yozilmaydi.</b><br>' +
+      '<span style="font-size:12px;">Manbani tuzatib qayta urinib ko\'ring. Import idempotent — qayta yurgizish xavfsiz.</span>' +
+      '<div style="margin-top:8px;max-height:200px;overflow:auto;font-size:12px;font-family:\'JetBrains Mono\',monospace;">' +
+      p.blocked.slice(0, 50).map(function (r) {
+        return '<div>' + r._row + '-qator: ' + escapeHtml(r.errors.join('; ')) + '</div>';
+      }).join('') +
+      (p.blocked.length > 50 ? '<div style="opacity:.7">…va yana ' + (p.blocked.length - 50) + ' ta</div>' : '') +
+      '</div></div>';
+  } else {
+    html += '<div style="padding:10px 12px;border:1px solid #A7F3D0;background:#F0FDF4;color:#065F46;border-radius:8px;margin-bottom:10px;">' +
+      '✓ <b>' + p.toCreate + '</b> yangi yaratiladi &nbsp;·&nbsp; ↻ <b>' + p.toUpdate + '</b> yangilanadi (avval import qilingan)' +
+      (p.dry && p.dry.summary ? '<div style="font-size:12px;margin-top:4px;">Server quruq yurgizish: ' + escapeHtml(JSON.stringify(p.dry.summary)) + '</div>' : '') +
+      '</div>';
+  }
+
+  // Ogohlantirishlar
+  const warns = [];
+  ['branch', 'position', 'role', 'department'].forEach(function (t) {
+    const keys = Object.keys(p.unmapped[t] || {});
+    if (!keys.length) return;
+    const lbl = { branch: 'Filial', position: 'Lavozim', role: 'Rol', department: 'Bo\'lim' }[t];
+    // Bu XATO EMAS. legacy_id_map faqat oldindan seed qilinganini biladi
+    // (masalan lavozimlar). Filial va rol import paytida yaratiladi va
+    // shu yerda bog'lanadi — birinchi yurgizishda hammasi "yo'q" ko'rinadi.
+    const willCreate = (t === 'branch' || t === 'role' || t === 'position');
+    warns.push(lbl + ' — xaritada yo\'q legacy id: <code>' + keys.slice(0, 20).map(escapeHtml).join(', ') + '</code>' +
+      (keys.length > 20 ? ' …(+' + (keys.length - 20) + ')' : '') +
+      ' <span style="opacity:.75">(' + (willCreate
+        ? 'import yaratadi va bog\'laydi — birinchi yurgizishda normal'
+        : 'hodim yaratiladi, biriktirilmaydi') + ')</span>');
+  });
+  if (p.tgHits.length) {
+    warns.push('<b>' + p.tgHits.length + '</b> ta telefon mavjud Telegram bot foydalanuvchisiga mos keldi — bir odam ikki marta bo\'lishi mumkin: ' +
+      p.tgHits.slice(0, 8).map(function (h) { return escapeHtml(h.name + ' (' + h.row + '-qator)'); }).join(', ') +
+      (p.tgHits.length > 8 ? ' …' : ''));
+  }
+  if (warns.length) {
+    html += '<div style="padding:10px 12px;border:1px solid #FDE68A;background:#FFFBEB;color:#92400E;border-radius:8px;margin-bottom:10px;font-size:12.5px;">' +
+      '<b>⚠ Ogohlantirish (bloklamaydi)</b><ul style="margin:6px 0 0;padding-left:18px;">' +
+      warns.map(function (w) { return '<li style="margin-bottom:4px;">' + w + '</li>'; }).join('') + '</ul></div>';
+  }
+  html += '</div>';
+  wrap.innerHTML = html;
+
+  $('hrImpStep1').style.display = 'none';
+  $('hrImpPreflight').style.display = 'block';
+  $('hrImpReport').style.display = 'none';
+  $('hrImpCheckBtn').style.display = 'none';
+  $('hrImpBackBtn').style.display = 'inline-block';
+  const run = $('hrImpRunBtn');
+  run.style.display = 'inline-block';
+  run.disabled = p.blocked.length > 0 || !p.ok.length;
+  run.textContent = 'Import qilish (' + p.ok.length + ')';
+}
+
+// Edge Function chaqiruvi — bo'laklab. Faqat identitet ishi
+// (auth user + workspace_members + staff_import_map).
+async function hrImportInvoke(rows, opts) {
+  opts = opts || {};
+  const out = { summary: {}, results: [] };
+  for (let i = 0; i < rows.length; i += HR_IMP_CHUNK) {
+    const chunk = rows.slice(i, i + HR_IMP_CHUNK).map(function (r) {
+      return { source_id: r.source_id, phone_e164: r.phone_e164, email: r.email, full_name: r.full_name };
+    });
+    const body = {
+      workspace_id: currentWs.id,
+      source_system: HR_IMP_SOURCE,
+      rows: chunk,
+      dry_run: !!opts.dryRun,
+      import_run_id: opts.runId || null,
+    };
+    const { data: res, error: fnErr } = await sb.functions.invoke('admin-import-staff', { body: body });
+    if (fnErr) {
+      // admin-create-employee'dagi ikki qatlamli xato naqshi (index.html:4558)
+      let detail = fnErr.message || 'Edge Function xatosi';
+      try {
+        if (fnErr.context && typeof fnErr.context.json === 'function') {
+          const eb = await fnErr.context.json();
+          if (eb && (eb.detail || eb.error)) {
+            detail = [eb.error, eb.detail, eb.hint ? ('💡 ' + eb.hint) : '', eb.v ? ('(' + eb.v + ')') : '(ESKI VERSIYA — deploy qiling!)'].filter(Boolean).join(' · ');
+          }
+        }
+      } catch (_) {}
+      throw new Error(detail);
+    }
+    if (!res || !res.ok) {
+      throw new Error((res && [res.error, res.detail, res.hint].filter(Boolean).join(' · ')) || 'Noma\'lum xato');
+    }
+    (res.results || []).forEach(function (r) { out.results.push(r); });
+    Object.keys(res.summary || {}).forEach(function (k) { out.summary[k] = (out.summary[k] || 0) + res.summary[k]; });
+    if (opts.onProgress) opts.onProgress(Math.min(i + HR_IMP_CHUNK, rows.length), rows.length);
+  }
+  return out;
+}
+
+// ---- Rasm fazasi ----
+// Manba rasmini brauzer OLOLMAYDI (CORS) va Storage'ga yozish service_role
+// talab qiladi → Edge Function phase='photos'.
+//
+// Identitet va ma'lumotdan KEYIN: EF photo_path'ni employee_details'ga
+// yozadi, ya'ni qator allaqachon mavjud bo'lishi kerak.
+//
+// Bu funksiya HECH QACHON throw QILMAYDI. Rasm — importning eng kam muhim
+// qismi; o'lchangan: 126 URL'dan 46 tasi 404. Ular importni yiqitmasin.
+async function hrImportPhotos(rows, results) {
+  const uidBy = {};
+  (results || []).forEach(function (r) {
+    if (r && r.user_id) uidBy[String(r.source_id)] = r.user_id;
+  });
+
+  const jobs = [];
+  rows.forEach(function (r) {
+    const uid = uidBy[String(r.source_id)];
+    if (uid && r.image_url) jobs.push({ user_id: uid, image_url: r.image_url });
+  });
+
+  const out = { total: jobs.length, summary: {}, results: [] };
+  if (!jobs.length) return out;
+
+  const btn = $('hrImpRunBtn');
+  for (let i = 0; i < jobs.length; i += HR_IMP_PHOTO_CHUNK) {
+    const chunk = jobs.slice(i, i + HR_IMP_PHOTO_CHUNK);
+    if (btn) btn.textContent = 'Rasm… ' + Math.min(i + HR_IMP_PHOTO_CHUNK, jobs.length) + '/' + jobs.length;
+    try {
+      const { data: res, error: fnErr } = await sb.functions.invoke('admin-import-staff', {
+        body: { workspace_id: currentWs.id, phase: 'photos', rows: chunk },
+      });
+      if (fnErr) throw new Error(fnErr.message || 'Edge Function xatosi');
+      if (!res || !res.ok) throw new Error((res && [res.error, res.detail].filter(Boolean).join(' · ')) || 'Noma\'lum xato');
+      (res.results || []).forEach(function (r) { out.results.push(r); });
+      Object.keys(res.summary || {}).forEach(function (k) {
+        out.summary[k] = (out.summary[k] || 0) + res.summary[k];
+      });
+    } catch (e) {
+      // Butun bo'lak yiqildi (tarmoq/timeout) — qatorlarini xato deb belgilaymiz
+      // va DAVOM ETAMIZ. Rasm qayta yurgizilsa tuzaladi (upsert: true).
+      chunk.forEach(function (j) {
+        out.results.push({ user_id: j.user_id, status: 'error', path: null, reason: (e.message || String(e)) });
+      });
+      out.summary.error = (out.summary.error || 0) + chunk.length;
+    }
+  }
+  return out;
+}
+
+// ---- STUB #4 — HR maydonlarini yozish ----
+// Identitet (auth user) yaratilgandan KEYIN ishlaydi. Hammasi MIJOZDA,
+// owner huquqi bilan RLS orqali — Edge Function'ga faqat service_role
+// majburan talab qiladigan ish qoldirilgan.
+//
+// Tartib MAJBURIY: filial/rol/lavozim → hodim → ish kunlari → manager.
+// Hodim employee_branches uchun filial UUID'ini talab qiladi, manager esa
+// hodim UUID'ini — shuning uchun manager oxirida, alohida fazada.
+//
+// Har bosqich o'z try/catch ichida: bittasi yiqilsa qolgani davom etadi,
+// xato hisobotga tushadi. Import idempotent — tuzatib qayta yurgiziladi.
+//
+// BO'LIMLAR (departments) ATAYLAB YOZILMAYDI. 31 filialdan 4 tasi "… bo'limi"
+// (IT, HR, Buxgalteriya, Marketing). Ularni departments'ga aylantirish
+// department_members orqali VAZIFA KO'RINISHINI o'zgartiradi (index.html:3801,
+// myDepts) — importning ishi emas. Kerak bo'lsa alohida qaror bilan qo'shiladi.
+async function hrImportWriteDetails(rows, results) {
+  const wsId = currentWs.id;
+  const btn = $('hrImpRunBtn');
+  const step = function (t) { if (btn) btn.textContent = t; };
+
+  const out = {
+    branches: 0, roles: 0, positions: 0,
+    profiles: 0, details: 0, empBranches: 0, days: 0,
+    managers: 0, managersUnresolved: [],
+    skipped: 0, errors: [],
+  };
+  const err = function (where, e) {
+    out.errors.push({ step: where, error: (e && e.message) || String(e) });
+  };
+
+  // source_id → user_id (Edge Function qaytargan)
+  const uidBy = {};
+  (results || []).forEach(function (r) {
+    if (r && r.user_id) uidBy[String(r.source_id)] = r.user_id;
+  });
+
+  const doc = _hrImpDoc || {};
+  const srcBranches = Array.isArray(doc.branches) ? doc.branches : [];
+
+  // ── 1) Filiallar ────────────────────────────────────────
+  // manager_user_id hozir NULL — manba ISM beradi, TaskFix UUID kutadi,
+  // va hodimlar hali yaratilmagan. 6-bosqichda bog'lanadi.
+  step('Filiallar…');
+  for (const b of srcBranches) {
+    try {
+      if (hrLegacyResolve('branch', b.id)) continue;   // allaqachon bog'langan
+      const nm = hrNormName(b.name) || ('Filial ' + b.id);
+      const { data, error } = await sb.from('branches').insert({
+        workspace_id: wsId,
+        name: nm,
+        address: b.address || null,
+        lat: b.lat === null || b.lat === undefined ? null : Number(b.lat),
+        lng: b.lng === null || b.lng === undefined ? null : Number(b.lng),
+        manager_user_id: null,
+      }).select('id').single();
+      if (error) throw error;
+      // DIQQAT: id 12 va 13 — ikkalasi "Qarshi Bahor", turli koordinata.
+      // branches'da nom UNIQUE emas → ikki alohida qator, legacy_id ajratadi.
+      await hrLegacyPut('branch', b.id, data.id, nm);
+      out.branches++;
+    } catch (e) { err('filial ' + b.id + ' "' + b.name + '"', e); }
+  }
+
+  // ── 2) Rollar ───────────────────────────────────────────
+  step('Rollar…');
+  for (const r of (Array.isArray(doc.roles) ? doc.roles : [])) {
+    try {
+      if (hrLegacyResolve('role', r.id)) continue;
+      const rid = await hrAddRole(r.name, r.name);
+      if (rid) { await hrLegacyPut('role', r.id, rid, r.name); out.roles++; }
+    } catch (e) { err('rol ' + r.id + ' "' + r.name + '"', e); }
+  }
+
+  // ── 3) Lavozimlar ───────────────────────────────────────
+  // 42-migratsiya ularni oldindan seed qilgan bo'lsa — hrLegacyResolve
+  // topadi va bu blok hech narsa qilmaydi.
+  // Manbada lavozim alohida ro'yxat sifatida kelmaydi, faqat hodim ichida.
+  step('Lavozimlar…');
+  const posName = {};
+  rows.forEach(function (r) {
+    const pid = r.legacy.position[0];
+    if (pid === null || pid === undefined) return;
+    if (!posName[String(pid)]) posName[String(pid)] = (r._raw && r._raw.position_name) || null;
+  });
+  for (const pid of Object.keys(posName)) {
+    try {
+      if (hrLegacyResolve('position', pid)) continue;
+      if (!posName[pid]) { err('lavozim ' + pid, new Error('nomi yo\'q')); continue; }
+      // id 28 va 29 bir xil nomli → positions'da UNIQUE(workspace_id, name)
+      // bitta qator beradi, legacy_id_map'da esa ikki yozuv bo'ladi. Bu to'g'ri.
+      const uuid = await teamAddPosition(posName[pid]);
+      if (uuid) { await hrLegacyPut('position', pid, uuid, posName[pid]); out.positions++; }
+    } catch (e) { err('lavozim ' + pid, e); }
+  }
+
+  // ── 4) Hodimlar ─────────────────────────────────────────
+  let n = 0;
+  for (const r of rows) {
+    n++;
+    step('Ma\'lumot… ' + n + '/' + rows.length);
+    const uid = uidBy[String(r.source_id)];
+    // EF uni yaratolmagan — sabab allaqachon identitet hisobotida.
+    if (!uid) { out.skipped++; continue; }
+    try {
+      // profiles — empSave (10404) shu naqshni ishlatadi: manager a'zoning
+      // profilini yangilay oladi. Qator auth.users trigger'i bilan paydo
+      // bo'ladi; 0 qator qaytsa — trigger ishlamagan, buni bilishimiz kerak.
+      const { data: pr, error: pe } = await sb.from('profiles')
+        .update({ full_name: r.full_name, phone: r.phone_e164 })
+        .eq('id', uid).select('id');
+      if (pe) throw pe;
+      if (pr && pr.length) out.profiles++;
+      else err('profil ' + r.source_id, new Error('profiles qatori topilmadi'));
+
+      const d = r.details;
+      const { error: de } = await sb.from('employee_details').upsert({
+        workspace_id: wsId, user_id: uid,
+        first_name: d.first_name, last_name: d.last_name,
+        address: d.address, no_address: d.no_address,
+        contract_url: d.contract_url,
+        contract_start: d.contract_start, contract_end: d.contract_end,
+        role_id: hrLegacyResolve('role', r.legacy.role[0]),
+        position_id: hrLegacyResolve('position', r.legacy.position[0]),
+        work_type: d.work_type, radius: d.radius,
+        schedule_type: d.schedule_type, weekend_days: d.weekend_days,
+        work_start: d.work_start, work_end: d.work_end,
+        legacy_name_raw: d.legacy_name_raw,
+        legacy_employment_id: d.legacy_employment_id,
+        hired_at: d.hired_at, lat: d.lat, lng: d.lng,
+        // photo_url yozilmaydi — rasm photo_path'ga Edge Function orqali boradi
+      }, { onConflict: 'workspace_id,user_id' });
+      if (de) throw de;
+      out.details++;
+
+      const bids = r.legacy.branch
+        .map(function (x) { return hrLegacyResolve('branch', x); })
+        .filter(Boolean);
+      if (bids.length) {
+        const { error: be } = await sb.from('employee_branches').upsert(
+          bids.map(function (bid) { return { workspace_id: wsId, user_id: uid, branch_id: bid }; }),
+          { onConflict: 'workspace_id,user_id,branch_id', ignoreDuplicates: true });
+        if (be) throw be;
+        out.empBranches += bids.length;
+      }
+    } catch (e) { err('hodim ' + r.source_id + ' "' + (r.full_name || '') + '"', e); }
+  }
+
+  // ── 5) Ish kunlari ──────────────────────────────────────
+  // ~40 412 qator. Bitta katta insert timeout beradi — bo'lak-bo'lak.
+  step('Ish kunlari…');
+  const dayRows = [];
+  rows.forEach(function (r) {
+    const uid = uidBy[String(r.source_id)];
+    if (!uid) return;
+    r.days.forEach(function (x) {
+      dayRows.push({
+        workspace_id: wsId, user_id: uid, date: x.date,
+        day_type: x.day_type, start_time: x.start_time, end_time: x.end_time,
+      });
+    });
+  });
+  for (let i = 0; i < dayRows.length; i += HR_IMP_DAY_CHUNK) {
+    const chunk = dayRows.slice(i, i + HR_IMP_DAY_CHUNK);
+    step('Ish kunlari… ' + Math.min(i + HR_IMP_DAY_CHUNK, dayRows.length) + '/' + dayRows.length);
+    try {
+      const { error } = await sb.from('employee_schedule_days')
+        .upsert(chunk, { onConflict: 'workspace_id,user_id,date' });
+      if (error) throw error;
+      out.days += chunk.length;
+    } catch (e) { err('ish kunlari ' + (i + 1) + '–' + (i + chunk.length), e); }
+  }
+
+  // ── 6) Filial managerlari — 2-faza ──────────────────────
+  // Manba "manager" ISM beradi ("Shaxbos Maxmanazarov"), TaskFix manager_user_id
+  // UUID kutadi. Endi hodimlar bor — ism bo'yicha bog'laymiz.
+  //
+  // Xavfsiz, chunki o'lchangan: 126 hodim → 126 NOYOB ism, 0 takror.
+  // Baribir hit.length !== 1 bo'lsa tegmaymiz.
+  //
+  // MUHIM: ikkala tomon ham normalizatsiya qilinadi. Hodim ismi DB'ga
+  // tozalangan holda yozilgan ("O'ral Ro'ziyev"), manba manager'i esa xom
+  // ("O’ral Ro’ziyev", U+2019) — normalizatsiyasiz 3 tasi topilmasdi.
+  step('Filial managerlari…');
+  const byFullName = {};
+  rows.forEach(function (r) {
+    const uid = uidBy[String(r.source_id)];
+    if (!uid || !r.full_name) return;
+    if (!byFullName[r.full_name]) byFullName[r.full_name] = [];
+    byFullName[r.full_name].push(uid);
+  });
+
+  for (const b of srcBranches) {
+    const bid = hrLegacyResolve('branch', b.id);
+    if (!bid) continue;
+    const mgrRaw = String(b.manager || '').trim();
+    // "Manager of branch not found." — bu ism EMAS, manbaning o'rinbosar
+    // matni (31 filialdan 14 tasida). Qidirmaymiz, NULL qoldiramiz.
+    if (!mgrRaw || mgrRaw === HR_IMP_MGR_PLACEHOLDER) continue;
+    const hit = byFullName[hrNormName(mgrRaw)];
+    if (!hit || hit.length !== 1) {
+      // Xato EMAS: ishdan ketgan manager hodimlar ro'yxatida bo'lmaydi.
+      out.managersUnresolved.push({
+        branch: hrNormName(b.name), manager: mgrRaw,
+        why: hit ? 'bir nechta hodim shu ismda' : 'hodimlar orasida yo\'q',
+      });
+      continue;
+    }
+    try {
+      const { error } = await sb.from('branches')
+        .update({ manager_user_id: hit[0] }).eq('id', bid);
+      if (error) throw error;
+      out.managers++;
+    } catch (e) { err('filial manager ' + b.id + ' "' + mgrRaw + '"', e); }
+  }
+
+  return out;
+}
+
+async function hrImportRun() {
+  if (!_hrImpPre || _hrImpPre.blocked.length) return;
+  const btn = $('hrImpRunBtn');
+  const runId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + '-' + Math.random().toString(16).slice(2);
+  btn.disabled = true;
+  hideMsg($('hrImpMsg'));
+  try {
+    const idn = await hrImportInvoke(_hrImpPre.ok, {
+      dryRun: false, runId: runId,
+      onProgress: function (done, total) { btn.textContent = 'Import… ' + done + '/' + total; },
+    });
+    const det = await hrImportWriteDetails(_hrImpPre.ok, idn.results);
+    // Rasm oxirida: photo_path employee_details'ga yoziladi, ya'ni qator
+    // allaqachon bo'lishi kerak. throw qilmaydi — 404'lar importni yiqitmasin.
+    det.photos = await hrImportPhotos(_hrImpPre.ok, idn.results);
+    await loadHrData(true);
+    if (typeof loadTeamData === 'function') await loadTeamData();
+    logActivity('staff_imported', { entityType: 'employee', entityTitle: HR_IMP_SOURCE, details: { run_id: runId, summary: idn.summary } });
+    hrImportRenderReport(idn, det, runId);
+  } catch (e) {
+    showMsg($('hrImpMsg'), 'Import xatosi: ' + (e.message || e), 'err');
+    btn.disabled = false; btn.textContent = 'Qayta urinish';
+    return;
+  }
+  btn.style.display = 'none';
+}
+
+function hrImportRenderReport(idn, det, runId) {
+  const s = idn.summary || {};
+  const errs = (idn.results || []).filter(function (r) { return r.status === 'error' || r.status === 'skipped'; });
+  let html = '<div style="font-size:13.5px;line-height:1.7;">';
+  html += '<div style="padding:10px 12px;border:1px solid #A7F3D0;background:#F0FDF4;color:#065F46;border-radius:8px;margin-bottom:10px;">' +
+    '<b>Import tugadi</b><br>' +
+    '✓ ' + (s.created || 0) + ' yaratildi &nbsp;·&nbsp; ↻ ' + (s.updated || 0) + ' yangilandi &nbsp;·&nbsp; ⚲ ' + (s.adopted || 0) + ' bog\'landi' +
+    ((s.error || s.skipped) ? ' &nbsp;·&nbsp; ⚠ ' + ((s.error || 0) + (s.skipped || 0)) + ' o\'tkazib yuborildi' : '') +
+    '<div style="font-size:12px;margin-top:6px;opacity:.85;">Rollback uchun run id: <code>' + escapeHtml(runId) + '</code></div>' +
+    '</div>';
+  if (errs.length) {
+    html += '<div style="padding:10px 12px;border:1px solid #FDE68A;background:#FFFBEB;color:#92400E;border-radius:8px;font-size:12px;font-family:\'JetBrains Mono\',monospace;max-height:240px;overflow:auto;">' +
+      errs.map(function (r) { return '<div>' + escapeHtml(r.source_id) + ': ' + escapeHtml(r.reason || r.status) + '</div>'; }).join('') +
+      '</div>';
+  }
+
+  // ---- HR ma'lumot qatlami (hrImportWriteDetails) ----
+  if (det) {
+    const parts = [];
+    if (det.branches) parts.push(det.branches + ' filial');
+    if (det.roles) parts.push(det.roles + ' rol');
+    if (det.positions) parts.push(det.positions + ' lavozim');
+    if (det.details) parts.push(det.details + ' hodim kartasi');
+    if (det.empBranches) parts.push(det.empBranches + ' filial biriktirish');
+    if (det.days) parts.push(Number(det.days).toLocaleString('ru-RU') + ' ish kuni');
+    if (det.managers) parts.push(det.managers + ' filial manageri');
+    html += '<div style="padding:10px 12px;border:1px solid var(--line);border-radius:8px;margin-top:10px;">' +
+      '<b>Ma\'lumot yozildi</b><br>' +
+      (parts.length ? escapeHtml(parts.join(' · ')) : '<span style="opacity:.7">—</span>') +
+      (det.skipped ? '<div style="margin-top:4px;color:#92400E;">⚠ ' + det.skipped + ' hodim o\'tkazib yuborildi (identitet yaratilmagan)</div>' : '') +
+      '</div>';
+
+    // Rasm — 404 kutilgan holat, xato sifatida qizil ko'rsatilmaydi
+    if (det.photos && det.photos.total) {
+      const ps = det.photos.summary || {};
+      html += '<div style="padding:10px 12px;border:1px solid var(--line);border-radius:8px;margin-top:8px;font-size:12px;">' +
+        '<b>Rasm</b> — ' + (ps.uploaded || 0) + ' / ' + det.photos.total + ' ko\'chirildi' +
+        ((ps.error || ps.skipped) ? '<div style="opacity:.8;margin-top:4px;">' + ((ps.error || 0) + (ps.skipped || 0)) +
+          ' tasi olinmadi (manba havolasi o\'lik) — <code>photo_path</code> NULL, initsiallar ko\'rsatiladi</div>' : '') +
+        '</div>';
+    }
+
+    // Xato EMAS — ishdan ketgan manager hodimlar ro'yxatida bo'lmaydi.
+    if (det.managersUnresolved && det.managersUnresolved.length) {
+      html += '<div style="padding:10px 12px;border:1px solid var(--line);border-radius:8px;margin-top:8px;font-size:12px;">' +
+        '<b>Filial manageri topilmadi (' + det.managersUnresolved.length + ')</b> — xato emas, NULL qoldi:' +
+        det.managersUnresolved.map(function (m) {
+          return '<div style="opacity:.85;">' + escapeHtml(m.branch) + ' → ' + escapeHtml(m.manager) + ' <span style="opacity:.7">(' + escapeHtml(m.why) + ')</span></div>';
+        }).join('') + '</div>';
+    }
+
+    if (det.errors && det.errors.length) {
+      html += '<div style="padding:10px 12px;border:1px solid #F5C2C7;background:#FDF2F2;color:#B42318;border-radius:8px;margin-top:8px;font-size:12px;font-family:\'JetBrains Mono\',monospace;max-height:240px;overflow:auto;">' +
+        '<b>Ma\'lumot yozishda ' + det.errors.length + ' xato</b> — import idempotent, tuzatib qayta yurgizing:' +
+        det.errors.map(function (e) { return '<div>' + escapeHtml(e.step) + ': ' + escapeHtml(e.error) + '</div>'; }).join('') +
+        '</div>';
+    }
+  }
+  html += '</div>';
+  $('hrImpReport').innerHTML = html;
+  $('hrImpPreflight').style.display = 'none';
+  $('hrImpReport').style.display = 'block';
+  $('hrImpBackBtn').style.display = 'none';
 }
 
 // ============ NOTIFICATIONS ============
@@ -9787,7 +11630,7 @@ async function openNotifTask(wsId, taskId, notifId, commentId) {
   goPage('tasks');
   setTimeout(() => {
     openDetail(taskId);
-    // Belgilanган izohgа o'tish va ajratib ko'rsatish
+    // Belgilangan izohga o'tish va ajratib ko'rsatish
     if (commentId) {
       setTimeout(() => {
         const el = document.getElementById('cmt-' + commentId);
@@ -10053,7 +11896,7 @@ function renderTgUsers(intg) {
   list.innerHTML = visible.map(u => {
     const stateLabel = u.state === 'completed' ? 'Ro\'yxatdan o\'tgan' : (u.state === 'awaiting_name' ? 'Ism kutmoqda' : 'Telefon kutmoqda');
     const stateBadge = u.state === 'completed' ? '<span class="badge ok">' + stateLabel + '</span>' : '<span class="badge muted">' + stateLabel + '</span>';
-    const linkedBadge = u.linked_user_id ? '<span class="badge info" style="margin-left:6px;">Saytда</span>' : '';
+    const linkedBadge = u.linked_user_id ? '<span class="badge info" style="margin-left:6px;">Saytda</span>' : '';
     const phoneText = u.phone ? '📞 ' + escapeHtml(u.phone) : '';
     const userText = u.tg_username ? '@' + escapeHtml(u.tg_username) : '';
     const posText = u.position ? '⌬ ' + escapeHtml(u.position) : '';
@@ -10107,7 +11950,7 @@ async function quickAssignTg(tgBotUserId) {
     toast('✅ Vazifa yaratildi va botda yuborildi', 'ok');
     tgNotifyAssignment(data.id, { tg_bot_user_id: tgBotUserId });
     refreshActiveView();
-    // Detail modal'нi ochaylik tafsilotlar uchun
+    // Detail modal'ni ochaylik tafsilotlar uchun
     setTimeout(() => openDetail(data.id), 100);
   } catch (e) { toast(translateErr(e.message), 'err'); }
 }
@@ -10186,7 +12029,7 @@ function openInviteFromTg(tgBotUserId) {
   if (!u) return;
   if (!departments.length) { toast('Avval kamida bitta bo\'lim yarating', 'err'); goPage('departments'); return; }
   inviteFromTgUserId = tgBotUserId;
-  // Avvalgi invite modalini ishlatamiz, lekin email maydonини o'rniga TG ism ko'rsatamiz
+  // Avvalgi invite modalini ishlatamiz, lekin email maydonini o'rniga TG ism ko'rsatamiz
   $('iEmail').value = '(Bot foydalanuvchisi: ' + (u.full_name || u.tg_username || '?') + ')';
   $('iEmail').readOnly = true;
   $('iEmail').style.background = '#F0EFEA';
@@ -10212,7 +12055,7 @@ async function loadIntegrations() {
 
 const TOOL_META = {
   telegram: { name: 'Telegram', desc: 'Vazifa, taklif va eslatmalarni botingiz orqali yetkazing.', logo: '✈', cls: 'tg', available: true },
-  n8n:      { name: 'n8n',      desc: 'Vazifa hodisalarini sizning n8n instance\'ингizga webhook orqali yuborish.', logo: 'n', cls: 'n8n', available: true },
+  n8n:      { name: 'n8n',      desc: 'Vazifa hodisalarini sizning n8n instance\'ingizga webhook orqali yuborish.', logo: 'n', cls: 'n8n', available: true },
   gdrive:   { name: 'Google Drive', desc: 'Vazifa fayllarini Drive\'ga saqlash (tez orada).', logo: 'D', cls: 'gdrive', available: false },
 };
 
@@ -10378,7 +12221,7 @@ async function tgSaveIntegration() {
       try { await sb.from('tg_bot_settings').insert({ workspace_id: currentWs.id }); } catch (e) {}
     }
 
-    // Webhook'ni o'rnatamιz — secret_token = integration_id (Edge Function shu orqali workspace topadi)
+    // Webhook'ni o'rnatamiz — secret_token = integration_id (Edge Function shu orqali workspace topadi)
     const webhookUrl = SUPABASE_URL + '/functions/v1/tg-webhook';
     try {
       const swResp = await fetch('https://api.telegram.org/bot' + tgSetupState.token + '/setWebhook', {
@@ -10399,7 +12242,7 @@ async function tgSaveIntegration() {
     toast('✅ Telegram bot yoqildi', 'ok');
     closeTgSetup();
     await loadIntegrations();
-    // Sidebar'ni darrov yangilaymιz — Telegram bo'limi ko'rinsin (refresh shart emas)
+    // Sidebar'ni darrov yangilaymiz — Telegram bo'limi ko'rinsin (refresh shart emas)
     renderSidebar();
     setTimeout(() => {
       toast('✈ Telegram bo\'limi qo\'shildi — chapdagi menyudan oching', 'ok');
@@ -10474,7 +12317,7 @@ async function tgNotifyAssignment(taskId, target) {
   ].filter(Boolean).join('\n');
   // Inline tugmalar — botda javob berishi uchun
   // CALLBACK FORMAT (bot workflow bilan moslashtirilgan):
-  //   taskstatus:STATUS:UUID  → Supabase tg-webhook'gа forward bo'ladi
+  //   taskstatus:STATUS:UUID  → Supabase tg-webhook'ga forward bo'ladi
   //   taskcomment:UUID
   const inline_keyboard = [
     [{ text: '⚙️ Jarayonda', callback_data: 'taskstatus:in_progress:' + taskId }],
@@ -10563,7 +12406,7 @@ async function tgNotifyTaskEdit(task, field, oldValue, newValue) {
 async function init() {
   console.log('%cTaskFix build: 2026-07-06-planner+jadval', 'color:#0F1417;background:#FEF3C7;padding:2px 8px;border-radius:4px;font-weight:700;');
   try { window.hideCompleted = localStorage.getItem('hideCompleted') === '1'; } catch (e) { window.hideCompleted = false; }
-  // MUHIM: hash'ни createClient'дан OLDIN o'qiymиz — detectSessionInUrl uni tozalaydi
+  // MUHIM: hash'ni createClient'dan OLDIN o'qiymiz — detectSessionInUrl uni tozalaydi
   const _rawHash = window.location.hash || '';
   const _rawSearch = window.location.search || '';
   const isRecovery = _rawHash.indexOf('type=recovery') !== -1;
@@ -10582,7 +12425,7 @@ async function init() {
 
   const { data: { session } } = await sb.auth.getSession();
   if (isRecovery) { showResetStep(); return; }
-  // Taklif orqali kelган — FAQAT parol o'rnatish ekrani (ro'yxatdan o'tish emas)
+  // Taklif orqali kelgan — FAQAT parol o'rnatish ekrani (ro'yxatdan o'tish emas)
   if (isInvite && session) {
     window._inviteSetPw = true;
     showInviteSetPassword(session);
@@ -10595,7 +12438,7 @@ async function init() {
 let _cmdItems = [];
 let _cmdIndex = 0;
 
-// Topbar search — mustaqil dropdown (palette'gа bog'liq emas)
+// Topbar search — mustaqil dropdown (palette'ga bog'liq emas)
 let _topSearchResults = [];
 let _topSearchIdx = 0;
 function topSearchRun() {
@@ -10706,7 +12549,7 @@ function topSearchKey(ev) {
   else if (ev.key === 'Enter') { ev.preventDefault(); topSearchPick(_topSearchIdx); }
   else if (ev.key === 'Escape') { ev.preventDefault(); drop.style.display = 'none'; $('topSearchInp').value = ''; $('topSearchInp').blur(); }
 }
-// Tashqariga bosilса — yopiladi
+// Tashqariga bosilsa — yopiladi
 document.addEventListener('click', (e) => {
   const wrap = $('topSearchWrap');
   if (wrap && !wrap.contains(e.target)) { const d = $('topSearchDrop'); if (d) d.style.display = 'none'; }
@@ -10766,7 +12609,7 @@ function buildCmdItems() {
     { label: 'Sozlamalar', icon: '⚙', page: 'settings', mgr: true },
     { label: 'Mening profilim', icon: '👤', page: 'profile', mgr: false },
   ];
-  // Oddiy a'zoga faqat ruxsat etilган sahifalar
+  // Oddiy a'zoga faqat ruxsat etilgan sahifalar
   const pages = pagesAll.filter(p => !p.mgr || isOwnerLike());
   const filteredPages = q
     ? pages.filter(p => fuzzyMatch(p.label, q))
@@ -10782,7 +12625,7 @@ function buildCmdItems() {
     });
   });
 
-  // Vazifalar (cache'дan)
+  // Vazifalar (cache'dan)
   if (Array.isArray(tasksCache) && tasksCache.length) {
     const tFiltered = q
       ? tasksCache.filter(t => fuzzyMatch(t.title || '', q) || fuzzyMatch(t.description || '', q)).slice(0, 8)
@@ -10921,7 +12764,7 @@ function scrollCmdToActive() {
 }
 
   // Keyboard shortcuts
-  // STALE CONNECTION FIX: tab background'дan qaytganda
+  // STALE CONNECTION FIX: tab background'dan qaytganda
   // realtime channel'larni qayta ulash + auth session tekshirish.
   // Bu "qotib qolish" muammosini hal qiladi.
   let _lastVisible = Date.now();
