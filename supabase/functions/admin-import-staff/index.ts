@@ -39,7 +39,7 @@
 
 import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const VERSION = 'v3-no-role-downgrade-2026-07-17';
+const VERSION = 'v3.1-connect-email-2026-07-18';
 
 const CORS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -156,15 +156,15 @@ function looksHttpUrl(u: unknown): boolean {
 // tekshiring") odamni bo'sh qo'lda qoldirardi: qaysi akkaunt bilan
 // to'qnashgani noma'lum edi.
 //
-// ⚠️ Bu FAQAT xato matni uchun. Bu yerda AVTOMATIK adopt QILMAYMIZ: adopt
-// qarori ism tekshiruvini ham talab qiladi (telefon mos + ism boshqa = ikki
-// boshqa odam, ularni birlashtirsak qaytarib ajratib bo'lmaydi).
+// ⚠️ Bu FAQAT xato matni uchun. Bu yerda AVTOMATIK adopt QILMAYMIZ: telefon mos
+// + ism boshqa = ikki boshqa odam, ularni birlashtirsak qaytarib ajratib
+// bo'lmaydi.
 //
-// ⛔ Ism solishtirish mijoz preflight'ida BO'LISHI KERAK, lekin HALI YOZILMAGAN
-//    (2026-07-17). hrNormName() index.html:10606 da bor, ammo u faqat qatorni
-//    xaritalashda ishlatiladi — adopt qarori uchun EMAS. Ya'ni hozircha bu yo'l
-//    xatoga olib boradi, va bu TO'G'RI: to'xtash — jimgina noto'g'ri
-//    birlashtirishdan yaxshi.
+// ✅ Telefon + ism blokeri (preflight 5b) MIJOZDA YOZILGAN (index.html — memByDigits
+//    + hrNameKey solishtirish). Ya'ni haqiqiy emailli mavjud odam (masalan Feruzbek)
+//    Import tugmasiga yetguncha bloklanadi. Bu EF yo'li esa 2-qatlam himoya: agar
+//    preflight'siz yoki poyga holatida shu yergacha kelsa — adopt emas, TO'XTASH.
+//    To'xtash — jimgina noto'g'ri birlashtirishdan yaxshi.
 //
 // 45-migratsiya ishga tushirilmagan bo'lsa — eski, umumiy xabar qaytadi.
 async function phoneConflictMsg(admin: SupabaseClient, phoneE164: string): Promise<string> {
@@ -222,10 +222,11 @@ Deno.serve(async (req: Request) => {
     const phase: string = body.phase || 'identity';
 
     if (!workspaceId) return fail('bad_body', 'workspace_id majburiy');
-    if (phase !== 'identity' && phase !== 'photos') {
-      return fail('bad_body', `phase noma'lum: ${phase}`, 400, "identity yoki photos");
+    if (phase !== 'identity' && phase !== 'photos' && phase !== 'connect') {
+      return fail('bad_body', `phase noma'lum: ${phase}`, 400, "identity, photos yoki connect");
     }
-    if (!rows.length) return fail('bad_body', 'rows bo\'sh');
+    // 'connect' — bitta hodimni haqiqiy email bilan ulash; rows/import_run_id talab qilmaydi
+    if (phase !== 'connect' && !rows.length) return fail('bad_body', 'rows bo\'sh');
 
     const maxRows = phase === 'photos' ? MAX_PHOTOS_PER_CALL : MAX_ROWS_PER_CALL;
     if (rows.length > maxRows) {
@@ -257,6 +258,48 @@ Deno.serve(async (req: Request) => {
     if (mErr) return fail('db', mErr.message, 500);
     if (!mem || (mem.role !== 'owner' && mem.role !== 'admin')) {
       return fail('forbidden', 'Faqat workspace owner yoki admin import qila oladi', 403);
+    }
+
+    // ---- 3a) FAZA: connect (bitta hodimni haqiqiy email bilan ulash) ----
+    // Sintetik email'li (import qilingan) hodim hech qachon kira olmaydi.
+    // Bu action email'ni almashtiradi + parol o'rnatish havolasini qaytaradi.
+    // BITTALAB — bulk emas (Resend suppression xavfi yo'q).
+    if (phase === 'connect') {
+      const targetUserId: string = body.user_id;
+      const newEmail: string = String(body.new_email || '').trim().toLowerCase();
+      if (!targetUserId || !newEmail) return fail('bad_body', 'user_id va new_email majburiy', 400);
+      if (!/^\S+@\S+\.\S+$/.test(newEmail)) return fail('bad_body', 'new_email noto\'g\'ri', 400);
+      if (/@staff\.taskfix\.org$/i.test(newEmail)) return fail('bad_body', 'Sintetik email bo\'lmasin', 400);
+
+      // Target shu workspace a'zosi bo'lishi shart (aks holda begona user email'ini almashtirish mumkin bo'lardi)
+      const { data: tmem, error: tErr } = await admin
+        .from('workspace_members').select('user_id')
+        .eq('workspace_id', workspaceId).eq('user_id', targetUserId).maybeSingle();
+      if (tErr) return fail('db', tErr.message, 500);
+      if (!tmem) return fail('forbidden', 'Bu hodim shu workspace a\'zosi emas', 403);
+
+      if (dryRun) return json({ ok: true, v: VERSION, phase: 'connect', dry_run: true, would_set_email: newEmail });
+
+      // Email almashtirish + tasdiqlash
+      const { error: upErr } = await admin.auth.admin.updateUserById(targetUserId, {
+        email: newEmail, email_confirm: true,
+      });
+      if (upErr) return fail('update_email', upErr.message, 400,
+        'Email band bo\'lishi mumkin (boshqa akkaunt)');
+
+      // Parol o'rnatish (recovery) havolasi — owner qo'lda yuboradi
+      let actionLink: string | null = null;
+      try {
+        const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
+          type: 'recovery', email: newEmail,
+        });
+        if (!linkErr) actionLink = linkData?.properties?.action_link ?? null;
+      } catch (_e) { /* havola bo'lmasa ham email almashtirildi */ }
+
+      // profiles.email — ataylab almashtiramiz (COALESCE emas)
+      await admin.from('profiles').update({ email: newEmail }).eq('id', targetUserId);
+
+      return json({ ok: true, v: VERSION, phase: 'connect', email: newEmail, action_link: actionLink });
     }
 
     // ---- 3b) FAZA: rasm ----
