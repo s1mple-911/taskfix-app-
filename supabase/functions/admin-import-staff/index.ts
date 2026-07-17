@@ -1,5 +1,9 @@
 // ============================================================
-// admin-import-staff — v2-photos-2026-07-17
+// admin-import-staff — v3-no-role-downgrade-2026-07-17
+//
+// ⚠️ ROL QOIDASI: bu funksiya HECH QACHON mavjud a'zoning rolini
+//    o'zgartirmaydi (4c bo'limiga qarang). Import ma'lumot keltiradi,
+//    ruxsat bermaydi. Bu qoidani buzmang.
 //
 // aros_staff JSON'idan hodim import qiladi. Bo'laklab chaqiriladi.
 //
@@ -35,7 +39,7 @@
 
 import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const VERSION = 'v2-photos-2026-07-17';
+const VERSION = 'v3-no-role-downgrade-2026-07-17';
 
 const CORS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -76,6 +80,10 @@ interface OutRow {
   status: RowStatus;
   user_id: string | null;
   reason: string | null;
+  // Mavjud a'zoning roli — import unga TEGMAGANINING dalili.
+  // null = yangi a'zo qo'shildi ('member'). Hisobotda ko'rinadi, chunki
+  // "rol saqlandi" degan kafolat ko'rinmasa — kafolat emas.
+  role_preserved?: string | null;
 }
 
 // phase='photos' — identitet allaqachon yaratilgan, endi rasm.
@@ -139,6 +147,40 @@ function looksHttpUrl(u: unknown): boolean {
     return p.protocol === 'http:' || p.protocol === 'https:';
   } catch (_) {
     return false;
+  }
+}
+
+// Telefon band bo'lganda — KIM bilan to'qnashgani aytilsin.
+//
+// Bu yo'l "bu odam TaskFix'da allaqachon bor" degani. Eski xabar ("qo'lda
+// tekshiring") odamni bo'sh qo'lda qoldirardi: qaysi akkaunt bilan
+// to'qnashgani noma'lum edi.
+//
+// ⚠️ Bu FAQAT xato matni uchun. Bu yerda AVTOMATIK adopt QILMAYMIZ: adopt
+// qarori ism tekshiruvini ham talab qiladi (telefon mos + ism boshqa = ikki
+// boshqa odam, ularni birlashtirsak qaytarib ajratib bo'lmaydi).
+//
+// ⛔ Ism solishtirish mijoz preflight'ida BO'LISHI KERAK, lekin HALI YOZILMAGAN
+//    (2026-07-17). hrNormName() index.html:10606 da bor, ammo u faqat qatorni
+//    xaritalashda ishlatiladi — adopt qarori uchun EMAS. Ya'ni hozircha bu yo'l
+//    xatoga olib boradi, va bu TO'G'RI: to'xtash — jimgina noto'g'ri
+//    birlashtirishdan yaxshi.
+//
+// 45-migratsiya ishga tushirilmagan bo'lsa — eski, umumiy xabar qaytadi.
+async function phoneConflictMsg(admin: SupabaseClient, phoneE164: string): Promise<string> {
+  const generic = 'telefon yoki email band, lekin bu email bo\'yicha user topilmadi — qo\'lda tekshiring';
+  try {
+    const { data: pid, error } = await admin.rpc('auth_user_id_by_phone', { p_phone: phoneE164 });
+    if (error || !pid) return generic;
+    const { data: prof } = await admin
+      .from('profiles').select('full_name').eq('id', pid).maybeSingle();
+    const nm = (prof as { full_name?: string | null } | null)?.full_name;
+    return `telefon ${phoneE164} allaqachon mavjud akkauntga bog'langan ` +
+      `(user_id: ${pid}${nm ? `, "${nm}"` : ''}). Bu odam TaskFix'da allaqachon bor, ` +
+      `shuning uchun yangi akkaunt YARATILMADI (dublikat bo'lardi). ` +
+      `Uni staff_import_map ga qo'lda bog'lang.`;
+  } catch (_) {
+    return generic;   // 45_staff_phone_lookup.sql hali ishga tushirilmagan
   }
 }
 
@@ -385,9 +427,14 @@ Deno.serve(async (req: Request) => {
               .rpc('auth_user_id_by_email', { p_email: wantEmail });
             if (fErr) throw new Error('adopt (rpc): ' + fErr.message);
             if (!foundId) {
-              // "already registered" dedi, lekin email bo'yicha topilmadi →
-              // ehtimol TELEFON band (boshqa email bilan). Bu haqiqiy to'qnashuv.
-              throw new Error('telefon yoki email band, lekin bu email bo\'yicha user topilmadi — qo\'lda tekshiring');
+              // "already registered" dedi, lekin sintetik email bo'yicha topilmadi
+              // → TELEFON band (boshqa, HAQIQIY email bilan). Ya'ni bu odam
+              // TaskFix'da allaqachon bor — yangi akkaunt yaratish NOTO'G'RI
+              // bo'lardi (aynan shu dublikat muammosini keltirib chiqaradi).
+              //
+              // Kim bilan to'qnashganini aytamiz — "qo'lda tekshiring" degani
+              // odamni bo'sh qo'lda qoldiradi.
+              throw new Error(await phoneConflictMsg(admin, row.phone_e164));
             }
             userId = foundId as string;
             out.status = 'adopted';
@@ -406,11 +453,54 @@ Deno.serve(async (req: Request) => {
         // --- 4c) workspace_members ---
         // RLS uchun SHART: is_ws_member()/is_ws_manager() shu jadvalga tayanadi.
         // Bo'lmasa hodim tizimga kirsa ham hech narsa ko'rmaydi.
-        const { error: wmErr } = await admin
+        //
+        // ⚠️⚠️ ROL KAFOLATI — BU YERDA HECH QACHON UPDATE BO'LMASIN ⚠️⚠️
+        //
+        // Import mavjud a'zoning rolini (owner/admin) HECH QANDAY holatda
+        // pasaytirmasligi kerak. Import ruxsat bermaydi — u faqat ma'lumot
+        // keltiradi.
+        //
+        // Avval bu qator upsert(..., { ignoreDuplicates: true }) edi. U ham
+        // to'g'ri ishlagan: supabase-js buni 'Prefer: resolution=ignore-duplicates'
+        // ga aylantiradi, PostgREST esa ON CONFLICT DO NOTHING qiladi. Ya'ni
+        // XATTI-HARAKAT O'ZGARMADI.
+        //
+        // O'zgargani — ANIQLIK. Eski shakl ikki jihatdan mo'rt edi:
+        //   1) to'g'riligini bilish uchun supabase-js semantikasini yodda tutish
+        //      kerak edi — kodning o'ziga qarab bilib bo'lmasdi;
+        //   2) bitta so'z (ignoreDuplicates: false yoki uni o'chirib yuborish)
+        //      uni jimgina DO UPDATE ga aylantirardi va HAR BIR mavjud adminni
+        //      member'ga tushirardi. Bu adopt yo'li qo'shilgach real xavf:
+        //      import endi mavjud odamlarni ATAYLAB topadi.
+        //
+        // SELECT + INSERT esa o'z-o'zini tushuntiradi: INSERT fizik jihatdan
+        // UPDATE qila olmaydi. Buni buzish uchun ongli ravishda UPDATE yozish kerak.
+        const { data: exist, error: exErr } = await admin
           .from('workspace_members')
-          .upsert({ workspace_id: workspaceId, user_id: userId, role: 'member' },
-                  { onConflict: 'workspace_id,user_id', ignoreDuplicates: true });
-        if (wmErr) throw new Error('workspace_members: ' + wmErr.message);
+          .select('role')
+          .eq('workspace_id', workspaceId)
+          .eq('user_id', userId)
+          .maybeSingle();
+        if (exErr) throw new Error('workspace_members o\'qishda: ' + exErr.message);
+
+        if (exist) {
+          // Allaqachon a'zo — TEGMAYMIZ. Rolni hisobotga chiqaramiz, saqlangani
+          // ko'rinib tursin (jimgina kafolat — kafolat emas).
+          out.role_preserved = (exist as { role: string }).role;
+        } else {
+          const { error: wmErr } = await admin
+            .from('workspace_members')
+            .insert({ workspace_id: workspaceId, user_id: userId, role: 'member' });
+          // 23505 = unique_violation: SELECT bilan INSERT orasida kimdir qo'shib
+          // yuborgan. Bu ham "allaqachon a'zo" — xato emas, va baribir rolga
+          // tegmadik.
+          if (wmErr && (wmErr as { code?: string }).code !== '23505') {
+            throw new Error('workspace_members: ' + wmErr.message);
+          }
+          // null (undefined EMAS) — JSON.stringify undefined'ni tashlab ketadi,
+          // hisobotda esa maydon ko'rinib tursin.
+          out.role_preserved = null;
+        }
 
         // --- 4d) staff_import_map ---
         // Darrov yozamiz — keyingi qatorda uzilib qolsa yetim auth user qolmasin.
