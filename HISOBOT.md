@@ -1,8 +1,33 @@
 # HISOBOT — TaskFix HR + keyingi ishlar
 
-Sana: 2026-07-18. Branch: `hr-finish-v2v3v4`.
+Sana: 2026-07-18 (yangilangan 2026-07-20). Branch: `hr-finish-v2v3v4`.
 
-Ikki bosqich: (A) V1–V4 (avval merge bo'lgan), (B) BRIEF_KEYINGI Y1–Y8 (shu commit).
+Bosqichlar: (A) V1–V4, (B) BRIEF_KEYINGI Y1–Y8, (C) BRIEF_PROVODKA_KASSA P1–P3.
+
+---
+
+## C. Provodka — Harajat kassa sync (P1–P3) 🆕
+
+Maqsad: TaskFix'da hodimga "Harajat kassa" tick → Provodka (alohida Supabase) da
+xarajat kassa ochiladi (nomi = ism, subtitle = "Filial · Lavozim"); tick olinsa → yopiladi.
+
+### P2 — EF `sync-provodka-kassa` ✅ (deploy kutilmoqda)
+Yangi fayl: `supabase/functions/sync-provodka-kassa/index.ts`.
+- Verify JWT ON; ichkarida chaqiruvchi owner/admin + target a'zoligini tekshiradi.
+- TaskFix DB'dan yig'adi: ism (`profiles.full_name` yoki `employee_details` first+last), birinchi filial (`employee_branches`→`branches.name`), lavozim (`positions.name`). `subtitle = [filial, lavozim].join(' · ')`.
+- Provodka RPC: `POST {PROVODKA_URL}/rest/v1/rpc/upsert_hodim_kassa` (apikey+Bearer = SERVICE_KEY), body `{p_taskfix_user_id, p_name, p_subtitle, p_active}`.
+- Env yo'q → aniq xato; RPC `ok:false` → xato qaytaradi; javobda `v` (VERSION).
+
+### P1 — Jamoa jadval checkbox ✅
+- Jadvalga tor **💵** ustuni (Lavozimdan keyin). owner/admin — checkbox; member — statik (💵/—).
+- `hkTableToggle` (optimistik): `employee_details.harajat_kassa` yoziladi → `hkSync` (EF). Xato bo'lsa **DB va checkbox qaytariladi** + toast (tick = Provodka'da kassa bor degani).
+- Checkbox row-click'ni ochmaydi (stopPropagation).
+
+### P3 — Saqlashda qayta sync ✅
+- `empDtlSave`da: harajat_kassa hozir yoqilgan yoki holat o'zgargan bo'lsa → `hkSync` qayta chaqiriladi (ism/filial/lavozim o'zgarishi Provodka'ga o'tadi).
+
+### Yagona handler
+`hkSync(uid, active)` — Provodka EF chaqiruvi. Jadval toggle VA detal saqlash ikkalasi shu funksiyani ishlatadi (ikki xil mantiq yo'q). Prefiks `hk*`.
 
 ---
 
@@ -65,6 +90,14 @@ Ikki bosqich: (A) V1–V4 (avval merge bo'lgan), (B) BRIEF_KEYINGI Y1–Y8 (shu 
 2. **EF deploy**: `admin-import-staff` (v3.1 — connect action). Busiz "📧 Taklif" ishlamaydi.
 3. **Push** + hard refresh (Ctrl+Shift+R).
 4. **Dublikat tozalash** (ixtiyoriy, ehtiyotkorlik bilan): `cleanup_duplicate_staff.sql` — avval `<WS_ID>`ni Aros ws bilan almashtir, 1-bosqich SELECT'larни ko'z bilan tekshir, keyin `v_dry_run := false`.
+
+### Provodka — Harajat kassa (C bosqich)
+5. **Provodka loyihasida** `PROVODKA_HODIM_KASSA.sql` ishga tushir (1-blok ko'rish → 2-blok) — `accounts.taskfix_user_id/subtitle` + `upsert_hodim_kassa` RPC.
+6. **TaskFix EF `sync-provodka-kassa` deploy** (Verify JWT ON) + **Secrets** qo'sh:
+   - `PROVODKA_URL` = `https://<provodka-ref>.supabase.co`
+   - `PROVODKA_SERVICE_KEY` = Provodka service_role kaliti
+7. `47_harajat_kassa.sql` ishga tushgan bo'lishi shart (yuqorida 1-qadam).
+8. **Sinov**: Jamoa'da bir hodimga 💵 tick → Provodka Kassa sahifasida "Ism (Filial · Lavozim)" paydo bo'lsin; tick olib tashlash → yo'qolsin.
 
 ## Brauzer testi (qo'lda)
 Ilova Supabase-auth talab qiladi — men brauzerda ishga tushira olmadim; har o'zgarishdan keyin **node-vm validatsiya OK**.

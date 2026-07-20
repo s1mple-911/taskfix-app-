@@ -32,12 +32,13 @@ Har sessiyada BIRINCHI shu fayl o'qiladi. Har katta o'zgarishdan keyin **o'zing 
 - **Routing**: `goPage`, `rtSetHash`/`rtRouteFromHash` (hash-routing, popstate).
 - **Qidiruv**: `buildCmdItems` (cmd-palette, bo'limlarga ajratilgan).
 - **Import**: `hrImport*` (preflight 5b — telefon+ism blokeri mijozda).
-- **EF**: `admin-import-staff` (phase: identity | photos | connect). Boshqa EF manbalari repoda YO'Q (admin-create-employee, send-email, tg-send... deployed).
+- **EF**: `admin-import-staff` (phase: identity | photos | connect), `sync-provodka-kassa` (Harajat kassa → Provodka RPC). Boshqa EF manbalari repoda YO'Q (admin-create-employee, send-email, tg-send... deployed).
+- **Provodka integratsiyasi**: `hk*` funksiyalar (`hkSync`/`hkTableToggle`/`hkSetDb`). Jamoa jadval 💵 ustuni + hodim detali checkbox. EF `sync-provodka-kassa` env: `PROVODKA_URL`, `PROVODKA_SERVICE_KEY`.
 
 ## Ochiq masalalar
 - **Dublikatlar**: Akobir tasdiqlangan (`cleanup_duplicate_staff.sql`da qo'lda juftlik). ~14 haqiqiy odam, qolgan 126 sintetik. Qo'shimcha juftliklar `dup_pairs` `manual` ro'yxatiga qo'lda qo'shiladi.
-- **EF deploy kutilmoqda**: `admin-import-staff` v3.1 (connect action + izoh tuzatildi) — deploy qilinmagan.
-- **SQL kutilmoqda**: 43, 45, 47.
+- **EF deploy kutilmoqda**: `admin-import-staff` v3.1 (connect action), `sync-provodka-kassa` v1 (+ 2 env secret: PROVODKA_URL, PROVODKA_SERVICE_KEY).
+- **SQL kutilmoqda**: 43, 45, 47 (TaskFix); `PROVODKA_HODIM_KASSA.sql` (Provodka loyihasida).
 
 ## Validatsiya buyrug'i
 ```bash
