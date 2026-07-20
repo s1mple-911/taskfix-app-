@@ -9965,6 +9965,7 @@ function renderTeamTable() {
     '<th style="' + th + '">Email</th>' +
     '<th style="' + th + '">Filial va bo\'limlar</th>' +
     '<th style="' + th + '">Lavozim</th>' +
+    '<th style="' + th + 'text-align:center;" title="Harajat kassa (Provodka)">💵</th>' +
     '<th style="' + th + '">Shartnoma</th>' +
     '<th style="' + th + '">Rol</th>' +
     '<th style="' + th + '"></th>' +
@@ -10053,6 +10054,12 @@ function renderTeamTable() {
       ctrCell = '<a href="' + escapeHtml(ctrSafe) + '" target="_blank" rel="noopener noreferrer">📄 Shartnoma</a>';
     } else ctrCell = '<span style="color:var(--muted)">—</span>';
 
+    // Harajat kassa (Provodka) — owner/admin uchun checkbox, member uchun statik
+    const hkOn = !!(d && d.harajat_kassa);
+    const hkCell = canManage
+      ? '<input type="checkbox" id="hkChk_' + m.user_id + '"' + (hkOn ? ' checked' : '') + ' onchange="hkTableToggle(\'' + m.user_id + '\', this)" title="Harajat kassa">'
+      : (hkOn ? '💵' : '<span style="color:var(--muted)">—</span>');
+
     return '<tr class="team-row-link" onclick="teamRowClick(event,\'' + m.user_id + '\')">' +
       '<td style="' + td + 'color:var(--muted);">' + (start + i + 1) + '</td>' +
       '<td style="' + td + '">' + avatarHtml(nm.full, null, empAvatarUrl(m.user_id, d, p)) + '</td>' +
@@ -10063,12 +10070,65 @@ function renderTeamTable() {
       '<td style="' + td + 'color:var(--muted);">' + emailCell + '</td>' +
       '<td style="' + td + 'white-space:normal;min-width:180px;max-width:260px;">' + brCell + '</td>' +
       '<td style="' + td + 'min-width:150px;">' + posCell + '</td>' +
+      '<td style="' + td + 'text-align:center;"' + (canManage ? ' onclick="event.stopPropagation();"' : '') + '>' + hkCell + '</td>' +
       '<td style="' + td + 'color:var(--muted);">' + ctrCell + '</td>' +
       '<td style="' + td + '">' + roleCell + '</td>' +
       '<td style="' + td + '">' + (canChange ? '<button class="link-btn" onclick="removeMember(\'' + m.user_id + '\')" style="color:var(--danger);">O\'chirish</button>' : '') + '</td>' +
     '</tr>';
-  }).join('') || '<tr><td colspan="12" style="padding:24px;text-align:center;color:var(--muted);">' + (total === 0 && (wsMembers || []).length ? 'Filtrga mos hodim topilmadi' : 'A\'zo yo\'q') + '</td></tr>';
+  }).join('') || '<tr><td colspan="13" style="padding:24px;text-align:center;color:var(--muted);">' + (total === 0 && (wsMembers || []).length ? 'Filtrga mos hodim topilmadi' : 'A\'zo yo\'q') + '</td></tr>';
 
+}
+
+// ============ Harajat kassa (Provodka sync) — hk* ============
+// Yagona sync handler: Provodka EF'ni chaqiradi. Jamoa jadvali VA hodim detali
+// shu funksiyani ishlatadi (ikki joyda ikki xil mantiq bo'lmasin).
+async function hkSync(uid, active) {
+  if (!currentWs) return { ok: false, error: 'workspace yo\'q' };
+  try {
+    const { data, error } = await sb.functions.invoke('sync-provodka-kassa', {
+      body: { workspace_id: currentWs.id, user_id: uid, active: !!active }
+    });
+    if (error) return { ok: false, error: error.message || String(error) };
+    if (!data || !data.ok) return { ok: false, error: (data && data.error) || 'Noma\'lum javob' };
+    return { ok: true };
+  } catch (e) { return { ok: false, error: (e && e.message) || String(e) }; }
+}
+
+// employee_details.harajat_kassa ni yozadi (47 yo'q bo'lsa aniq xato).
+async function hkSetDb(uid, active) {
+  const { data, error } = await sb.from('employee_details')
+    .upsert({ workspace_id: currentWs.id, user_id: uid, harajat_kassa: !!active }, { onConflict: 'workspace_id,user_id' })
+    .select().single();
+  if (error) {
+    if (/harajat_kassa/.test(error.message || '')) throw new Error('47-migratsiya kerak (harajat_kassa ustuni yo\'q)');
+    throw error;
+  }
+  empDetails[uid] = data;
+}
+
+// Jamoa jadvalidagi checkbox — optimistik. Xato bo'lsa DB va checkbox qaytariladi.
+async function hkTableToggle(uid, el) {
+  if (!currentWs || !canManageTeam()) { if (el) el.checked = !el.checked; return; }
+  const active = !!el.checked;
+  if (el) el.disabled = true;
+  try {
+    await hkSetDb(uid, active);
+    const sync = await hkSync(uid, active);
+    if (!sync.ok) {
+      // Provodka yozmadi — DB'ni ham qaytaramiz (tick = Provodka'da kassa bor degani)
+      try { await hkSetDb(uid, !active); } catch (e2) { /* revert xato — keyingi renderда to'g'rilanadi */ }
+      if (el) el.checked = !active;
+      toast('Provodka sync xato: ' + sync.error, 'err');
+    } else {
+      toast(active ? '💵 Harajat kassa yoqildi' : 'Harajat kassa o\'chirildi', 'ok');
+      logActivity('harajat_kassa_toggled', { entityType: 'employee', entityId: uid, details: { active: active } });
+    }
+  } catch (e) {
+    if (el) el.checked = !active;
+    toast('Xato: ' + ((e && e.message) || String(e)), 'err');
+  } finally {
+    if (el) el.disabled = false;
+  }
 }
 
 // ---- Takliflar (DB so'rovi — faqat kerak bo'lganda) ----
@@ -10912,6 +10972,9 @@ async function empDtlSave() {
     harajat_kassa: harajatKassa,
   };
 
+  // Harajat kassa avvalgi holati — o'zgargan yoki hozir yoqilgan bo'lsa Provodka'ga sync qilamiz
+  const hkOld = !!(empDetails[uid] && empDetails[uid].harajat_kassa);
+
   if (btn) { btn.disabled = true; btn.textContent = 'Saqlanmoqda…'; }
   try {
     // Migratsiya hali ishga tushmagan ustunlarni jimgina yutmaymiz: xato ustunni
@@ -10954,6 +11017,14 @@ async function empDtlSave() {
     await empSyncBranches(uid);
     await empSyncDepts(uid);
     await loadHrData(true);
+
+    // P3 — Harajat kassa Provodka sync: hozir yoqilgan bo'lsa (ism/filial/lavozim
+    // o'zgargan bo'lishi mumkin) yoki holat o'zgargan bo'lsa qayta chaqiramiz.
+    const hkNew = !!(data && data.harajat_kassa);
+    if (hkNew || hkNew !== hkOld) {
+      const sync = await hkSync(uid, hkNew);
+      if (!sync.ok) toast('Saqlandi, lekin Provodka sync xato: ' + sync.error, 'err');
+    }
 
     toast('✓ Saqlandi', 'ok');
     logActivity('employee_updated', { entityType: 'employee', entityId: uid, entityTitle: newFull || oldFull });
