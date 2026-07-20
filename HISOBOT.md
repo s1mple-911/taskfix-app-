@@ -1,73 +1,79 @@
-# HISOBOT — HR modulini yakunlash (V2 → V3 → V4)
+# HISOBOT — TaskFix HR + keyingi ishlar
 
-Sana: 2026-07-18. Ish: `BRIEF_HR_FINISH.md` / `BRIEF_2SOAT.md` dagi qolgan frontend vazifalari.
+Sana: 2026-07-18. Branch: `hr-finish-v2v3v4`.
 
-## Bajarilgan ishlar
+Ikki bosqich: (A) V1–V4 (avval merge bo'lgan), (B) BRIEF_KEYINGI Y1–Y8 (shu commit).
 
-### V1 — loadTasksFull xato yutishi ✅ (avval tugagan)
-Kod tekshirildi — allaqachon tuzatilgan (`if (error) throw error`, izohlar bor). Qayta ish qilinmadi.
+---
 
-### V2 — Rasm ko'rsatish (signed URL) ✅
-Muammo: `photo_url` (Google Drive havolasi) to'g'ridan ishlatilardi, import Storage'ga yozgan `photo_path` esa **umuman o'qilmasdi**.
+## A. V1–V4 (avval bajarilgan, merge + sinovdan o'tgan)
+- **V1** loadTasksFull xato yutishi — tuzatilgan.
+- **V2** Rasm signed URL (getPhotoUrl/empAvatarUrl/prefetchPhotoUrls).
+- **V3** Ish jadvali 3 rejim + `43_schedule_monthly.sql` + "Kunlarni saqlash".
+- **V4** Hash-routing (orqaga + F5).
 
-Qo'shildi (`index.html`, `loadHrData` yonida):
-- `prefetchPhotoUrls(rows)` — barcha `photo_path`larni **bitta** `createSignedUrls(paths, 3600)` chaqirig'i bilan oladi (126 alohida so'rov EMAS), keshga 59 daqiqaga yozadi.
-- `getPhotoUrl(uid)` — yaroqli signed URL yoki `null`.
-- `empAvatarUrl(uid, d, p)` — `signed URL → photo_url (Drive) → avatar_url → initsiallar` tartibida fallback.
-- `refreshPhotoUrl(uid)` — bitta hodimni qayta yuklash (kelajakda rasm yuklash uchun tayyor).
-- `loadHrData` HR ma'lumotini yuklaganda avtomatik prefetch qiladi (xato bo'lsa jimgina initsiallarga tushadi).
-- Ulangan joylar: **Jamoa jadvali** avatari + **hodim detali** katta avatari.
+---
 
-Cheklov: kengroq avatar rollout (vazifa kartalari, kanban, org chart — brief V5b) bu ishga KIRMADI. Ular hozircha eski holatda (photo_url/initsiallar).
+## B. BRIEF_KEYINGI — Y1–Y8 (shu commit)
 
-### V3 — Ish jadvali: 3 rejim ✅
-Yangi fayl: **`43_schedule_monthly.sql`** (foydalanuvchi ishga tushiradi):
-- `employee_details.monthly_off_count INT` (CHECK 0..31)
-- `employee_details.monthly_off_position TEXT` (CHECK 'start' | 'end') — **TEXT + CHECK, ENUM emas**
-- Idempotent + tekshiruv (`RAISE EXCEPTION` jimgina o'tmasin).
+### Y1 — Qidiruv 3 bo'limga ajratish ✅
+`buildCmdItems` qayta qurildi. Tartib: **👤 Hodimlar → 🏢 Filiallar → ▦ Bo'limlar → ✓ Vazifalar → 📄 Sahifalar → ⚡ Amallar**. Bo'sh bo'lim ko'rsatilmaydi.
+- Hodim natijasida **avatar** (getPhotoUrl keshidan, bloklamaydi) + telefon · lavozim; bosilsa → **hodim detali** (hash-routing).
+- **Filiallar qidiruvga qo'shildi** (`branchesCache`); bosilsa → Jamoa + filial filtri o'rnatiladi.
+- Klaviatura navigatsiyasi (↑↓ Enter) saqlandi.
 
-`index.html` (renderEmployee / empDtlSave / yangi funksiyalar):
-- Jadval turi radiosiga `onchange="schOnModeChange()"` — rejim almashganda mos maydon bloklari ko'rinadi.
-- **Haftalik** — mavjud hafta kunlari (dam) checkboxlari (`schWeeklyBox`).
-- **Oylik** — `schMonthlyCount` (hajmi) + `schPosStart/schPosEnd` radio (Boshlash/Tugash). Kalendar yo'q.
-- **Moslashuvchan** — mustaqil HR kalendari (2 oy yonma-yon, oldinga/orqaga), kun bosilsa dam kuni **yashil**. `employee_schedule_days`dan `off` kunlari yuklanadi.
-- Ish vaqti boshlanishi/tugashi — hamma rejimda.
-- Saqlash (`empDtlSave`): weekend faqat weekly'da; monthly ustunlar monthly'da. **43 hali ishga tushmagan bo'lsa** — `monthly_off` ustunsiz qayta urinadi + aniq toast ("43-migratsiya kerak"), jimgina yutmaydi.
-- **"Kunlarni saqlash"** tugmasi (`schSaveDays`): `uiConfirm(danger)` bilan tasdiq → naqshdan `employee_schedule_days` ni **chunk (800)** bilan `ON CONFLICT (workspace_id,user_id,date) DO UPDATE`:
-  - weekly → shartnoma davri (yoki joriy oy → +1 yil) bo'yicha `weekend_days`.
-  - monthly → har oyning boshi/oxiridan N kun.
-  - flexible → kalendardan (deselect qilingan kunlar `on`ga qaytadi).
-  - `day_type` faqat `'on'`/`'off'` (41-migratsiya CHECK'iga mos, tasdiqlangan).
-  - Oraliq 800 kundan oshsa — bloklaydi (xato naqsh 40k qatorni buzmasin).
+### Y2 — Harajat kassa checkbox ✅
+- Hodim detali "Ish joyi" blokida **"Harajat kassa kerak"** checkbox (Radius yonida). Faqat owner/admin.
+- **`47_harajat_kassa.sql`** (BOOLEAN, default false). Jamoa jadvalida ustun yo'q (faqat detalda).
+- Saqlashda 47 yo'q bo'lsa — aniq toast ("Harajat kassa uchun 47-migratsiya"), jimgina yutmaydi.
 
-### V4 — Hash-routing (orqaga tugmasi + F5) ✅
-Muammo: hodim detalida brauzer "orqaga" → saytdan chiqib ketardi; F5 → bosh sahifa.
+### Y3 — Rasm hamma avatarda ✅
+- `avatarHtml(name, size, url, uid)` — 4-param `uid` qo'shildi; url bo'sh bo'lsa `getPhotoUrl(uid)`dan oladi.
+- **Bootstrap prefetch**: `loadCurrentContext` endi barcha `photo_path`larni oldindan signed URL'ga keshlaydi (org uchun) — avatarlar butun ilovada team sahifasini kutmasdan ko'rinadi.
+- Ulangan joylar: loyiha a'zolari, hodim statistikasi, izohlar (Telegram'siz), pastki profil bloki (me), org chart site-user nodelar.
+- **Cheklov**: vazifa kartalari/kanban `avatarHtml` **ishlatmaydi** (faqat ism matni) — ularга avatar qo'shish alohida markup talab qiladi, bu ishga kirmadi.
 
-`index.html`:
-- `rtSetHash(h)` — `history.pushState` (idempotent; pushState hashchange/popstate qo'zg'atmaydi → loop yo'q).
-- `rtRouteFromHash()` — `location.hash`ni pars qiladi va mos funksiyani chaqiradi.
-- Marshrutlar: `#/dashboard #/tasks #/planner #/team #/team/employee/{uid} #/projects/{id} #/department/{id} #/stats #/logs #/settings ...`
-- `goPage(p)` oxirida oddiy sahifa hashini yozadi; `openEmployee`/`openProject`/`goDept` parametrli hash yozadi.
-- `window.addEventListener('popstate', ...)` — orqaga/oldinga → sahifani tiklaydi (faqat `#/` app hashlari; auth recovery/invite hashlariga tegmaydi).
-- `bootstrap()` oxirida F5'da hashdan tiklash (taklif-vazifa oqimi ustuvor).
-- Modallar (task detali, uiForm, *Bd) hashga **yozilmaydi**.
-- `managerOnlyPages` himoyasi saqlangan — member `#/logs` ochsa dashboardga tushadi.
+### Y6 — Rasm yuklash tugmasi ✅
+- Hodim detalida **"📷 Rasm yuklash"** (owner/admin) → `phUploadPhoto`: canvas siqish (max 800px, JPEG 0.8) → `employee-photos/{ws}/{uid}.jpg` upsert → `photo_path` yozildi → kesh yangilandi → avatar darrov almashdi. Prefiks `ph*`.
+- 46 o'lik-havolali hodim uchun yechim aynan shu.
 
-## Foydalanuvchi qaytgach BAJARADIGAN qadamlar (tartib bilan)
+### Y5 — "📧 Taklif yuborish" (ulanmaganlarga) ✅ (EF deploy kutilmoqda)
+- Jamoa jadvalida sintetik email (`@staff.taskfix.org`) → **"⚠ Ulanmagan" badge** + **"📧 Taklif"** tugmasi (owner/admin).
+- `teamInviteConnect`: uiForm haqiqiy email → EF `phase:'connect'` → `updateUserById` (email almashtirish) + `generateLink` (recovery). Havola mavjud modalda ko'rsatiladi (owner qo'lda yuboradi — bulk emas, Resend suppression xavfi yo'q).
+- **EF o'zgardi**: `admin-import-staff` ga `connect` action qo'shildi, VERSION `v3.1-connect-email`. ⚠️ **Deploy kerak** — busiz tugma "EF yangilanishi kerak" toast beradi.
 
-1. **`43_schedule_monthly.sql` ishga tushir** (Supabase SQL editor). Busiz Oylik jadval saqlanmaydi (aniq toast chiqadi).
-2. **Hard refresh** (Ctrl+Shift+R).
-3. Brauzer testlari (pastda).
+### Y4 — Signup'da to'liq profil ✅
+- Signup formasiga: **Familiya**, **Telefon**, **Rasm (ixtiyoriy)** (faqat signup rejimida ko'rinadi).
+- first_name/last_name/phone signup **metadata**ga yoziladi → birinchi kirishda (bootstrap) `profiles`ga ko'chiriladi (mavjudni bosmaydi).
+- Login oqimi buzilmadi.
+- **Cheklov**: rasm faqat **darhol session** bo'lsa yuklanadi (auto-confirm). Email tasdiqlash oqimida sahifa qayta yuklanadi va fayl yo'qoladi → rasm keyinga qoladi (hodim keyin detaldan yuklashi mumkin). `employee_details` (first/last) faqat metadata orqali — shaxsiy ws uchun alohida yozilmadi.
 
-> Eslatma: `admin-import-staff/index.ts`, `45_staff_phone_lookup.sql`, `cleanup_duplicate_staff.sql` — bu sessiyadan **oldingi** ishlardan (import EF v3, dublikat tozalash). Men ularga tegmadim; commit'ga kiritmadim. Kerak bo'lsa alohida ko'rib chiqing (EF deploy, cleanup dry_run).
+### Y7 — Uy tozalash ✅
+1. `42→45` rename — **allaqachon bajarilgan** (42 yo'q, `45_staff_phone_lookup.sql` bor).
+2. **Yolg'on izoh tuzatildi**: EF izohi "ism solishtirish HALI YOZILMAGAN" deyardi, lekin mijoz preflight (5b, `hrNameKey`) buni **allaqachon qiladi** — izoh haqiqatga moslandi.
+3. **EF v3 xususiyatlari tasdiqlandi**: adopt-by-synthetic-email ✅, workspace_members SELECT+INSERT (=DO NOTHING, rolga tegmaydi) ✅, sintetik telefon E.164 (looksE164) ✅, VERSION yangilandi (v3.1). profiles — trigger orqali (EF yozmaydi).
+4. **`cleanup_duplicate_staff.sql`**: avto-`dup_pairs` FAQAT telefon mos kelganda topadi → **Akobir topilmaydi** (haqiqiyda telefon yo'q, ism mos emas). **Qo'lda tasdiqlangan juftliklar (`manual` CTE)** qo'shildi: Akobir juftligi `(1bde234c…, e3d0a4fb…)`. `name_match=true, rivals=1` majburlanadi → merge (4-bosqich) uni oladi. dry_run rejimi saqlangan (`v_dry_run := true`).
 
-## Brauzer testi (qo'lda tekshirish kerak)
+### Y8 — CLAUDE.md ✅
+- Repo ildizida **`CLAUDE.md`** yaratildi: loyiha, qat'iy qoidalar, DB holati, modullar, ochiq masalalar, validatsiya buyrug'i.
 
-Bu ilova Supabase-auth talab qiladi — men brauzerda ishga tushira olmadim, faqat **sintaksis validatsiya** (node-vm, har o'zgarishdan keyin OK) va mantiq tekshiruvi qildim.
+---
 
-- **V2:** Jamoa jadvali + hodim detalida 80 rasm ko'rinsin; rasmsiz 46 hodim initsiallar bilan; Network'da **bitta** `createSignedUrls`.
-- **V3:** Rejim almashganda mos maydonlar; Saqlash → employee_details; 43 yo'q bo'lsa Oylik'da aniq toast; "Kunlarni saqlash" → uiConfirm(danger) → employee_schedule_days yangilansin (dam kunlari sonini tekshiring).
-- **V4:** Hodim detali → orqaga → Jamoa (saytdan chiqmasin); hodim detalida F5 → o'sha hodim; loyihada F5 → o'sha loyiha; member `#/logs` → dashboard.
+## Foydalanuvchi BAJARADIGAN qadamlar (tartib bilan)
 
-## Rejaga kirmagan (kelajak)
-V5b (kengroq avatar), V5c (signup profil), V5d (email taklif), V5e (rasm yuklash tugmasi), V6 (uy tozalash), cleanup_duplicate_staff.
+1. **SQL ishga tushir** (Supabase SQL editor): `43_schedule_monthly.sql`, `45_staff_phone_lookup.sql` (agar hali bo'lmasa), `47_harajat_kassa.sql`.
+2. **EF deploy**: `admin-import-staff` (v3.1 — connect action). Busiz "📧 Taklif" ishlamaydi.
+3. **Push** + hard refresh (Ctrl+Shift+R).
+4. **Dublikat tozalash** (ixtiyoriy, ehtiyotkorlik bilan): `cleanup_duplicate_staff.sql` — avval `<WS_ID>`ni Aros ws bilan almashtir, 1-bosqich SELECT'larни ko'z bilan tekshir, keyin `v_dry_run := false`.
+
+## Brauzer testi (qo'lda)
+Ilova Supabase-auth talab qiladi — men brauzerda ishga tushira olmadim; har o'zgarishdan keyin **node-vm validatsiya OK**.
+- Y1: `⌘K` → "ali" → bo'limlar (Hodimlar avatarli, Filiallar) chiqsin; hodim → detal; filial → Jamoa filtri.
+- Y2: detalda Harajat kassa belgilanib saqlansin (47 yo'q bo'lsa toast).
+- Y3: task/loyiha/izoh/pastki profil/org chartda rasmlar (kesh to'lgach).
+- Y6: detalda rasm yuklash → avatar almashsin.
+- Y5: sintetik emailli qatorda ⚠ Ulanmagan + 📧 Taklif → email → havola modali (EF deploy'dan keyin).
+- Y4: signup'da Familiya/Telefon/Rasm; kirgach profilda ism/telefon.
+
+## Rejaga kirmagani
+Vazifa kartalari/kanban avatarlari (yangi markup kerak); signup rasm email-confirm oqimida; employee_details signup'da.

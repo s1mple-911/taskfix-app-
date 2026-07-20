@@ -86,7 +86,18 @@ RETURNS TABLE (
 LANGUAGE sql
 STABLE
 AS $$
-  WITH fake AS (
+  -- ── Qo'lda TASDIQLANGAN juftliklar ──────────────────────────
+  -- Avto-topuvchi (cand, pastda) FAQAT telefon mos kelganda topadi. Ba'zi
+  -- juftliklarni u KO'RA OLMAYDI: haqiqiy akkauntda profiles.phone bo'sh, yoki
+  -- ism mos emas. Bunday juftliklar shu yerga QO'LDA yoziladi — har birini odam
+  -- tasdiqlagan. Format: ('<soxta_uid>'::uuid, '<haqiqiy_uid>'::uuid).
+  WITH manual(fake_uid, real_uid) AS (
+    VALUES
+      ('1bde234c-a278-400f-b6e9-1ac82ea308d0'::uuid, 'e3d0a4fb-849e-48c8-b5d5-c8086302ec99'::uuid)  -- Akobir (haqiqiyda telefon yo'q, ism mos emas)
+      -- Keyingi tasdiqlangan juftliklarni shu yerga qo'shing:
+      -- , ('<soxta_uid>'::uuid, '<haqiqiy_uid>'::uuid)  -- Izoh
+  ),
+  fake AS (
     SELECT m.source_id, m.user_id AS uid, m.phone_e164,
            norm_phone_digits(m.phone_e164) AS digits,
            fu.email::TEXT AS email, fp.full_name AS full_name
@@ -117,12 +128,25 @@ AS $$
   -- ⚠️ Hamma ustun 'cand.' bilan belgilanadi: RETURNS TABLE ustunlari OUT
   -- parametr sifatida shu yerda ko'rinadi, belgilamasak "column reference is
   -- ambiguous" xatosi chiqadi.
+  -- Avto-topilgan juftliklar (qo'lda ro'yxatdagilarni CHIQARIB tashlaymiz — takror bo'lmasin)
   SELECT cand.source_id, cand.digits, cand.fake_uid, cand.fake_email, cand.fake_name,
          cand.real_uid, cand.real_email, cand.real_name, cand.real_role,
          cleanup_norm_name(cand.fake_name) = cleanup_norm_name(cand.real_name)
            AND cand.fake_name IS NOT NULL,
          cand.rivals
-  FROM cand;
+  FROM cand
+  WHERE cand.fake_uid NOT IN (SELECT mm.fake_uid FROM manual mm)
+  UNION ALL
+  -- Qo'lda tasdiqlangan juftliklar: name_match := true, rivals := 1 (inson tasdiqlagan).
+  -- Ikkala uid ham shu workspace'da bo'lishi shart (aks holda JOIN qator qaytarmaydi).
+  SELECT fm.source_id, fm.digits, man.fake_uid, fm.email, fm.full_name,
+         man.real_uid, ru.email::TEXT, rp.full_name, rwm.role::TEXT,
+         TRUE, 1::BIGINT
+  FROM manual man
+  JOIN fake fm            ON fm.uid = man.fake_uid
+  JOIN workspace_members rwm ON rwm.workspace_id = p_ws AND rwm.user_id = man.real_uid
+  JOIN auth.users ru      ON ru.id = man.real_uid
+  LEFT JOIN profiles rp   ON rp.id = man.real_uid;
 $$;
 
 

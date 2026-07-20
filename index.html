@@ -747,7 +747,10 @@
           <button class="tab-pill active" id="tabLogin" onclick="setMode('login')">Kirish</button>
           <button class="tab-pill" id="tabSignup" onclick="setMode('signup')">Ro'yxatdan o'tish</button>
         </div>
-        <div class="field" id="nameField" style="display:none"><label>Ismingiz</label><input id="fullName" type="text" autocomplete="name" placeholder="Asilbek" /></div>
+        <div class="field" id="nameField" style="display:none"><label>Ismingiz</label><input id="fullName" type="text" autocomplete="given-name" placeholder="Asilbek" /></div>
+        <div class="field" id="lastNameField" style="display:none"><label>Familiyangiz</label><input id="suLastName" type="text" autocomplete="family-name" placeholder="Aliyev" /></div>
+        <div class="field" id="phoneField" style="display:none"><label>Telefon</label><input id="suPhone" type="tel" autocomplete="tel" placeholder="+998 90 123 45 67" /></div>
+        <div class="field" id="photoField" style="display:none"><label>Rasm (ixtiyoriy)</label><input id="suPhoto" type="file" accept="image/*" /></div>
         <div class="field"><label>Email</label><input id="email" type="email" autocomplete="email" placeholder="siz@kompaniya.uz" /></div>
         <div class="field"><label>Parol</label><input id="password" type="password" autocomplete="current-password" placeholder="Kamida 6 belgi" /></div>
         <div id="forgotRow" style="text-align:right; margin: -6px 0 10px;"><button class="link-btn" type="button" onclick="goForgot()">Parolni unutdingizmi?</button></div>
@@ -2642,7 +2645,7 @@ function renderProjectMembers() {
     const m = wsMembers.find(x => x.user_id === pm.user_id);
     const name = pm.user_id === me.id ? (myProfile.full_name || 'Siz') : ((m && m.profile && m.profile.full_name) || 'A\'zo');
     const avatar = m && m.profile && m.profile.avatar_url;
-    return '<div class="item static"><div style="padding-right:10px;">' + avatarHtml(name, null, avatar) + '</div>' +
+    return '<div class="item static"><div style="padding-right:10px;">' + avatarHtml(name, null, avatar, pm.user_id) + '</div>' +
       '<div class="item-mid"><div class="item-title">' + escapeHtml(name) + '</div><div class="item-meta">👁 Ko\'ruvchi</div></div>' +
       (canEdit ? '<div class="item-right"><button class="link-btn" onclick="prjRemoveMember(\'' + pm.user_id + '\')" style="color:var(--danger)">Olib tashlash</button></div>' : '') +
     '</div>';
@@ -2903,7 +2906,7 @@ function renderHodimStats() {
     const effColor = hsEffColor(s.samaradorlik);
     return '<tr>' +
       '<td style="' + td + 'color:var(--muted);">' + (i + 1) + '</td>' +
-      '<td style="' + td + '"><div style="display:flex;align-items:center;gap:9px;">' + avatarHtml(r.name, null, r.avatar) + '<span style="font-weight:500;">' + escapeHtml(r.name) + '</span></div></td>' +
+      '<td style="' + td + '"><div style="display:flex;align-items:center;gap:9px;">' + avatarHtml(r.name, null, r.avatar, r.uid) + '<span style="font-weight:500;">' + escapeHtml(r.name) + '</span></div></td>' +
       '<td style="' + td + '">' + clickable(s.jami, r.uid, 'jami', 'var(--ink)') + '</td>' +
       '<td style="' + td + '">' + clickable(s.jarayonda, r.uid, 'jarayonda', '#3B82F6') + '</td>' +
       '<td style="' + td + '">' + clickable(s.tugatilgan, r.uid, 'tugatilgan', '#10B981') + '</td>' +
@@ -3096,6 +3099,7 @@ function setMode(m) {
   $('tabLogin').classList.toggle('active', m === 'login');
   $('tabSignup').classList.toggle('active', m === 'signup');
   $('nameField').style.display = m === 'signup' ? 'block' : 'none';
+  ['lastNameField', 'phoneField', 'photoField'].forEach(function (id) { const el = $(id); if (el) el.style.display = m === 'signup' ? 'block' : 'none'; });
   $('forgotRow').style.display = m === 'login' ? 'block' : 'none';
   $('switchToLogin').style.display = 'none';
   $('authBtn').textContent = m === 'signup' ? "Ro'yxatdan o'tish" : 'Kirish';
@@ -3117,7 +3121,16 @@ async function submitAuth() {
   try {
     if (mode === 'signup') {
       if (password.length < 6) { showMsg($('authMsg'), 'Parol kamida 6 belgi.', 'err'); btn.disabled=false; btn.textContent="Ro'yxatdan o'tish"; return; }
-      const { data, error } = await sb.auth.signUp({ email, password, options: { data: { full_name: $('fullName').value.trim() }, emailRedirectTo: window.location.origin + window.location.pathname } });
+      const suFirst = ($('fullName').value || '').trim();
+      const suLast = (($('suLastName') && $('suLastName').value) || '').trim();
+      const suPhone = (($('suPhone') && $('suPhone').value) || '').trim();
+      const suFull = (suFirst + ' ' + suLast).trim();
+      // Rasm — faqat darhol session bo'lsa yuklanadi (email tasdiqlash oqimida sahifa
+      // qayta yuklanadi va fayl yo'qoladi — bu holda rasm keyinga qoladi).
+      window._pendingSignupPhoto = ($('suPhoto') && $('suPhoto').files && $('suPhoto').files[0]) || null;
+      // Qo'shimcha profil maydonlari metadata'da — session darhol bo'lmasa (email tasdiqlash),
+      // ular birinchi kirishda (bootstrap) profiles'ga ko'chiriladi.
+      const { data, error } = await sb.auth.signUp({ email, password, options: { data: { full_name: suFull || suFirst, first_name: suFirst || null, last_name: suLast || null, phone: suPhone || null }, emailRedirectTo: window.location.origin + window.location.pathname } });
       if (error) {
         if (/already|registered|exists/i.test(error.message)) { showMsg($('authMsg'), 'Bu email allaqachon ro\'yxatdan o\'tgan.', 'err'); $('switchToLogin').style.display='block'; }
         else if (/rate limit|rate.?limit|too many/i.test(error.message)) {
@@ -3533,6 +3546,19 @@ async function bootstrap() {
   const { data: prof } = await sb.from('profiles').select('*').eq('id', me.id).maybeSingle();
   myProfile = prof || { id: me.id };
 
+  // Signup metadata'dan profilni to'ldiramiz (birinchi kirish). Mavjud qiymatni BOSMAYMIZ.
+  try {
+    const md = me.user_metadata || {};
+    const patch = {};
+    if (!myProfile.full_name && (md.full_name || md.first_name)) patch.full_name = md.full_name || md.first_name;
+    if (!myProfile.phone && md.phone) patch.phone = md.phone;
+    if (Object.keys(patch).length) {
+      patch.id = me.id;
+      const { data: up } = await sb.from('profiles').upsert(patch, { onConflict: 'id' }).select().maybeSingle();
+      if (up) myProfile = up;
+    }
+  } catch (e) { /* sokin — profil baribir ishlaydi */ }
+
   // Taklif havolasi orqali kelgan bo'lsa — qabul qilamiz (workspace'ga qo'shilish + vazifaga biriktirish)
   let _inviteTaskId = null, _inviteWsId = null;
   let _pendingInvite = null;
@@ -3568,6 +3594,22 @@ async function bootstrap() {
   }
 
   await loadCurrentContext();
+
+  // Signup'da tanlangan rasm (darhol session bo'lsa) — best-effort yuklaymiz.
+  // Ruxsat/muhit muammosi bo'lsa jimgina o'tkazamiz (email tasdiqlash oqimida fayl baribir yo'q).
+  if (window._pendingSignupPhoto && currentWs) {
+    const _photoFile = window._pendingSignupPhoto;
+    window._pendingSignupPhoto = null;
+    try {
+      const blob = await phCompressImage(_photoFile, 800, 0.8);
+      const path = currentWs.id + '/' + me.id + '.jpg';
+      const { error: upErr } = await sb.storage.from(PHOTO_BUCKET).upload(path, blob, { upsert: true, contentType: 'image/jpeg' });
+      if (!upErr) {
+        await sb.from('employee_details').upsert({ workspace_id: currentWs.id, user_id: me.id, photo_path: path }, { onConflict: 'workspace_id,user_id' });
+      }
+    } catch (e) { /* sokin — rasm keyinga qoladi, HISOBOTda eslatilgan */ }
+  }
+
   showApp();
   // Hash-routing: F5 yoki to'g'ridan havola bilan kelsa — o'sha sahifani tiklaymiz.
   // Taklif-vazifa oqimi ustuvor (u hashni allaqachon tozalagan, 3551).
@@ -3634,6 +3676,16 @@ async function loadCurrentContext() {
   (profsR.data || []).forEach(p => { profMap[p.id] = p; });
   wsMembers = wm.map(x => Object.assign({}, x, { profile: profMap[x.user_id] || {} }));
   tgUsersCache = tgBusR.data || [];
+
+  // Rasmlar keshini oldindan to'ldiramiz (photo_path -> signed URL) — shunda avatarlar
+  // butun ilovada (vazifa kartalari, kanban, izohlar, org chart...) ko'rinadi, team
+  // sahifasini kutmasdan. Yengil: bitta select + bitta createSignedUrls. Xato — jimgina.
+  if (isOrg) {
+    try {
+      const { data: phRows } = await sb.from('employee_details').select('user_id, photo_path').eq('workspace_id', wsId).not('photo_path', 'is', null);
+      if (phRows && phRows.length) await prefetchPhotoUrls(phRows);
+    } catch (e) { /* sokin — initsiallarga tushadi */ }
+  }
 
   // Tasks + kanban — parallel
   await Promise.all([loadTasksFull(), loadKanbanColumns()]);
@@ -3812,9 +3864,10 @@ function renderSidebar() {
   // Avatar — rasm bor bo'lsa rasm, yo'q bo'lsa initials
   const userAv = $('userAv');
   if (userAv) {
-    const url = myProfile?.avatar_url;
+    // Hodim rasmi (photo_path -> signed URL) ustuvor; keyin profil avatar_url; keyin initials
+    const url = (me && getPhotoUrl(me.id)) || (myProfile && myProfile.avatar_url) || null;
     if (url) {
-      userAv.innerHTML = '<img src="' + url + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" />';
+      userAv.innerHTML = '<img src="' + escapeHtml(url) + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" />';
     } else {
       userAv.textContent = initials(myProfile.full_name || me.email);
     }
@@ -5696,7 +5749,7 @@ function renderCommentItem(c, canDelete) {
     }
   }
   const authorAvatarUrl = (!fromTg && author && author.avatar_url) ? author.avatar_url : null;
-  const av = avatarHtml(displayAuthor, 'sm', authorAvatarUrl);
+  const av = avatarHtml(displayAuthor, 'sm', authorAvatarUrl, fromTg ? null : c.author_id);
   const time = relTime(c.created_at);
   const canDel = canDelete && (c.author_id === me.id || isOwnerLike());
   // @mention'larni ajratib ko'rsatamiz
@@ -5746,10 +5799,13 @@ function fileIcon(type, name) {
   return '📄';
 }
 
-function avatarHtml(name, size, avatarUrl) {
+function avatarHtml(name, size, avatarUrl, uid) {
   const cls = size === 'sm' ? 'avatar sm' : (size === 'lg' ? 'avatar lg' : 'avatar');
-  if (avatarUrl) {
-    return '<span class="' + cls + '" style="background:#0F1417;"><img src="' + escapeHtml(avatarUrl) + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;" /></span>';
+  // avatarUrl berilmagan bo'lsa — user_id bo'yicha rasm keshidan (getPhotoUrl) olamiz.
+  // Kesh bo'sh bo'lsa (HR hali yuklanmagan) → null → initsiallar. Bloklamaydi.
+  const url = avatarUrl || (uid ? getPhotoUrl(uid) : null);
+  if (url) {
+    return '<span class="' + cls + '" style="background:#0F1417;"><img src="' + escapeHtml(url) + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;" /></span>';
   }
   const initials = (name || '?').trim().split(/\s+/).slice(0, 2).map(p => p[0] || '').join('').toUpperCase() || '?';
   const colors = ['#3B82F6','#10B981','#F59E0B','#EC4899','#8B5CF6','#EF4444','#14B8A6','#F97316'];
@@ -6540,6 +6596,7 @@ function renderOrgChart() {
         '<div class="oc-drag-handle">⋮⋮</div>' +
         '<div class="oc-top"><span class="oc-icon">' + meta.icon + '</span><span class="oc-role">' + meta.label + '</span></div>' +
         '<div class="oc-body">' +
+          (isSiteUser && getPhotoUrl(n.raw_id) ? '<div style="display:flex;justify-content:center;margin-bottom:5px;"><span style="width:34px;height:34px;border-radius:50%;overflow:hidden;display:inline-block;background:#0F1417;"><img src="' + escapeHtml(getPhotoUrl(n.raw_id)) + '" style="width:100%;height:100%;object-fit:cover;display:block;" /></span></div>' : '') +
           '<div class="oc-name">' + escapeHtml(n.name) + '</div>' +
           (branchName ? '<div class="oc-sub">▢ ' + escapeHtml(branchName) + '</div>' : (isSiteUser ? '<div class="oc-sub">👤 Sayt foydalanuvchisi</div>' : '')) +
         '</div>' +
@@ -9962,12 +10019,19 @@ function renderTeamTable() {
       ? '<span class="team-edit" contenteditable="true" data-uid="' + m.user_id + '" data-field="phone" onblur="teamSaveField(this)" onkeydown="teamEditKey(event,this)" style="display:inline-block;min-width:110px;padding:3px 6px;border:1px solid transparent;border-radius:6px;outline:none;">' + escapeHtml(phone || '') + '</span>'
       : escapeHtml(phone || '—');
     let emailCell;
+    const isSynthEmail = /@staff\.taskfix\.org$/i.test(email || '');
     if (canManage) {
-      emailCell = '<div style="display:flex;align-items:center;gap:6px;">' +
-        '<span class="team-edit" contenteditable="true" data-uid="' + m.user_id + '" data-field="email" onblur="teamSaveField(this)" onkeydown="teamEditKey(event,this)" style="flex:1;min-width:150px;padding:3px 6px;border:1px solid transparent;border-radius:6px;outline:none;">' + escapeHtml(email || '') + '</span>' +
-        (email ? '<button title="Email qayta yuborish" onclick="teamResendEmail(\'' + m.user_id + '\',\'' + email.replace(/'/g, "\\'") + '\')" style="flex:0 0 auto;background:none;border:1px solid var(--line);border-radius:6px;padding:3px 7px;cursor:pointer;font-size:13px;">📧</button>' : '') +
-      '</div>';
-    } else emailCell = escapeHtml(email || '—');
+      const editable = '<span class="team-edit" contenteditable="true" data-uid="' + m.user_id + '" data-field="email" onblur="teamSaveField(this)" onkeydown="teamEditKey(event,this)" style="flex:1;min-width:150px;padding:3px 6px;border:1px solid transparent;border-radius:6px;outline:none;">' + escapeHtml(email || '') + '</span>';
+      let actionBtn = '';
+      if (isSynthEmail) {
+        // Sintetik email — hodim hech qachon kira olmaydi. Haqiqiy email bilan ulash taklifi.
+        actionBtn = '<span class="badge" style="background:#FEF3C7;color:#92400E;flex:0 0 auto;white-space:nowrap;">⚠ Ulanmagan</span>' +
+          '<button title="Haqiqiy email bilan ulash" onclick="teamInviteConnect(\'' + m.user_id + '\')" style="flex:0 0 auto;background:none;border:1px solid var(--line);border-radius:6px;padding:3px 7px;cursor:pointer;font-size:13px;white-space:nowrap;">📧 Taklif</button>';
+      } else if (email) {
+        actionBtn = '<button title="Email qayta yuborish" onclick="teamResendEmail(\'' + m.user_id + '\',\'' + email.replace(/'/g, "\\'") + '\')" style="flex:0 0 auto;background:none;border:1px solid var(--line);border-radius:6px;padding:3px 7px;cursor:pointer;font-size:13px;">📧</button>';
+      }
+      emailCell = '<div style="display:flex;align-items:center;gap:6px;">' + editable + actionBtn + '</div>';
+    } else emailCell = isSynthEmail ? '<span class="badge" style="background:#FEF3C7;color:#92400E;">⚠ Ulanmagan</span>' : escapeHtml(email || '—');
 
     // Filial va bo'limlar
     const chips = (empBranches[m.user_id] || []).map(function (id) {
@@ -10111,6 +10175,51 @@ async function teamResendEmail(uid, email, skipConfirm) {
     if (res && res.email_sent) toast('📧 Email qayta yuborildi: ' + email, 'ok');
     else toast('⚠ Yuborilmadi' + (res && res.email_error ? (': ' + res.email_error) : ''), 'err');
   } catch (e) { toast('Xato: ' + (e.message || e), 'err'); }
+}
+
+// Sintetik email'li (ulanmagan) hodimni haqiqiy email bilan ulash.
+// EF (admin-import-staff, phase:'connect') email'ni almashtiradi + parol o'rnatish
+// havolasini qaytaradi (BITTALAB — bulk emas, Resend suppression xavfi yo'q).
+async function teamInviteConnect(uid) {
+  if (!canManageTeam() || !currentWs) return;
+  const m = (wsMembers || []).find(function (x) { return x.user_id === uid; });
+  const personLabel = (m && m.profile && m.profile.full_name) || 'Hodim';
+  const vals = await uiForm('📧 Taklif yuborish — ' + personLabel, [
+    { id: 'email', label: 'Haqiqiy email', type: 'text', placeholder: 'ism@example.com', hint: 'Hodim shu email bilan kiradi. Parol o\'rnatish havolasi qaytariladi.' },
+  ], { okText: 'Ulash' });
+  if (!vals) return;
+  const newEmail = String(vals.email || '').trim().toLowerCase();
+  if (!/^\S+@\S+\.\S+$/.test(newEmail)) { toast('Email noto\'g\'ri', 'err'); return; }
+  if (/@staff\.taskfix\.org$/i.test(newEmail)) { toast('Sintetik email bo\'lmasin — haqiqiy email kiriting', 'err'); return; }
+  toast('Ulanmoqda…', 'ok');
+  try {
+    const { data: res, error } = await sb.functions.invoke('admin-import-staff', {
+      body: { phase: 'connect', workspace_id: currentWs.id, user_id: uid, new_email: newEmail }
+    });
+    if (error) throw error;
+    if (!res || !res.ok) throw new Error((res && res.error) || 'Noma\'lum xato');
+    // profiles keshini yangilaymiz
+    if (m && m.profile) m.profile.email = newEmail;
+    if (res.action_link) {
+      // Parol o'rnatish havolasini mavjud modalda ko'rsatamiz (owner qo'lda yuboradi)
+      _lastInviteLink = res.action_link;
+      _lastInvitePerson = personLabel + ' · ' + newEmail;
+      const info = $('invLinkPersonInfo'); if (info) info.textContent = _lastInvitePerson + ' — parol o\'rnatish havolasi';
+      const urlEl = $('invLinkUrl'); if (urlEl) urlEl.value = res.action_link;
+      const bd = $('inviteLinkBd'); if (bd) bd.classList.add('show');
+      toast('✓ Email ulandi. Havolani hodimga yuboring.', 'ok');
+    } else {
+      toast('✓ Email ulandi: ' + newEmail, 'ok');
+    }
+    logActivity('employee_email_connected', { entityType: 'employee', entityId: uid, entityTitle: personLabel, details: { email: newEmail } });
+    if (typeof loadHrData === 'function') { await loadHrData(true); }
+    renderTeam();
+  } catch (e) {
+    // EF hali 'connect' action'ini bilmasa (deploy qilinmagan) — aniq xabar
+    const msg = e.message || String(e);
+    if (/phase noma'lum|connect/i.test(msg)) toast('EF yangilanishi kerak (admin-import-staff v3 deploy) — connect action', 'err');
+    else toast('Ulanmadi: ' + msg, 'err');
+  }
 }
 function openInvite() {
   if (!canManageTeam()) return;
@@ -10294,6 +10403,72 @@ function openEmployee(uid) {
   rtSetHash('#/team/employee/' + encodeURIComponent(uid));
 }
 
+// ============ Rasm yuklash (ph*) — hodim detali ============
+function phPickPhoto() { const el = $('phFileInput'); if (el) el.click(); }
+
+// Rasmni client'da siqib (canvas, max 800px, JPEG 0.8) Storage'ga yuklaydi,
+// photo_path'ni employee_details'ga yozadi, keshni yangilaydi, avatarni almashtiradi.
+async function phUploadPhoto() {
+  const uid = _empDtlUid;
+  const inp = $('phFileInput');
+  const file = inp && inp.files && inp.files[0];
+  if (!uid || !currentWs || !file) return;
+  if (!canManageTeam()) { toast('Ruxsat yo\'q', 'err'); return; }
+  if (!/^image\//.test(file.type)) { toast('Faqat rasm fayli', 'err'); if (inp) inp.value = ''; return; }
+
+  const btn = $('phUploadBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Yuklanmoqda…'; }
+  try {
+    const blob = await phCompressImage(file, 800, 0.8);
+    const path = currentWs.id + '/' + uid + '.jpg';
+    const { error: upErr } = await sb.storage.from(PHOTO_BUCKET).upload(path, blob, { upsert: true, contentType: 'image/jpeg' });
+    if (upErr) throw upErr;
+    // photo_path'ni yozamiz (import bilan bir xil format: {ws}/{uid}.jpg)
+    const { data, error } = await sb.from('employee_details')
+      .upsert({ workspace_id: currentWs.id, user_id: uid, photo_path: path }, { onConflict: 'workspace_id,user_id' })
+      .select().single();
+    if (error) throw error;
+    empDetails[uid] = data;
+    await refreshPhotoUrl(uid);   // keshni yangilaydi (yangi signed URL)
+    // Avatarni darrov almashtiramiz
+    const box = $('edtPhotoBox');
+    const m = (wsMembers || []).find(function (x) { return x.user_id === uid; });
+    const nm = m ? teamEmpName(m) : { full: '?' };
+    if (box) box.innerHTML = avatarHtml(nm.full, 'lg', empAvatarUrl(uid, data, (m && m.profile) || {}));
+    toast('✓ Rasm yuklandi', 'ok');
+    logActivity('employee_photo_uploaded', { entityType: 'employee', entityId: uid, entityTitle: nm.full });
+  } catch (e) {
+    toast('Rasm yuklanmadi: ' + (e.message || String(e)), 'err');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '📷 Rasm yuklash'; }
+    if (inp) inp.value = '';
+  }
+}
+
+// File -> siqilgan JPEG Blob (uzun tomoni maxPx, sifat quality)
+function phCompressImage(file, maxPx, quality) {
+  return new Promise(function (resolve, reject) {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = function () {
+      try {
+        let w = img.naturalWidth, h = img.naturalHeight;
+        if (w > h && w > maxPx) { h = Math.round(h * maxPx / w); w = maxPx; }
+        else if (h >= w && h > maxPx) { w = Math.round(w * maxPx / h); h = maxPx; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        canvas.toBlob(function (blob) {
+          if (blob) resolve(blob); else reject(new Error('Siqib bo\'lmadi'));
+        }, 'image/jpeg', quality);
+      } catch (e) { URL.revokeObjectURL(url); reject(e); }
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('Rasm o\'qilmadi')); };
+    img.src = url;
+  });
+}
+
 function empToggleNoAddr() {
   const cb = $('edtNoAddr'), a = $('edtAddr');
   if (!cb || !a) return;
@@ -10390,7 +10565,10 @@ async function renderEmployee() {
   // ---- Asosiy ----
   html += '<div class="hr-card"><h3>Asosiy</h3>' +
     '<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">' +
-      '<div style="flex:0 0 auto;" id="edtPhotoBox">' + avatarHtml(nm.full, 'lg', empAvatarUrl(uid, d, p)) + '</div>' +
+      '<div style="flex:0 0 auto;text-align:center;">' +
+        '<div id="edtPhotoBox">' + avatarHtml(nm.full, 'lg', empAvatarUrl(uid, d, p)) + '</div>' +
+        (canManage ? '<input type="file" id="phFileInput" accept="image/*" style="display:none" onchange="phUploadPhoto()"><button class="btn sm secondary" id="phUploadBtn" style="margin-top:8px;" onclick="phPickPhoto()">📷 Rasm yuklash</button>' : '') +
+      '</div>' +
       '<div style="flex:1;min-width:240px;"><div class="hr-grid">' +
         '<div class="hr-f"><label class="hr-lbl">Ism</label><input class="hr-in" id="edtFirst" value="' + escapeHtml(nm.first) + '"' + dis + '></div>' +
         '<div class="hr-f"><label class="hr-lbl">Familiya</label><input class="hr-in" id="edtLast" value="' + escapeHtml(nm.last) + '"' + dis + '></div>' +
@@ -10410,6 +10588,7 @@ async function renderEmployee() {
       (ro ? '' : '<button class="btn sm secondary" onclick="empAddPosInline()" title="Yangi lavozim qo\'shish">＋</button>') + '</div></div>' +
     '<div class="hr-f"><label class="hr-lbl">Ish turi</label><select class="hr-in" id="edtWorkType"' + dis + '>' + wtOpts + '</select></div>' +
     '<div class="hr-f"><label class="hr-lbl">Radius (metr)</label><input type="number" min="0" step="1" class="hr-in" id="edtRadius" value="' + escapeHtml(d.radius != null ? String(d.radius) : '') + '" placeholder="100"' + dis + '></div>' +
+    '<div class="hr-f"><label class="hr-lbl">Harajat kassa</label><div class="hr-pick"><label><input type="checkbox" id="edtHarajatKassa"' + (d.harajat_kassa ? ' checked' : '') + dis + '><span>Harajat kassa kerak</span></label></div><div class="hr-hint">Aros Provodka integratsiyasi uchun.</div></div>' +
     '<div class="hr-f wide"><label class="hr-lbl">Filiallar</label><div class="hr-pick">' + brHtml + '</div></div>' +
     '<div class="hr-f wide"><label class="hr-lbl">Bo\'limlar</label><div class="hr-pick">' + dpHtml + '</div><div class="hr-hint">Yangi bo\'limga qo\'shilganda rol — Tahrirlovchi.</div></div>' +
     '<div class="hr-f wide"><label class="hr-lbl">Manzil</label><input class="hr-in" id="edtAddr" value="' + escapeHtml(d.address || '') + '"' + (ro || d.no_address ? ' disabled' : '') + '></div>' +
@@ -10718,6 +10897,7 @@ async function empDtlSave() {
   if (radiusRaw !== '' && (!isFinite(radius) || radius < 0)) { toast('Radius musbat butun son bo\'lishi kerak', 'err'); return; }
   if (ctrStart && ctrEnd && ctrEnd < ctrStart) { toast('Shartnoma tugashi boshlanishidan oldin bo\'la olmaydi', 'err'); return; }
 
+  const harajatKassa = !!($('edtHarajatKassa') && $('edtHarajatKassa').checked);
   const payload = {
     workspace_id: currentWs.id, user_id: uid,
     first_name: first || null, last_name: last || null,
@@ -10729,18 +10909,30 @@ async function empDtlSave() {
     schedule_type: schedType || null, weekend_days: weekend,
     work_start: workStart || null, work_end: workEnd || null,
     monthly_off_count: monthlyCount, monthly_off_position: monthlyPos,
+    harajat_kassa: harajatKassa,
   };
 
   if (btn) { btn.disabled = true; btn.textContent = 'Saqlanmoqda…'; }
   try {
-    let { data, error } = await sb.from('employee_details').upsert(payload, { onConflict: 'workspace_id,user_id' }).select().single();
-    if (error && /monthly_off/.test(error.message || '')) {
-      // 43-migratsiya hali ishga tushmagan — oylik ustunlarsiz qayta urinamiz, aniq ogohlantirish beramiz
-      const p2 = Object.assign({}, payload); delete p2.monthly_off_count; delete p2.monthly_off_position;
-      const retry = await sb.from('employee_details').upsert(p2, { onConflict: 'workspace_id,user_id' }).select().single();
-      data = retry.data; error = retry.error;
-      if (!error) toast('Saqlandi, lekin Oylik jadval uchun 43-migratsiya kerak (monthly_off ustunlari yo\'q)', 'err');
+    // Migratsiya hali ishga tushmagan ustunlarni jimgina yutmaymiz: xato ustunni
+    // ayta boshlasa — o'shani payload'dan olib tashlab qayta urinamiz, aniq toast beramiz.
+    let p = Object.assign({}, payload);
+    const warns = [];
+    let data, error;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const res = await sb.from('employee_details').upsert(p, { onConflict: 'workspace_id,user_id' }).select().single();
+      data = res.data; error = res.error;
+      if (!error) break;
+      const msg = error.message || '';
+      if (/monthly_off/.test(msg) && ('monthly_off_count' in p)) {
+        delete p.monthly_off_count; delete p.monthly_off_position; warns.push('Oylik jadval uchun 43-migratsiya'); continue;
+      }
+      if (/harajat_kassa/.test(msg) && ('harajat_kassa' in p)) {
+        delete p.harajat_kassa; warns.push('Harajat kassa uchun 47-migratsiya'); continue;
+      }
+      break;   // boshqa xato — retry qilmaymiz
     }
+    if (!error && warns.length) toast('Saqlandi, lekin kerak: ' + warns.join(' + '), 'err');
     if (error) throw error;
     empDetails[uid] = data;
 
@@ -13087,7 +13279,101 @@ function buildCmdItems() {
     return qi === query.length;
   };
 
-  // Sahifalar
+  // Natijalar bo'limlarga ajratiladi. Push tartibi = ko'rsatish tartibi:
+  // Hodimlar → Filiallar → Bo'limlar → Vazifalar → Sahifalar → Amallar.
+  // Bo'sh bo'lim ko'rsatilmaydi (renderCmdPalette guruh sarlavhasini faqat
+  // element bo'lganda chizadi).
+
+  // ── 👤 Hodimlar (wsMembers) — ism, familiya, telefon, email; avatar + lavozim ──
+  if (Array.isArray(wsMembers) && wsMembers.length && q) {
+    wsMembers
+      .filter(m => {
+        const p = m.profile || {};
+        return fuzzyMatch(p.full_name || '', q) || fuzzyMatch(p.phone || '', q) || fuzzyMatch(p.email || '', q);
+      })
+      .slice(0, 8)
+      .forEach(m => {
+        const p = m.profile || {};
+        const name = p.full_name || 'Hodim';
+        const pos = teamMemberPos(m.user_id);
+        const subParts = [];
+        if (p.phone) subParts.push(p.phone);
+        subParts.push(pos || (m.role === 'owner' ? 'Egasi' : m.role === 'admin' ? 'Admin' : 'A\'zo'));
+        const uid = m.user_id;
+        items.push({
+          group: '👤 Hodimlar',
+          // Avatar keshdan (getPhotoUrl) — bo'sh bo'lsa initsiallar; palette bloklanmaydi
+          avatar: avatarHtml(name, 'sm', empAvatarUrl(uid, empDetails[uid] || {}, p)),
+          icon: '👤',
+          title: name,
+          sub: subParts.join(' · '),
+          kbd: null,
+          run: () => { closeCmdPalette(); openEmployee(uid); },
+        });
+      });
+  }
+
+  // ── 🏢 Filiallar (branchesCache) — nom bo'yicha; bosilsa Jamoa + filial filtri ──
+  if (Array.isArray(branchesCache) && branchesCache.length && q) {
+    branchesCache
+      .filter(b => fuzzyMatch(b.name || '', q) || fuzzyMatch(b.address || '', q))
+      .slice(0, 6)
+      .forEach(b => {
+        const bid = b.id;
+        items.push({
+          group: '🏢 Filiallar',
+          icon: '🏢',
+          title: b.name || '(nomsiz filial)',
+          sub: b.address || null,
+          kbd: null,
+          run: () => {
+            closeCmdPalette();
+            goPage('team');
+            // renderTeam select'ni to'ldirgach filtrni o'rnatamiz
+            setTimeout(() => {
+              const el = $('teamFltBranch');
+              if (el) { el.value = bid; teamOnFilterChange(); }
+            }, 180);
+          },
+        });
+      });
+  }
+
+  // ── ▦ Bo'limlar ──
+  if (Array.isArray(departments) && departments.length) {
+    const dFiltered = q
+      ? departments.filter(d => fuzzyMatch(d.name || '', q)).slice(0, 5)
+      : [];
+    dFiltered.forEach(d => {
+      items.push({
+        group: "▦ Bo'limlar",
+        icon: '▦',
+        title: d.name,
+        sub: null,
+        kbd: null,
+        run: () => { closeCmdPalette(); goDept(d.id); },
+      });
+    });
+  }
+
+  // ── ✓ Vazifalar (cache'dan) ──
+  if (Array.isArray(tasksCache) && tasksCache.length) {
+    const tFiltered = q
+      ? tasksCache.filter(t => fuzzyMatch(t.title || '', q) || fuzzyMatch(t.description || '', q)).slice(0, 8)
+      : tasksCache.slice(0, 4);
+    tFiltered.forEach(t => {
+      items.push({
+        group: '✓ Vazifalar',
+        icon: '✓',
+        title: t.title || '(nomsiz)',
+        sub: statusName(t.status),
+        kbd: null,
+        run: () => { closeCmdPalette(); openDetail(t.id); },
+      });
+    });
+  }
+
+  // ── 📄 Sahifalar ──
   const pagesAll = [
     { label: 'Bosh sahifa', icon: '⌂', page: 'dashboard', mgr: false },
     { label: 'Vazifalar', icon: '✓', page: 'tasks', mgr: false },
@@ -13100,14 +13386,11 @@ function buildCmdItems() {
     { label: 'Sozlamalar', icon: '⚙', page: 'settings', mgr: true },
     { label: 'Mening profilim', icon: '👤', page: 'profile', mgr: false },
   ];
-  // Oddiy a'zoga faqat ruxsat etilgan sahifalar
   const pages = pagesAll.filter(p => !p.mgr || isOwnerLike());
-  const filteredPages = q
-    ? pages.filter(p => fuzzyMatch(p.label, q))
-    : pages.slice(0, 5);
+  const filteredPages = q ? pages.filter(p => fuzzyMatch(p.label, q)) : pages.slice(0, 5);
   filteredPages.forEach(p => {
     items.push({
-      group: 'Sahifalar',
+      group: '📄 Sahifalar',
       icon: p.icon,
       title: p.label,
       sub: null,
@@ -13116,60 +13399,7 @@ function buildCmdItems() {
     });
   });
 
-  // Vazifalar (cache'dan)
-  if (Array.isArray(tasksCache) && tasksCache.length) {
-    const tFiltered = q
-      ? tasksCache.filter(t => fuzzyMatch(t.title || '', q) || fuzzyMatch(t.description || '', q)).slice(0, 8)
-      : tasksCache.slice(0, 4);
-    tFiltered.forEach(t => {
-      const statusLabel = statusName(t.status);
-      items.push({
-        group: 'Vazifalar',
-        icon: '✓',
-        title: t.title || '(nomsiz)',
-        sub: statusLabel,
-        kbd: null,
-        run: () => { closeCmdPalette(); openDetail(t.id); },
-      });
-    });
-  }
-
-  // Bo'limlar
-  if (Array.isArray(departments) && departments.length) {
-    const dFiltered = q
-      ? departments.filter(d => fuzzyMatch(d.name || '', q)).slice(0, 5)
-      : [];
-    dFiltered.forEach(d => {
-      items.push({
-        group: "Bo'limlar",
-        icon: '▦',
-        title: d.name,
-        sub: null,
-        kbd: null,
-        run: () => { closeCmdPalette(); goDept(d.id); },
-      });
-    });
-  }
-
-  // A'zolar (wsMembers) — ism, telefon, email
-  if (Array.isArray(wsMembers) && wsMembers.length && q) {
-    const mFiltered = wsMembers
-      .filter(m => { const p = m.profile || {}; return fuzzyMatch(p.full_name || '', q) || fuzzyMatch(p.phone || '', q) || fuzzyMatch(p.email || '', q); })
-      .slice(0, 6);
-    mFiltered.forEach(m => {
-      const name = (m.profile && m.profile.full_name) || 'A\'zo';
-      items.push({
-        group: "A'zolar",
-        icon: '👤',
-        title: name,
-        sub: m.role === 'owner' ? 'Egasi' : m.role === 'admin' ? 'Admin' : 'A\'zo',
-        kbd: null,
-        run: () => { closeCmdPalette(); goPage('team'); },
-      });
-    });
-  }
-
-  // Amallar
+  // ── ⚡ Amallar ──
   const actions = [];
   if (canEditWorkspace()) {
     actions.push({ label: 'Yangi vazifa yaratish', icon: '+', kbd: 'N', run: () => { closeCmdPalette(); openCreate(); } });
@@ -13178,11 +13408,9 @@ function buildCmdItems() {
     actions.push({ label: 'Bo\'lim yaratish', icon: '▦', kbd: null, run: () => { closeCmdPalette(); openNewDept(); } });
     actions.push({ label: 'A\'zo taklif qilish', icon: '✉', kbd: null, run: () => { closeCmdPalette(); goPage('team'); setTimeout(() => $('inviteBd')?.classList.add('show'), 100); } });
   }
-  const aFiltered = q
-    ? actions.filter(a => fuzzyMatch(a.label, q))
-    : actions;
+  const aFiltered = q ? actions.filter(a => fuzzyMatch(a.label, q)) : actions;
   aFiltered.forEach(a => {
-    items.push({ group: 'Amallar', icon: a.icon, title: a.label, sub: null, kbd: a.kbd, run: a.run });
+    items.push({ group: '⚡ Amallar', icon: a.icon, title: a.label, sub: null, kbd: a.kbd, run: a.run });
   });
 
   return items;
@@ -13207,8 +13435,9 @@ function renderCmdPalette() {
       lastGroup = item.group;
     }
     const active = idx === _cmdIndex ? ' active' : '';
+    const iconHtml = item.avatar ? '<span class="cmd-ic" style="background:none;padding:0;">' + item.avatar + '</span>' : '<span class="cmd-ic">' + (item.icon || '◯') + '</span>';
     html += '<button class="cmd-item' + active + '" onmouseenter="cmdHover(' + idx + ')" onclick="cmdRun(' + idx + ')">' +
-      '<span class="cmd-ic">' + (item.icon || '◯') + '</span>' +
+      iconHtml +
       '<span class="cmd-text">' +
         '<span class="cmd-title">' + escapeHtml(item.title) + '</span>' +
         (item.sub ? '<span class="cmd-sub">' + escapeHtml(item.sub) + '</span>' : '') +
