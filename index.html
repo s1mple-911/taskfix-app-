@@ -1267,7 +1267,7 @@
         <input type="text" class="search-input" id="branchSearch" placeholder="Filial nomi yoki manzil bo'yicha qidirish..." oninput="renderBranches()" />
       </div>
       <div id="branchesList" class="list"></div>
-      <div id="branchesEmpty" class="empty" style="display:none"><strong>Filial yo'q</strong>+ Yangi filial bossam yarating yoki Aros PG'dan import qiling.</div>
+      <div id="branchesEmpty" class="empty" style="display:none"><strong>Filial yo'q</strong> — "+ Yangi filial" tugmasi bilan birinchi filialingizni yarating.</div>
     </section>
 
     <!-- Positions (lavozimlar) -->
@@ -2044,7 +2044,7 @@
     <div class="modal-head"><h3>Bot foydalanuvchisini tahrirlash</h3><button class="x-btn" onclick="closeEditTgUser()">×</button></div>
     <div class="modal-body">
       <div style="font-size: 12.5px; color: var(--muted); margin-bottom: 14px; line-height: 1.5;">
-        ⚠️ O'zgarishlar ham Supabase'ga, ham Aros PG bazasiga yoziladi. Telegram ID o'zgartirilmaydi.
+        ⚠️ O'zgarishlar saqlanadi. Telegram ID o'zgartirilmaydi.
       </div>
       <div class="field">
         <label>To'liq ism va familya *</label>
@@ -10058,7 +10058,8 @@ function teamRowClick(ev, uid) {
 async function renderTeam() {
   const canManage = canManageTeam();
   $('inviteBtn').style.display = canManage ? 'inline-block' : 'none';
-  $('hrImportBtn').style.display = canManage ? 'inline-block' : 'none';
+  // Import (JSON) — faqat Aros workspace uchun (aros_staff importi). Boshqa mijozlarga kerak emas.
+  $('hrImportBtn').style.display = (canManage && isArosWs()) ? 'inline-block' : 'none';
   $('invitesWrap').style.display = canManage ? 'block' : 'none';
 
   // HR ma'lumoti (lavozim/rol/kadrlar/filiallar) — workspace uchun bir marta
@@ -10086,6 +10087,8 @@ function renderTeamTable() {
   // ---- HODIMLAR JADVALI ----
   const th = 'padding:9px 12px;text-align:left;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;';
   const sortArrow = _teamSortDir === 1 ? ' ▲' : ' ▼';
+  // Harajat kassa (Provodka) ustuni — faqat Aros workspace uchun (Aros'ga xos integratsiya).
+  const showHk = isArosWs();
   $('teamTblHead').innerHTML = '<tr>' +
     '<th style="' + th + '">№</th>' +
     '<th style="' + th + '"></th>' +
@@ -10096,7 +10099,7 @@ function renderTeamTable() {
     '<th style="' + th + '">Email</th>' +
     '<th style="' + th + '">Filial va bo\'limlar</th>' +
     '<th style="' + th + '">Lavozim</th>' +
-    '<th style="' + th + 'text-align:center;" title="Harajat kassa (Provodka)">💵</th>' +
+    (showHk ? '<th style="' + th + 'text-align:center;" title="Harajat kassa (Provodka)">💵</th>' : '') +
     '<th style="' + th + '">Shartnoma</th>' +
     '<th style="' + th + '">Rol</th>' +
     '<th style="' + th + '"></th>' +
@@ -10201,12 +10204,12 @@ function renderTeamTable() {
       '<td style="' + td + 'color:var(--muted);">' + emailCell + '</td>' +
       '<td style="' + td + 'white-space:normal;min-width:180px;max-width:260px;">' + brCell + '</td>' +
       '<td style="' + td + 'min-width:150px;">' + posCell + '</td>' +
-      '<td style="' + td + 'text-align:center;"' + (canManage ? ' onclick="event.stopPropagation();"' : '') + '>' + hkCell + '</td>' +
+      (showHk ? '<td style="' + td + 'text-align:center;"' + (canManage ? ' onclick="event.stopPropagation();"' : '') + '>' + hkCell + '</td>' : '') +
       '<td style="' + td + 'color:var(--muted);">' + ctrCell + '</td>' +
       '<td style="' + td + '">' + roleCell + '</td>' +
       '<td style="' + td + '">' + (canChange ? '<button class="link-btn" onclick="removeMember(\'' + m.user_id + '\')" style="color:var(--danger);">O\'chirish</button>' : '') + '</td>' +
     '</tr>';
-  }).join('') || '<tr><td colspan="13" style="padding:24px;text-align:center;color:var(--muted);">' + (total === 0 && (wsMembers || []).length ? 'Filtrga mos hodim topilmadi' : 'A\'zo yo\'q') + '</td></tr>';
+  }).join('') || '<tr><td colspan="' + (showHk ? 13 : 12) + '" style="padding:24px;text-align:center;color:var(--muted);">' + (total === 0 && (wsMembers || []).length ? 'Filtrga mos hodim topilmadi' : 'A\'zo yo\'q') + '</td></tr>';
 
 }
 
@@ -10782,7 +10785,7 @@ async function renderEmployee() {
       (ro ? '' : '<button class="btn sm secondary" onclick="empAddPosInline()" title="Yangi lavozim qo\'shish">＋</button>') + '</div></div>' +
     '<div class="hr-f"><label class="hr-lbl">Ish turi</label><select class="hr-in" id="edtWorkType"' + dis + '>' + wtOpts + '</select></div>' +
     '<div class="hr-f"><label class="hr-lbl">Radius (metr)</label><input type="number" min="0" step="1" class="hr-in" id="edtRadius" value="' + escapeHtml(d.radius != null ? String(d.radius) : '') + '" placeholder="100"' + dis + '></div>' +
-    '<div class="hr-f"><label class="hr-lbl">Harajat kassa</label><div class="hr-pick"><label><input type="checkbox" id="edtHarajatKassa"' + (d.harajat_kassa ? ' checked' : '') + dis + '><span>Harajat kassa kerak</span></label></div><div class="hr-hint">Aros Provodka integratsiyasi uchun.</div></div>' +
+    (isArosWs() ? '<div class="hr-f"><label class="hr-lbl">Harajat kassa</label><div class="hr-pick"><label><input type="checkbox" id="edtHarajatKassa"' + (d.harajat_kassa ? ' checked' : '') + dis + '><span>Harajat kassa kerak</span></label></div><div class="hr-hint">Aros Provodka integratsiyasi uchun.</div></div>' : '') +
     '<div class="hr-f wide"><label class="hr-lbl">Filiallar</label><div class="hr-pick">' + brHtml + '</div></div>' +
     '<div class="hr-f wide"><label class="hr-lbl">Bo\'limlar</label><div class="hr-pick">' + dpHtml + '</div><div class="hr-hint">Yangi bo\'limga qo\'shilganda rol — Tahrirlovchi.</div></div>' +
     '<div class="hr-f wide"><label class="hr-lbl">Manzil</label><input class="hr-in" id="edtAddr" value="' + escapeHtml(d.address || '') + '"' + (ro || d.no_address ? ' disabled' : '') + '></div>' +
@@ -11103,8 +11106,9 @@ async function empDtlSave() {
     schedule_type: schedType || null, weekend_days: weekend,
     work_start: workStart || null, work_end: workEnd || null,
     monthly_off_count: monthlyCount, monthly_off_position: monthlyPos,
-    harajat_kassa: harajatKassa,
   };
+  // harajat_kassa — faqat Aros uchun (boshqa mijozlarda 47-migratsiya yo'q → keraksiz ogohlantirish bermasin)
+  if (isArosWs()) payload.harajat_kassa = harajatKassa;
 
   // Harajat kassa avvalgi holati — o'zgargan yoki hozir yoqilgan bo'lsa Provodka'ga sync qilamiz
   const hkOld = !!(empDetails[uid] && empDetails[uid].harajat_kassa);
@@ -11150,7 +11154,8 @@ async function empDtlSave() {
 
     await empSyncBranches(uid);
     await empSyncDepts(uid);
-    await loadHrData(true);
+    // Saqlash tugadi; ro'yxat yangilash xatosi "Saqlanmadi"ga aylanmasin (dublikat urinishning oldini olish).
+    try { await loadHrData(true); } catch (re) { /* saqlandi — ro'yxat keyin yangilanadi */ }
 
     // P3 — Harajat kassa Provodka sync: hozir yoqilgan bo'lsa (ism/filial/lavozim
     // o'zgargan bo'lishi mumkin) yoki holat o'zgargan bo'lsa qayta chaqiramiz.
@@ -13293,6 +13298,18 @@ async function tgNotifyTaskEdit(task, field, oldValue, newValue) {
 
 async function init() {
   console.log('%cTaskFix build: 2026-07-06-planner+jadval', 'color:#0F1417;background:#FEF3C7;padding:2px 8px;border-radius:4px;font-weight:700;');
+  // CDN guard: supabase-js yuklanmagan bo'lsa (O'zbekistonda CDN beqaror — ERR_CONNECTION_CLOSED),
+  // cheksiz "Yuklanmoqda…" o'rniga aniq xabar + sahifani qayta yuklash tugmasi.
+  if (typeof supabase === 'undefined' || !supabase || typeof supabase.createClient !== 'function') {
+    console.error('supabase-js kutubxonasi yuklanmadi (CDN).');
+    try {
+      const lv = $('loadingView'); if (lv) lv.style.display = 'none';
+      const m = $('bootErrMsg'); if (m) m.textContent = 'Ilova kutubxonasi yuklanmadi. Internet aloqasini tekshirib, sahifani qayta yuklang.';
+      const rb = $('bootErrRetryBtn'); if (rb) { rb.textContent = 'Sahifani qayta yuklash'; rb.setAttribute('onclick', 'location.reload()'); }
+      const b = $('bootErrView'); if (b) b.style.display = 'flex';
+    } catch (e) {}
+    return;
+  }
   try { window.hideCompleted = localStorage.getItem('hideCompleted') === '1'; } catch (e) { window.hideCompleted = false; }
   // MUHIM: hash'ni createClient'dan OLDIN o'qiymiz — detectSessionInUrl uni tozalaydi
   const _rawHash = window.location.hash || '';
@@ -13751,7 +13768,11 @@ function scrollCmdToActive() {
     }
   });
 }
-init();
+init().catch(function (e) {
+  // init() kutilmaganda yiqilsa — cheksiz "Yuklanmoqda…" o'rniga aniq xato ekrani.
+  console.error('init xatosi:', e);
+  try { showBootErr('Ishga tushirishda xato: ' + ((e && e.message) || e)); } catch (_) {}
+});
 </script>
 </body>
 </html>
