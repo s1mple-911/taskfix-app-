@@ -4871,8 +4871,10 @@ async function saveNewEmployee() {
 
     const newUserId = res.user_id;
 
-    // A'zolar ro'yxatini yangilaymiz — darrov ko'rinsin
-    await reloadMembers();
+    // A'zolar ro'yxatini yangilaymiz — darrov ko'rinsin.
+    // MUHIM: xodim allaqachon yaratilgan; ro'yxat yangilash xatosi oqimni yiqitmasin
+    // (aks holda foydalanuvchi "Xato" ko'rib qayta bosadi → dublikat urinish).
+    try { await reloadMembers(); } catch (re) { toast('⚠ Ro\'yxat yangilanmadi — sahifani yangilang', 'err'); }
 
     // Jadval'dagi "Bajaruvchi"dan chaqirilgan bo'lsa — o'sha task'ga biriktiramiz
     if (window._tblAsgForTask != null) {
@@ -10473,7 +10475,10 @@ async function sendInvite() {
       showMsg($('iMsg'), '✅ Xodim yaratildi va bo\'limlarga qo\'shildi', 'ok');
       if (res.email_sent) toast('📧 Parol o\'rnatish emaili yuborildi: ' + email, 'ok');
       else toast('⚠ Email yuborilmadi' + (res.email_error ? (': ' + res.email_error) : ''), 'err');
-      if (currentPage === 'team') { await reloadMembers(); }
+      // Xodim yaratildi; ro'yxat yangilash xatosi muvaffaqiyatni "Xato"ga aylantirmasin.
+      if (currentPage === 'team') {
+        try { await reloadMembers(); } catch (re) { showMsg($('iMsg'), '✅ Xodim yaratildi — ro\'yxatni ko\'rish uchun sahifani yangilang', 'ok'); }
+      }
       setTimeout(() => closeInvite(), 900);
     } catch (e) {
       showMsg($('iMsg'), 'Xato: ' + (e.message || e), 'err');
