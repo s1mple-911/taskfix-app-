@@ -14,7 +14,12 @@ Har sessiyada BIRINCHI shu fayl o'qiladi. Har katta o'zgarishdan keyin **o'zing 
 3. SQL: **TEXT + CHECK, ENUM emas** (30/32-migratsiyalardagi saboq). Idempotent (`IF NOT EXISTS`), tekshiruvda `RAISE EXCEPTION` (jimgina o'tmasin).
 4. `aros_staff_export.json` — **hech qachon commit qilinmaydi** (`.gitignore`da, 6MB).
 5. Inline handler ichida arrow function **yo'q**; `escapeHtml()` har doim (XSS).
-6. Supabase so'rovlarida `error`ni **tekshir** — supabase-js throw qilmaydi, jimgina yutilib qoladi (bir necha marta shu bilan vaqt yo'qolgan).
+6. **Xato jimgina yutilmasin — muvaffaqiyat xabari faqat haqiqiy muvaffaqiyatda.** Bu eng ko'p buzilgan qoida (audit 2026-07-24: ~20 joy tuzatildi).
+   - Har Supabase yozuv/o'qishda `const { error } = await ...` — supabase-js **throw QILMAYDI**, `{error}` qaytaradi. `await sb.from(...).update(...)` ni `{error}` siz yozsang, `catch` **hech qachon ishlamaydi** va DB rad etsa ham "Saqlandi" chiqadi. `if (error) throw error;` yoz.
+   - `.functions.invoke(...)` ham `{error}` qaytaradi (funksiya-darajali xato throw emas) — uni ham tekshir.
+   - `toast('Saqlandi'/'✅ ...')` faqat `throw`dan keyin, muvaffaqiyat yo'lida bo'lsin — yozuvdan **oldin** yoki tekshiruvsiz emas.
+   - Bo'sh `catch(e){}` **taqiqlanadi**. Kamida `console.error(...)`. Foydalanuvchi kutayotgan amal bo'lsa — `toast`/`showMsg` ham. Fon bildirishnomasi (tg-send/email) bo'lsa — `console.error` yetarli.
+   - Foydalanuvchiga ko'rsatiladigan xato **doim `translateErr(e.message || String(e))`** orqali (o'zbekcha; xom Postgres/RLS/tarmoq matni chiqmasin). Xom `e.message` ko'rsatma.
 7. RLS policy ichida `workspace_members` inline subquery **yozma** (rekursiya → 42P17). `is_ws_manager()`/`is_ws_member()` ishlat.
 8. Mavjud helper: `uiForm(title,fields[{id,label,type,placeholder,hint}],{okText})→Promise<vals|null>`, `uiConfirm(title,msg,{danger,okText})`, `toast(text,'ok'|'err')`, `logActivity(action,{entityType,entityId,entityTitle,details})`, `$`, `escapeHtml`, `.hr-*`, `.ui-*`, `.xtbl`.
 

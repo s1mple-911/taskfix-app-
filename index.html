@@ -2700,7 +2700,7 @@ async function saveProject(name, recDays, desc) {
     logActivity('project_created', { entityType: 'project', entityId: data.id, entityTitle: name });
     await loadProjects();
     openProject(data.id);
-  } catch (e) { toast('Xato: ' + (e.message || e), 'err'); }
+  } catch (e) { toast('Xato: ' + translateErr(e.message || String(e)), 'err'); }
 }
 
 async function prjRenameOrDelete() {
@@ -2712,10 +2712,11 @@ async function prjRenameOrDelete() {
   if (!v) return;
   if (v.name && v.name.trim() && (v.name.trim() !== p.name || (v.desc || '') !== (p.description || ''))) {
     try {
-      await sb.from('projects').update({ name: v.name.trim(), description: (v.desc || '').trim() || null }).eq('id', p.id);
+      const { error } = await sb.from('projects').update({ name: v.name.trim(), description: (v.desc || '').trim() || null }).eq('id', p.id);
+      if (error) throw error;
       p.name = v.name.trim(); p.description = (v.desc || '').trim() || null;
       $('prjTitle').textContent = p.name; loadProjectDetail(); toast('Saqlandi', 'ok');
-    } catch (e) { toast('Xato', 'err'); }
+    } catch (e) { toast('Xato: ' + translateErr(e.message || String(e)), 'err'); }
   }
 }
 
@@ -2723,7 +2724,7 @@ async function prjDeleteProject() {
   const p = window._curProject; if (!p) return;
   const ok = await uiConfirm('Loyihani o\'chirish', '"' + p.name + '" va uning barcha vazifalari butunlay o\'chiriladi. Bu amalni ortga qaytarib bo\'lmaydi.', { okText: 'O\'chirish', danger: true });
   if (!ok) return;
-  try { await sb.from('projects').delete().eq('id', p.id); toast('O\'chirildi', 'ok'); goPage('projects'); } catch (e) { toast('Xato: ' + e.message, 'err'); }
+  try { const { error } = await sb.from('projects').delete().eq('id', p.id); if (error) throw error; toast('O\'chirildi', 'ok'); goPage('projects'); } catch (e) { toast('Xato: ' + translateErr(e.message || String(e)), 'err'); }
 }
 
 async function prjEditRecurrence() {
@@ -2747,21 +2748,24 @@ async function prjEditRecurrence() {
     patch.recurrence_weekday = parseInt(v.weekday, 10); patch.last_reset_at = p.last_reset_at || new Date().toISOString();
   } else { patch.recurrence_type = 'none'; }
   try {
-    await sb.from('projects').update(patch).eq('id', p.id);
+    const { error } = await sb.from('projects').update(patch).eq('id', p.id);
+    if (error) throw error;
     Object.assign(p, patch);
     toast(v.type === 'weekly' ? ('🔁 Har hafta ' + WD[patch.recurrence_weekday]) : (v.type === 'days' ? ('🔁 Har ' + patch.recurrence_days + ' kunda') : 'Takrorlanish o\'chirildi'), 'ok');
     loadProjectDetail();
-  } catch (e) { toast('Xato: ' + (e.message || e), 'err'); }
+  } catch (e) { toast('Xato: ' + translateErr(e.message || String(e)), 'err'); }
 }
 
 // Recurrence — barcha tasklarni qayta "new" holatiga qaytaradi
 async function prjResetRecurrence(project, silent) {
   try {
-    await sb.from('tasks').update({ status: 'new', completed_at: null, started_at: null }).eq('project_id', project.id);
-    await sb.from('projects').update({ last_reset_at: new Date().toISOString() }).eq('id', project.id);
+    const { error: e1 } = await sb.from('tasks').update({ status: 'new', completed_at: null, started_at: null }).eq('project_id', project.id);
+    if (e1) throw e1;
+    const { error: e2 } = await sb.from('projects').update({ last_reset_at: new Date().toISOString() }).eq('id', project.id);
+    if (e2) throw e2;
     project.last_reset_at = new Date().toISOString();
     if (!silent) toast('🔁 Loyiha qaytadan boshlandi', 'ok');
-  } catch (e) { if (!silent) toast('Xato', 'err'); }
+  } catch (e) { console.error('prjResetRecurrence:', e); if (!silent) toast('Xato: ' + translateErr(e.message || String(e)), 'err'); }
 }
 
 // ---- Add flow task ----
@@ -2802,7 +2806,7 @@ async function prjSaveTask(title, dependsOnPrev, assignee, deadlineIso, recur) {
     // Xabar faqat OCHIQ (bloklanmagan) bo'lsa va biriktirilgan bo'lsa
     if (!locked && assignee && assignee !== me.id) { try { tgNotifyAssignment(data.id, { user_id: assignee }); emailNotify('task_assigned', data.id, assignee); } catch (e) {} }
     loadProjectDetail();
-  } catch (e) { toast('Xato: ' + (e.message || e), 'err'); }
+  } catch (e) { toast('Xato: ' + translateErr(e.message || String(e)), 'err'); }
 }
 
 // ---- Invite / remove project member ----
@@ -2814,20 +2818,22 @@ async function prjInviteMember() {
   ], { okText: 'Taklif qilish' });
   if (!v || !v.uid) return;
   try {
-    await sb.from('project_members').insert({ project_id: currentProjectId, user_id: v.uid });
+    const { error } = await sb.from('project_members').insert({ project_id: currentProjectId, user_id: v.uid });
+    if (error) throw error;
     prjMembers.push({ project_id: currentProjectId, user_id: v.uid });
     toast('✅ Taklif qilindi', 'ok');
     renderProjectMembers();
-  } catch (e) { toast('Xato: ' + (e.message || e), 'err'); }
+  } catch (e) { toast('Xato: ' + translateErr(e.message || String(e)), 'err'); }
 }
 async function prjRemoveMember(uid) {
   const ok = await uiConfirm('Olib tashlash', 'Bu a\'zoni loyihadan olib tashlaymi?', { okText: 'Olib tashlash', danger: true });
   if (!ok) return;
   try {
-    await sb.from('project_members').delete().eq('project_id', currentProjectId).eq('user_id', uid);
+    const { error } = await sb.from('project_members').delete().eq('project_id', currentProjectId).eq('user_id', uid);
+    if (error) throw error;
     prjMembers = prjMembers.filter(pm => pm.user_id !== uid);
     renderProjectMembers();
-  } catch (e) { toast('Xato', 'err'); }
+  } catch (e) { toast('Xato: ' + translateErr(e.message || String(e)), 'err'); }
 }
 
 // ============ HODIM STATISTIKASI ============
@@ -3104,12 +3110,23 @@ function toast(text, kind) {
 }
 function translateErr(m) {
   if (!m) return 'Xatolik yuz berdi.';
+  m = String(m);
   if (/invalid login credentials/i.test(m)) return 'Email yoki parol noto\'g\'ri.';
   if (/already|registered|exists/i.test(m)) return 'Bu email allaqachon ro\'yxatdan o\'tgan.';
   if (/password should be at least/i.test(m)) return 'Parol kamida 6 belgi.';
   if (/email/i.test(m) && /valid/i.test(m)) return 'Email noto\'g\'ri.';
-  if (/row-level security/i.test(m)) return 'Ruxsat yo\'q.';
+  // Tarmoq/ulanish — O'zbekistonda tez-tez uchraydi
+  if (/failed to fetch|load failed|networkerror|network error|err_|net::|connection|offline/i.test(m)) return 'Ulanishda muammo. Internetni tekshirib, qayta urinib ko\'ring.';
+  if (/timeout|timed out|deadline exceeded/i.test(m)) return 'So\'rov vaqti tugadi. Qayta urinib ko\'ring.';
+  // Ruxsat / RLS / auth
+  if (/row-level security|permission denied|not authoriz|forbidden|\b403\b|jwt|token/i.test(m)) return 'Ruxsat yo\'q.';
+  // Ma'lumot yaxlitligi
   if (/duplicate|unique/i.test(m)) return 'Bu allaqachon mavjud.';
+  if (/foreign key|violates foreign/i.test(m)) return 'Bog\'liq yozuv mavjud — avval unga bog\'liqlarni o\'chiring.';
+  if (/not null|null value in column/i.test(m)) return 'Majburiy maydon to\'ldirilmagan.';
+  // O'zimizning o'zbekcha xatolar (masalan "47-migratsiya kerak") — o'zgarishsiz o'tadi.
+  // Xom inglizcha Postgres kodi (PGRSTxxx) qolsa — umumiy xabar (batafsili konsolda).
+  if (/^PGRST|^\{|error code|syntax error|column .* does not exist|relation .* does not exist/i.test(m)) return 'Amalni bajarib bo\'lmadi. Birozdan so\'ng qayta urinib ko\'ring.';
   return m;
 }
 function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]); }
@@ -4179,17 +4196,19 @@ async function onbFinish() {
     }).select().single();
     if (e1) throw e1;
 
-    // 2. Birinchi bo'lim
-    await sb.from('departments').insert({
+    // 2. Birinchi bo'lim (workspace yaratildi — buni jimgina yutmaymiz, lekin bloklamaymiz)
+    const { error: e2 } = await sb.from('departments').insert({
       workspace_id: ws.id, name: onbData.deptName, sort_order: 1
     });
+    if (e2) { console.error('Onboarding: birinchi bo\'lim yaratilmadi:', e2); toast('⚠ Birinchi bo\'lim yaratilmadi: ' + translateErr(e2.message || String(e2)), 'err'); }
 
     // 3. Filiallar (agar bor bo'lsa)
     if (onbData.branches) {
       const lines = onbData.branches.split('\n').map(s => s.trim()).filter(Boolean);
       if (lines.length) {
         const branchRows = lines.map(name => ({ workspace_id: ws.id, name: name }));
-        await sb.from('branches').insert(branchRows);
+        const { error: e3 } = await sb.from('branches').insert(branchRows);
+        if (e3) { console.error('Onboarding: filiallar yaratilmadi:', e3); toast('⚠ Filiallar yaratilmadi: ' + translateErr(e3.message || String(e3)), 'err'); }
       }
     }
 
@@ -4240,7 +4259,7 @@ async function onbFinish() {
         }
       } catch(e) {
         console.warn('Bot ulashda xatolik:', e);
-        toast('⚠️ Bot ulashda xatolik: ' + (e.message || e), 'err');
+        toast('⚠️ Bot ulashda xatolik: ' + translateErr(e.message || String(e)), 'err');
       }
     }
 
@@ -4906,7 +4925,7 @@ async function saveNewEmployee() {
       toast('⚠ Email yuborilmadi' + (res.email_error ? (': ' + res.email_error) : '') + ' — Supabase SMTP sozlamasini tekshiring', 'err');
     }
   } catch (e) {
-    showMsg($('empMsg'), 'Xato: ' + (e.message || e), 'err');
+    showMsg($('empMsg'), 'Xato: ' + translateErr(e.message || String(e)), 'err');
     btn.disabled = false; btn.textContent = 'Yaratish';
   }
 }
@@ -5255,7 +5274,7 @@ async function onXlsPick(input) {
     _xlsRows = rows;
     xlsShowPreview(rows);
   } catch (e) {
-    toast("Excel o'qishda xato: " + (e.message || e), 'err');
+    toast("Excel o'qishda xato: " + translateErr(e.message || String(e)), 'err');
   }
 }
 
@@ -5420,7 +5439,7 @@ async function xlsConfirmImport() {
     }
   } catch (e) {
     if (btn) { btn.disabled = false; btn.textContent = '✓ Qayta urinish'; }
-    toast('Xato: ' + (e.message || e), 'err');
+    toast('Xato: ' + translateErr(e.message || String(e)), 'err');
   }
 }
 
@@ -5596,9 +5615,10 @@ async function saveCreate() {
 // Email notify (fire and forget — agar RESEND_API_KEY o'rnatilmagan bo'lsa, sukut qoladi)
 async function emailNotify(type, taskId, recipientUserId) {
   try {
-    await sb.functions.invoke('send-email', {
+    const { error } = await sb.functions.invoke('send-email', {
       body: { type, task_id: taskId, recipient_user_id: recipientUserId }
     });
+    if (error) throw error;
   } catch (e) {
     // Email muvaffaqiyatsiz bo'lsa ham vazifa ishlashda davom etadi
     console.warn('Email notify failed:', e);
@@ -6158,22 +6178,24 @@ async function addComment() {
 async function notifyMention(userId, text, commentId) {
   const t = tasksCache.find(x => x.id === currentDetailId);
   const title = t ? t.title : '';
-  // In-app notification
+  // In-app notification (fon amali — foydalanuvchini bloklamaydi, lekin jimgina yutmaymiz)
   try {
-    await sb.from('notifications').insert({
+    const { error } = await sb.from('notifications').insert({
       workspace_id: currentWs.id, user_id: userId, kind: 'mention',
       title: 'Sizni izohda belgilashdi',
       body: (myProfile.full_name || me.email) + ': ' + text.slice(0, 120),
       meta: { task_id: currentDetailId, workspace_id: currentWs.id, comment_id: commentId || null }
     });
-  } catch (e) {}
+    if (error) throw error;
+  } catch (e) { console.error('notifyMention in-app:', e); }
   // Telegram
   try {
-    await sb.functions.invoke('tg-send', { body: {
+    const { error } = await sb.functions.invoke('tg-send', { body: {
       workspace_id: currentWs.id, target: { user_id: userId },
       text: '🔔 <b>Sizni belgilashdi</b>\n' + escapeHtml(title) + '\n\n' + escapeHtml(myProfile.full_name || me.email) + ':\n' + escapeHtml(text)
     }});
-  } catch (e) {}
+    if (error) throw error;
+  } catch (e) { console.error('notifyMention tg-send:', e); }
 }
 async function deleteComment(id) {
   const _c = curDetailComments.find(c => c.id === id);
@@ -6195,7 +6217,7 @@ async function notifyCommentToTg(text) {
   else if (t.assigned_to_tg_bot_user) target = { tg_bot_user_id: t.assigned_to_tg_bot_user };
   if (!target) return;
   const body = '💬 <b>Yangi izoh: ' + escapeHtml(t.title) + '</b>\n\n' + escapeHtml(myProfile.full_name || me.email) + ':\n' + escapeHtml(text);
-  try { await sb.functions.invoke('tg-send', { body: { workspace_id: currentWs.id, target, text: body } }); } catch(e) {}
+  try { const { error } = await sb.functions.invoke('tg-send', { body: { workspace_id: currentWs.id, target, text: body } }); if (error) throw error; } catch(e) { console.error('tg-send bildirishnoma:', e); }
 }
 
 // ----- Attachments -----
@@ -6267,7 +6289,7 @@ async function notifyAttachmentToTg(fileName) {
   else if (t.assigned_to_tg_bot_user) target = { tg_bot_user_id: t.assigned_to_tg_bot_user };
   if (!target) return;
   const body = '📎 <b>Yangi fayl: ' + escapeHtml(t.title) + '</b>\n\n' + escapeHtml(myProfile.full_name || me.email) + ' qo\'shdi: ' + escapeHtml(fileName);
-  try { await sb.functions.invoke('tg-send', { body: { workspace_id: currentWs.id, target, text: body } }); } catch(e) {}
+  try { const { error } = await sb.functions.invoke('tg-send', { body: { workspace_id: currentWs.id, target, text: body } }); if (error) throw error; } catch(e) { console.error('tg-send bildirishnoma:', e); }
 }
 
 async function deleteAttach(id) {
@@ -6388,12 +6410,13 @@ async function prjShiftNextDeadline(task) {
     const next = all.filter(x => (x.flow_order || 0) > (task.flow_order || 0)).sort((a, b) => (a.flow_order || 0) - (b.flow_order || 0))[0];
     if (!next || !next.deadline) return;
     const newDl = new Date(new Date(next.deadline).getTime() + delay).toISOString();
-    await sb.from('tasks').update({ deadline: newDl }).eq('id', next.id);
+    const { error } = await sb.from('tasks').update({ deadline: newDl }).eq('id', next.id);
+    if (error) throw error; // xato bo'lsa — success toast chiqmasin, kesh ham o'zgармasin
     const ni = tasksCache.findIndex(x => x.id === next.id); if (ni >= 0) tasksCache[ni].deadline = newDl;
     const pi = prjTasks.findIndex(x => x.id === next.id); if (pi >= 0) prjTasks[pi].deadline = newDl;
     const hrs = Math.round(delay / 3600000 * 10) / 10;
     toast('⏱ Kechikish (' + hrs + ' soat) keyingi bosqich deadline\'iga qo\'shildi', 'ok');
-  } catch (e) {}
+  } catch (e) { console.error('prjShiftNextDeadline:', e); }
 }
 
 // Loyiha tasklarini qayta yuklab, tasksCache + prjTasks + ko'rinishni yangilaydi
@@ -6464,7 +6487,7 @@ async function notifyStatusToTg(t, newStatus) {
   if (!target) return;
   const statusLabel = STATUS_LBL[newStatus] || newStatus;
   const body = '🔄 <b>Vazifa holati: ' + escapeHtml(t.title) + '</b>\n\nYangi holat: ' + escapeHtml(statusLabel) + '\nO\'zgartirgan: ' + escapeHtml(myProfile.full_name || me.email);
-  try { await sb.functions.invoke('tg-send', { body: { workspace_id: currentWs.id, target, text: body } }); } catch(e) {}
+  try { const { error } = await sb.functions.invoke('tg-send', { body: { workspace_id: currentWs.id, target, text: body } }); if (error) throw error; } catch(e) { console.error('tg-send bildirishnoma:', e); }
 }
 
 async function deleteCurrent() {
@@ -6800,13 +6823,15 @@ function ocStartDrag(e, nodeId) {
 async function ocSavePosition(node) {
   try {
     const upd = { node_x: node.node_x, node_y: node.node_y };
+    let error;
     if (node.kind === 'tg') {
-      await sb.from('tg_bot_users').update(upd).eq('id', node.raw_id);
+      ({ error } = await sb.from('tg_bot_users').update(upd).eq('id', node.raw_id));
     } else if (node.kind === 'user') {
-      await sb.from('workspace_members').update(upd).eq('workspace_id', currentWs.id).eq('user_id', node.raw_id);
+      ({ error } = await sb.from('workspace_members').update(upd).eq('workspace_id', currentWs.id).eq('user_id', node.raw_id));
     } else if (node.kind === 'container') {
-      await sb.from('org_containers').update(upd).eq('id', node.raw_id);
+      ({ error } = await sb.from('org_containers').update(upd).eq('id', node.raw_id));
     }
+    if (error) throw error;
   } catch (e) {
     console.warn('Save position failed:', e);
   }
@@ -7149,7 +7174,7 @@ async function ocAddSave() {
     await loadOrgChart();
   } catch (e) {
     console.error('[OrgChart] Add error:', e);
-    showMsg($('ocAddMsg'), e.message || String(e), 'err');
+    showMsg($('ocAddMsg'), translateErr(e.message || String(e)), 'err');
   } finally {
     _ocSaving = false;
     btn.disabled = false; btn.textContent = 'Qo\'shish';
@@ -7265,7 +7290,7 @@ async function ocContSave() {
     await loadOrgChart();
   } catch (e) {
     console.error('[OrgChart] Container save error:', e);
-    showMsg($('ocContMsg'), e.message || String(e), 'err');
+    showMsg($('ocContMsg'), translateErr(e.message || String(e)), 'err');
   } finally {
     _ocSaving = false;
     btn.disabled = false; btn.textContent = 'Saqlash';
@@ -7284,17 +7309,19 @@ async function ocContDelete() {
   }
   try {
     const raw = _ocContEditing.slice(2);
+    let error;
     // Bola TG/site/container — manager_container_id ni tozalash kerak
-    await sb.from('tg_bot_users').update({ manager_container_id: null }).eq('manager_container_id', raw);
-    await sb.from('workspace_members').update({ manager_container_id: null }).eq('workspace_id', currentWs.id).eq('manager_container_id', raw);
-    await sb.from('org_containers').update({ parent_id: null, parent_kind: null }).eq('parent_id', raw).eq('parent_kind', 'container');
+    ({ error } = await sb.from('tg_bot_users').update({ manager_container_id: null }).eq('manager_container_id', raw)); if (error) throw error;
+    ({ error } = await sb.from('workspace_members').update({ manager_container_id: null }).eq('workspace_id', currentWs.id).eq('manager_container_id', raw)); if (error) throw error;
+    ({ error } = await sb.from('org_containers').update({ parent_id: null, parent_kind: null }).eq('parent_id', raw).eq('parent_kind', 'container')); if (error) throw error;
     // O'zini o'chirish
-    await sb.from('org_containers').delete().eq('id', raw);
+    ({ error } = await sb.from('org_containers').delete().eq('id', raw)); if (error) throw error;
     closeOcCont();
     toast('🗑 O\'chirildi', 'ok');
     await loadOrgChart();
   } catch (e) {
-    toast(translateErr(e.message), 'err');
+    console.error('ocContDelete:', e);
+    toast('Xato: ' + translateErr(e.message || String(e)), 'err');
   }
 }
 
@@ -7309,25 +7336,27 @@ async function ocRemoveFromChart(nodeId) {
     : '"' + n.name + '" tashkilotdan olib tashlansinmi? (Foydalanuvchi o\'chirilmaydi.)';
   if (!confirm(msg)) return;
   try {
+    let error;
     if (n.kind === 'tg') {
-      await sb.from('tg_bot_users').update({ manager_id: null, manager_user_id: null, manager_container_id: null }).eq('manager_id', n.raw_id);
-      await sb.from('tg_bot_users').update({
+      ({ error } = await sb.from('tg_bot_users').update({ manager_id: null, manager_user_id: null, manager_container_id: null }).eq('manager_id', n.raw_id)); if (error) throw error;
+      ({ error } = await sb.from('tg_bot_users').update({
         manager_id: null, manager_user_id: null, manager_container_id: null,
         node_x: null, node_y: null
-      }).eq('id', n.raw_id);
+      }).eq('id', n.raw_id)); if (error) throw error;
     } else {
       // user
-      await sb.from('workspace_members').update({ manager_user_id: null, manager_tg_bot_user_id: null, manager_container_id: null })
-        .eq('workspace_id', currentWs.id).eq('manager_user_id', n.raw_id);
-      await sb.from('workspace_members').update({
+      ({ error } = await sb.from('workspace_members').update({ manager_user_id: null, manager_tg_bot_user_id: null, manager_container_id: null })
+        .eq('workspace_id', currentWs.id).eq('manager_user_id', n.raw_id)); if (error) throw error;
+      ({ error } = await sb.from('workspace_members').update({
         manager_user_id: null, manager_tg_bot_user_id: null, manager_container_id: null,
         node_x: null, node_y: null
-      }).eq('workspace_id', currentWs.id).eq('user_id', n.raw_id);
+      }).eq('workspace_id', currentWs.id).eq('user_id', n.raw_id)); if (error) throw error;
     }
     toast('🗑 Olib tashlandi', 'ok');
     await loadOrgChart();
   } catch (e) {
-    toast(translateErr(e.message), 'err');
+    console.error('ocRemoveFromChart:', e);
+    toast('Xato: ' + translateErr(e.message || String(e)), 'err');
   }
 }
 
@@ -8382,7 +8411,7 @@ async function tblUpdate(taskId, field, value) {
     renderTasksTable();
   } catch (e) {
     if (idx >= 0) tasksCache[idx][field] = old; // qaytaramiz
-    toast('Xato: ' + (e.message || e), 'err');
+    toast('Xato: ' + translateErr(e.message || String(e)), 'err');
     renderTasksTable();
   }
 }
@@ -8452,7 +8481,7 @@ async function tblSaveNewRow() {
     toast('✓ Vazifa qo\'shildi', 'ok');
     renderTasksTable();
   } catch (e) {
-    toast('Xato: ' + (e.message || e), 'err');
+    toast('Xato: ' + translateErr(e.message || String(e)), 'err');
   }
 }
 
@@ -9878,7 +9907,7 @@ async function hrMigrateLocalPositions() {
     logActivity('positions_migrated', { entityType: 'position', entityTitle: 'Lavozimlar', details: { positions: names.size, members: detRows.length } });
   } catch (e) {
     // localStorage tegilmaydi — keyingi safar qayta urinamiz
-    toast('Lavozimlarni ko\'chirib bo\'lmadi: ' + (e.message || e), 'err');
+    toast('Lavozimlarni ko\'chirib bo\'lmadi: ' + translateErr(e.message || String(e)), 'err');
   }
 }
 
@@ -10259,7 +10288,7 @@ async function hkTableToggle(uid, el) {
     }
   } catch (e) {
     if (el) el.checked = !active;
-    toast('Xato: ' + ((e && e.message) || String(e)), 'err');
+    toast('Xato: ' + translateErr((e && e.message) || String(e)), 'err');
   } finally {
     if (el) el.disabled = false;
   }
@@ -10317,7 +10346,7 @@ async function teamPosPick(pos) {
   const uid = _teamPosUid; teamClosePosDrop();
   if (!uid) return;
   try { await teamSetMemberPos(uid, pos); renderTeamTable(); }
-  catch (e) { toast('Lavozim saqlanmadi: ' + (e.message || e), 'err'); }
+  catch (e) { toast('Lavozim saqlanmadi: ' + translateErr(e.message || String(e)), 'err'); }
 }
 async function teamPosAddFromSearch() {
   const v = ($('teamPosSearch') && $('teamPosSearch').value || '').trim();
@@ -10327,7 +10356,7 @@ async function teamPosAddFromSearch() {
     await teamAddPosition(v);
     if (uid) await teamSetMemberPos(uid, v);
     renderTeamTable();
-  } catch (e) { toast('Lavozim qo\'shilmadi: ' + (e.message || e), 'err'); }
+  } catch (e) { toast('Lavozim qo\'shilmadi: ' + translateErr(e.message || String(e)), 'err'); }
 }
 
 // ---- Profil inline tahrirlash (telefon/email) ----
@@ -10349,7 +10378,7 @@ async function teamSaveField(el) {
     el.style.borderColor = '#10B981';
     setTimeout(() => { el.style.borderColor = 'transparent'; }, 800);
   } catch (e) {
-    toast('Saqlanmadi: ' + (e.message || e) + ' (29-migratsiya kerak)', 'err');
+    toast('Saqlanmadi: ' + translateErr(e.message || String(e)) + ' (29-migratsiya kerak)', 'err');
     el.textContent = oldVal;
   }
 }
@@ -10368,7 +10397,7 @@ async function teamResendEmail(uid, email, skipConfirm) {
     if (error) throw error;
     if (res && res.email_sent) toast('📧 Email qayta yuborildi: ' + email, 'ok');
     else toast('⚠ Yuborilmadi' + (res && res.email_error ? (': ' + res.email_error) : ''), 'err');
-  } catch (e) { toast('Xato: ' + (e.message || e), 'err'); }
+  } catch (e) { toast('Xato: ' + translateErr(e.message || String(e)), 'err'); }
 }
 
 // Sintetik email'li (ulanmagan) hodimni haqiqiy email bilan ulash.
@@ -10484,7 +10513,7 @@ async function sendInvite() {
       }
       setTimeout(() => closeInvite(), 900);
     } catch (e) {
-      showMsg($('iMsg'), 'Xato: ' + (e.message || e), 'err');
+      showMsg($('iMsg'), 'Xato: ' + translateErr(e.message || String(e)), 'err');
     }
     btn.disabled = false; btn.textContent = 'Taklif yuborish';
     return;
@@ -10504,7 +10533,7 @@ async function sendInvite() {
       if (tgErr) toast('TG xabar yuborilmadi: ' + (tgErr.message || tgErr), 'err');
       else if (tgData && tgData.sent === false) toast('TG xabar yuborilmadi: ' + (tgData.reason || tgData.error || 'noma\'lum'), 'err');
       else if (tgData && tgData.sent === true) toast('📨 Telegram\'ga ham yuborildi', 'ok');
-    } catch (e) { toast('TG xato: ' + (e?.message || e), 'err'); }
+    } catch (e) { toast('TG xato: ' + translateErr(e?.message || String(e)), 'err'); }
 
     showMsg($('iMsg'), '✅ Taklif yuborildi. Botda xabar bordi va saytga ro\'yxatdan o\'tgach bell\'ida ko\'radi.', 'ok');
     inviteFromTgUserId = null;
@@ -10635,7 +10664,7 @@ async function phUploadPhoto() {
     toast('✓ Rasm yuklandi', 'ok');
     logActivity('employee_photo_uploaded', { entityType: 'employee', entityId: uid, entityTitle: nm.full });
   } catch (e) {
-    toast('Rasm yuklanmadi: ' + (e.message || String(e)), 'err');
+    toast('Rasm yuklanmadi: ' + translateErr(e.message || String(e)), 'err');
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = '📷 Rasm yuklash'; }
     if (inp) inp.value = '';
@@ -11040,7 +11069,7 @@ async function schSaveDays() {
     toast('✓ ' + rows.length + ' kun saqlandi (' + offN + ' dam kuni)', 'ok');
     logActivity('schedule_days_regenerated', { entityType: 'employee', entityId: uid, entityTitle: 'Ish jadvali', details: { mode: mode, days: rows.length, off: offN } });
   } catch (e) {
-    toast('Kunlarni saqlashda xato: ' + (e.message || String(e)), 'err');
+    toast('Kunlarni saqlashda xato: ' + translateErr(e.message || String(e)), 'err');
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = '📅 Kunlarni saqlash'; }
   }
@@ -11169,7 +11198,7 @@ async function empDtlSave() {
     logActivity('employee_updated', { entityType: 'employee', entityId: uid, entityTitle: newFull || oldFull });
     renderEmployee();
   } catch (e) {
-    toast('Saqlanmadi: ' + (e.message || e), 'err');
+    toast('Saqlanmadi: ' + translateErr(e.message || String(e)), 'err');
   }
   if (btn) { btn.disabled = false; btn.textContent = 'Saqlash'; }
 }
@@ -11226,7 +11255,7 @@ async function empAddPosInline() {
       sel.value = id;
     }
     toast('✓ Lavozim qo\'shildi — biriktirish uchun "Saqlash"ni bosing', 'ok');
-  } catch (e) { toast('Qo\'shilmadi: ' + (e.message || e), 'err'); }
+  } catch (e) { toast('Qo\'shilmadi: ' + translateErr(e.message || String(e)), 'err'); }
 }
 
 async function empAddRoleInline() {
@@ -11252,7 +11281,7 @@ async function empAddRoleInline() {
     }
     logActivity('employee_role_created', { entityType: 'employee', entityId: data.id, entityTitle: label });
     toast('✓ Rol qo\'shildi — biriktirish uchun "Saqlash"ni bosing', 'ok');
-  } catch (e) { toast('Qo\'shilmadi: ' + (e.message || e), 'err'); }
+  } catch (e) { toast('Qo\'shilmadi: ' + translateErr(e.message || String(e)), 'err'); }
 }
 
 async function empAddLink() {
@@ -11277,7 +11306,7 @@ async function empAddLink() {
     toast('✓ Havola qo\'shildi', 'ok');
     logActivity('employee_link_added', { entityType: 'employee', entityId: uid, entityTitle: title });
     renderEmployee();
-  } catch (e) { toast('Qo\'shilmadi: ' + (e.message || e), 'err'); }
+  } catch (e) { toast('Qo\'shilmadi: ' + translateErr(e.message || String(e)), 'err'); }
 }
 
 async function empDelLink(id) {
@@ -11292,7 +11321,7 @@ async function empDelLink(id) {
     toast('✓ O\'chirildi', 'ok');
     logActivity('employee_link_removed', { entityType: 'employee', entityId: _empDtlUid, entityTitle: title });
     renderEmployee();
-  } catch (e) { toast('O\'chirilmadi: ' + (e.message || e), 'err'); }
+  } catch (e) { toast('O\'chirilmadi: ' + translateErr(e.message || String(e)), 'err'); }
 }
 
 async function empChangePassword() {
@@ -11711,7 +11740,7 @@ async function hrImportFilePicked() {
     _hrImpFileText = await f.text();
   } catch (e) {
     info.textContent = '';
-    showMsg($('hrImpMsg'), 'Faylni o\'qib bo\'lmadi: ' + (e.message || e), 'err');
+    showMsg($('hrImpMsg'), 'Faylni o\'qib bo\'lmadi: ' + translateErr(e.message || String(e)), 'err');
     inp.value = '';
     return;
   }
@@ -11746,7 +11775,7 @@ function hrImportBack() {
 function hrImportParseJson(text) {
   let parsed;
   try { parsed = JSON.parse(text); }
-  catch (e) { return { ok: false, reason: 'JSON o\'qib bo\'lmadi: ' + (e.message || e) }; }
+  catch (e) { return { ok: false, reason: 'JSON o\'qib bo\'lmadi: ' + translateErr(e.message || String(e)) }; }
   if (Array.isArray(parsed)) return { ok: true, rows: parsed, doc: {} };
   if (parsed && typeof parsed === 'object') {
     const key = ['employees', 'data', 'rows', 'staff', 'items', 'result'].find(function (k) { return Array.isArray(parsed[k]); });
@@ -11938,7 +11967,7 @@ async function hrImportPreflight() {
 
     hrImportRenderPreflight();
   } catch (e) {
-    showMsg($('hrImpMsg'), 'Tekshirib bo\'lmadi: ' + (e.message || e), 'err');
+    showMsg($('hrImpMsg'), 'Tekshirib bo\'lmadi: ' + translateErr(e.message || String(e)), 'err');
   }
   btn.disabled = false; btn.textContent = 'Tekshirish';
 }
@@ -12384,7 +12413,7 @@ async function hrImportRun() {
     logActivity('staff_imported', { entityType: 'employee', entityTitle: HR_IMP_SOURCE, details: { run_id: runId, summary: idn.summary } });
     hrImportRenderReport(idn, det, runId);
   } catch (e) {
-    showMsg($('hrImpMsg'), 'Import xatosi: ' + (e.message || e), 'err');
+    showMsg($('hrImpMsg'), 'Import xatosi: ' + translateErr(e.message || String(e)), 'err');
     btn.disabled = false; btn.textContent = 'Qayta urinish';
     return;
   }
@@ -12509,7 +12538,7 @@ function renderNotifs() {
 async function openNotifTask(wsId, taskId, notifId, commentId) {
   // Mark read
   if (notifId) {
-    try { await sb.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', notifId); } catch(e){}
+    try { const { error } = await sb.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', notifId); if (error) throw error; } catch(e){ console.error('notif read belgilash:', e); }
   }
   $('notifPanel').classList.remove('show');
   // Switch workspace if needed
@@ -12547,13 +12576,17 @@ function toggleNotif(e) {
 async function markNonInviteRead() {
   const ids = notifs.filter(n => !n.read_at && n.kind !== 'invitation').map(n => n.id);
   if (!ids.length) return;
-  await sb.from('notifications').update({ read_at: new Date().toISOString() }).in('id', ids);
+  // Panel ochilganda avtomatik ishlaydi — toast bermaymiz, lekin xatoni jimgina yutmaymiz.
+  const { error } = await sb.from('notifications').update({ read_at: new Date().toISOString() }).in('id', ids);
+  if (error) { console.error('markNonInviteRead:', error); return; }
   await loadNotifs();
 }
 async function markAllRead() {
   const ids = notifs.filter(n => !n.read_at).map(n => n.id);
   if (!ids.length) return;
-  await sb.from('notifications').update({ read_at: new Date().toISOString() }).in('id', ids);
+  // Foydalanuvchi tugma bosdi — muvaffaqiyatsiz bo'lsa xabar beramiz (jimgina yutmaymiz).
+  const { error } = await sb.from('notifications').update({ read_at: new Date().toISOString() }).in('id', ids);
+  if (error) { console.error('markAllRead:', error); toast('Belgilanmadi: ' + translateErr(error.message || String(error)), 'err'); return; }
   await loadNotifs();
 }
 async function acceptInvite(invId) {
@@ -12719,7 +12752,7 @@ async function pendingApprove(botUserId, name) {
     // tg users list ham yangilash
     setTimeout(() => { if (currentPage === 'tgusers') loadTgUsers(); }, 500);
   } catch (e) {
-    toast('❌ ' + (e.message || e), 'err');
+    toast('❌ ' + translateErr(e.message || String(e)), 'err');
   }
 }
 
@@ -12735,7 +12768,7 @@ async function pendingReject(botUserId, name) {
     toast('✗ ' + name + ' bekor qilindi', 'ok');
     loadPendingList();
   } catch (e) {
-    toast('❌ ' + (e.message || e), 'err');
+    toast('❌ ' + translateErr(e.message || String(e)), 'err');
   }
 }
 
@@ -13083,7 +13116,7 @@ async function tgVerifyToken() {
       '<div class="bp-user">@' + escapeHtml(data.bot_username) + '</div></div>';
     tgGoStep(3);
   } catch (e) {
-    showMsg($('tgVerifyMsg'), 'Tekshirib bo\'lmadi: ' + (e?.message || e), 'err');
+    showMsg($('tgVerifyMsg'), 'Tekshirib bo\'lmadi: ' + translateErr(e?.message || String(e)), 'err');
     btn.disabled = false; btn.textContent = 'Tekshirish';
   }
 }
@@ -13218,10 +13251,11 @@ async function tgNotifyAssignment(taskId, target) {
     [{ text: '💬 Izoh yozish', callback_data: 'taskcomment:' + taskId }],
   ];
   try {
-    await sb.functions.invoke('tg-send', {
+    const { error } = await sb.functions.invoke('tg-send', {
       body: { workspace_id: currentWs.id, target, text: lines, inline_keyboard }
     });
-  } catch (e) { /* sokin xato */ }
+    if (error) throw error;
+  } catch (e) { console.error('tgNotifyAssignment:', e); }
 }
 
 // Tahrirlash uchun: vazifa biriktirilgan foydalanuvchiga xabar yuborish
@@ -13290,10 +13324,11 @@ async function tgNotifyTaskEdit(task, field, oldValue, newValue) {
     [{ text: '📋 Batafsil', callback_data: 'taskstatus:view:' + task.id }],
   ];
   try {
-    await sb.functions.invoke('tg-send', {
+    const { error } = await sb.functions.invoke('tg-send', {
       body: { workspace_id: currentWs.id, target, text: lines, inline_keyboard }
     });
-  } catch (e) { /* sokin */ }
+    if (error) throw error;
+  } catch (e) { console.error('tgNotifyTaskEdit:', e); }
 }
 
 async function init() {
