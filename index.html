@@ -722,6 +722,30 @@
 
 <div id="loadingView" class="loading">Yuklanmoqda…</div>
 
+<!-- ONBOARDING: workspace yo'q bo'lsa — kompaniya yaratish (cheksiz loading emas) -->
+<div id="onbBoardView" class="loading" style="display:none;flex-direction:column;">
+  <div style="width:100%;max-width:420px;padding:0 20px;box-sizing:border-box;">
+    <div style="font-size:44px;text-align:center;margin-bottom:6px;">🏢</div>
+    <h2 style="text-align:center;margin:0 0 6px;color:var(--ink);font-size:20px;">Kompaniyangizni yarating</h2>
+    <p style="text-align:center;color:var(--muted);font-size:13px;margin:0 0 20px;line-height:1.5;">Boshlash uchun kompaniya nomini kiriting. Siz uning egasi bo'lasiz — 14 kun bepul sinov.</p>
+    <div class="field"><input id="onbBoardName" type="text" placeholder="Masalan: MyCompany" onkeydown="if(event.key==='Enter'){onbBoardCreate();}" /></div>
+    <div class="msg" id="onbBoardMsg"></div>
+    <button class="btn" id="onbBoardCreateBtn" onclick="onbBoardCreate()" style="width:100%;margin-top:12px;">Yaratish</button>
+    <button class="btn secondary" onclick="doLogout()" style="width:100%;margin-top:8px;">Chiqish</button>
+  </div>
+</div>
+
+<!-- BOOTSTRAP XATOSI: har qadam jimgina yiqilmasin -->
+<div id="bootErrView" class="loading" style="display:none;flex-direction:column;">
+  <div style="width:100%;max-width:420px;padding:0 20px;box-sizing:border-box;text-align:center;">
+    <div style="font-size:44px;margin-bottom:6px;">⚠️</div>
+    <h2 style="margin:0 0 6px;color:var(--ink);font-size:19px;">Ma'lumotlarni yuklab bo'lmadi</h2>
+    <p id="bootErrMsg" style="color:var(--muted);font-size:13px;margin:0 0 20px;line-height:1.5;word-break:break-word;"></p>
+    <button class="btn" id="bootErrRetryBtn" onclick="bootstrap()" style="width:100%;">Qaytadan urinish</button>
+    <button class="btn secondary" onclick="doLogout()" style="width:100%;margin-top:8px;">Chiqish</button>
+  </div>
+</div>
+
 <!-- AUTH -->
 <div class="shell" id="authShell" style="display:none">
   <aside class="brand">
@@ -3107,8 +3131,26 @@ function setMode(m) {
   hideMsg($('authMsg'));
 }
 function switchToLoginKeepEmail() { setMode('login'); $('password').value = ''; $('password').focus(); }
-function showAuth() { $('loadingView').style.display = 'none'; $('authShell').style.display = 'grid'; $('appView').classList.remove('show'); $('authStep').style.display = 'block'; $('forgotStep').style.display = 'none'; $('resetStep').style.display = 'none'; }
-function showApp() { $('loadingView').style.display = 'none'; $('authShell').style.display = 'none'; $('appView').classList.add('show'); }
+function _hideBootViews() { const o = $('onbBoardView'); if (o) o.style.display = 'none'; const b = $('bootErrView'); if (b) b.style.display = 'none'; }
+function showLoading() { _hideBootViews(); $('loadingView').style.display = 'flex'; $('authShell').style.display = 'none'; $('appView').classList.remove('show'); }
+// Workspace topilmasa — cheksiz loading emas, kompaniya yaratish ekrani
+function showOnboard() {
+  $('loadingView').style.display = 'none'; $('authShell').style.display = 'none'; $('appView').classList.remove('show');
+  const b = $('bootErrView'); if (b) b.style.display = 'none';
+  const btn = $('onbBoardCreateBtn'); if (btn) { btn.disabled = false; btn.textContent = 'Yaratish'; }
+  const msg = $('onbBoardMsg'); if (msg) hideMsg(msg);
+  const o = $('onbBoardView'); if (o) o.style.display = 'flex';
+  const inp = $('onbBoardName'); if (inp) setTimeout(function () { try { inp.focus(); } catch (e) {} }, 60);
+}
+// Bootstrap zanjirining qadamlari xatoda jimgina yiqilmasin
+function showBootErr(msg) {
+  $('loadingView').style.display = 'none'; $('authShell').style.display = 'none'; $('appView').classList.remove('show');
+  const o = $('onbBoardView'); if (o) o.style.display = 'none';
+  const m = $('bootErrMsg'); if (m) m.textContent = msg || 'Kutilmagan xatolik.';
+  const b = $('bootErrView'); if (b) b.style.display = 'flex';
+}
+function showAuth() { _hideBootViews(); $('loadingView').style.display = 'none'; $('authShell').style.display = 'grid'; $('appView').classList.remove('show'); $('authStep').style.display = 'block'; $('forgotStep').style.display = 'none'; $('resetStep').style.display = 'none'; }
+function showApp() { _hideBootViews(); $('loadingView').style.display = 'none'; $('authShell').style.display = 'none'; $('appView').classList.add('show'); }
 function goForgot() { $('loadingView').style.display='none'; $('authShell').style.display='grid'; $('appView').classList.remove('show'); $('authStep').style.display='none'; $('forgotStep').style.display='block'; $('resetStep').style.display='none'; $('fEmail').value = $('email').value.trim(); hideMsg($('fMsg')); }
 function backToLogin() { setMode('login'); showAuth(); }
 function showResetStep() { $('loadingView').style.display='none'; $('authShell').style.display='grid'; $('appView').classList.remove('show'); $('authStep').style.display='none'; $('forgotStep').style.display='none'; $('resetStep').style.display='block'; hideMsg($('rMsg')); }
@@ -3539,11 +3581,51 @@ async function notifyN8n(event, payload) {
 }
 
 async function bootstrap() {
-  const { data: { user } } = await sb.auth.getUser();
+  showLoading(); // qayta urinishda ham loading ko'rinsin
+
+  // ── 1) Foydalanuvchi ──
+  let user = null;
+  try {
+    const { data, error } = await sb.auth.getUser();
+    if (error) throw error;
+    user = data && data.user;
+  } catch (e) {
+    showBootErr('Sessiyani tekshirishda xatolik: ' + (e && e.message ? e.message : String(e)));
+    return;
+  }
   me = user;
   if (!me) { showAuth(); return; }
 
-  const { data: prof } = await sb.from('profiles').select('*').eq('id', me.id).maybeSingle();
+  // ── 2) Profil o'qish ──
+  let prof = null;
+  try {
+    const { data, error } = await sb.from('profiles').select('*').eq('id', me.id).maybeSingle();
+    if (error) throw error;
+    prof = data;
+  } catch (e) {
+    showBootErr('Profil ma\'lumotini o\'qishda xatolik: ' + (e && e.message ? e.message : String(e)));
+    return;
+  }
+
+  // ── 2b) Profil yo'q bo'lsa — o'zimiz yaratamiz (trigger poygasi 23505 → xato emas) ──
+  if (!prof) {
+    const md0 = me.user_metadata || {};
+    const fullName = md0.full_name || md0.first_name
+      || (me.email ? me.email.split('@')[0] : '') || 'Foydalanuvchi';
+    try {
+      const { data: ins, error: insErr } = await sb.from('profiles')
+        .insert({ id: me.id, full_name: fullName }).select().maybeSingle();
+      if (insErr && insErr.code !== '23505') throw insErr;
+      prof = ins || null;
+      if (!prof) {
+        const { data: re } = await sb.from('profiles').select('*').eq('id', me.id).maybeSingle();
+        prof = re || null;
+      }
+    } catch (e) {
+      showBootErr('Profil yaratishda xatolik: ' + (e && e.message ? e.message : String(e)));
+      return;
+    }
+  }
   myProfile = prof || { id: me.id };
 
   // Signup metadata'dan profilni to'ldiramiz (birinchi kirish). Mavjud qiymatni BOSMAYMIZ.
@@ -3578,12 +3660,17 @@ async function bootstrap() {
     try { history.replaceState({}, '', location.pathname); } catch (e) {}
   }
 
-  await loadWorkspaces();
+  // ── 3) Workspace ro'yxati ──
+  let wsErr = await loadWorkspaces();
+  if (wsErr) { showBootErr('Workspace ro\'yxatini o\'qishda xatolik: ' + (wsErr.message || String(wsErr))); return; }
   if (!workspaces.length) {
+    // Trigger poygasi bo'lishi mumkin — bir marta qayta urinamiz
     await new Promise(r => setTimeout(r, 800));
-    await loadWorkspaces();
+    wsErr = await loadWorkspaces();
+    if (wsErr) { showBootErr('Workspace ro\'yxatini o\'qishda xatolik: ' + (wsErr.message || String(wsErr))); return; }
   }
-  if (!workspaces.length) { toast('Workspace topilmadi — qaytadan kiring', 'err'); return; }
+  // Yangi mijoz — hali kompaniyasi yo'q: cheksiz loading emas, yaratish ekrani
+  if (!workspaces.length) { showOnboard(); return; }
 
   const stored = localStorage.getItem('current_ws_' + me.id);
   // Taklif orqali kirsa — o'sha workspace'ni ochamiz
@@ -3629,8 +3716,9 @@ async function bootstrap() {
 }
 
 async function loadWorkspaces() {
-  const { data } = await sb.from('workspaces').select('*').order('kind', { ascending: true }).order('created_at', { ascending: true });
+  const { data, error } = await sb.from('workspaces').select('*').order('kind', { ascending: true }).order('created_at', { ascending: true });
   workspaces = data || [];
+  return error || null; // chaqiruvchi tekshirishi mumkin (mavjud chaqiruvlar qiymatni e'tiborsiz qoldiradi)
 }
 
 async function loadCurrentContext() {
@@ -4171,6 +4259,47 @@ async function onbFinish() {
 
 // Eski funksiya — agar nimadir chaqirsa
 async function createWs() { onbFinish(); }
+
+// Onboarding ekrani (workspace yo'q) — yangi mijoz o'z kompaniyasini yaratadi.
+// onbFinish naqshini takrorlaydi, lekin sodda: nom → org workspace → owner a'zolik → ilova.
+async function onbBoardCreate() {
+  const name = $('onbBoardName').value.trim();
+  const msgEl = $('onbBoardMsg');
+  if (!name) { showMsg(msgEl, 'Kompaniya nomini kiriting.', 'err'); return; }
+  const btn = $('onbBoardCreateBtn');
+  btn.disabled = true; btn.textContent = 'Yaratilmoqda…';
+  hideMsg(msgEl);
+  try {
+    // 1) Workspace (egasi = joriy foydalanuvchi)
+    const { data: ws, error: e1 } = await sb.from('workspaces').insert({
+      kind: 'organization', name: name, owner_id: me.id
+    }).select().single();
+    if (e1) throw e1;
+
+    // 2) Owner a'zolik. Agar DB trigger allaqachon qo'shgan bo'lsa — 23505 (dublikat) → xato emas.
+    const { error: e2 } = await sb.from('workspace_members').insert({
+      workspace_id: ws.id, user_id: me.id, role: 'owner'
+    });
+    if (e2 && e2.code !== '23505') throw e2;
+
+    // 3) Birinchi bo'lim (best-effort — asosiy oqimni bloklamaydi)
+    try { await sb.from('departments').insert({ workspace_id: ws.id, name: 'Umumiy', sort_order: 1 }); } catch (e) { /* sokin */ }
+
+    // 4) Ilovaga o'tish
+    await loadWorkspaces();
+    currentWs = workspaces.find(w => w.id === ws.id) || ws;
+    await loadCurrentContext();
+    showApp();
+    goPage('dashboard');
+    toast('🎉 Kompaniya yaratildi! Xush kelibsiz.', 'ok');
+    loadNotifs();
+    if (window._bellTimer) clearInterval(window._bellTimer);
+    window._bellTimer = setInterval(loadNotifs, 30000);
+  } catch (e) {
+    showMsg(msgEl, translateErr(e && e.message ? e.message : String(e)), 'err');
+    btn.disabled = false; btn.textContent = 'Yaratish';
+  }
+}
 
 // ============ ROUTING ============
 function toggleTgSidebar() {
