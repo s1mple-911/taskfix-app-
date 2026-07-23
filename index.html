@@ -10473,7 +10473,7 @@ async function sendInvite() {
       showMsg($('iMsg'), '✅ Xodim yaratildi va bo\'limlarga qo\'shildi', 'ok');
       if (res.email_sent) toast('📧 Parol o\'rnatish emaili yuborildi: ' + email, 'ok');
       else toast('⚠ Email yuborilmadi' + (res.email_error ? (': ' + res.email_error) : ''), 'err');
-      if (currentPage === 'team') { await loadTeamData?.(); renderTeam(); }
+      if (currentPage === 'team') { await reloadMembers(); }
       setTimeout(() => closeInvite(), 900);
     } catch (e) {
       showMsg($('iMsg'), 'Xato: ' + (e.message || e), 'err');
@@ -12370,7 +12370,7 @@ async function hrImportRun() {
     // allaqachon bo'lishi kerak. throw qilmaydi — 404'lar importni yiqitmasin.
     det.photos = await hrImportPhotos(_hrImpPre.ok, idn.results);
     await loadHrData(true);
-    if (typeof loadTeamData === 'function') await loadTeamData();
+    if (currentPage === 'team') await reloadMembers();
     logActivity('staff_imported', { entityType: 'employee', entityTitle: HR_IMP_SOURCE, details: { run_id: runId, summary: idn.summary } });
     hrImportRenderReport(idn, det, runId);
   } catch (e) {

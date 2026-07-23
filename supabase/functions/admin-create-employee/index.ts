@@ -25,7 +25,7 @@
 
 import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const VERSION = 'v4-2026-07-23';
+const VERSION = 'v4.1-invite-2026-07-23';
 
 const CORS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -94,29 +94,67 @@ Deno.serve(async (req: Request) => {
       return fail('forbidden', 'Faqat workspace owner yoki admin', 403);
     }
 
-    // ---- 4) Foydalanuvchi: mavjudmi yoki yangi ----
-    // Mavjudlikni recovery-link generatsiyasi bilan tekshiramiz (email YUBORMAYDI,
-    // yo'q bo'lsa xato qaytaradi — user AVTOMATIK YARATILMAYDI).
+    // ---- 4) Foydalanuvchi + parol o'rnatish emaili ----
+    // YANGI user uchun admin `inviteUserByEmail` — user yaratadi VA email yuboradi
+    // (admin yo'li, recovery'ning 60s rate-limitiga tushmaydi). MAVJUD user bo'lsa
+    // "already registered" xato → id ni topib, qayta email (resetPasswordForEmail).
     let userId: string | null = null;
     let created = false;
+    let emailSent = false;
+    let emailError: string | null = null;
 
-    const probe = await admin.auth.admin.generateLink({
-      type: 'recovery', email, options: redirectTo ? { redirectTo } : undefined,
+    const meta: Record<string, unknown> = {};
+    if (fullName) meta.full_name = fullName;
+    if (phone) meta.phone = phone;
+
+    const inv = await admin.auth.admin.inviteUserByEmail(email, {
+      data: meta, redirectTo,
     });
-    if (!probe.error && probe.data?.user) {
-      userId = probe.data.user.id;
-    } else {
-      const meta: Record<string, unknown> = {};
-      if (fullName) meta.full_name = fullName;
-      if (phone) meta.phone = phone;
-      const cu = await admin.auth.admin.createUser({
-        email, email_confirm: true, user_metadata: meta,
-      });
-      if (cu.error || !cu.data?.user) {
-        return fail('create_user', cu.error?.message || 'Foydalanuvchi yaratilmadi', 500);
-      }
-      userId = cu.data.user.id;
+    if (!inv.error && inv.data?.user) {
+      // YANGI user — invite email yuborildi
+      userId = inv.data.user.id;
       created = true;
+      emailSent = true;
+    } else {
+      const invMsg = inv.error?.message || 'invite xato';
+      const already = /already|registered|exist/i.test(invMsg)
+        || (inv.error as { status?: number } | null)?.status === 422;
+
+      // user id ni topamiz (recovery-link — email YUBORMAYDI). Invite SMTP xato
+      // bersa ham user yaratilgan bo'lishi mumkin — probe topadi.
+      const probe = await admin.auth.admin.generateLink({
+        type: 'recovery', email, options: redirectTo ? { redirectTo } : undefined,
+      });
+      if (!probe.error && probe.data?.user) {
+        userId = probe.data.user.id;
+        created = !already;
+      } else {
+        // Haqiqatan yo'q — o'zimiz yaratamiz (emailsiz)
+        const cu = await admin.auth.admin.createUser({
+          email, email_confirm: true, user_metadata: meta,
+        });
+        if (cu.error || !cu.data?.user) {
+          return fail('create_user', cu.error?.message || invMsg, 500);
+        }
+        userId = cu.data.user.id;
+        created = true;
+      }
+
+      if (already) {
+        // MAVJUD user — parol o'rnatish emailini qayta yuboramiz (rate-limit bo'lishi mumkin)
+        try {
+          const anon: SupabaseClient = createClient(SUPABASE_URL, ANON_KEY || SERVICE_KEY);
+          const { error: rErr } = await anon.auth.resetPasswordForEmail(
+            email, redirectTo ? { redirectTo } : undefined,
+          );
+          if (rErr) emailError = rErr.message; else emailSent = true;
+        } catch (e) {
+          emailError = String(e);
+        }
+      } else {
+        // Invite email yuborilmadi (masalan Supabase SMTP sozlanmagan) — user yaratildi
+        emailError = invMsg;
+      }
     }
 
     // ---- 5) Profil (best-effort — trigger allaqachon yaratishi mumkin) ----
@@ -165,21 +203,7 @@ Deno.serve(async (req: Request) => {
       } catch (_) { /* sokin */ }
     }
 
-    // ---- 9) Parol o'rnatish emaili (Supabase SMTP) ----
-    // resetPasswordForEmail — yangi ham, mavjud user ham ishlaydi. SMTP yo'q bo'lsa
-    // email_error qaytadi (frontend "SMTP sozlamasini tekshiring" deb ko'rsatadi).
-    let emailSent = false;
-    let emailError: string | null = null;
-    try {
-      const anon: SupabaseClient = createClient(SUPABASE_URL, ANON_KEY || SERVICE_KEY);
-      const { error: rErr } = await anon.auth.resetPasswordForEmail(
-        email, redirectTo ? { redirectTo } : undefined,
-      );
-      if (rErr) emailError = rErr.message; else emailSent = true;
-    } catch (e) {
-      emailError = String(e);
-    }
-
+    // (Email 4-bosqichda yuborilgan — emailSent/emailError to'ldirilgan)
     return json({
       ok: true, v: VERSION, user_id: userId, created,
       email_sent: emailSent, email_error: emailError,
