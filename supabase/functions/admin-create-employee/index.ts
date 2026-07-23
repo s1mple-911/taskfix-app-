@@ -25,7 +25,7 @@
 
 import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const VERSION = 'v4.1-invite-2026-07-23';
+const VERSION = 'v4.2-listusers-2026-07-23';
 
 const CORS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -42,6 +42,21 @@ function json(body: unknown, status = 200): Response {
 
 function fail(error: string, detail?: string, status = 400): Response {
   return json({ ok: false, error, detail: detail ?? null, v: VERSION }, status);
+}
+
+// Email bo'yicha auth foydalanuvchini topamiz — rate-limitsiz (listUsers), ishonchli.
+// generateLink/recovery'ga TAYANMAYMIZ (u 60s rate-limitga tushadi).
+async function findUserByEmail(admin: SupabaseClient, email: string) {
+  const target = email.toLowerCase();
+  for (let page = 1; page <= 20; page++) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
+    if (error) break;
+    const users = (data?.users || []) as Array<{ id: string; email?: string }>;
+    const hit = users.find((u) => (u.email || '').toLowerCase() === target);
+    if (hit) return hit;
+    if (users.length < 200) break; // oxirgi sahifa
+  }
+  return null;
 }
 
 Deno.serve(async (req: Request) => {
@@ -107,53 +122,49 @@ Deno.serve(async (req: Request) => {
     if (fullName) meta.full_name = fullName;
     if (phone) meta.phone = phone;
 
-    const inv = await admin.auth.admin.inviteUserByEmail(email, {
-      data: meta, redirectTo,
-    });
-    if (!inv.error && inv.data?.user) {
-      // YANGI user — invite email yuborildi
-      userId = inv.data.user.id;
-      created = true;
-      emailSent = true;
-    } else {
-      const invMsg = inv.error?.message || 'invite xato';
-      const already = /already|registered|exist/i.test(invMsg)
-        || (inv.error as { status?: number } | null)?.status === 422;
+    // Mavjudmi? — auth ro'yxatidan email bo'yicha qidiramiz (rate-limitsiz).
+    const existing = await findUserByEmail(admin, email);
 
-      // user id ni topamiz (recovery-link — email YUBORMAYDI). Invite SMTP xato
-      // bersa ham user yaratilgan bo'lishi mumkin — probe topadi.
-      const probe = await admin.auth.admin.generateLink({
-        type: 'recovery', email, options: redirectTo ? { redirectTo } : undefined,
-      });
-      if (!probe.error && probe.data?.user) {
-        userId = probe.data.user.id;
-        created = !already;
-      } else {
-        // Haqiqatan yo'q — o'zimiz yaratamiz (emailsiz)
-        const cu = await admin.auth.admin.createUser({
-          email, email_confirm: true, user_metadata: meta,
-        });
-        if (cu.error || !cu.data?.user) {
-          return fail('create_user', cu.error?.message || invMsg, 500);
-        }
-        userId = cu.data.user.id;
-        created = true;
+    if (existing) {
+      // MAVJUD user — id ni olamiz, parol emailini QAYTA yuboramiz.
+      // resetPasswordForEmail rate-limit (60s) bo'lishi mumkin → email_error'da ko'rsatamiz,
+      // lekin baribir ok:true qaytaramiz (non-2xx BERMAYMIZ).
+      userId = existing.id;
+      created = false;
+      try {
+        const anon: SupabaseClient = createClient(SUPABASE_URL, ANON_KEY || SERVICE_KEY);
+        const { error: rErr } = await anon.auth.resetPasswordForEmail(
+          email, redirectTo ? { redirectTo } : undefined,
+        );
+        if (rErr) emailError = rErr.message; else emailSent = true;
+      } catch (e) {
+        emailError = String(e);
       }
-
-      if (already) {
-        // MAVJUD user — parol o'rnatish emailini qayta yuboramiz (rate-limit bo'lishi mumkin)
-        try {
-          const anon: SupabaseClient = createClient(SUPABASE_URL, ANON_KEY || SERVICE_KEY);
-          const { error: rErr } = await anon.auth.resetPasswordForEmail(
-            email, redirectTo ? { redirectTo } : undefined,
-          );
-          if (rErr) emailError = rErr.message; else emailSent = true;
-        } catch (e) {
-          emailError = String(e);
-        }
+    } else {
+      // YANGI user — invite (yaratadi + email yuboradi, admin yo'li; recovery rate-limitiga tushmaydi).
+      const inv = await admin.auth.admin.inviteUserByEmail(email, { data: meta, redirectTo });
+      if (!inv.error && inv.data?.user) {
+        userId = inv.data.user.id;
+        created = true;
+        emailSent = true;
       } else {
-        // Invite email yuborilmadi (masalan Supabase SMTP sozlanmagan) — user yaratildi
-        emailError = invMsg;
+        // Invite email yubora olmadi (ko'pincha Supabase SMTP sozlanmagan).
+        // User yaratilgan bo'lishi mumkin — qayta qidiramiz, bo'lmasa o'zimiz yaratamiz (emailsiz).
+        emailError = inv.error?.message || 'Invite email yuborilmadi (SMTP tekshiring)';
+        const again = await findUserByEmail(admin, email);
+        if (again) {
+          userId = again.id;
+          created = true;
+        } else {
+          const cu = await admin.auth.admin.createUser({
+            email, email_confirm: true, user_metadata: meta,
+          });
+          if (cu.error || !cu.data?.user) {
+            return fail('create_user', cu.error?.message || emailError, 500);
+          }
+          userId = cu.data.user.id;
+          created = true;
+        }
       }
     }
 
