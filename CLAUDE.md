@@ -32,7 +32,7 @@ Har sessiyada BIRINCHI shu fayl o'qiladi. Har katta o'zgarishdan keyin **o'zing 
 - **Routing**: `goPage`, `rtSetHash`/`rtRouteFromHash` (hash-routing, popstate).
 - **Qidiruv**: `buildCmdItems` (cmd-palette, bo'limlarga ajratilgan).
 - **Import**: `hrImport*` (preflight 5b — telefon+ism blokeri mijozda).
-- **EF**: `admin-import-staff` (phase: identity | photos | connect), `sync-provodka-kassa` (Harajat kassa → Provodka RPC). Boshqa EF manbalari repoda YO'Q (admin-create-employee, send-email, tg-send... deployed).
+- **EF**: `admin-import-staff` (phase: identity | photos | connect), `sync-provodka-kassa` (Harajat kassa → Provodka RPC), `admin-create-employee` (v4 — xodim yaratish/topish + a'zolik + lavozim/filial + parol emaili; **repoda tiklandi 2026-07-23**, deploy kutilmoqda). Boshqa EF manbalari repoda YO'Q (send-email, tg-send, tg-webhook... deployed).
 - **Provodka integratsiyasi**: `hk*` funksiyalar (`hkSync`/`hkTableToggle`/`hkSetDb`). Jamoa jadval 💵 ustuni + hodim detali checkbox. EF `sync-provodka-kassa` env: `PROVODKA_URL`, `PROVODKA_SERVICE_KEY`.
 
 ## Ochiq masalalar
