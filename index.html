@@ -4676,6 +4676,7 @@ function taskItemHtml(t, showDept) {
         '<span>' + escapeHtml(statusName(t.status)) + '</span>' +
         (dept ? '<span class="dot-sep"></span><span>' + escapeHtml(dept) + '</span>' : '') +
         (asgName ? '<span class="dot-sep"></span><span>👤 ' + escapeHtml(asgName) + '</span>' : '') +
+        (((t.status === 'qabul_kutilyapti' || completed) && (t.bajardi_user_id || t.submitter_id)) ? '<span class="dot-sep"></span><span style="color:#059669;">' + escapeHtml('✓ ' + _nmShort(t.bajardi_user_id || t.submitter_id)) + '</span>' : '') +
         (dlText ? '<span class="dot-sep"></span><span class="' + (ov ? 'task-overdue' : '') + '">⏰ ' + dlText + '</span>' : '') +
         ((t.priority_level || 0) > 0 ? '<span class="dot-sep"></span><span>P' + t.priority_level + '</span>' : '') +
       '</div>' +
@@ -5822,15 +5823,19 @@ function renderDetailBody() {
 
   // Build body
   // Qabul qiluvchi + tarix qatorlari
-  const _nm = (uid) => uid === me.id ? (myProfile.full_name || 'Siz') : ((wsMembers.find(m => m.user_id === uid)?.profile?.full_name) || 'A\'zo');
+  const _nm = (uid) => uid === me.id ? (myProfile.full_name || 'Siz') : ((wsMembers.find(m => m.user_id === uid)?.profile?.full_name) || ((wsMembers.find(m => m.user_id === uid)?.profile?.email) || 'Noma\'lum'));
+  // "Bajardi" — kim vazifani bajarilgan deb belgiladi + qachon.
+  // Manba: bajardi_user_id (TASKFIX_V8), zaxira: submitter_id (acceptor-oqimi). Vaqt: bajardi_at → completed_at.
+  let bajardiLine = '';
+  const _bajUid = t.bajardi_user_id || t.submitter_id || null;
+  if (_bajUid && (t.status === 'completed' || t.status === 'qabul_kutilyapti')) {
+    const _bajAt = t.bajardi_at || t.completed_at || null;
+    bajardiLine = '<div class="detail-row"><div class="lbl">Bajardi</div><div class="val" style="font-weight:600;color:#059669;">✓ ' + escapeHtml(_nm(_bajUid)) + (_bajUid === me.id ? ' <span style="color:var(--muted);font-weight:400;">(siz)</span>' : '') + (_bajAt ? ' <span style="color:var(--muted);font-weight:400;">· ' + fmtDeadline(_bajAt) + '</span>' : '') + '</div></div>';
+  }
   let acceptorLine = '';
   if (t.acceptor_id) {
     // Qabul qiluvchi
     acceptorLine += '<div class="detail-row"><div class="lbl">Qabul qiluvchi</div><div class="val">' + escapeHtml(_nm(t.acceptor_id)) + (t.acceptor_id === me.id ? ' <span style="color:var(--muted)">(siz)</span>' : '') + '</div></div>';
-    // Kim bajarib topshirgan (submitter) — agar qabul jarayonidan o'tgan bo'lsa
-    if (t.submitter_id) {
-      acceptorLine += '<div class="detail-row"><div class="lbl">Bajarib topshirdi</div><div class="val">' + escapeHtml(_nm(t.submitter_id)) + '</div></div>';
-    }
     // Qabul qilingan vaqt
     if (t.accepted_at) {
       acceptorLine += '<div class="detail-row"><div class="lbl">Qabul qilindi</div><div class="val">✅ ' + escapeHtml(_nm(t.acceptor_id)) + ' · ' + fmtDeadline(t.accepted_at) + '</div></div>';
@@ -5839,8 +5844,12 @@ function renderDetailBody() {
   // Qabul qiluvchi uchun action banner (status = qabul kutilyapti)
   let acceptBanner = '';
   if (t.acceptor_id === me.id && t.status === 'qabul_kutilyapti') {
+    const _bwUid = t.bajardi_user_id || t.submitter_id || null;
+    const _bwAt = t.bajardi_at || t.completed_at || null;
+    const _bwLine = _bwUid ? '<div style="font-size:12.5px;color:#92400E;margin-bottom:8px;"><b>Bajardi:</b> ' + escapeHtml(_nm(_bwUid)) + (_bwAt ? ' · ' + fmtDeadline(_bwAt) : '') + '</div>' : '';
     acceptBanner = '<div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:12px;padding:14px;margin-bottom:14px;">' +
       '<div style="font-size:13.5px;font-weight:600;color:#92400E;margin-bottom:4px;">📤 Bu vazifa bajarildi va sizning qabulingizni kutmoqda</div>' +
+      _bwLine +
       '<div style="font-size:12.5px;color:#92400E;margin-bottom:10px;">Tekshiring: ish to\'g\'ri bajarilgan bo\'lsa qabul qiling, aks holda bajaruvchiga qaytaring.</div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
         '<button class="btn" style="background:#10B981;border-color:#10B981;" onclick="acceptTask(' + t.id + ')">✅ Qabul qildim</button>' +
@@ -5855,6 +5864,7 @@ function renderDetailBody() {
     titleHtml +
     descHtml +
     '<div class="detail-row"><div class="lbl">Holat</div><div class="val"><div class="status-pick">'+statusBtns+'</div></div></div>' +
+    bajardiLine +
     deptHtml +
     (asgLine ? '<div class="detail-row"><div class="lbl">Biriktirildi</div><div class="val">'+escapeHtml(asgLine)+'</div></div>' : '') +
     acceptorLine +
@@ -6359,6 +6369,22 @@ async function changeStatus(id, newStatus) {
     toast(newStatus === 'qabul_kutilyapti' ? '📤 Qabul qiluvchiga topshirildi' : '✅ Holat yangilandi', 'ok');
     refreshActiveView();
     if (currentDetailId === id) renderDetailBody();
+    // "Bajardi" kuzatuvi — KIM va QACHON "Bajarildi" belgiladi (qabul qiluvchi ko'rishi uchun).
+    // Best-effort: yangi ustunlar (TASKFIX_V8.sql) hali ishga tushmagan bo'lsa xato faqat
+    // console'ga chiqadi, asosiy oqim buzilmaydi (submitter_id/completed_at zaxira ko'rsatiladi).
+    if (newStatus === 'completed' || newStatus === 'qabul_kutilyapti') {
+      try {
+        const { data: bd, error: be } = await sb.from('tasks')
+          .update({ bajardi_user_id: me.id, bajardi_at: new Date().toISOString() })
+          .eq('id', id).select().single();
+        if (be) { console.error('bajardi kuzatuvi:', be.message); }
+        else if (bd) {
+          const bi = tasksCache.findIndex(x => x.id === id); if (bi >= 0) tasksCache[bi] = bd;
+          if (currentDetailId === id) renderDetailBody();
+          refreshActiveView();
+        }
+      } catch (be) { console.error('bajardi kuzatuvi:', be); }
+    }
     notifyStatusToTg(data, newStatus);
     notifyN8n('task.status_changed', { task: data, new_status: newStatus });
     logActivity('task_status_changed', { entityType: 'task', entityId: id, entityTitle: data.title, details: { from: statusName(oldStatus), to: statusName(newStatus) } });
@@ -8098,7 +8124,13 @@ function tblMemberName(uid) {
   if (!uid) return '—';
   if (uid === me.id) return (myProfile.full_name || 'Siz');
   const m = (wsMembers || []).find(x => x.user_id === uid);
-  return (m && m.profile && m.profile.full_name) || 'A\'zo';
+  return (m && m.profile && (m.profile.full_name || m.profile.email)) || 'Noma\'lum';
+}
+// A'zoning qisqa (ism) ko'rinishi — kartochkalarda joy tejash uchun
+function _nmShort(uid) {
+  if (!uid) return '';
+  const full = tblMemberName(uid);
+  return String(full).trim().split(/\s+/)[0] || full;
 }
 function tblDeptName(did) {
   if (!did) return '—';
@@ -9025,6 +9057,7 @@ function renderTasksKanban(gridId) {
         '<div class="kan-card-meta">' +
           (deptName ? '<span>' + escapeHtml(deptName) + '</span>' : '') +
           (asgName ? '<span>' + escapeHtml(asgName) + '</span>' : '') +
+          (((t.status === 'qabul_kutilyapti' || isDone) && (t.bajardi_user_id || t.submitter_id)) ? '<span style="color:#059669;">' + escapeHtml('✓ ' + _nmShort(t.bajardi_user_id || t.submitter_id)) + '</span>' : '') +
           (dl ? '<span class="' + (ov ? 'task-overdue' : '') + '">⏰ ' + dl + '</span>' : '') +
           ((t.priority_level||0) > 0 ? '<span>P' + t.priority_level + '</span>' : '') +
         '</div>' +
