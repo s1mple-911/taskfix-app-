@@ -226,6 +226,27 @@
   .done-toggle.active { background:var(--accent); border-color:var(--accent-ink); color:var(--accent-ink); }
   .done-toggle.active .dt-dot { background:var(--accent-ink); border-color:var(--accent-ink); }
   .done-toggle.active .dt-dot::after { content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:10px; color:var(--accent); font-weight:700; }
+  /* ==== Xodim filtri (barcha ko'rinishlar uchun umumiy) ==== */
+  .emp-filter-bar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0 0 14px; }
+  .emp-filter-wrap { position:relative; }
+  .emp-filter-btn { display:inline-flex; align-items:center; gap:7px; padding:8px 13px; border:1px solid var(--line); border-radius:999px; background:var(--surface); font-size:13px; font-weight:600; color:var(--ink); cursor:pointer; font-family:inherit; white-space:nowrap; transition:all .12s; }
+  .emp-filter-btn:hover { border-color:var(--line-strong); }
+  .emp-filter-btn.active { background:var(--accent); border-color:var(--accent-ink); color:var(--accent-ink); }
+  .emp-filter-caret { font-size:10px; color:var(--muted); }
+  .emp-filter-panel { position:absolute; top:calc(100% + 6px); left:0; z-index:70; width:290px; max-width:80vw; background:var(--surface); border:1px solid var(--line); border-radius:14px; box-shadow:0 12px 34px rgba(0,0,0,.16); padding:10px; }
+  .emp-filter-search { width:100%; box-sizing:border-box; padding:9px 12px; border:1px solid var(--line); border-radius:10px; font-size:13px; background:var(--surface-2); font-family:inherit; color:var(--ink); margin-bottom:8px; }
+  .emp-filter-list { max-height:300px; overflow-y:auto; display:flex; flex-direction:column; gap:2px; }
+  .emp-filter-opt { display:flex; align-items:center; gap:10px; padding:7px 8px; border-radius:9px; cursor:pointer; font-size:13.5px; color:var(--ink); }
+  .emp-filter-opt:hover { background:var(--surface-2); }
+  .emp-filter-opt .efo-check { width:18px; height:18px; flex:0 0 auto; border:1.5px solid var(--line-strong); border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:12px; color:#fff; }
+  .emp-filter-opt.on .efo-check { background:var(--accent-ink); border-color:var(--accent-ink); }
+  .emp-filter-opt .efo-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .emp-filter-empty { padding:12px; text-align:center; font-size:12.5px; color:var(--muted); }
+  .emp-filter-chips { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .emp-chip { display:inline-flex; align-items:center; gap:6px; padding:5px 6px 5px 9px; border:1px solid var(--line); border-radius:999px; background:var(--surface-2); font-size:12.5px; font-weight:500; color:var(--ink); }
+  .emp-chip .emp-chip-x { display:inline-flex; align-items:center; justify-content:center; width:17px; height:17px; border-radius:50%; background:var(--line); color:var(--muted); cursor:pointer; font-size:12px; line-height:1; }
+  .emp-chip .emp-chip-x:hover { background:#EF4444; color:#fff; }
+  .emp-chip-clear { border:none; background:none; color:var(--accent-ink); font-size:12.5px; font-weight:600; cursor:pointer; padding:4px 6px; font-family:inherit; }
   .kan-card-done { opacity: .72; background: var(--surface-2); }
   .kan-card-meta { font-size: 11.5px; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
@@ -929,6 +950,19 @@
         <button class="view-tab"        data-tv="table"    onclick="setTasksView('table')">Jadval</button>
         <div style="flex:1"></div>
         <button type="button" class="done-toggle" data-done-toggle onclick="toggleHideCompleted(!window.hideCompleted)"><span class="dt-dot"></span> Bajarilganlarni yashirish</button>
+      </div>
+      <!-- Xodim filtri — barcha ko'rinishlar (list/kanban/kalendar/jadval) uchun umumiy -->
+      <div class="emp-filter-bar">
+        <div class="emp-filter-wrap">
+          <button type="button" class="emp-filter-btn" id="empFilterBtn" onclick="empFilterTogglePanel(event)">
+            <span>👥</span><span id="empFilterLabel">Xodim: Barchasi</span><span class="emp-filter-caret">▾</span>
+          </button>
+          <div class="emp-filter-panel" id="empFilterPanel" style="display:none;">
+            <input type="text" id="empFilterSearch" class="emp-filter-search" placeholder="Xodim qidirish…" oninput="empFilterRenderList()" autocomplete="off" />
+            <div class="emp-filter-list" id="empFilterList"></div>
+          </div>
+        </div>
+        <span id="empFilterChips" class="emp-filter-chips"></span>
       </div>
       <div id="tasksView-list">
         <div class="search-row">
@@ -2328,6 +2362,7 @@ let currentDeptId = null;
 let currentDeptView = 'kanban';
 let currentTasksView = 'list';
 let taskScope = 'all'; // 'all' | 'mine' (menga biriktirilgan) | 'assigned' (men topshirgan)
+let empFilter = new Set(); // Xodim filtri — assigned_to user_id'lari; bo'sh = barcha xodimlar
 let tkCalCursor = new Date();
 let deptTeamCache = [];   // department_members for current dept
 let calCursor = new Date();  // month displayed in calendar
@@ -3797,6 +3832,9 @@ async function loadCurrentContext() {
 
   // Jadval sozlamalarini (kenglik, tartib, filtr, sort) tiklaymiz
   tblLoadSettings();
+  // Xodim filtrini (workspace bo'yicha) tiklaymiz + panelni yangilaymiz
+  empFilterLoad();
+  try { empFilterRenderBar(); } catch (e) {}
 
   // "Mening vazifalarim" uchun — mening Telegram identitetlarim
   //
@@ -4345,6 +4383,7 @@ function goPage(p) {
   if (p === 'tasks') {
     const titles = { mine: '📥 Mening vazifalarim', assigned: '📤 Men topshirganlar', all: '✓ Barcha vazifalar' };
     const el = $('tasksPageTitle'); if (el) el.textContent = titles[taskScope] || '✓ Barcha vazifalar';
+    empFilterRenderBar();
     renderTasksList();
   }
   if (p === 'departments') renderDeptsList();
@@ -4630,6 +4669,102 @@ function toggleHideCompleted(v) {
   refreshActiveView();
 }
 
+// ============ XODIM FILTRI (barcha ko'rinishlar: list/kanban/kalendar/jadval) ============
+// Filtr `assigned_to` (bajaruvchi) bo'yicha — vazifa hozir kimga biriktirilgan bo'lsa.
+// Ko'rinishlar orasida global `empFilter` orqali saqlanadi, sahifa yangilanganda —
+// localStorage (workspace bo'yicha). Bo'sh = barcha xodimlar (default).
+function empFilterKey() { return 'empFilter_' + (currentWs ? currentWs.id : 'x'); }
+function empFilterLoad() {
+  empFilter = new Set();
+  try {
+    const raw = localStorage.getItem(empFilterKey());
+    if (raw) { const arr = JSON.parse(raw); if (Array.isArray(arr)) arr.forEach(id => empFilter.add(id)); }
+  } catch (e) { /* zaxira: bo'sh filtr */ }
+}
+function empFilterSave() {
+  try { localStorage.setItem(empFilterKey(), JSON.stringify([...empFilter])); } catch (e) {}
+}
+// Filtrni ro'yxatga qo'llash — Vazifalar sahifasining barcha ko'rinishlari shu funksiyadan o'tadi.
+// Faqat `tasks` sahifasida — filtr paneli shu yerda; boshqa joyda (masalan Planner
+// tkFilteredTasks'ni ulashadi) yashirin filtrlanish bo'lmasin.
+function applyEmpFilter(list) {
+  if (currentPage !== 'tasks') return list;
+  if (!empFilter || !empFilter.size) return list;
+  return list.filter(t => t.assigned_to && empFilter.has(t.assigned_to));
+}
+function empFilterActive() { return !!(empFilter && empFilter.size); }
+
+function empFilterTogglePanel(e) {
+  if (e) e.stopPropagation();
+  const p = $('empFilterPanel'); if (!p) return;
+  const open = p.style.display !== 'none';
+  if (open) { empFilterClosePanel(); return; }
+  p.style.display = 'block';
+  const s = $('empFilterSearch'); if (s) s.value = '';
+  empFilterRenderList();
+  if (s) setTimeout(function () { try { s.focus(); } catch (e2) {} }, 30);
+  setTimeout(function () { document.addEventListener('click', empFilterOutside); }, 0);
+}
+function empFilterClosePanel() {
+  const p = $('empFilterPanel'); if (p) p.style.display = 'none';
+  document.removeEventListener('click', empFilterOutside);
+}
+function empFilterOutside(ev) {
+  const bar = ev.target.closest && ev.target.closest('.emp-filter-wrap');
+  if (!bar) empFilterClosePanel();
+}
+function empFilterRenderList() {
+  const box = $('empFilterList'); if (!box) return;
+  const q = ($('empFilterSearch')?.value || '').trim().toLowerCase();
+  const opts = (wsMembers || []).map(function (m) {
+    const nm = m.user_id === me.id ? (myProfile.full_name || 'Siz') : ((m.profile && (m.profile.full_name || m.profile.email)) || 'Noma\'lum');
+    return { id: m.user_id, name: nm };
+  }).sort(function (a, b) { return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }); });
+  const filtered = q ? opts.filter(function (o) { return o.name.toLowerCase().includes(q); }) : opts;
+  if (!filtered.length) { box.innerHTML = '<div class="emp-filter-empty">Xodim topilmadi</div>'; return; }
+  box.innerHTML = filtered.map(function (o) {
+    const on = empFilter.has(o.id);
+    return '<div class="emp-filter-opt' + (on ? ' on' : '') + '" onclick="empFilterToggleMember(\'' + o.id + '\')">' +
+      '<span class="efo-check">' + (on ? '✓' : '') + '</span>' +
+      avatarHtml(o.name, 'sm', null, o.id) +
+      '<span class="efo-name">' + escapeHtml(o.name) + '</span>' +
+    '</div>';
+  }).join('');
+}
+function empFilterToggleMember(uid) {
+  if (empFilter.has(uid)) empFilter.delete(uid); else empFilter.add(uid);
+  empFilterSave();
+  empFilterRenderList();
+  empFilterRenderBar();
+  refreshActiveView();
+}
+function empFilterRemove(uid) {
+  empFilter.delete(uid);
+  empFilterSave();
+  empFilterRenderBar();
+  refreshActiveView();
+}
+function empFilterClear() {
+  empFilter.clear();
+  empFilterSave();
+  empFilterClosePanel();
+  empFilterRenderBar();
+  refreshActiveView();
+}
+function empFilterRenderBar() {
+  const btn = $('empFilterBtn'); const label = $('empFilterLabel'); const chips = $('empFilterChips');
+  if (!btn || !label || !chips) return;
+  const n = empFilter.size;
+  btn.classList.toggle('active', n > 0);
+  label.textContent = n === 0 ? 'Xodim: Barchasi' : ('Xodim: ' + n + ' ta');
+  if (!n) { chips.innerHTML = ''; return; }
+  const nameOf = function (uid) { return uid === me.id ? (myProfile.full_name || 'Siz') : ((wsMembers.find(function (m) { return m.user_id === uid; })?.profile?.full_name) || (wsMembers.find(function (m) { return m.user_id === uid; })?.profile?.email) || 'Noma\'lum'); };
+  chips.innerHTML = [...empFilter].map(function (uid) {
+    return '<span class="emp-chip">👤 ' + escapeHtml(nameOf(uid)) +
+      '<span class="emp-chip-x" title="Olib tashlash" onclick="empFilterRemove(\'' + uid + '\')">×</span></span>';
+  }).join('') + '<button type="button" class="emp-chip-clear" onclick="empFilterClear()">Tozalash</button>';
+}
+
 function renderTasksList() {
   let list = applyTaskScope(tasksCache.slice());
   if (activeFilter === 'overdue') list = list.filter(isOverdue);
@@ -4640,6 +4775,9 @@ function renderTasksList() {
   if (asgF === 'me') list = list.filter(t => t.assigned_to === me.id);
   else if (asgF === 'unassigned') list = list.filter(t => !t.assigned_to && !t.assigned_to_tg_bot_user);
 
+  // Xodim filtri (barcha ko'rinishlar bilan umumiy)
+  list = applyEmpFilter(list);
+
   // Search
   if (tasksSearchQuery) {
     list = list.filter(t =>
@@ -4649,7 +4787,14 @@ function renderTasksList() {
   }
 
   const wrap = $('tasksList'); const empty = $('tasksEmpty');
-  if (!list.length) { wrap.innerHTML = ''; empty.style.display = 'block'; return; }
+  if (!list.length) {
+    wrap.innerHTML = '';
+    empty.style.display = 'block';
+    empty.innerHTML = empFilterActive()
+      ? '<strong>Bu xodimda vazifa yo\'q</strong>Tanlangan xodim(lar) bo\'yicha vazifa topilmadi. <button type="button" class="emp-chip-clear" onclick="empFilterClear()">Filtrni tozalash</button>'
+      : '<strong>Hali vazifa yo\'q</strong>Birinchi vazifani yarating.';
+    return;
+  }
   empty.style.display = 'none';
   wrap.innerHTML = list.map(t => taskItemHtml(t, true)).join('');
 }
@@ -8174,6 +8319,9 @@ function tblGetTasks() {
   else if (tblSubview === 'checked') list = list.filter(t => t.status === 'completed');
   // 'all' va 'workload' — hammasi (workload guruhlaydi)
 
+  // Xodim filtri (barcha ko'rinishlar bilan umumiy)
+  list = applyEmpFilter(list);
+
   // Qidiruv
   const q = ($('tblSearch')?.value || '').trim().toLowerCase();
   if (q) list = list.filter(t => (t.title || '').toLowerCase().includes(q) || String(t.id).includes(q));
@@ -9009,6 +9157,7 @@ function tkFilteredTasks() {
   const asgF = $('tkAsgFilter')?.value || 'all';
   if (asgF === 'me') list = list.filter(t => t.assigned_to === me.id);
   else if (asgF === 'unassigned') list = list.filter(t => !t.assigned_to && !t.assigned_to_tg_bot_user);
+  list = applyEmpFilter(list); // Xodim filtri (umumiy)
   const prioF = $('tkPrioFilter')?.value || 'all';
   if (prioF === 'overdue') list = list.filter(isOverdue);
   else if (prioF === 'high') list = list.filter(t => { const p = t.priority_level || 0; return p >= 1 && p <= 4; });
@@ -9097,7 +9246,7 @@ function tkCalNav(dir) {
 
 function renderTasksCalendar() {
   const grid = $('tkCalGrid'); if (!grid) return;
-  const tasks = (tasksCache || []);
+  const tasks = applyEmpFilter(tasksCache || []); // Xodim filtri (umumiy)
   const cur = new Date(tkCalCursor.getFullYear(), tkCalCursor.getMonth(), 1);
   const monthNames = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
   $('tkCalMonth').textContent = monthNames[cur.getMonth()] + ' ' + cur.getFullYear();
