@@ -43,7 +43,8 @@ Har sessiyada BIRINCHI shu fayl o'qiladi. Har katta o'zgarishdan keyin **o'zing 
 ## Ochiq masalalar
 - **Dublikatlar**: Akobir tasdiqlangan (`cleanup_duplicate_staff.sql`da qo'lda juftlik). ~14 haqiqiy odam, qolgan 126 sintetik. Qo'shimcha juftliklar `dup_pairs` `manual` ro'yxatiga qo'lda qo'shiladi.
 - **EF deploy kutilmoqda**: `admin-import-staff` v3.1 (connect action), `sync-provodka-kassa` v1 (+ 2 env secret: PROVODKA_URL, PROVODKA_SERVICE_KEY).
-- **SQL kutilmoqda**: 43, 45, 47 (TaskFix); `PROVODKA_HODIM_KASSA.sql` (Provodka loyihasida).
+- **SQL kutilmoqda**: 43, 45, 47, `TASKFIX_V8.sql` (TaskFix); `PROVODKA_HODIM_KASSA.sql` (Provodka loyihasida).
+- **V8 (2026-07-24)**: (1) "Bajardi: {ism} · sana" vazifa detalida — `tasks.bajardi_user_id`/`bajardi_at` (TASKFIX_V8.sql). `changeStatus` best-effort yozadi (ustunlar bo'lmasa jimgina console.error, zaxira `submitter_id`/`completed_at`). (2) Xodim filtri — `empFilter` (Set), `applyEmpFilter` (faqat `tasks` sahifasi), UI paneli `#empFilterPanel`, localStorage `empFilter_<ws>`. Barcha 4 ko'rinish (list/kanban/kalendar/jadval). Department detail va Planner'ga qo'shilmagan.
 
 ## Validatsiya buyrug'i
 ```bash
