@@ -954,11 +954,11 @@
       <!-- Xodim filtri — barcha ko'rinishlar (list/kanban/kalendar/jadval) uchun umumiy -->
       <div class="emp-filter-bar">
         <div class="emp-filter-wrap">
-          <button type="button" class="emp-filter-btn" id="empFilterBtn" onclick="empFilterTogglePanel(event)">
+          <button type="button" class="emp-filter-btn" id="empFilterBtn" onclick="empFilterTogglePanel(event, 'tasks')">
             <span>👥</span><span id="empFilterLabel">Xodim: Barchasi</span><span class="emp-filter-caret">▾</span>
           </button>
           <div class="emp-filter-panel" id="empFilterPanel" style="display:none;">
-            <input type="text" id="empFilterSearch" class="emp-filter-search" placeholder="Xodim qidirish…" oninput="empFilterRenderList()" autocomplete="off" />
+            <input type="text" id="empFilterSearch" class="emp-filter-search" placeholder="Xodim qidirish…" oninput="empFilterRenderList('tasks')" autocomplete="off" />
             <div class="emp-filter-list" id="empFilterList"></div>
           </div>
         </div>
@@ -1066,6 +1066,20 @@
         <button class="view-tab"        data-vt="list"     onclick="setDeptView('list')">Ro'yxat</button>
         <button class="view-tab"        data-vt="calendar" onclick="setDeptView('calendar')">Kalendar</button>
         <button class="view-tab"        data-vt="team"     onclick="setDeptView('team')">Jamoa</button>
+      </div>
+
+      <!-- Xodim filtri — bo'lim detalidagi kanban/list/kalendar uchun umumiy (Jamoa'dan tashqari) -->
+      <div class="emp-filter-bar" id="deptEmpFilterBar">
+        <div class="emp-filter-wrap">
+          <button type="button" class="emp-filter-btn" id="deptEmpFilterBtn" onclick="empFilterTogglePanel(event, 'dept')">
+            <span>👥</span><span id="deptEmpFilterLabel">Xodim: Barchasi</span><span class="emp-filter-caret">▾</span>
+          </button>
+          <div class="emp-filter-panel" id="deptEmpFilterPanel" style="display:none;">
+            <input type="text" id="deptEmpFilterSearch" class="emp-filter-search" placeholder="Xodim qidirish…" oninput="empFilterRenderList('dept')" autocomplete="off" />
+            <div class="emp-filter-list" id="deptEmpFilterList"></div>
+          </div>
+        </div>
+        <span id="deptEmpFilterChips" class="emp-filter-chips"></span>
       </div>
 
       <div id="deptView-kanban">
@@ -4632,6 +4646,7 @@ function goDept(deptId) {
   renderSidebar();
   ['dashboard','tasks','departments','department','team','integrations','tgusers','branches','positions','settings','stats','botsettings','botcommands','orgchart'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === 'department' ? 'block' : 'none'); });
   renderDeptHeader();
+  empFilterRenderBar();
   setDeptView('kanban');
   rtSetHash('#/department/' + encodeURIComponent(deptId));
 }
@@ -4671,8 +4686,9 @@ function toggleHideCompleted(v) {
 
 // ============ XODIM FILTRI (barcha ko'rinishlar: list/kanban/kalendar/jadval) ============
 // Filtr `assigned_to` (bajaruvchi) bo'yicha — vazifa hozir kimga biriktirilgan bo'lsa.
-// Ko'rinishlar orasida global `empFilter` orqali saqlanadi, sahifa yangilanganda —
-// localStorage (workspace bo'yicha). Bo'sh = barcha xodimlar (default).
+// Yagona global `empFilter` — Vazifalar sahifasi va Bo'lim detalida BIR XIL filtr.
+// Ko'rinishlar orasida saqlanadi, sahifa yangilanganda — localStorage (workspace bo'yicha).
+// Bo'sh = barcha xodimlar (default). Ikkita bar bor: 'tasks' va 'dept' (deptEmpFilter* IDlari).
 function empFilterKey() { return 'empFilter_' + (currentWs ? currentWs.id : 'x'); }
 function empFilterLoad() {
   empFilter = new Set();
@@ -4684,38 +4700,41 @@ function empFilterLoad() {
 function empFilterSave() {
   try { localStorage.setItem(empFilterKey(), JSON.stringify([...empFilter])); } catch (e) {}
 }
-// Filtrni ro'yxatga qo'llash — Vazifalar sahifasining barcha ko'rinishlari shu funksiyadan o'tadi.
-// Faqat `tasks` sahifasida — filtr paneli shu yerda; boshqa joyda (masalan Planner
+// scope → element ID prefiksi
+function _efPfx(scope) { return scope === 'dept' ? 'deptEmpFilter' : 'empFilter'; }
+// Filtrni ro'yxatga qo'llash — Vazifalar sahifasi VA Bo'lim detali ko'rinishlari shu funksiyadan o'tadi.
+// Faqat shu ikki sahifada — filtr paneli shu yerda; boshqa joyda (masalan Planner
 // tkFilteredTasks'ni ulashadi) yashirin filtrlanish bo'lmasin.
 function applyEmpFilter(list) {
-  if (currentPage !== 'tasks') return list;
+  if (currentPage !== 'tasks' && currentPage !== 'department') return list;
   if (!empFilter || !empFilter.size) return list;
   return list.filter(t => t.assigned_to && empFilter.has(t.assigned_to));
 }
 function empFilterActive() { return !!(empFilter && empFilter.size); }
 
-function empFilterTogglePanel(e) {
+function empFilterTogglePanel(e, scope) {
   if (e) e.stopPropagation();
-  const p = $('empFilterPanel'); if (!p) return;
+  const p = $(_efPfx(scope) + 'Panel'); if (!p) return;
   const open = p.style.display !== 'none';
-  if (open) { empFilterClosePanel(); return; }
+  empFilterCloseAllPanels();
+  if (open) return; // toggle: ochiq edi — yopdik
   p.style.display = 'block';
-  const s = $('empFilterSearch'); if (s) s.value = '';
-  empFilterRenderList();
+  const s = $(_efPfx(scope) + 'Search'); if (s) s.value = '';
+  empFilterRenderList(scope);
   if (s) setTimeout(function () { try { s.focus(); } catch (e2) {} }, 30);
   setTimeout(function () { document.addEventListener('click', empFilterOutside); }, 0);
 }
-function empFilterClosePanel() {
-  const p = $('empFilterPanel'); if (p) p.style.display = 'none';
+function empFilterCloseAllPanels() {
+  ['empFilterPanel', 'deptEmpFilterPanel'].forEach(function (id) { const p = $(id); if (p) p.style.display = 'none'; });
   document.removeEventListener('click', empFilterOutside);
 }
 function empFilterOutside(ev) {
   const bar = ev.target.closest && ev.target.closest('.emp-filter-wrap');
-  if (!bar) empFilterClosePanel();
+  if (!bar) empFilterCloseAllPanels();
 }
-function empFilterRenderList() {
-  const box = $('empFilterList'); if (!box) return;
-  const q = ($('empFilterSearch')?.value || '').trim().toLowerCase();
+function empFilterRenderList(scope) {
+  const box = $(_efPfx(scope) + 'List'); if (!box) return;
+  const q = ($(_efPfx(scope) + 'Search')?.value || '').trim().toLowerCase();
   const opts = (wsMembers || []).map(function (m) {
     const nm = m.user_id === me.id ? (myProfile.full_name || 'Siz') : ((m.profile && (m.profile.full_name || m.profile.email)) || 'Noma\'lum');
     return { id: m.user_id, name: nm };
@@ -4731,38 +4750,49 @@ function empFilterRenderList() {
     '</div>';
   }).join('');
 }
+// Ochiq bo'lgan panel(lar)ning ro'yxatini yangilaydi (qaysi scope ochiq bo'lsa)
+function empFilterRefreshOpenLists() {
+  ['tasks', 'dept'].forEach(function (scope) {
+    const p = $(_efPfx(scope) + 'Panel');
+    if (p && p.style.display !== 'none') empFilterRenderList(scope);
+  });
+}
 function empFilterToggleMember(uid) {
   if (empFilter.has(uid)) empFilter.delete(uid); else empFilter.add(uid);
   empFilterSave();
-  empFilterRenderList();
+  empFilterRefreshOpenLists();
   empFilterRenderBar();
   refreshActiveView();
 }
 function empFilterRemove(uid) {
   empFilter.delete(uid);
   empFilterSave();
+  empFilterRefreshOpenLists();
   empFilterRenderBar();
   refreshActiveView();
 }
 function empFilterClear() {
   empFilter.clear();
   empFilterSave();
-  empFilterClosePanel();
+  empFilterCloseAllPanels();
   empFilterRenderBar();
   refreshActiveView();
 }
+// Ikkala barni ham yangilaydi (faqat mavjud bo'lganini)
 function empFilterRenderBar() {
-  const btn = $('empFilterBtn'); const label = $('empFilterLabel'); const chips = $('empFilterChips');
-  if (!btn || !label || !chips) return;
   const n = empFilter.size;
-  btn.classList.toggle('active', n > 0);
-  label.textContent = n === 0 ? 'Xodim: Barchasi' : ('Xodim: ' + n + ' ta');
-  if (!n) { chips.innerHTML = ''; return; }
   const nameOf = function (uid) { return uid === me.id ? (myProfile.full_name || 'Siz') : ((wsMembers.find(function (m) { return m.user_id === uid; })?.profile?.full_name) || (wsMembers.find(function (m) { return m.user_id === uid; })?.profile?.email) || 'Noma\'lum'); };
-  chips.innerHTML = [...empFilter].map(function (uid) {
+  const chipsHtml = !n ? '' : ([...empFilter].map(function (uid) {
     return '<span class="emp-chip">👤 ' + escapeHtml(nameOf(uid)) +
       '<span class="emp-chip-x" title="Olib tashlash" onclick="empFilterRemove(\'' + uid + '\')">×</span></span>';
-  }).join('') + '<button type="button" class="emp-chip-clear" onclick="empFilterClear()">Tozalash</button>';
+  }).join('') + '<button type="button" class="emp-chip-clear" onclick="empFilterClear()">Tozalash</button>');
+  ['empFilter', 'deptEmpFilter'].forEach(function (pfx) {
+    const btn = $(pfx + 'Btn'); const label = $(pfx + 'Label'); const chips = $(pfx + 'Chips');
+    if (!btn || !label || !chips) return;
+    btn.classList.toggle('active', n > 0);
+    label.textContent = n === 0 ? 'Xodim: Barchasi' : ('Xodim: ' + n + ' ta');
+    chips.innerHTML = chipsHtml;
+  });
 }
 
 function renderTasksList() {
@@ -9418,6 +9448,8 @@ function setDeptView(v) {
   currentDeptView = v;
   document.querySelectorAll('.view-tab').forEach(b => b.classList.toggle('active', b.dataset.vt === v));
   ['kanban','list','calendar','team'].forEach(x => { $('deptView-'+x).style.display = (x === v ? 'block' : 'none'); });
+  // Xodim filtri bari — faqat vazifa ko'rinishlarida (Jamoa'da emas)
+  const _defb = $('deptEmpFilterBar'); if (_defb) _defb.style.display = (v === 'team') ? 'none' : 'flex';
   if (v === 'kanban') renderKanban();
   else if (v === 'list') renderDeptList();
   else if (v === 'calendar') { calCursor = new Date(); renderCalendar(); }
@@ -9498,7 +9530,7 @@ async function loadKanbanColumns() {
 }
 
 function kanFilteredTasks() {
-  let list = deptTasks();
+  let list = applyEmpFilter(deptTasks()); // Xodim filtri (umumiy)
   // Search
   const q = ($('kanSearch')?.value || '').trim().toLowerCase();
   if (q) list = list.filter(t => (t.title||'').toLowerCase().includes(q) || (t.description||'').toLowerCase().includes(q));
@@ -9791,8 +9823,13 @@ function kanDrop(e, newStatus) {
 // ---- Dept list ----
 function renderDeptList() {
   const wrap = $('deptListWrap');
-  const tasks = deptTasks();
-  if (!tasks.length) { wrap.innerHTML = '<div class="empty"><strong>Bu bo\'limda vazifa yo\'q</strong>Birinchi vazifani yarating.</div>'; return; }
+  const tasks = applyEmpFilter(deptTasks()); // Xodim filtri (umumiy)
+  if (!tasks.length) {
+    wrap.innerHTML = empFilterActive()
+      ? '<div class="empty"><strong>Bu xodimda vazifa yo\'q</strong>Tanlangan xodim(lar) bo\'yicha bu bo\'limda vazifa topilmadi. <button type="button" class="emp-chip-clear" onclick="empFilterClear()">Filtrni tozalash</button></div>'
+      : '<div class="empty"><strong>Bu bo\'limda vazifa yo\'q</strong>Birinchi vazifani yarating.</div>';
+    return;
+  }
   wrap.innerHTML = tasks.map(t => taskItemHtml(t, false)).join('');
 }
 
@@ -9803,7 +9840,7 @@ function calNav(dir) {
   renderCalendar();
 }
 function renderCalendar() {
-  const tasks = deptTasks();
+  const tasks = applyEmpFilter(deptTasks()); // Xodim filtri (umumiy)
   const cur = new Date(calCursor.getFullYear(), calCursor.getMonth(), 1);
   const monthNames = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
   $('calMonth').textContent = monthNames[cur.getMonth()] + ' ' + cur.getFullYear();
