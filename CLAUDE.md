@@ -22,6 +22,7 @@ Har sessiyada BIRINCHI shu fayl o'qiladi. Har katta o'zgarishdan keyin **o'zing 
    - Foydalanuvchiga ko'rsatiladigan xato **doim `translateErr(e.message || String(e))`** orqali (o'zbekcha; xom Postgres/RLS/tarmoq matni chiqmasin). Xom `e.message` ko'rsatma.
 7. RLS policy ichida `workspace_members` inline subquery **yozma** (rekursiya → 42P17). `is_ws_manager()`/`is_ws_member()` ishlat.
 8. Mavjud helper: `uiForm(title,fields[{id,label,type,placeholder,hint}],{okText})→Promise<vals|null>`, `uiConfirm(title,msg,{danger,okText})`, `toast(text,'ok'|'err')`, `logActivity(action,{entityType,entityId,entityTitle,details})`, `$`, `escapeHtml`, `.hr-*`, `.ui-*`, `.xtbl`.
+   - `uiForm` maydon turlari: `text|textarea|number|select|toggle|datetime|choice`. **`choice`** — ikonli 2+ kartali radio: `options:[{value,label,icon,desc}]` (CSS `.ui-choice*`).
 
 ## DB holati
 - **Migratsiyalar**: 38–44, 46 ishga tushgan (40 bo'sh o'tgan — 42 to'ldirgan). **45** (staff_phone_lookup), **43** (schedule_monthly), **47** (harajat_kassa) — foydalanuvchi ishga tushirishi kutilmoqda.
@@ -38,12 +39,14 @@ Har sessiyada BIRINCHI shu fayl o'qiladi. Har katta o'zgarishdan keyin **o'zing 
 - **Qidiruv**: `buildCmdItems` (cmd-palette, bo'limlarga ajratilgan).
 - **Import**: `hrImport*` (preflight 5b — telefon+ism blokeri mijozda).
 - **EF**: `admin-import-staff` (phase: identity | photos | connect), `sync-provodka-kassa` (Harajat kassa → Provodka RPC), `admin-create-employee` (v4 — xodim yaratish/topish + a'zolik + lavozim/filial + parol emaili; **repoda tiklandi 2026-07-23**, deploy kutilmoqda). Boshqa EF manbalari repoda YO'Q (send-email, tg-send, tg-webhook... deployed).
+- **Loyiha (Project)**: `// ============ LOYIHALAR ============` bloki (~2620–3000) + flow yordamchilari (`prjShiftNextDeadline`/`prjReloadTasks`). Turi `projects.flow_type` (`sequential`|`parallel`, default sequential) — **faqat yangi bosqich uchun default** (`prjAddTask` toggle'i), har vazifa o'z `depends_on_prev`ini saqlaydi. Qulf: `tasks.is_locked` (server trigger **avtoritet**) — `prjTaskOpen` avval `is_locked`ka qaraydi, `prjShouldBeOpen` faqat mantiqni hisoblaydi (ikkisi ziddiyatda = "qulf qotib qolgan" → owner'ga `prjUnlockTask` tugmasi). Boshqa: `prjRenderHero` (kim ushlab turibdi), `prjMoveTask` (↑↓ tartib), `prjSyncLocks`, `prjApplyTypeToTasks`, `prjRenderHeader`, `prjShowError`. CSS `.prj-*`.
 - **Provodka integratsiyasi**: `hk*` funksiyalar (`hkSync`/`hkTableToggle`/`hkSetDb`). Jamoa jadval 💵 ustuni + hodim detali checkbox. EF `sync-provodka-kassa` env: `PROVODKA_URL`, `PROVODKA_SERVICE_KEY`.
 
 ## Ochiq masalalar
 - **Dublikatlar**: Akobir tasdiqlangan (`cleanup_duplicate_staff.sql`da qo'lda juftlik). ~14 haqiqiy odam, qolgan 126 sintetik. Qo'shimcha juftliklar `dup_pairs` `manual` ro'yxatiga qo'lda qo'shiladi.
 - **EF deploy kutilmoqda**: `admin-import-staff` v3.1 (connect action), `sync-provodka-kassa` v1 (+ 2 env secret: PROVODKA_URL, PROVODKA_SERVICE_KEY).
-- **SQL kutilmoqda**: 43, 45, 47, `TASKFIX_V8.sql` (TaskFix); `PROVODKA_HODIM_KASSA.sql` (Provodka loyihasida).
+- **SQL kutilmoqda**: 43, 45, 47, `TASKFIX_V8.sql`, `TASKFIX_PROJECT.sql` (TaskFix); `PROVODKA_HODIM_KASSA.sql` (Provodka loyihasida).
+- **Loyiha moduli (2026-07-27)**: (1) `TASKFIX_PROJECT.sql` — `projects.flow_type` + diagnostika (status CHECK, RLS, flow ustunlari). Ustun bo'lmasa ilova ishlaydi: `prjNoFlowTypeCol(err)` aniqlaydi, flow_type'siz qayta yozadi va ogohlantiradi. (2) `projects.status` — UI `active|paused|done` yozadi ("Sozlash"), DB'da CHECK bo'lsa xato chiqishi mumkin (SQL diagnostikasi shuni tekshiradi). (3) **Takrorlanish hamon LAZY** — reset faqat owner/admin loyihani ochganda (`prjRecurDue`+`prjResetRecurrence`); cron yo'q. (4) Loyiha RLS'i (34-migratsiya) repoda yo'q — server tomon tekshirilmagan, UI'da hamma o'zgartiruvchi amal `isOwnerLike()` bilan yopilgan.
 - **V8 (2026-07-24)**: (1) "Bajardi: {ism} · sana" vazifa detalida — `tasks.bajardi_user_id`/`bajardi_at` (TASKFIX_V8.sql). `changeStatus` best-effort yozadi (ustunlar bo'lmasa jimgina console.error, zaxira `submitter_id`/`completed_at`). (2) Xodim filtri — `empFilter` (Set), `applyEmpFilter` (`tasks` + `department` sahifalari), yagona global filtr 2 bar bilan: 'tasks' (`#empFilterPanel`) va 'dept' (`#deptEmpFilterPanel`). localStorage `empFilter_<ws>`. Tasks: list/kanban/kalendar/jadval; Bo'lim detali: kanban/list/kalendar (Jamoa tabida bar yashirin). Planner'ga qo'shilmagan (yashirin filtrlanish oldini olish uchun `applyEmpFilter` faqat shu 2 sahifada). Funksiyalar scope-aware: `empFilterTogglePanel/RenderList(scope)`.
 
 ## Validatsiya buyrug'i

@@ -674,6 +674,96 @@
   .copy-row { display: flex; gap: 8px; align-items: center; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; margin-top: 10px; }
   .copy-row code { flex: 1; word-break: break-all; }
 
+  /* ===== LOYIHA MODULI (prj-*) ===== */
+  .prj-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+  .prj-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; cursor: pointer; transition: border-color .12s, box-shadow .12s, transform .12s; }
+  .prj-card:hover { border-color: var(--line-strong); box-shadow: var(--shadow); transform: translateY(-1px); }
+  .prj-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+  .prj-card-name { font-weight: 700; font-size: 15.5px; line-height: 1.3; color: var(--ink); }
+  .prj-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .prj-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--line-soft); white-space: nowrap; }
+  .prj-chip-sequential { background: #EEF4FF; color: #1E40AF; border-color: #DBE6FF; }
+  .prj-chip-parallel { background: #FEF3C7; color: #92400E; border-color: #FDE68A; }
+  .prj-chip-recur { background: var(--accent-soft); color: var(--accent-ink); border-color: var(--accent); }
+  .prj-bar-row { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--muted); margin-bottom: 5px; }
+  .prj-bar { height: 7px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+  .prj-bar-fill { height: 100%; border-radius: 999px; transition: width .3s ease; }
+  .prj-now { display: flex; align-items: center; gap: 9px; margin-top: 11px; padding: 9px 11px; background: var(--surface-2); border-radius: 10px; font-size: 12.5px; min-height: 42px; }
+  .prj-now-txt { min-width: 0; }
+  .prj-now-lbl { display: block; font-size: 11px; color: var(--muted); }
+  .prj-now-val { display: block; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .prj-now-done { color: var(--success); font-weight: 600; }
+  /* Detal — hero */
+  .prj-hero { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; margin-bottom: 16px; }
+  .prj-hero-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+  .prj-hero-stat { display: flex; gap: 20px; flex-wrap: wrap; }
+  .prj-hero-num { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; color: var(--ink); line-height: 1.1; }
+  .prj-hero-cap { font-size: 11.5px; color: var(--muted); }
+  .prj-hero-bar { min-width: 200px; flex: 1 1 200px; }
+  .prj-block { display: flex; align-items: center; gap: 11px; padding: 12px 14px; border-radius: 12px; border: 1.5px solid #BFDBFE; background: #EFF6FF; }
+  .prj-block.done { border-color: #A7F3D0; background: #ECFDF5; }
+  .prj-block.par { border-color: #FDE68A; background: #FFFBEB; }
+  .prj-block.none { border-color: var(--line); background: var(--surface-2); }
+  .prj-block-txt { min-width: 0; font-size: 13px; color: var(--ink); }
+  .prj-block-sub { font-size: 11.5px; color: var(--muted); margin-top: 2px; line-height: 1.45; }
+  /* Flow */
+  .prj-flow { display: flex; flex-direction: column; }
+  .prj-par { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+  .prj-step { display: flex; align-items: stretch; gap: 12px; }
+  .prj-rail { display: flex; flex-direction: column; align-items: center; width: 34px; flex: 0 0 34px; }
+  .prj-node { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; background: var(--surface-2); color: var(--muted); flex: 0 0 auto; }
+  .prj-node.done { background: var(--success); color: #fff; }
+  .prj-node.cur { background: #3B82F6; color: #fff; box-shadow: 0 0 0 4px rgba(59,130,246,.18); }
+  .prj-line { flex: 1; width: 2px; background: var(--line); min-height: 20px; }
+  .prj-task { flex: 1; min-width: 0; border: 1.5px solid var(--line); background: var(--surface); border-radius: 13px; padding: 12px 14px; margin-bottom: 12px; cursor: pointer; transition: border-color .12s, box-shadow .12s; }
+  .prj-task:hover { box-shadow: var(--shadow); }
+  .prj-task.done { border-color: #A7F3D0; background: #F7FDFA; }
+  .prj-task.cur { border-color: #3B82F6; background: #F5F9FF; }
+  .prj-task.locked { opacity: .62; border-style: dashed; }
+  .prj-par .prj-task { margin-bottom: 0; }
+  .prj-task-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .prj-task-title { font-weight: 600; font-size: 14px; line-height: 1.35; color: var(--ink); }
+  .prj-task.done .prj-task-title { text-decoration: line-through; text-decoration-thickness: 1.5px; color: var(--muted); }
+  .prj-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; font-size: 12px; color: var(--muted); }
+  .prj-meta-i { display: inline-flex; align-items: center; gap: 5px; min-width: 0; }
+  .prj-state { font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .prj-state.done { background: var(--success-soft); color: #047857; }
+  .prj-state.cur { background: #DBEAFE; color: #1D4ED8; }
+  .prj-state.lock { background: #F0EFEA; color: var(--muted); }
+  .prj-state.open { background: #FEF3C7; color: #92400E; }
+  .prj-state.cancel { background: var(--danger-soft); color: #B91C1C; }
+  .prj-over { color: var(--danger); font-weight: 600; }
+  .prj-ord { display: flex; gap: 3px; flex: 0 0 auto; }
+  .prj-ord-btn { border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 7px; width: 25px; height: 25px; font-size: 11px; line-height: 1; cursor: pointer; padding: 0; font-family: inherit; }
+  .prj-ord-btn:hover:not(:disabled) { border-color: var(--accent-ink); color: var(--accent-ink); }
+  .prj-ord-btn:disabled { opacity: .3; cursor: default; }
+  .prj-add { margin-top: 4px; width: 100%; padding: 13px; border: 1.5px dashed var(--line-strong); border-radius: 13px; background: none; cursor: pointer; color: var(--accent-ink); font-weight: 600; font-size: 13.5px; font-family: inherit; transition: background .12s, border-color .12s; }
+  .prj-add:hover { background: var(--accent-soft); border-color: var(--accent-ink); }
+  .prj-error { background: var(--danger-soft); border: 1px solid var(--danger); border-radius: 12px; padding: 16px; color: #991B1B; font-size: 13.5px; }
+  .prj-error-sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .prj-loading { padding: 28px; text-align: center; color: var(--muted); font-size: 13px; }
+  /* Modal — ikonli 2 kartali tanlov */
+  .ui-choice { display: grid; gap: 8px; }
+  .ui-choice-card { display: flex; align-items: flex-start; gap: 11px; padding: 11px 13px; border: 1.5px solid var(--line); border-radius: 13px; cursor: pointer; transition: border-color .12s, background .12s; }
+  .ui-choice-card:hover { border-color: var(--line-strong); }
+  .ui-choice-card.sel { border-color: var(--accent-ink); background: var(--accent-soft); }
+  .ui-choice-card input { display: none; }
+  .ui-choice-ic { font-size: 19px; line-height: 1.2; flex: 0 0 auto; }
+  .ui-choice-txt { display: block; min-width: 0; }
+  .ui-choice-txt b { display: block; font-size: 13.5px; color: var(--ink); }
+  .ui-choice-txt span { display: block; font-size: 11.5px; color: var(--muted); margin-top: 2px; line-height: 1.45; }
+
+  @media (max-width: 640px) {
+    .prj-grid { grid-template-columns: 1fr; }
+    .prj-par { grid-template-columns: 1fr; }
+    .prj-rail { width: 26px; flex: 0 0 26px; }
+    .prj-node { width: 26px; height: 26px; font-size: 12px; }
+    .prj-step { gap: 9px; }
+    .prj-task { padding: 11px 12px; }
+    .prj-hero { padding: 14px; }
+    .prj-hero-stat { gap: 14px; }
+  }
+
   @media (max-width: 980px) {
     .kanban { height: auto; flex-direction: column; }
     .kan-col { flex: 1 1 auto; min-width: auto; max-height: 60vh; }
@@ -1596,7 +1686,7 @@
         <h2 class="h2" style="margin:0">🗂 Loyihalar</h2>
         <button class="btn" id="prjNewBtn" onclick="openCreateProject()" style="display:none">+ Yangi loyiha</button>
       </div>
-      <div style="font-size:12.5px;color:var(--muted);margin:6px 0 16px;">Har bir loyiha ichida vazifalar ketma-ket (flow) yoki parallel ochiladi. Qaysi bosqichda ekanini shu yerdan ko'ring.</div>
+      <div style="font-size:12.5px;color:var(--muted);margin:6px 0 16px;">Loyiha ikki xil bo'ladi: <b>🔗 Ketma-ket</b> — bosqichlar navbatma-navbat ochiladi; <b>⚡ Parallel</b> — hamma vazifa birdan ochiq. Qaysi bosqichda ekanini va kim ushlab turganini shu yerdan ko'ring.</div>
       <div id="projectsList"></div>
     </section>
 
@@ -1609,6 +1699,7 @@
         </div>
         <div id="prjActions" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
       </div>
+      <div id="prjHero" style="margin-top:14px;"></div>
       <div class="view-tabs" style="margin:14px 0 16px;">
         <button class="view-tab active" data-prjtab="flow" onclick="prjSetTab('flow')">🔀 Flow</button>
         <button class="view-tab" data-prjtab="kanban" onclick="prjSetTab('kanban')">📋 Kanban</button>
@@ -2478,6 +2569,17 @@ function uiForm(title, fields, opts) {
         input = '<div style="display:flex;gap:8px;"><input type="date" id="uif_' + f.id + '_d" class="ui-input" value="' + dv + '" style="flex:1;"><input type="time" id="uif_' + f.id + '_t" class="ui-input" value="' + tv + '" style="width:120px;"></div>';
       }
       else if (f.type === 'number') input = '<input type="number" ' + base + ' value="' + escapeHtml(f.value != null ? String(f.value) : '') + '" placeholder="' + escapeHtml(f.placeholder || '') + '">';
+      // choice — ikon + tushuntirishli kartalar (radio). options: [{value,label,icon,desc}]
+      else if (f.type === 'choice') {
+        input = '<div class="ui-choice" data-choice="' + escapeHtml(f.id) + '">' + (f.options || []).map(o => {
+          const sel = String(o.value) === String(f.value);
+          return '<label class="ui-choice-card' + (sel ? ' sel' : '') + '">' +
+            '<input type="radio" name="uifc_' + escapeHtml(f.id) + '" value="' + escapeHtml(o.value) + '"' + (sel ? ' checked' : '') + '>' +
+            '<span class="ui-choice-ic">' + escapeHtml(o.icon || '') + '</span>' +
+            '<span class="ui-choice-txt"><b>' + escapeHtml(o.label) + '</b>' + (o.desc ? '<span>' + escapeHtml(o.desc) + '</span>' : '') + '</span>' +
+          '</label>';
+        }).join('') + '</div>';
+      }
       else input = '<input type="text" ' + base + ' value="' + escapeHtml(f.value || '') + '" placeholder="' + escapeHtml(f.placeholder || '') + '">';
       return '<div class="ui-field">' + (f.label ? '<label class="ui-label">' + escapeHtml(f.label) + '</label>' : '') + input + (f.hint ? '<div class="ui-hint">' + escapeHtml(f.hint) + '</div>' : '') + '</div>';
     }).join('');
@@ -2492,6 +2594,15 @@ function uiForm(title, fields, opts) {
       '</div>';
     root.appendChild(bd);
     requestAnimationFrame(() => bd.classList.add('show'));
+    // choice kartalari — tanlanganini belgilash (inline handler emas)
+    bd.querySelectorAll('.ui-choice').forEach(function (box) {
+      box.addEventListener('change', function () {
+        box.querySelectorAll('.ui-choice-card').forEach(function (c) {
+          const r = c.querySelector('input');
+          c.classList.toggle('sel', !!(r && r.checked));
+        });
+      });
+    });
     const first = bd.querySelector('.ui-input'); if (first) setTimeout(() => first.focus(), 60);
     const close = (val) => { bd.classList.remove('show'); setTimeout(() => bd.remove(), 180); resolve(val); };
     const submit = () => {
@@ -2501,6 +2612,11 @@ function uiForm(title, fields, opts) {
           const d = document.getElementById('uif_' + f.id + '_d');
           const t = document.getElementById('uif_' + f.id + '_t');
           values[f.id] = (d && d.value) ? (d.value + 'T' + ((t && t.value) || '18:00')) : '';
+          return;
+        }
+        if (f.type === 'choice') {
+          const sel = bd.querySelector('input[name="uifc_' + f.id + '"]:checked');
+          values[f.id] = sel ? sel.value : (f.value != null ? String(f.value) : '');
           return;
         }
         const el = document.getElementById('uif_' + f.id);
@@ -2522,11 +2638,45 @@ let currentProjectId = null;
 let prjTasks = [];
 let prjMembers = [];
 let prjTab = 'flow';
+let prjMembersErr = null;   // A'zolar so'rovi xatosi — jimgina yutilmaydi
+
+// ---- Loyiha turi: 'sequential' (ketma-ket) | 'parallel' ----
+// flow_type ustuni yo'q/null bo'lsa — eski xatti-harakat saqlanadi: ketma-ket.
+// Tur faqat YANGI bosqich uchun default beradi; har vazifa o'z depends_on_prev'ini saqlaydi.
+const PRJ_TYPES = {
+  sequential: { icon: '🔗', name: 'Ketma-ket', desc: 'Vazifalar navbatma-navbat ochiladi. Oldingisi tugamaguncha keyingisi qulflangan.' },
+  parallel:   { icon: '⚡', name: 'Parallel',  desc: 'Hamma vazifa birdan ochiq. Istalgan tartibda bajariladi.' }
+};
+function prjFlowType(p) { return (p && p.flow_type === 'parallel') ? 'parallel' : 'sequential'; }
+function prjTypeChip(p) {
+  const k = prjFlowType(p), t = PRJ_TYPES[k];
+  return '<span class="prj-chip prj-chip-' + k + '" title="' + escapeHtml(t.desc) + '">' + t.icon + ' ' + escapeHtml(t.name) + '</span>';
+}
+function prjTypeOptions() {
+  return ['sequential', 'parallel'].map(k => ({ value: k, icon: PRJ_TYPES[k].icon, label: PRJ_TYPES[k].name, desc: PRJ_TYPES[k].desc }));
+}
+// TASKFIX_PROJECT.sql hali ishga tushmagan bo'lsa — flow_type ustuni yo'q
+function prjNoFlowTypeCol(err) {
+  const m = String((err && err.message) || err || '');
+  return /flow_type/i.test(m) && /(does not exist|schema cache|could not find|unknown column)/i.test(m);
+}
+
+// Loyiha holati — noma'lum/bo'sh qiymat "faol" deb qaraladi (eski yozuvlar uchun)
+function prjStatusKey(p) { return (p && (p.status === 'done' || p.status === 'paused')) ? p.status : 'active'; }
+function prjStatusBadge(p) {
+  const k = prjStatusKey(p);
+  if (k === 'done') return '<span class="badge" style="background:var(--success-soft);color:#047857;">✓ Tugadi</span>';
+  if (k === 'paused') return '<span class="badge muted">⏸ To\'xtatilgan</span>';
+  return '<span class="badge" style="background:#DDEBFF;color:#1E40AF;">● Faol</span>';
+}
+
+function prjByOrder(a, b) { return (a.flow_order || 0) - (b.flow_order || 0); }
 
 async function loadProjects() {
-  $('prjNewBtn').style.display = isOwnerLike() ? 'inline-block' : 'none';
+  const btn = $('prjNewBtn'); if (btn) btn.style.display = isOwnerLike() ? 'inline-block' : 'none';
   const wrap = $('projectsList');
-  wrap.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);">Yuklanmoqda…</div>';
+  if (!wrap) return;
+  wrap.innerHTML = '<div class="prj-loading">Yuklanmoqda…</div>';
   try {
     const { data: projs, error } = await sb.from('projects').select('*').eq('workspace_id', currentWs.id).order('created_at', { ascending: false });
     if (error) throw error;
@@ -2535,27 +2685,48 @@ async function loadProjects() {
     const ids = projectsCache.map(p => p.id);
     let allTasks = [];
     if (ids.length) {
-      const { data: ts } = await sb.from('tasks').select('*').in('project_id', ids);
+      const { data: ts, error: tErr } = await sb.from('tasks').select('*').in('project_id', ids);
+      if (tErr) throw tErr;   // bo'sh ro'yxatni "hammasi tugagan" qilib ko'rsatmaymiz
       allTasks = ts || [];
     }
-    projectsCache.forEach(p => { p._tasks = allTasks.filter(t => t.project_id === p.id).sort((a, b) => (a.flow_order || 0) - (b.flow_order || 0)); });
+    projectsCache.forEach(p => { p._tasks = allTasks.filter(t => t.project_id === p.id).sort(prjByOrder); });
     renderProjectsOverview();
   } catch (e) {
-    wrap.innerHTML = '<div style="padding:24px;color:var(--danger);">Xato: ' + escapeHtml(e.message || String(e)) + '<br><span style="font-size:12px;color:var(--muted);">34-migratsiyani ishga tushiring</span></div>';
+    console.error('loadProjects:', e);
+    wrap.innerHTML = '<div class="prj-error">⚠️ ' + escapeHtml(translateErr(e.message || String(e))) +
+      '<div class="prj-error-sub">' + (isOwnerLike() ? 'Agar loyihalar hech qachon ochilmagan bo\'lsa — loyiha migratsiyasi (34) ishga tushirilmagan bo\'lishi mumkin.' : 'Administratorga xabar bering.') + '</div>' +
+      '<button class="btn sm secondary" style="margin-top:10px;" onclick="loadProjects()">↻ Qayta urinish</button></div>';
   }
 }
 
 // Flowda task ochilganmi? (oldingisiga bog'liq bo'lsa — oldingi tugashi kerak)
+// is_locked — server (trigger) haqiqati; u bilan ziddiyat bo'lmasligi uchun birinchi tekshiriladi.
 function prjTaskOpen(t, list) {
   if (t.status === 'completed' || t.status === 'cancelled') return true; // tugagan
-  if (!t.depends_on_prev) return true; // parallel
+  if (t.is_locked) return false;         // server qulflagan
+  if (!t.depends_on_prev) return true;   // parallel
   const prev = list.filter(x => (x.flow_order || 0) < (t.flow_order || 0)).sort((a, b) => (b.flow_order || 0) - (a.flow_order || 0))[0];
   if (!prev) return true; // birinchi
-  return prev.status === 'completed';
+  return prev.status === 'completed' || prev.status === 'cancelled';
+}
+// Faqat mantiq bo'yicha (is_locked'siz) ochiqmi? — "qulf qotib qolgan" holatni aniqlash uchun
+function prjShouldBeOpen(t, list) {
+  if (t.status === 'completed' || t.status === 'cancelled') return true;
+  if (!t.depends_on_prev) return true;
+  const prev = list.filter(x => (x.flow_order || 0) < (t.flow_order || 0)).sort((a, b) => (b.flow_order || 0) - (a.flow_order || 0))[0];
+  if (!prev) return true;
+  return prev.status === 'completed' || prev.status === 'cancelled';
 }
 // Loyihaning hozirgi faol taski (flowda birinchi tugallanmagan, ochiq)
 function prjCurrentTask(list) {
   return list.find(t => t.status !== 'completed' && t.status !== 'cancelled' && prjTaskOpen(t, list)) || null;
+}
+// Ochiq (bajarilishi mumkin) vazifalar
+function prjOpenTasks(list) {
+  return list.filter(t => t.status !== 'completed' && t.status !== 'cancelled' && prjTaskOpen(t, list));
+}
+function prjLockedTasks(list) {
+  return list.filter(t => t.status !== 'completed' && t.status !== 'cancelled' && !prjTaskOpen(t, list));
 }
 
 function prjRecurLabel(p) {
@@ -2564,77 +2735,223 @@ function prjRecurLabel(p) {
   if (p.recurrence_days) return 'Har ' + p.recurrence_days + ' kunda';
   return null;
 }
+
+// Odam: avatar + to'liq ism
+function prjPersonHtml(uid, prefix) {
+  if (!uid) return '';
+  const nm = tblMemberName(uid);
+  return '<span class="prj-meta-i">' + (prefix || '') + avatarHtml(nm, 'sm', null, uid) + '<span>' + escapeHtml(nm) + '</span></span>';
+}
+// "Bajardi: {ism} · sana" (TASKFIX_V8 ustunlari, zaxira: submitter_id/completed_at)
+function prjDoneByHtml(t) {
+  const uid = t.bajardi_user_id || t.submitter_id || null;
+  if (!uid) return '';
+  if (t.status !== 'completed' && t.status !== 'qabul_kutilyapti') return '';
+  const at = t.bajardi_at || t.completed_at || null;
+  return '<span class="prj-meta-i" style="color:#059669;font-weight:600;">✓ Bajardi: ' + escapeHtml(tblMemberName(uid)) + (at ? ' · ' + fmtDeadline(at) : '') + '</span>';
+}
+
 function renderProjectsOverview() {
   const wrap = $('projectsList');
+  if (!wrap) return;
   if (!projectsCache.length) {
-    wrap.innerHTML = '<div class="empty" style="padding:40px;text-align:center;"><strong>Loyiha yo\'q</strong>' + (isOwnerLike() ? '<br><span style="color:var(--muted);font-size:13px;">Yuqoridagi "+ Yangi loyiha" tugmasi bilan yarating.</span>' : '') + '</div>';
+    wrap.innerHTML = '<div class="empty"><strong>Hali loyiha yo\'q</strong>' +
+      (isOwnerLike()
+        ? '<span style="display:block;margin-bottom:14px;">Loyiha — bir maqsad yo\'lidagi bosqichlar to\'plami (masalan: "Yangi filial ochish").</span><button class="btn" onclick="openCreateProject()">+ Birinchi loyihani yaratish</button>'
+        : '<span style="display:block;">Administrator loyiha yaratgach shu yerda ko\'rinadi.</span>') +
+      '</div>';
     return;
   }
-  wrap.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;">' + projectsCache.map(p => {
-    const list = p._tasks || [];
+  wrap.innerHTML = '<div class="prj-grid">' + projectsCache.map(p => {
+    const list = (p._tasks || []).slice().sort(prjByOrder);
+    const ft = prjFlowType(p);
     const total = list.length;
     const done = list.filter(t => t.status === 'completed').length;
-    const cur = prjCurrentTask(list);
     const pct = total ? Math.round(done / total * 100) : 0;
-    const curAsg = cur && cur.assigned_to ? tblMemberName(cur.assigned_to) : null;
-    const statusBadge = p.status === 'done' ? '<span class="badge ok">Tugadi</span>' : (p.status === 'paused' ? '<span class="badge muted">To\'xtatilgan</span>' : '<span class="badge" style="background:#DDEBFF;color:#1E40AF;">Faol</span>');
-    return '<div onclick="openProject(\'' + p.id + '\')" style="border:1px solid var(--line);border-radius:14px;padding:16px;cursor:pointer;background:var(--surface);transition:border-color .12s;" onmouseover="this.style.borderColor=\'var(--accent-ink)\'" onmouseout="this.style.borderColor=\'var(--line)\'">' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;"><div style="font-weight:700;font-size:15px;">' + escapeHtml(p.name) + '</div>' + statusBadge + '</div>' +
-      (prjRecurLabel(p) ? '<div style="font-size:11.5px;color:var(--accent-ink);margin-bottom:8px;">🔁 ' + prjRecurLabel(p) + '</div>' : '') +
-      '<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-bottom:4px;"><span>' + done + '/' + total + ' bajarildi</span><span>' + pct + '%</span></div>' +
-      '<div style="height:7px;background:var(--surface-2);border-radius:99px;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:' + (pct === 100 ? '#10B981' : '#3B82F6') + ';border-radius:99px;"></div></div></div>' +
-      '<div style="font-size:12.5px;padding:9px 11px;background:var(--surface-2);border-radius:9px;">' +
-        (cur ? '<span style="color:var(--muted);">Hozir: </span><b>' + escapeHtml(cur.title || '') + '</b>' + (curAsg ? ' <span style="color:var(--muted);">· ' + escapeHtml(curAsg) + '</span>' : '') : '<span style="color:#10B981;">✓ Barcha vazifalar tugadi</span>') +
-      '</div></div>';
+    const recur = prjRecurLabel(p);
+    let now;
+    if (!total) {
+      now = '<div class="prj-now"><span style="color:var(--muted);">Bosqich qo\'shilmagan</span></div>';
+    } else if (ft === 'parallel') {
+      const open = prjOpenTasks(list);
+      now = '<div class="prj-now">' + (open.length
+        ? '<span class="prj-chip prj-chip-parallel">⚡ ' + open.length + ' ta ochiq</span><span class="prj-now-txt"><span class="prj-now-lbl">Bajarilmoqda</span><span class="prj-now-val">' + escapeHtml(prjAssigneeSummary(open)) + '</span></span>'
+        : '<span class="prj-now-done">✓ Barcha vazifalar tugadi</span>') + '</div>';
+    } else {
+      const cur = prjCurrentTask(list);
+      if (cur) {
+        const nm = cur.assigned_to ? tblMemberName(cur.assigned_to) : 'Biriktirilmagan';
+        now = '<div class="prj-now">' + avatarHtml(nm, null, null, cur.assigned_to || null) +
+          '<span class="prj-now-txt"><span class="prj-now-lbl">Hozir shu bosqichda · ' + escapeHtml(nm) + '</span>' +
+          '<span class="prj-now-val">' + escapeHtml(cur.title || '(nomsiz)') + '</span></span></div>';
+      } else {
+        now = '<div class="prj-now"><span class="prj-now-done">✓ Barcha vazifalar tugadi</span></div>';
+      }
+    }
+    return '<div class="prj-card" onclick="openProject(\'' + p.id + '\')">' +
+      '<div class="prj-card-head"><div class="prj-card-name">' + escapeHtml(p.name) + '</div>' + prjStatusBadge(p) + '</div>' +
+      '<div class="prj-chips">' + prjTypeChip(p) + (recur ? '<span class="prj-chip prj-chip-recur">🔁 ' + escapeHtml(recur) + '</span>' : '') + '</div>' +
+      '<div class="prj-bar-row"><span>' + done + '/' + total + ' bajarildi</span><span>' + pct + '%</span></div>' +
+      '<div class="prj-bar"><div class="prj-bar-fill" style="width:' + pct + '%;background:' + (pct === 100 ? 'var(--success)' : '#3B82F6') + ';"></div></div>' +
+      now +
+    '</div>';
   }).join('') + '</div>';
 }
 
+// Ochiq vazifalarning bajaruvchilari (qisqa ro'yxat)
+function prjAssigneeSummary(list) {
+  const names = [];
+  list.forEach(t => {
+    const nm = t.assigned_to ? tblMemberName(t.assigned_to) : null;
+    if (nm && names.indexOf(nm) === -1) names.push(nm);
+  });
+  if (!names.length) return 'Biriktirilmagan';
+  if (names.length <= 3) return names.join(', ');
+  return names.slice(0, 3).join(', ') + ' +' + (names.length - 3);
+}
+
 async function openProject(id) {
+  // Oldingi loyihaning ma'lumoti ko'rinib qolmasin
+  if (currentProjectId !== id) { prjTasks = []; prjMembers = []; prjMembersErr = null; window._curProject = null; }
   currentProjectId = id;
   currentPage = 'project';
   goPage('project');
+  const hero = $('prjHero'); if (hero) hero.innerHTML = '<div class="prj-loading">Yuklanmoqda…</div>';
+  ['prjPaneFlow','prjPaneKanban','prjPaneMembers'].forEach(pid => { const el = $(pid); if (el) el.innerHTML = ''; });
   rtSetHash('#/projects/' + encodeURIComponent(id));
   await loadProjectDetail();
 }
 
-async function loadProjectDetail() {
-  const p = projectsCache.find(x => x.id === currentProjectId);
-  const { data: proj } = await sb.from('projects').select('*').eq('id', currentProjectId).single();
-  const project = proj || p;
-  if (!project) { goPage('projects'); return; }
-  window._curProject = project;
-  // Recurrence: agar muddati kelgan bo'lsa — qayta boshlash (faqat owner/admin)
-  if (isOwnerLike() && project.last_reset_at) {
-    let due = false;
-    if (project.recurrence_type === 'weekly' && project.recurrence_weekday != null) {
-      // Bugun belgilangan kunmi va bu hafta hali reset bo'lmaganmi?
-      const now = new Date();
-      const last = new Date(project.last_reset_at);
-      if (now.getDay() === project.recurrence_weekday) {
-        // bugun o'sha kun; agar oxirgi reset bugundan oldin bo'lsa — qayta boshlaymiz
-        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-        if (last.getTime() < startOfToday) due = true;
-      }
-    } else if (project.recurrence_days) {
-      due = Date.now() >= (new Date(project.last_reset_at).getTime() + project.recurrence_days * 86400000);
-    }
-    if (due) { await prjResetRecurrence(project, true); }
-  }
-  const { data: ts } = await sb.from('tasks').select('*').eq('project_id', currentProjectId).order('flow_order', { ascending: true });
-  prjTasks = ts || [];
-  const { data: pm } = await sb.from('project_members').select('*').eq('project_id', currentProjectId);
-  prjMembers = pm || [];
+// Loyiha sahifasida xatoni ko'rsatamiz (jimgina bo'sh sahifa qolmasin)
+function prjShowError(msg) {
+  const hero = $('prjHero');
+  const html = '<div class="prj-error">⚠️ ' + escapeHtml(msg) +
+    '<div class="prj-error-sub">Ma\'lumot to\'liq ko\'rsatilmayapti.</div>' +
+    '<button class="btn sm secondary" style="margin-top:10px;" onclick="loadProjectDetail()">↻ Qayta urinish</button></div>';
+  if (hero) hero.innerHTML = html;
+  ['prjPaneFlow','prjPaneKanban','prjPaneMembers'].forEach(id => { const el = $(id); if (el) el.innerHTML = ''; });
+}
 
-  $('prjTitle').textContent = project.name;
-  const total = prjTasks.length, done = prjTasks.filter(t => t.status === 'completed').length;
-  $('prjMeta').innerHTML = (project.description ? escapeHtml(project.description) + ' · ' : '') + total + ' vazifa · ' + done + ' bajarildi' + (prjRecurLabel(project) ? ' · 🔁 ' + prjRecurLabel(project) : '');
-  // Actions (faqat owner/admin)
-  $('prjActions').innerHTML = isOwnerLike() ? (
-    '<button class="btn sm secondary" onclick="prjEditRecurrence()">🔁 Takrorlash</button>' +
-    '<button class="btn sm secondary" onclick="prjRenameOrDelete()">⚙️ Sozlash</button>' +
-    '<button class="btn sm secondary" onclick="prjDeleteProject()" style="color:var(--danger);">🗑 O\'chirish</button>'
-  ) : '<span style="font-size:12px;color:var(--muted);">👁 Faqat ko\'rish</span>';
+// Takrorlanish muddati kelganmi?
+function prjRecurDue(project) {
+  if (!project || !project.last_reset_at) return false;
+  if (project.recurrence_type === 'weekly' && project.recurrence_weekday != null) {
+    const now = new Date();
+    const last = new Date(project.last_reset_at);
+    if (now.getDay() !== project.recurrence_weekday) return false;
+    // bugun o'sha kun; agar oxirgi reset bugundan oldin bo'lsa — qayta boshlaymiz
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    return last.getTime() < startOfToday;
+  }
+  if (project.recurrence_days) {
+    return Date.now() >= (new Date(project.last_reset_at).getTime() + project.recurrence_days * 86400000);
+  }
+  return false;
+}
+
+async function loadProjectDetail() {
+  if (!currentProjectId) return;
+  // 1) Loyiha — xato bo'lsa ko'rsatamiz (RLS rad etsa sahifa jim qolmasin)
+  const { data: proj, error: pErr } = await sb.from('projects').select('*').eq('id', currentProjectId).maybeSingle();
+  if (pErr) {
+    console.error('loadProjectDetail (projects):', pErr.message);
+    prjShowError(translateErr(pErr.message));
+    return;
+  }
+  const project = proj || projectsCache.find(x => x.id === currentProjectId);
+  if (!project) { toast('Loyiha topilmadi yoki ruxsat yo\'q', 'err'); goPage('projects'); return; }
+  window._curProject = project;
+
+  // 2) Bosqichlar
+  const { data: ts, error: tErr } = await sb.from('tasks').select('*').eq('project_id', currentProjectId).order('flow_order', { ascending: true });
+  if (tErr) {
+    console.error('loadProjectDetail (tasks):', tErr.message);
+    prjTasks = [];   // eski loyihaning bosqichlari ko'rinib qolmasin
+    prjRenderHeader(project);
+    prjShowError(translateErr(tErr.message));
+    return;
+  }
+  prjTasks = ts || [];
+
+  // 3) Takrorlanish: muddati kelgan bo'lsa qayta boshlaymiz (faqat owner/admin)
+  if (isOwnerLike() && prjRecurDue(project)) await prjResetRecurrence(project, true);
+
+  // 4) A'zolar — xato bo'lsa A'zolar tabida bildiramiz
+  const { data: pm, error: mErr } = await sb.from('project_members').select('*').eq('project_id', currentProjectId);
+  if (mErr) { console.error('loadProjectDetail (project_members):', mErr.message); prjMembersErr = translateErr(mErr.message); prjMembers = []; }
+  else { prjMembersErr = null; prjMembers = pm || []; }
+
+  prjRenderHeader(project);
+  prjRenderHero();
   prjSetTab(prjTab || 'flow');
+}
+
+function prjRenderHeader(project) {
+  const t = $('prjTitle'); if (t) t.textContent = project.name;
+  const total = prjTasks.length, done = prjTasks.filter(x => x.status === 'completed').length;
+  const meta = $('prjMeta');
+  if (meta) {
+    meta.innerHTML = '<div class="prj-chips" style="margin:0;">' + prjTypeChip(project) + prjStatusBadge(project) +
+      (prjRecurLabel(project) ? '<span class="prj-chip prj-chip-recur">🔁 ' + escapeHtml(prjRecurLabel(project)) + '</span>' : '') +
+      '<span class="prj-chip">' + done + '/' + total + ' bajarildi</span></div>' +
+      (project.description ? '<div style="margin-top:6px;">' + escapeHtml(project.description) + '</div>' : '');
+  }
+  const act = $('prjActions');
+  if (act) {
+    act.innerHTML = isOwnerLike() ? (
+      '<button class="btn sm secondary" onclick="prjEditRecurrence()">🔁 Takrorlash</button>' +
+      '<button class="btn sm secondary" onclick="prjRenameOrDelete()">⚙️ Sozlash</button>' +
+      '<button class="btn sm secondary" onclick="prjDeleteProject()" style="color:var(--danger);">🗑 O\'chirish</button>'
+    ) : '<span style="font-size:12px;color:var(--muted);">👁 Faqat ko\'rish</span>';
+  }
+}
+
+// Hero — "nima holatda / kim ushlab turibdi" (barcha tablarda ko'rinadi)
+function prjRenderHero() {
+  const el = $('prjHero'); if (!el) return;
+  const p = window._curProject;
+  if (!p) { el.innerHTML = ''; return; }
+  const list = prjTasks.slice().sort(prjByOrder);
+  const ft = prjFlowType(p);
+  const total = list.length;
+  const done = list.filter(t => t.status === 'completed').length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  const open = prjOpenTasks(list);
+  const locked = prjLockedTasks(list);
+
+  let block;
+  if (!total) {
+    block = '<div class="prj-block none"><span style="font-size:20px;">🧩</span><div class="prj-block-txt"><b>Bosqich qo\'shilmagan</b>' +
+      '<div class="prj-block-sub">' + (isOwnerLike() ? 'Flow tabidagi tugma bilan birinchi bosqichni qo\'shing.' : 'Administrator bosqich qo\'shishini kutmoqda.') + '</div></div></div>';
+  } else if (!open.length) {
+    block = '<div class="prj-block done"><span style="font-size:20px;">✅</span><div class="prj-block-txt"><b>Barcha bosqichlar tugadi</b>' +
+      '<div class="prj-block-sub">' + done + ' / ' + total + ' bajarildi.' + (prjRecurLabel(p) ? ' Takrorlanish: ' + escapeHtml(prjRecurLabel(p)) + '.' : '') + '</div></div></div>';
+  } else if (ft === 'parallel') {
+    block = '<div class="prj-block par"><span style="font-size:20px;">⚡</span><div class="prj-block-txt"><b>' + open.length + ' ta vazifa ochiq — hammasi birdan bajarilishi mumkin</b>' +
+      '<div class="prj-block-sub">Bajaruvchilar: ' + escapeHtml(prjAssigneeSummary(open)) + (locked.length ? ' · ' + locked.length + ' ta bosqich qulflangan (istisno)' : '') + '</div></div></div>';
+  } else {
+    const cur = prjCurrentTask(list);
+    const nm = cur.assigned_to ? tblMemberName(cur.assigned_to) : null;
+    const over = cur.deadline && new Date(cur.deadline).getTime() < Date.now();
+    block = '<div class="prj-block">' + avatarHtml(nm || '?', 'lg', null, cur.assigned_to || null) +
+      '<div class="prj-block-txt"><b>Hozir: ' + escapeHtml(cur.title || '(nomsiz)') + '</b>' +
+      '<div class="prj-block-sub">' +
+        (nm ? escapeHtml(nm) + ' bajarmoqda' : '<span style="color:var(--danger);font-weight:600;">Hech kimga biriktirilmagan</span>') +
+        (cur.deadline ? ' · ⏰ ' + (over ? '<span class="prj-over">' + fmtDeadline(cur.deadline) + ' (kechikdi)</span>' : fmtDeadline(cur.deadline)) : '') +
+        (locked.length ? ' · keyingi ' + locked.length + ' bosqich shuni kutmoqda' : '') +
+      '</div></div></div>';
+  }
+
+  el.innerHTML = '<div class="prj-hero">' +
+    '<div class="prj-hero-top">' +
+      '<div class="prj-hero-stat">' +
+        '<div><div class="prj-hero-num">' + done + '/' + total + '</div><div class="prj-hero-cap">bajarildi</div></div>' +
+        '<div><div class="prj-hero-num">' + open.length + '</div><div class="prj-hero-cap">ochiq</div></div>' +
+        '<div><div class="prj-hero-num">' + locked.length + '</div><div class="prj-hero-cap">qulflangan</div></div>' +
+      '</div>' +
+      '<div class="prj-hero-bar"><div class="prj-bar-row"><span>Umumiy progress</span><span>' + pct + '%</span></div>' +
+      '<div class="prj-bar"><div class="prj-bar-fill" style="width:' + pct + '%;background:' + (pct === 100 ? 'var(--success)' : '#3B82F6') + ';"></div></div></div>' +
+    '</div>' + block + '</div>';
 }
 
 function prjSetTab(tab) {
@@ -2648,74 +2965,133 @@ function prjSetTab(tab) {
   else if (tab === 'members') renderProjectMembers();
 }
 
-function renderProjectFlow() {
-  const wrap = $('prjPaneFlow');
-  const list = prjTasks.slice().sort((a, b) => (a.flow_order || 0) - (b.flow_order || 0));
-  const canEdit = isOwnerLike();
-  let html = '<div style="display:flex;flex-direction:column;gap:0;">';
-  list.forEach((t, i) => {
-    const open = prjTaskOpen(t, list);
-    const isDone = t.status === 'completed';
-    const isCur = !isDone && open && t.status !== 'cancelled';
-    const locked = !open && !isDone;
-    const asg = t.assigned_to ? tblMemberName(t.assigned_to) : null;
-    const stName = statusName(t.status);
-    let borderColor = 'var(--line)', bg = 'var(--surface)', badge = '';
-    if (isDone) { borderColor = '#10B981'; bg = 'rgba(16,185,129,.06)'; badge = '<span style="color:#10B981;font-weight:600;font-size:12px;">✓ Bajarildi</span>'; }
-    else if (isCur) { borderColor = '#3B82F6'; bg = 'rgba(59,130,246,.07)'; badge = '<span style="color:#3B82F6;font-weight:700;font-size:12px;">▶ Hozir shu bosqichda</span>'; }
-    else if (locked) { badge = '<span style="color:var(--muted);font-size:12px;">🔒 Oldingi tugashini kutmoqda</span>'; }
+// Bitta bosqich kartasi (flow va parallel ko'rinishlarda bir xil)
+function prjTaskCardHtml(t, i, list, ft, curId, canEdit) {
+  const isDone = t.status === 'completed';
+  const isCancel = t.status === 'cancelled';
+  const openNow = prjTaskOpen(t, list);
+  const isCur = !isDone && !isCancel && openNow && t.id === curId;
+  const locked = !openNow && !isDone && !isCancel;
+  const stuck = locked && prjShouldBeOpen(t, list);   // qulf qotib qolgan (masalan oldingi bekor qilingan)
 
-    html += '<div style="display:flex;align-items:stretch;gap:12px;">' +
-      // chap: nomer + chiziq
-      '<div style="display:flex;flex-direction:column;align-items:center;width:34px;flex:0 0 auto;">' +
-        '<div style="width:32px;height:32px;border-radius:50%;background:' + (isDone ? '#10B981' : isCur ? '#3B82F6' : 'var(--surface-2)') + ';color:' + (isDone || isCur ? '#fff' : 'var(--muted)') + ';display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:0 0 auto;">' + (isDone ? '✓' : (i + 1)) + '</div>' +
-        (i < list.length - 1 ? '<div style="flex:1;width:2px;background:var(--line);min-height:22px;"></div>' : '') +
+  let cls = 'prj-task', state = '';
+  if (isCancel) { state = '<span class="prj-state cancel">✕ Bekor qilingan</span>'; }
+  else if (isDone) { cls += ' done'; state = '<span class="prj-state done">✓ Bajarildi</span>'; }
+  else if (isCur) { cls += ' cur'; state = '<span class="prj-state cur">▶ Hozir shu bosqichda</span>'; }
+  else if (locked) { cls += ' locked'; state = '<span class="prj-state lock">🔒 ' + (stuck ? 'Qulflangan (qotib qolgan)' : 'Oldingi bosqichni kutmoqda') + '</span>'; }
+  else { state = '<span class="prj-state open">' + (ft === 'parallel' ? '⚡ Ochiq' : '⚡ Parallel — ochiq') + '</span>'; }
+
+  const nodeCls = isDone ? ' done' : (isCur ? ' cur' : '');
+  const over = t.deadline && !isDone && !isCancel && new Date(t.deadline).getTime() < Date.now();
+  const asgName = t.assigned_to ? tblMemberName(t.assigned_to) : null;
+
+  const meta =
+    state +
+    (asgName ? prjPersonHtml(t.assigned_to, '👤 ')
+             : (isDone || isCancel ? '' : '<span class="prj-meta-i" style="color:var(--danger);">👤 Biriktirilmagan</span>')) +
+    (t.acceptor_id ? prjPersonHtml(t.acceptor_id, '🤝 Qabul: ') : '') +
+    (t.deadline ? '<span class="prj-meta-i' + (over ? ' prj-over' : '') + '">⏰ ' + fmtDeadline(t.deadline) + (over ? ' (kechikdi)' : '') + '</span>' : '') +
+    (t.recur_days ? '<span class="prj-meta-i" style="color:var(--accent-ink);">🔁 ' + t.recur_days + ' kun</span>' : '') +
+    prjDoneByHtml(t);
+
+  const ord = canEdit
+    ? '<span class="prj-ord">' +
+        '<button class="prj-ord-btn" title="Yuqoriga" onclick="event.stopPropagation();prjMoveTask(' + t.id + ',-1)"' + (i === 0 ? ' disabled' : '') + '>▲</button>' +
+        '<button class="prj-ord-btn" title="Pastga" onclick="event.stopPropagation();prjMoveTask(' + t.id + ',1)"' + (i === list.length - 1 ? ' disabled' : '') + '>▼</button>' +
+      '</span>'
+    : '';
+
+  const dep = t.depends_on_prev
+    ? '<span class="prj-meta-i" title="Oldingi bosqichga bog\'liq">🔗</span>'
+    : '<span class="prj-meta-i" title="Oldingisini kutmaydi (parallel)">⚡</span>';
+
+  const unlock = (canEdit && stuck)
+    ? '<div style="margin-top:8px;"><button class="btn sm secondary" onclick="event.stopPropagation();prjUnlockTask(' + t.id + ')">🔓 Qulfni ochish</button>' +
+      '<span style="font-size:11.5px;color:var(--muted);margin-left:8px;">Oldingi bosqich bekor qilingan yoki qulf eskirgan.</span></div>'
+    : '';
+
+  return '<div class="prj-step">' +
+      '<div class="prj-rail"><div class="prj-node' + nodeCls + '">' + (isDone ? '✓' : (isCancel ? '✕' : (i + 1))) + '</div>' +
+        (ft === 'sequential' && i < list.length - 1 ? '<div class="prj-line"></div>' : '') +
       '</div>' +
-      // karta
-      '<div onclick="openDetail(' + t.id + ')" style="flex:1;border:1.5px solid ' + borderColor + ';background:' + bg + ';border-radius:12px;padding:13px 15px;margin-bottom:12px;cursor:pointer;' + (locked ? 'opacity:.6;' : '') + '">' +
-        '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">' +
-          '<div style="font-weight:600;font-size:14px;' + (isDone ? 'text-decoration:line-through;color:var(--muted);' : '') + '">' + escapeHtml(t.title || '(nomsiz)') + '</div>' +
-          (t.depends_on_prev ? '<span title="Oldingiga bog\'liq" style="font-size:11px;color:var(--muted);">🔗</span>' : '<span title="Parallel" style="font-size:11px;color:var(--muted);">∥</span>') +
-        '</div>' +
-        '<div style="display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap;">' +
-          badge +
-          (asg ? '<span style="font-size:12px;color:var(--muted);">👤 ' + escapeHtml(asg) + '</span>' : '') +
-          (t.deadline ? '<span style="font-size:12px;color:var(--muted);">⏰ ' + fmtDeadline(t.deadline) + '</span>' : '') +
-          (t.recur_days ? '<span style="font-size:11.5px;color:var(--accent-ink);">🔁 ' + t.recur_days + ' kun</span>' : '') +
-        '</div>' +
+      '<div class="' + cls + '" onclick="openDetail(' + t.id + ')">' +
+        '<div class="prj-task-top"><div class="prj-task-title">' + escapeHtml(t.title || '(nomsiz)') + '</div>' +
+          '<span style="display:flex;align-items:center;gap:6px;">' + dep + ord + '</span></div>' +
+        '<div class="prj-meta">' + meta + '</div>' + unlock +
       '</div>' +
     '</div>';
-  });
-  html += '</div>';
-  if (!list.length) html = '<div class="empty" style="padding:32px;text-align:center;"><strong>Bosqichlar yo\'q</strong>' + (canEdit ? '<br><span style="color:var(--muted);font-size:13px;">Pastdagi tugma bilan qo\'shing.</span>' : '') + '</div>';
-  if (canEdit) {
-    html += '<button onclick="prjAddTask()" style="margin-top:6px;width:100%;padding:13px;border:1.5px dashed var(--line-strong);border-radius:12px;background:none;cursor:pointer;color:var(--accent-ink);font-weight:600;font-size:13.5px;">+ Keyingi bosqich (vazifa) qo\'shish</button>';
+}
+
+function renderProjectFlow() {
+  const wrap = $('prjPaneFlow'); if (!wrap) return;
+  const p = window._curProject;
+  const ft = prjFlowType(p);
+  const list = prjTasks.slice().sort(prjByOrder);
+  const canEdit = isOwnerLike();
+
+  if (!list.length) {
+    wrap.innerHTML = '<div class="empty"><strong>Bosqichlar yo\'q</strong>' +
+      (canEdit
+        ? '<span style="display:block;margin-bottom:14px;">' + escapeHtml(PRJ_TYPES[ft].desc) + '</span><button class="btn" onclick="prjAddTask()">+ Birinchi bosqichni qo\'shish</button>'
+        : '<span style="display:block;">Administrator bosqich qo\'shgach shu yerda ko\'rinadi.</span>') +
+      '</div>';
+    return;
   }
+
+  const curId = ft === 'sequential' ? ((prjCurrentTask(list) || {}).id || null) : null;
+  const cards = list.map((t, i) => prjTaskCardHtml(t, i, list, ft, curId, canEdit)).join('');
+  let html = '<div class="' + (ft === 'parallel' ? 'prj-par' : 'prj-flow') + '">' + cards + '</div>';
+  if (canEdit) html += '<button class="prj-add" onclick="prjAddTask()">+ Keyingi bosqich (vazifa) qo\'shish</button>';
   wrap.innerHTML = html;
 }
 
 function renderProjectKanban() {
-  const wrap = $('prjPaneKanban');
+  const wrap = $('prjPaneKanban'); if (!wrap) return;
+  const list = prjTasks.slice().sort(prjByOrder);
+  if (!list.length) {
+    wrap.innerHTML = '<div class="empty"><strong>Bosqichlar yo\'q</strong>' +
+      (isOwnerLike() ? '<span style="display:block;margin-bottom:14px;">Avval Flow tabida bosqich qo\'shing.</span><button class="btn" onclick="prjSetTab(\'flow\')">🔀 Flow\'ga o\'tish</button>' : '') + '</div>';
+    return;
+  }
   const cols = kanbanColumns.length ? kanbanColumns.slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)) : STATUS_ORDER.map((s, i) => ({ status: s, name: STATUS_LBL[s], color: '#94A3B8' }));
   wrap.innerHTML = '<div class="kanban">' + cols.map(col => {
-    const cards = prjTasks.filter(t => t.status === col.status);
+    const cards = list.filter(t => t.status === col.status);
     return '<div class="kan-col" ondragover="kanDragOver(event)" ondragleave="kanDragLeave(event)" ondrop="kanDrop(event, \'' + col.status + '\')"><div class="kan-head" style="border-top:3px solid ' + (col.color || '#94A3B8') + '"><span>' + escapeHtml(col.name) + '</span><span class="kan-count">' + cards.length + '</span></div>' +
       '<div class="kan-cards">' + cards.map(t => {
-        const asg = t.assigned_to ? tblMemberName(t.assigned_to) : '';
         const isDone = t.status === 'completed';
-        return '<div class="kan-card' + (isDone ? ' kan-card-done' : '') + '" draggable="true" data-id="' + t.id + '" ondragstart="kanDragStart(event, ' + t.id + ')" ondragend="kanDragEnd(event)" onclick="openDetail(' + t.id + ')"><div class="kan-card-title' + (isDone ? ' done' : '') + '">' + (isDone ? '✓ ' : '') + escapeHtml(t.title || '') + '</div>' + (asg ? '<div style="font-size:11px;color:var(--muted);margin-top:5px;">👤 ' + escapeHtml(asg) + '</div>' : '') + '</div>';
+        const locked = !prjTaskOpen(t, list) && !isDone && t.status !== 'cancelled';
+        const asgName = t.assigned_to ? tblMemberName(t.assigned_to) : null;
+        return '<div class="kan-card' + (isDone ? ' kan-card-done' : '') + '" draggable="' + (locked ? 'false' : 'true') + '"' + (locked ? ' style="opacity:.62;border-style:dashed;"' : '') +
+          ' data-id="' + t.id + '" ondragstart="kanDragStart(event, ' + t.id + ')" ondragend="kanDragEnd(event)" onclick="openDetail(' + t.id + ')">' +
+          '<div class="kan-card-title' + (isDone ? ' done' : '') + '">' + (isDone ? '✓ ' : (locked ? '🔒 ' : '')) + escapeHtml(t.title || '') + '</div>' +
+          '<div class="kan-card-meta">' +
+            (asgName ? avatarHtml(asgName, 'sm', null, t.assigned_to) + '<span>' + escapeHtml(asgName) + '</span>'
+                     : (isDone || t.status === 'cancelled' ? '' : '<span>👤 Biriktirilmagan</span>')) +
+            (t.deadline ? '<span>⏰ ' + fmtDeadline(t.deadline) + '</span>' : '') +
+          '</div></div>';
       }).join('') + '</div></div>';
   }).join('') + '</div>';
 }
 
 function renderProjectMembers() {
-  const wrap = $('prjPaneMembers');
+  const wrap = $('prjPaneMembers'); if (!wrap) return;
   const canEdit = isOwnerLike();
   let html = '';
+  if (prjMembersErr) {
+    html += '<div class="prj-error" style="margin-bottom:14px;">⚠️ A\'zolar ro\'yxati yuklanmadi: ' + escapeHtml(prjMembersErr) +
+      '<button class="btn sm secondary" style="margin-top:10px;" onclick="loadProjectDetail()">↻ Qayta urinish</button></div>';
+  }
+  if (!prjMembers.length && !prjMembersErr) {
+    html += '<div class="empty"><strong>Taklif qilingan a\'zo yo\'q</strong>' +
+      '<span style="display:block;margin-bottom:14px;">Taklif qilingan a\'zo loyihani to\'liq ko\'radi, lekin o\'zgartira olmaydi (faqat ko\'rish). Bajaruvchilar bu ro\'yxatsiz ham o\'z vazifasini ko\'radi.</span>' +
+      (canEdit ? '<button class="btn" onclick="prjInviteMember()">+ A\'zo taklif qilish</button>' : '') + '</div>';
+    wrap.innerHTML = html;
+    return;
+  }
   if (canEdit) html += '<button class="btn sm" onclick="prjInviteMember()" style="margin-bottom:14px;">+ A\'zo taklif qilish</button>';
-  html += '<div style="font-size:12.5px;color:var(--muted);margin-bottom:10px;">Taklif qilingan a\'zolar loyihani to\'liq ko\'radi, lekin o\'zgartira olmaydi (faqat ko\'rish).</div>';
+  html += '<div style="font-size:12.5px;color:var(--muted);margin-bottom:10px;">👁 Taklif qilingan a\'zolar loyihani to\'liq ko\'radi, lekin o\'zgartira olmaydi.</div>';
   const rows = prjMembers.map(pm => {
-    const m = wsMembers.find(x => x.user_id === pm.user_id);
+    const m = (wsMembers || []).find(x => x.user_id === pm.user_id);
     const name = pm.user_id === me.id ? (myProfile.full_name || 'Siz') : ((m && m.profile && m.profile.full_name) || 'A\'zo');
     const avatar = m && m.profile && m.profile.avatar_url;
     return '<div class="item static"><div style="padding-right:10px;">' + avatarHtml(name, null, avatar, pm.user_id) + '</div>' +
@@ -2723,68 +3099,236 @@ function renderProjectMembers() {
       (canEdit ? '<div class="item-right"><button class="link-btn" onclick="prjRemoveMember(\'' + pm.user_id + '\')" style="color:var(--danger)">Olib tashlash</button></div>' : '') +
     '</div>';
   }).join('');
-  html += '<div class="list">' + (rows || '<div class="empty" style="padding:20px"><strong>A\'zo yo\'q</strong></div>') + '</div>';
+  html += '<div class="list">' + rows + '</div>';
   wrap.innerHTML = html;
 }
 
 // ---- Create / edit project ----
 async function openCreateProject() {
+  if (!isOwnerLike()) { toast('Loyihani faqat administrator yaratadi', 'err'); return; }
   const v = await uiForm('Yangi loyiha', [
     { id: 'name', label: 'Loyiha nomi', type: 'text', placeholder: 'Masalan: Yangi filial ochish' },
+    { id: 'type', label: 'Loyiha turi', type: 'choice', value: 'sequential', options: prjTypeOptions(),
+      hint: 'Tur — yangi bosqichlar uchun default. Keyin "Sozlash"da o\'zgartirish mumkin.' },
     { id: 'desc', label: 'Tavsif (ixtiyoriy)', type: 'textarea', placeholder: 'Qisqacha izoh...' },
     { id: 'recur', label: 'Takrorlanish (ixtiyoriy)', type: 'number', placeholder: 'Masalan: 30', hint: 'Har necha kunda loyiha qaytadan boshlanadi. Bo\'sh = takrorlanmaydi.' }
   ], { okText: 'Yaratish' });
-  if (!v || !v.name || !v.name.trim()) return;
+  if (!v) return;
+  if (!v.name || !v.name.trim()) { toast('Loyiha nomini kiriting', 'err'); return; }
   const recDays = v.recur && parseInt(v.recur, 10) > 0 ? parseInt(v.recur, 10) : null;
-  saveProject(v.name.trim(), recDays, (v.desc || '').trim() || null);
+  saveProject(v.name.trim(), recDays, (v.desc || '').trim() || null, v.type === 'parallel' ? 'parallel' : 'sequential');
 }
-async function saveProject(name, recDays, desc) {
+
+async function saveProject(name, recDays, desc, flowType) {
+  const row = {
+    workspace_id: currentWs.id, name, description: desc || null, created_by: me.id,
+    recurrence_days: recDays, last_reset_at: recDays ? new Date().toISOString() : null,
+    flow_type: flowType || 'sequential'
+  };
   try {
-    const { data, error } = await sb.from('projects').insert({
-      workspace_id: currentWs.id, name, description: desc || null, created_by: me.id,
-      recurrence_days: recDays, last_reset_at: recDays ? new Date().toISOString() : null
-    }).select().single();
-    if (error) throw error;
+    let res = await sb.from('projects').insert(row).select().single();
+    if (res.error && prjNoFlowTypeCol(res.error)) {
+      // TASKFIX_PROJECT.sql hali ishga tushmagan — loyiha baribir yaratilsin, lekin JIM qolmasin
+      console.error('flow_type ustuni yo\'q (TASKFIX_PROJECT.sql):', res.error.message);
+      delete row.flow_type;
+      res = await sb.from('projects').insert(row).select().single();
+      if (!res.error) toast('⚠️ Loyiha turi saqlanmadi — TASKFIX_PROJECT.sql ishga tushirilmagan', 'err');
+    }
+    if (res.error) throw res.error;
+    const data = res.data;
     toast('✅ Loyiha yaratildi', 'ok');
     logActivity('project_created', { entityType: 'project', entityId: data.id, entityTitle: name });
-    await loadProjects();
+    try { await loadProjects(); } catch (e) { console.error('loadProjects (yaratishdan keyin):', e); }
     openProject(data.id);
-  } catch (e) { toast('Xato: ' + translateErr(e.message || String(e)), 'err'); }
+  } catch (e) {
+    console.error('saveProject:', e);
+    toast('Xato: ' + translateErr(e.message || String(e)), 'err');
+  }
 }
 
 async function prjRenameOrDelete() {
   const p = window._curProject; if (!p) return;
+  if (!isOwnerLike()) { toast('Faqat administrator o\'zgartiradi', 'err'); return; }
+  const curType = prjFlowType(p), curStatus = prjStatusKey(p);
   const v = await uiForm('Loyihani sozlash', [
     { id: 'name', label: 'Loyiha nomi', type: 'text', value: p.name },
-    { id: 'desc', label: 'Tavsif', type: 'textarea', value: p.description || '' }
+    { id: 'desc', label: 'Tavsif', type: 'textarea', value: p.description || '' },
+    { id: 'type', label: 'Loyiha turi', type: 'choice', value: curType, options: prjTypeOptions(),
+      hint: 'Tur — yangi bosqichlar uchun default. Mavjud bosqichlarga ham qo\'llashni alohida so\'raymiz.' },
+    { id: 'status', label: 'Holat', type: 'select', value: curStatus, options: [
+      { value: 'active', label: '● Faol' },
+      { value: 'paused', label: '⏸ To\'xtatilgan' },
+      { value: 'done', label: '✓ Tugallandi' }
+    ], hint: 'Holat faqat ro\'yxatdagi belgi — vazifalarni qulflamaydi.' }
   ], { okText: 'Saqlash' });
   if (!v) return;
-  if (v.name && v.name.trim() && (v.name.trim() !== p.name || (v.desc || '') !== (p.description || ''))) {
-    try {
-      const { error } = await sb.from('projects').update({ name: v.name.trim(), description: (v.desc || '').trim() || null }).eq('id', p.id);
-      if (error) throw error;
-      p.name = v.name.trim(); p.description = (v.desc || '').trim() || null;
-      $('prjTitle').textContent = p.name; loadProjectDetail(); toast('Saqlandi', 'ok');
-    } catch (e) { toast('Xato: ' + translateErr(e.message || String(e)), 'err'); }
+  if (!v.name || !v.name.trim()) { toast('Loyiha nomi bo\'sh bo\'lmasin', 'err'); return; }
+
+  const patch = {};
+  if (v.name.trim() !== p.name) patch.name = v.name.trim();
+  const nd = (v.desc || '').trim() || null;
+  if (nd !== (p.description || null)) patch.description = nd;
+  const nt = v.type === 'parallel' ? 'parallel' : 'sequential';
+  if (nt !== curType) patch.flow_type = nt;
+  if (v.status !== curStatus) patch.status = v.status;
+  if (!Object.keys(patch).length) return;   // o'zgarish yo'q — bekorga yozmaymiz
+
+  let typeChanged = !!patch.flow_type;
+  try {
+    let res = await sb.from('projects').update(patch).eq('id', p.id);
+    if (res.error && prjNoFlowTypeCol(res.error)) {
+      console.error('flow_type ustuni yo\'q (TASKFIX_PROJECT.sql):', res.error.message);
+      delete patch.flow_type; typeChanged = false;
+      if (!Object.keys(patch).length) { toast('⚠️ Loyiha turi saqlanmadi — TASKFIX_PROJECT.sql ishga tushirilmagan', 'err'); return; }
+      res = await sb.from('projects').update(patch).eq('id', p.id);
+      if (!res.error) toast('⚠️ Loyiha turi saqlanmadi — TASKFIX_PROJECT.sql ishga tushirilmagan', 'err');
+    }
+    if (res.error) throw res.error;
+    Object.assign(p, patch);
+    toast('✅ Saqlandi', 'ok');
+  } catch (e) {
+    console.error('prjRenameOrDelete:', e);
+    toast('Xato: ' + translateErr(e.message || String(e)), 'err');
+    return;
+  }
+
+  // Tur o'zgardi — mavjud bosqichlarga ham qo'llaymizmi? (majburiy emas)
+  if (typeChanged && prjTasks.length) {
+    const ft = patch.flow_type;
+    const ask = await uiConfirm('Mavjud bosqichlar',
+      ft === 'parallel'
+        ? 'Mavjud ' + prjTasks.length + ' ta bosqich ham parallel bo\'lsinmi? (hammasi darrov ochiladi)'
+        : 'Mavjud ' + prjTasks.length + ' ta bosqich ham ketma-ket bo\'lsinmi? (birinchisidan boshqasi qulflanadi)',
+      { okText: 'Ha, qo\'llansin' });
+    if (ask) await prjApplyTypeToTasks(ft);
+  }
+  // Refresh alohida — yangilash xatosi "saqlanmadi" degan taassurot bermasin
+  try { await loadProjectDetail(); } catch (e) { console.error('loadProjectDetail (sozlashdan keyin):', e); }
+}
+
+// Loyiha turini mavjud bosqichlarga qo'llaydi (depends_on_prev) + qulflarni moslaydi
+async function prjApplyTypeToTasks(ft) {
+  const list = prjTasks.slice().sort(prjByOrder);
+  let fail = 0, changed = 0;
+  for (let i = 0; i < list.length; i++) {
+    const t = list[i];
+    const want = (ft === 'sequential') && i > 0;
+    if (!!t.depends_on_prev === want) continue;
+    const { error } = await sb.from('tasks').update({ depends_on_prev: want }).eq('id', t.id);
+    if (error) { console.error('prjApplyTypeToTasks:', error.message); fail++; continue; }
+    t.depends_on_prev = want; changed++;
+  }
+  const lockFail = await prjSyncLocks(list);
+  if (fail || lockFail) toast('⚠️ ' + (fail + lockFail) + ' ta bosqich yangilanmadi — qayta urinib ko\'ring', 'err');
+  else if (changed) toast('✅ ' + changed + ' ta bosqich yangilandi', 'ok');
+  return fail + lockFail;
+}
+
+// Qulflarni (is_locked) hozirgi tartib/holatga moslaydi. Xatolar sonini qaytaradi.
+async function prjSyncLocks(list) {
+  const arr = (list || prjTasks).slice().sort(prjByOrder);
+  let fail = 0;
+  for (const t of arr) {
+    const want = !prjShouldBeOpen(t, arr);
+    if (!!t.is_locked === want) continue;
+    const { data, error } = await sb.from('tasks').update({ is_locked: want }).eq('id', t.id).select().single();
+    if (error) { console.error('prjSyncLocks:', error.message); fail++; continue; }
+    if (data) t.is_locked = data.is_locked;
+  }
+  return fail;
+}
+
+// Qulf qotib qolgan bosqichni ochish (masalan oldingi bosqich bekor qilingan)
+async function prjUnlockTask(id) {
+  if (!isOwnerLike()) { toast('Faqat administrator qulfni ochadi', 'err'); return; }
+  try {
+    const { data, error } = await sb.from('tasks').update({ is_locked: false }).eq('id', id).select().single();
+    if (error) throw error;
+    if (!data) throw new Error('Vazifa topilmadi');
+    const i = prjTasks.findIndex(x => x.id === id); if (i >= 0) prjTasks[i] = data;
+    const ci = tasksCache.findIndex(x => x.id === id); if (ci >= 0) tasksCache[ci] = data;
+    // Server (trigger) qulfni qaytarib yoqqan bo'lishi mumkin — rostini aytamiz
+    if (data.is_locked) toast('Qulf server tomonidan qayta yoqildi — oldingi bosqichni yakunlang', 'err');
+    else toast('🔓 Qulf ochildi', 'ok');
+    prjRenderHero();
+    renderProjectFlow();
+  } catch (e) {
+    console.error('prjUnlockTask:', e);
+    toast('Xato: ' + translateErr(e.message || String(e)), 'err');
+  }
+}
+
+// Bosqichni yuqori/pastga surish (flow_order almashtirish)
+async function prjMoveTask(id, dir) {
+  if (!isOwnerLike()) { toast('Tartibni faqat administrator o\'zgartiradi', 'err'); return; }
+  const list = prjTasks.slice().sort(prjByOrder);
+  const i = list.findIndex(x => x.id === id);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= list.length) return;
+  try {
+    // Eski yozuvlarda flow_order 0/null bo'lishi mumkin — avval tartib raqamlarini tiklaymiz
+    if (list.some((t, k) => (t.flow_order || 0) !== k + 1)) {
+      for (let k = 0; k < list.length; k++) {
+        if ((list[k].flow_order || 0) === k + 1) continue;
+        const { error } = await sb.from('tasks').update({ flow_order: k + 1 }).eq('id', list[k].id);
+        if (error) throw error;
+        list[k].flow_order = k + 1;
+      }
+    }
+    const a = list[i], b = list[j];
+    const ao = a.flow_order, bo = b.flow_order;
+    const { error: e1 } = await sb.from('tasks').update({ flow_order: bo }).eq('id', a.id);
+    if (e1) throw e1;
+    const { error: e2 } = await sb.from('tasks').update({ flow_order: ao }).eq('id', b.id);
+    if (e2) {
+      // Yarim holat qolmasin — ortga qaytaramiz
+      const { error: e3 } = await sb.from('tasks').update({ flow_order: ao }).eq('id', a.id);
+      if (e3) console.error('prjMoveTask (rollback):', e3.message);
+      throw e2;
+    }
+    a.flow_order = bo; b.flow_order = ao;
+    const lockFail = await prjSyncLocks(list);
+    if (lockFail) toast('⚠️ Tartib o\'zgardi, lekin qulflar to\'liq yangilanmadi', 'err');
+    else toast('↕ Tartib o\'zgartirildi', 'ok');
+    await prjReloadTasks(currentProjectId);
+    prjRenderHero();
+    renderProjectFlow();
+  } catch (e) {
+    console.error('prjMoveTask:', e);
+    toast('Xato: ' + translateErr(e.message || String(e)), 'err');
+    try { await loadProjectDetail(); } catch (e2) { console.error('loadProjectDetail (move):', e2); }
   }
 }
 
 async function prjDeleteProject() {
   const p = window._curProject; if (!p) return;
+  if (!isOwnerLike()) { toast('Loyihani faqat administrator o\'chiradi', 'err'); return; }
   const ok = await uiConfirm('Loyihani o\'chirish', '"' + p.name + '" va uning barcha vazifalari butunlay o\'chiriladi. Bu amalni ortga qaytarib bo\'lmaydi.', { okText: 'O\'chirish', danger: true });
   if (!ok) return;
-  try { const { error } = await sb.from('projects').delete().eq('id', p.id); if (error) throw error; toast('O\'chirildi', 'ok'); goPage('projects'); } catch (e) { toast('Xato: ' + translateErr(e.message || String(e)), 'err'); }
+  try {
+    const { error } = await sb.from('projects').delete().eq('id', p.id);
+    if (error) throw error;
+    logActivity('project_deleted', { entityType: 'project', entityId: p.id, entityTitle: p.name });
+    toast('O\'chirildi', 'ok');
+    tasksCache = tasksCache.filter(t => t.project_id !== p.id);
+    currentProjectId = null; prjTasks = []; prjMembers = []; window._curProject = null;
+    goPage('projects');
+  } catch (e) {
+    console.error('prjDeleteProject:', e);
+    toast('Xato: ' + translateErr(e.message || String(e)), 'err');
+  }
 }
 
 async function prjEditRecurrence() {
   const p = window._curProject; if (!p) return;
+  if (!isOwnerLike()) { toast('Faqat administrator o\'zgartiradi', 'err'); return; }
   const WD = ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
   const v = await uiForm('Takrorlanish', [
     { id: 'type', label: 'Takrorlanish turi', type: 'select', value: p.recurrence_type || 'none', options: [
       { value: 'none', label: 'Takrorlanmaydi' },
       { value: 'days', label: 'Har necha kunda' },
       { value: 'weekly', label: 'Har hafta (kun tanlash)' }
-    ], hint: 'Muddat kelganda loyiha avtomatik qaytadan boshlanadi.' },
+    ], hint: 'Muddat kelganda loyiha avtomatik qaytadan boshlanadi (barcha bosqichlar "Yangi" holatiga qaytadi).' },
     { id: 'days', label: 'Har necha kunda? (agar "har necha kunda" tanlansa)', type: 'number', value: p.recurrence_type === 'days' ? (p.recurrence_days || '') : '', placeholder: 'Masalan: 30' },
     { id: 'weekday', label: 'Qaysi kun? (agar "har hafta" tanlansa)', type: 'select', value: p.recurrence_weekday != null ? p.recurrence_weekday : 1, options: WD.map((w, i) => ({ value: i, label: w })) }
   ], { okText: 'Saqlash' });
@@ -2801,24 +3345,40 @@ async function prjEditRecurrence() {
     if (error) throw error;
     Object.assign(p, patch);
     toast(v.type === 'weekly' ? ('🔁 Har hafta ' + WD[patch.recurrence_weekday]) : (v.type === 'days' ? ('🔁 Har ' + patch.recurrence_days + ' kunda') : 'Takrorlanish o\'chirildi'), 'ok');
-    loadProjectDetail();
-  } catch (e) { toast('Xato: ' + translateErr(e.message || String(e)), 'err'); }
+  } catch (e) {
+    console.error('prjEditRecurrence:', e);
+    toast('Xato: ' + translateErr(e.message || String(e)), 'err');
+    return;
+  }
+  try { await loadProjectDetail(); } catch (e) { console.error('loadProjectDetail (takrorlash):', e); }
 }
 
 // Recurrence — barcha tasklarni qayta "new" holatiga qaytaradi
+// DIQQAT: bu tekshiruv LAZY — faqat owner/admin loyihani ochganda ishlaydi (fon jarayoni yo'q).
 async function prjResetRecurrence(project, silent) {
   try {
     const { error: e1 } = await sb.from('tasks').update({ status: 'new', completed_at: null, started_at: null }).eq('project_id', project.id);
     if (e1) throw e1;
-    const { error: e2 } = await sb.from('projects').update({ last_reset_at: new Date().toISOString() }).eq('id', project.id);
+    const nowIso = new Date().toISOString();
+    const { error: e2 } = await sb.from('projects').update({ last_reset_at: nowIso }).eq('id', project.id);
     if (e2) throw e2;
-    project.last_reset_at = new Date().toISOString();
+    project.last_reset_at = nowIso;
+    // Mahalliy nusxani ham yangilaymiz, so'ng qulflarni tiklaymiz (ketma-ket loyihada 1-dan boshqasi qulflanadi)
+    prjTasks.forEach(t => { t.status = 'new'; t.completed_at = null; t.started_at = null; });
+    const lockFail = await prjSyncLocks(prjTasks);
+    if (lockFail) console.error('prjResetRecurrence: ' + lockFail + ' ta qulf yangilanmadi');
     if (!silent) toast('🔁 Loyiha qaytadan boshlandi', 'ok');
-  } catch (e) { console.error('prjResetRecurrence:', e); if (!silent) toast('Xato: ' + translateErr(e.message || String(e)), 'err'); }
+  } catch (e) {
+    console.error('prjResetRecurrence:', e);
+    if (!silent) toast('Xato: ' + translateErr(e.message || String(e)), 'err');
+  }
 }
 
 // ---- Add flow task ----
 async function prjAddTask() {
+  if (!isOwnerLike()) { toast('Bosqichni faqat administrator qo\'shadi', 'err'); return; }
+  const ft = prjFlowType(window._curProject);
+  const seq = ft === 'sequential';
   const memberOpts = [{ value: '', label: '— Biriktirilmagan —' }].concat(
     (wsMembers || []).map(m => ({ value: m.user_id, label: m.user_id === me.id ? (myProfile.full_name || 'Siz') : ((m.profile && m.profile.full_name) || 'A\'zo') }))
   );
@@ -2826,21 +3386,26 @@ async function prjAddTask() {
     { id: 'title', label: 'Vazifa nomi', type: 'text', placeholder: 'Nima qilinishi kerak?' },
     { id: 'assignee', label: 'Kim bajaradi', type: 'select', value: '', options: memberOpts },
     { id: 'deadline', label: 'Deadline (ixtiyoriy)', type: 'datetime' },
-    { id: 'dep', type: 'toggle', value: true, toggleLabel: 'Oldingi bosqich tugagach ochilsin (ketma-ket)' },
+    { id: 'dep', type: 'toggle', value: seq, toggleLabel: 'Oldingi bosqich tugagach ochilsin (ketma-ket)',
+      hint: seq
+        ? 'Loyiha turi 🔗 Ketma-ket — shuning uchun yoqiq. O\'chirsangiz shu bosqich darrov ochiladi.'
+        : 'Loyiha turi ⚡ Parallel — shuning uchun o\'chiq. Yoqsangiz faqat shu bosqich oldingisini kutadi.' },
     { id: 'recur', label: 'Takrorlanish (ixtiyoriy, kun)', type: 'number', placeholder: 'Masalan: 7', hint: 'Bo\'sh = takrorlanmaydi.' }
   ], { okText: 'Qo\'shish' });
-  if (!v || !v.title || !v.title.trim()) return;
+  if (!v) return;
+  if (!v.title || !v.title.trim()) { toast('Vazifa nomini kiriting', 'err'); return; }
   const deadlineIso = v.deadline ? new Date(v.deadline + '+05:00').toISOString() : null;
   const recur = v.recur && parseInt(v.recur, 10) > 0 ? parseInt(v.recur, 10) : null;
   prjSaveTask(v.title.trim(), !!v.dep, v.assignee || null, deadlineIso, recur);
 }
+
 async function prjSaveTask(title, dependsOnPrev, assignee, deadlineIso, recur) {
   try {
     const maxOrder = prjTasks.reduce((mx, t) => Math.max(mx, t.flow_order || 0), 0);
     // Bloklanganmi? Oldingi bosqich bo'lsa va u tugamagan bo'lsa — bloklangan
     const prevTasks = prjTasks.filter(t => (t.flow_order || 0) <= maxOrder).sort((a, b) => (b.flow_order || 0) - (a.flow_order || 0));
     const prev = prevTasks[0];
-    const locked = dependsOnPrev && prev && prev.status !== 'completed';
+    const locked = dependsOnPrev && prev && prev.status !== 'completed' && prev.status !== 'cancelled';
     const { data, error } = await sb.from('tasks').insert({
       workspace_id: currentWs.id, project_id: currentProjectId,
       title, created_by: me.id, status: 'new',
@@ -2850,16 +3415,24 @@ async function prjSaveTask(title, dependsOnPrev, assignee, deadlineIso, recur) {
     }).select().single();
     if (error) throw error;
     prjTasks.push(data);
+    if (!data.is_locked) tasksCache.unshift(data);
     toast('✅ Bosqich qo\'shildi', 'ok');
     logActivity('task_created', { entityType: 'task', entityId: data.id, entityTitle: title, details: { project: (window._curProject || {}).name } });
     // Xabar faqat OCHIQ (bloklanmagan) bo'lsa va biriktirilgan bo'lsa
-    if (!locked && assignee && assignee !== me.id) { try { tgNotifyAssignment(data.id, { user_id: assignee }); emailNotify('task_assigned', data.id, assignee); } catch (e) {} }
-    loadProjectDetail();
-  } catch (e) { toast('Xato: ' + translateErr(e.message || String(e)), 'err'); }
+    if (!data.is_locked && assignee && assignee !== me.id) {
+      try { tgNotifyAssignment(data.id, { user_id: assignee }); emailNotify('task_assigned', data.id, assignee); }
+      catch (e) { console.error('bosqich xabari:', e); }
+    }
+    try { await loadProjectDetail(); } catch (e) { console.error('loadProjectDetail (bosqich):', e); }
+  } catch (e) {
+    console.error('prjSaveTask:', e);
+    toast('Xato: ' + translateErr(e.message || String(e)), 'err');
+  }
 }
 
 // ---- Invite / remove project member ----
 async function prjInviteMember() {
+  if (!isOwnerLike()) { toast('A\'zoni faqat administrator qo\'shadi', 'err'); return; }
   const candidates = (wsMembers || []).filter(m => !prjMembers.some(pm => pm.user_id === m.user_id));
   if (!candidates.length) { toast('Barcha a\'zolar allaqachon qo\'shilgan', 'ok'); return; }
   const v = await uiForm('A\'zo taklif qilish', [
@@ -2872,17 +3445,26 @@ async function prjInviteMember() {
     prjMembers.push({ project_id: currentProjectId, user_id: v.uid });
     toast('✅ Taklif qilindi', 'ok');
     renderProjectMembers();
-  } catch (e) { toast('Xato: ' + translateErr(e.message || String(e)), 'err'); }
+  } catch (e) {
+    console.error('prjInviteMember:', e);
+    toast('Xato: ' + translateErr(e.message || String(e)), 'err');
+  }
 }
+
 async function prjRemoveMember(uid) {
+  if (!isOwnerLike()) { toast('A\'zoni faqat administrator olib tashlaydi', 'err'); return; }
   const ok = await uiConfirm('Olib tashlash', 'Bu a\'zoni loyihadan olib tashlaymi?', { okText: 'Olib tashlash', danger: true });
   if (!ok) return;
   try {
     const { error } = await sb.from('project_members').delete().eq('project_id', currentProjectId).eq('user_id', uid);
     if (error) throw error;
     prjMembers = prjMembers.filter(pm => pm.user_id !== uid);
+    toast('Olib tashlandi', 'ok');
     renderProjectMembers();
-  } catch (e) { toast('Xato: ' + translateErr(e.message || String(e)), 'err'); }
+  } catch (e) {
+    console.error('prjRemoveMember:', e);
+    toast('Xato: ' + translateErr(e.message || String(e)), 'err');
+  }
 }
 
 // ============ HODIM STATISTIKASI ============
@@ -3065,6 +3647,7 @@ function logActionMeta(action) {
     column_added: { icon: '📊', label: 'Ustun qo\'shdi', color: '#10B981' },
     column_deleted: { icon: '🗑', label: 'Ustunni o\'chirdi', color: '#EF4444' },
     project_created: { icon: '🗂', label: 'Loyiha yaratdi', color: '#0EA5E9' },
+    project_deleted: { icon: '🗑', label: 'Loyihani o\'chirdi', color: '#EF4444' },
   };
   return map[action] || { icon: '•', label: action, color: '#6B7280' };
 }
@@ -6519,7 +7102,8 @@ function closeDetail() { $('detailBd').classList.remove('show'); currentDetailId
 
 async function changeStatus(id, newStatus) {
   try {
-    const prev = tasksCache.find(x => x.id === id);
+    // Loyiha bosqichi tasksCache'da bo'lmasligi mumkin — prjTasks zaxira manba
+    const prev = tasksCache.find(x => x.id === id) || prjTasks.find(x => x.id === id);
     if (!canChangeStatus(prev)) { toast('Bu vazifa holatini o\'zgartira olmaysiz (faqat ko\'rish)', 'err'); refreshActiveView(); if (currentDetailId === id) renderDetailBody(); return; }
     const oldStatus = prev ? prev.status : null;
     // Qabul qiluvchi bor + "Bajarildi"ga o'tkazilyapti + men qabul qiluvchi EMASman
@@ -8132,6 +8716,7 @@ function refreshActiveView() {
   else if (currentPage === 'project') {
     // prjTasks'ni tasksCache'dagi yangi holat bilan darrov sinxronlaymiz (kechikishsiz)
     prjTasks = prjTasks.map(pt => tasksCache.find(t => t.id === pt.id) || pt);
+    prjRenderHero();
     if (prjTab === 'flow') renderProjectFlow();
     else if (prjTab === 'kanban') renderProjectKanban();
     else if (prjTab === 'members') renderProjectMembers();
@@ -9815,8 +10400,11 @@ function kanDrop(e, newStatus) {
   e.preventDefault();
   e.currentTarget.classList.remove('drop-over');
   if (!dragTaskId) return;
-  const t = tasksCache.find(x => x.id === dragTaskId);
-  if (!t || t.status === newStatus) return;
+  // Loyiha kanbanida vazifa tasksCache'da bo'lmasligi mumkin (qulflangan bosqich) — prjTasks'dan ham qaraymiz
+  const t = tasksCache.find(x => x.id === dragTaskId) || prjTasks.find(x => x.id === dragTaskId);
+  if (!t) { toast('Vazifa topilmadi — sahifani yangilang', 'err'); return; }
+  if (t.is_locked) { toast('🔒 Bu vazifa hali qulflangan — oldingi bosqich tugashi kerak', 'err'); return; }
+  if (t.status === newStatus) return;
   changeStatus(dragTaskId, newStatus);
 }
 
