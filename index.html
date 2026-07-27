@@ -6360,7 +6360,7 @@ async function saveCreate() {
       // Qabul qiluvchiga xabar (o'zi bo'lmasa)
       if (t.acceptor_id && t.acceptor_id !== me.id) {
         emailNotify('task_acceptor', t.id, t.acceptor_id);
-        try { notifyMention(t.acceptor_id, 'Siz "' + t.title + '" vazifasini qabul qiluvchisiz', null); } catch (e) {}
+        try { notifyMention(t.acceptor_id, 'Siz "' + t.title + '" vazifasini qabul qiluvchisiz', null); } catch (e) { console.error('notifyMention:', e); }
       }
     }
   } catch (e) {
@@ -6429,16 +6429,41 @@ let curDetailComments = [];
 let curDetailAttachments = [];
 let _detailPasteHandler = null;
 
+// Supabase "qator topilmadi" xatosi (single() — o'chirilgan yoki RLS yashirgan)
+function isRowGone(err) {
+  const m = String((err && (err.message || err)) || '');
+  return /PGRST116/i.test(m) || /multiple \(or no\) rows|no rows returned|0 rows/i.test(m);
+}
+
+// Vazifa endi mavjud emas (boshqa joyda o'chirilgan yoki ruxsat olib tashlangan) —
+// mahalliy ro'yxatlarni tozalab, ko'rinishni yangilaymiz. Xom xato ko'rsatilmaydi.
+function taskGoneLocal(id, silent) {
+  const wasPrj = prjTasks.some(t => t.id === id);
+  tasksCache = tasksCache.filter(t => t.id !== id);
+  prjTasks = prjTasks.filter(t => t.id !== id);
+  if (currentDetailId === id) closeDetail();
+  refreshActiveView();
+  if (!silent) toast('Bu vazifa endi mavjud emas (o\'chirilgan bo\'lishi mumkin) — ro\'yxat yangilandi', 'ok');
+  // Loyiha bosqichi bo'lsa — server holatini (qulflar, tartib) qayta o'qiymiz
+  if (wasPrj && currentProjectId && currentPage === 'project') {
+    loadProjectDetail().catch(e => console.error('loadProjectDetail (vazifa yo\'q):', e));
+  }
+}
+
 async function openDetail(id) {
   let t = tasksCache.find(x => x.id === id);
   if (!t) {
     // Cache'da yo'q (masalan belgilangan, lekin biriktirilmagan) — bevosita o'qiymiz
-    try {
-      const { data } = await sb.from('tasks').select('*').eq('id', id).maybeSingle();
-      if (data) { t = data; tasksCache.unshift(data); }
-    } catch (e) {}
+    const { data, error } = await sb.from('tasks').select('*').eq('id', id).maybeSingle();
+    if (error) {
+      console.error('openDetail:', error.message);
+      toast('Xato: ' + translateErr(error.message), 'err');
+      return;
+    }
+    if (data) { t = data; tasksCache.unshift(data); }
   }
-  if (!t) { toast('Vazifa topilmadi yoki ruxsat yo\'q', 'err'); return; }
+  // Topilmadi = o'chirilgan (yoki ruxsat yo'q). Eskirgan kartani ro'yxatdan olib tashlaymiz.
+  if (!t) { console.error('openDetail: vazifa topilmadi, id=' + id); taskGoneLocal(id); return; }
   currentDetailId = id;
   $('dTitle').textContent = t.title || '—';
   $('dBody').innerHTML = '<div style="text-align:center; padding: 30px; color: var(--muted); font-size: 13px;">⏳ Yuklanmoqda…</div>';
@@ -7092,9 +7117,14 @@ async function transferTask(id, newDeptId) {
       toast('Bu bo\'limga sizning kirishingiz yo\'q — vazifa endi ko\'rinmaydi', 'err');
       closeDetail();
       tasksCache = tasksCache.filter(t => t.id !== id);
+      prjTasks = prjTasks.filter(t => t.id !== id);
       refreshActiveView();
     } else {
       renderDetailBody();
+    }
+    // Loyiha bosqichi bo'lsa — loyiha ko'rinishini server holatiga moslaymiz
+    if (data.project_id && currentProjectId === data.project_id && currentPage === 'project') {
+      try { await loadProjectDetail(); } catch (e2) { console.error('loadProjectDetail (bo\'lim ko\'chirish):', e2); }
     }
   } catch (e) { toast(translateErr(e.message), 'err'); }
 }
@@ -7150,7 +7180,7 @@ async function changeStatus(id, newStatus) {
     // "Qabul kutilyapti"ga o'tsa — qabul qiluvchiga xabar
     if (newStatus === 'qabul_kutilyapti' && data.acceptor_id) {
       emailNotify('task_acceptor', data.id, data.acceptor_id);
-      try { notifyMention(data.acceptor_id, '"' + data.title + '" bajarildi — qabul qilishingizni kutmoqda', null); } catch (e) {}
+      try { notifyMention(data.acceptor_id, '"' + data.title + '" bajarildi — qabul qilishingizni kutmoqda', null); } catch (e) { console.error('notifyMention:', e); }
     }
     // Email yaratuvchiga (faqat HAQIQIY completed bo'lganda)
     if (newStatus === 'completed' && data.created_by && data.created_by !== me.id) {
@@ -7159,7 +7189,12 @@ async function changeStatus(id, newStatus) {
     // Loyiha flow taski — trigger is_locked'ni yangiladi; qayta yuklaymiz
     if (data.project_id) { if (data.status === 'completed') await prjShiftNextDeadline(data); await prjReloadTasks(data.project_id); }
     if (data.status === 'completed') await maybeRecurTask(data);
-  } catch (e) { toast(translateErr(e.message), 'err'); }
+  } catch (e) {
+    // Vazifa allaqachon o'chirilgan bo'lsa — xom xato o'rniga ro'yxatni tozalaymiz
+    if (isRowGone(e)) { console.error('changeStatus: vazifa yo\'q, id=' + id); taskGoneLocal(id); return; }
+    console.error('changeStatus:', e);
+    toast(translateErr(e.message), 'err');
+  }
 }
 
 // Takrorlanuvchi vazifa bajarilgach — keyingi nusxani avtomatik yaratadi (loyihasiz tasklar uchun)
@@ -7180,7 +7215,7 @@ async function maybeRecurTask(task) {
     if (data && !data.is_locked) tasksCache.unshift(data);
     const per = task.recur_days === 1 ? 'ertaga' : task.recur_days === 7 ? 'keyingi hafta' : 'keyingi oy';
     toast('🔁 Takror vazifa yaratildi (' + per + ')', 'ok');
-    if (data.assigned_to && data.assigned_to !== me.id) { try { emailNotify('task_assigned', data.id, data.assigned_to); } catch (e) {} }
+    if (data.assigned_to && data.assigned_to !== me.id) { try { emailNotify('task_assigned', data.id, data.assigned_to); } catch (e) { console.error('emailNotify:', e); } }
   } catch (e) {}
 }
 
@@ -7207,24 +7242,31 @@ async function prjShiftNextDeadline(task) {
 // Loyiha tasklarini qayta yuklab, tasksCache + prjTasks + ko'rinishni yangilaydi
 async function prjReloadTasks(projectId) {
   try {
-    const { data: ts } = await sb.from('tasks').select('*').eq('project_id', projectId);
+    const { data: ts, error } = await sb.from('tasks').select('*').eq('project_id', projectId);
+    if (error) throw error;
     if (!ts) return;
+    // Serverda endi yo'q (o'chirilgan yoki ko'rinmaydigan) bosqichlar mahalliy ro'yxatlarda qolmasin
+    const alive = new Set(ts.map(t => t.id));
+    tasksCache = tasksCache.filter(t => t.project_id !== projectId || alive.has(t.id));
     ts.forEach(nt => {
       const ci = tasksCache.findIndex(x => x.id === nt.id);
       if (ci >= 0) tasksCache[ci] = nt; else if (!nt.is_locked) tasksCache.unshift(nt);
     });
     if (currentProjectId === projectId) {
-      prjTasks = prjTasks.map(pt => ts.find(x => x.id === pt.id) || pt);
+      prjTasks = prjTasks.filter(pt => alive.has(pt.id)).map(pt => ts.find(x => x.id === pt.id) || pt);
       ts.forEach(nt => { if (!prjTasks.some(x => x.id === nt.id)) prjTasks.push(nt); });
     }
     refreshActiveView();
-  } catch (e) {}
+  } catch (e) {
+    console.error('prjReloadTasks:', e);
+    toast('Ro\'yxat yangilanmadi — sahifani yangilang', 'err');
+  }
 }
 
 // Qabul qiluvchi: "Qabul qildim" → haqiqiy Bajarildi (bajaruvchiga QAYTMAYDI)
 async function acceptTask(id) {
   try {
-    const prev = tasksCache.find(x => x.id === id);
+    const prev = tasksCache.find(x => x.id === id) || prjTasks.find(x => x.id === id);
     if (!prev || (prev.acceptor_id !== me.id && !isOwnerLike())) { toast('Faqat qabul qiluvchi tasdiqlaydi', 'err'); return; }
     const patch = { status: 'completed', accepted_at: new Date().toISOString(), completed_at: new Date().toISOString() };
     // assigned_to o'zgarmaydi (qabul qiluvchida qoladi) — bajaruvchiga qaytib kutinmaydi
@@ -7239,18 +7281,18 @@ async function acceptTask(id) {
     await maybeRecurTask(data);
     // Asl bajaruvchi va yaratuvchiga xabar (ish qabul qilindi)
     const worker = (prev && prev.submitter_id) || null;
-    if (worker && worker !== me.id) { emailNotify('task_completed', id, worker); try { notifyMention(worker, '"' + data.title + '" qabul qilindi ✅', null); } catch (e) {} }
+    if (worker && worker !== me.id) { emailNotify('task_completed', id, worker); try { notifyMention(worker, '"' + data.title + '" qabul qilindi ✅', null); } catch (e) { console.error('notifyMention:', e); } }
     if (data.created_by && data.created_by !== me.id && data.created_by !== worker) emailNotify('task_completed', id, data.created_by);
   } catch (e) { toast(translateErr(e.message), 'err'); }
 }
 
 // Qabul qiluvchi: "Qaytarish" → asl bajaruvchiga qaytadi (in_progress)
 async function returnTask(id) {
-  const _rt = tasksCache.find(x => x.id === id);
+  const _rt = tasksCache.find(x => x.id === id) || prjTasks.find(x => x.id === id);
   if (!_rt || (_rt.acceptor_id !== me.id && !isOwnerLike())) { toast('Faqat qabul qiluvchi qaytaradi', 'err'); return; }
   if (!confirm('Vazifani bajaruvchiga qaytaraymi? (Jarayonga o\'tadi)')) return;
   try {
-    const prev = tasksCache.find(x => x.id === id);
+    const prev = _rt;
     const patch = { status: 'in_progress' };
     if (prev && prev.submitter_id) patch.assigned_to = prev.submitter_id; // asl bajaruvchiga qaytaramiz
     const { data, error } = await sb.from('tasks').update(patch).eq('id', id).select().single();
@@ -7260,7 +7302,9 @@ async function returnTask(id) {
     refreshActiveView();
     if (currentDetailId === id) renderDetailBody();
     logActivity('task_returned', { entityType: 'task', entityId: id, entityTitle: data.title });
-    if (data.assigned_to && data.assigned_to !== me.id) { emailNotify('task_assigned', id, data.assigned_to); try { notifyMention(data.assigned_to, '"' + data.title + '" qaytarildi — qayta ko\'ring', null); } catch (e) {} }
+    // Loyiha bosqichi qaytarildi — keyingi bosqichlar qulfi o'zgargan bo'lishi mumkin
+    if (data.project_id) { try { await prjReloadTasks(data.project_id); } catch (e2) { console.error('prjReloadTasks (qaytarish):', e2); } }
+    if (data.assigned_to && data.assigned_to !== me.id) { emailNotify('task_assigned', id, data.assigned_to); try { notifyMention(data.assigned_to, '"' + data.title + '" qaytarildi — qayta ko\'ring', null); } catch (e) { console.error('notifyMention:', e); } }
   } catch (e) { toast(translateErr(e.message), 'err'); }
 }
 
@@ -7280,15 +7324,25 @@ async function deleteCurrent() {
   if (!isOwnerLike()) { toast('Vazifani faqat admin yoki owner o\'chira oladi', 'err'); return; }
   if (!confirm('Vazifani o\'chirasizmi?')) return;
   const id = currentDetailId;
-  const _dt = tasksCache.find(t => t.id === id);
+  // Loyiha bosqichi tasksCache'da bo'lmasligi mumkin — prjTasks zaxira manba
+  const _dt = tasksCache.find(t => t.id === id) || prjTasks.find(t => t.id === id);
+  const wasPrj = !!(_dt && _dt.project_id) || prjTasks.some(t => t.id === id);
   try {
     const { error } = await sb.from('tasks').delete().eq('id', id);
     if (error) throw error;
+    // Ikkala ro'yxatdan ham darrov olib tashlaymiz — o'chgan karta ekranda qolmasin
     tasksCache = tasksCache.filter(t => t.id !== id);
+    prjTasks = prjTasks.filter(t => t.id !== id);
     logActivity('task_deleted', { entityType: 'task', entityId: id, entityTitle: _dt && _dt.title });
     closeDetail(); toast('🗑 O\'chirildi', 'ok');
     refreshActiveView();
-  } catch (e) { toast(translateErr(e.message), 'err'); }
+    // Loyiha bosqichi bo'lsa — server holatini qayta o'qiymiz (keyingi bosqich qulfi ochilgan bo'lishi mumkin).
+    // Refresh xatosi o'chirishni "muvaffaqiyatsiz" qilib ko'rsatmasin — karta allaqachon olib tashlangan.
+    if (wasPrj && currentProjectId && currentPage === 'project') {
+      try { await loadProjectDetail(); }
+      catch (e2) { console.error('loadProjectDetail (o\'chirishdan keyin):', e2); toast('O\'chirildi, lekin ro\'yxat yangilanmadi — sahifani yangilang', 'err'); }
+    }
+  } catch (e) { console.error('deleteCurrent:', e); toast(translateErr(e.message), 'err'); }
 }
 
 // ============ ORG CHART (Tashkilot tuzilmasi v3 — cross-kind + containers) ============
