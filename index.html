@@ -303,6 +303,32 @@
   .cmd-foot { display: flex; align-items: center; gap: 16px; padding: 10px 16px; border-top: 1px solid var(--line); background: var(--surface-2); font-size: 11.5px; color: var(--muted); }
   .cmd-foot .kbd-mini { font-family: 'JetBrains Mono', monospace; border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; background: var(--surface); margin-right: 4px; }
 
+  /* Universal qidiruv (gs*) — ⌘K panelining ustiga qo'shimchalar */
+  .gs-hi { background: #FEF08A; color: inherit; border-radius: 3px; padding: 0 1px; }
+  .cmd-item.active .gs-hi { background: #FDE047; }
+  .gs-spin { width: 15px; height: 15px; border: 2px solid var(--line); border-top-color: var(--muted); border-radius: 50%; animation: gsSpin .7s linear infinite; flex-shrink: 0; display: none; }
+  .gs-spin.on { display: block; }
+  @keyframes gsSpin { to { transform: rotate(360deg); } }
+  .gs-clear { border: none; background: none; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; padding: 2px 7px; border-radius: 6px; display: none; font-family: inherit; }
+  .gs-clear.on { display: block; }
+  .gs-clear:hover { background: var(--surface-2); color: var(--ink); }
+  .gs-more { display: block; width: 100%; text-align: left; border: none; background: none; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 600; color: var(--accent-ink); padding: 4px 12px 10px 54px; }
+  .gs-more:hover { text-decoration: underline; }
+  .gs-cnt { font-weight: 500; opacity: .65; letter-spacing: 0; }
+  .gs-warn { margin: 4px 8px 8px; padding: 8px 10px; border-radius: 8px; background: #FEF2F2; color: #991B1B; font-size: 11.5px; line-height: 1.45; }
+  .gs-hint { padding: 26px 20px; text-align: center; color: var(--muted); font-size: 12.5px; line-height: 1.7; }
+  .gs-skel { height: 46px; margin: 5px 8px; border-radius: 9px; background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface) 50%, var(--surface-2) 75%); background-size: 300% 100%; animation: gsShim 1.1s ease infinite; }
+  @keyframes gsShim { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+  /* Mobil: qidiruv to'liq ekran */
+  @media (max-width: 640px) {
+    .cmd-palette-bd { padding: 0; align-items: stretch; }
+    .cmd-palette { width: 100%; max-width: 100%; height: 100%; border-radius: 0; border: none; display: flex; flex-direction: column; animation: none; }
+    .cmd-head { padding: 13px 14px; }
+    .cmd-head input { font-size: 16px; }
+    .cmd-list { max-height: none; flex: 1; }
+    .cmd-foot { display: none; }
+  }
+
   /* Search trigger in topbar */
   .topbar-search { display: flex; align-items: center; gap: 10px; height: 38px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); cursor: text; color: var(--muted); font-size: 13px; flex: 1; max-width: 520px; }
   .topbar-search:hover { border-color: var(--ink); }
@@ -953,11 +979,10 @@
 
   <main class="main">
     <div class="topbar">
-      <div class="topbar-search" id="topSearchWrap" onclick="openCmdPalette()" style="position:relative;cursor:pointer;">
+      <div class="topbar-search" id="topSearchWrap" role="button" tabindex="0" aria-label="Qidiruv" title="Qidiruv (Ctrl+K)" onclick="gsOpen()" onkeydown="gsTriggerKey(event)" style="cursor:pointer;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
-        <input id="topSearchInp" type="text" placeholder="Hammasi: vazifa, odam, sahifa…" readonly tabindex="-1" style="flex:1;border:none;background:transparent;outline:none;font-family:inherit;font-size:13px;color:var(--muted);min-width:0;cursor:pointer;pointer-events:none;" autocomplete="off" />
+        <input id="topSearchInp" type="text" placeholder="Qidiruv: xodim, vazifa, loyiha, bo'lim…" readonly tabindex="-1" style="flex:1;border:none;background:transparent;outline:none;font-family:inherit;font-size:13px;color:var(--muted);min-width:0;cursor:pointer;pointer-events:none;" autocomplete="off" />
         <span class="kbd">⌘K</span>
-        <div id="topSearchDrop" style="display:none;position:absolute;top:44px;left:0;right:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.16);max-height:420px;overflow:auto;z-index:300;padding:6px;"></div>
       </div>
       <button class="btn topbar-new" onclick="openCreate()" id="topbarNewBtn" style="display:none;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M12 5v14M5 12h14"></path></svg>
@@ -1983,11 +2008,13 @@
 </div>
 
 <!-- ⌘K Command Palette -->
-<div id="cmdPaletteBd" class="cmd-palette-bd" onclick="closeCmdPalette()">
+<div id="cmdPaletteBd" class="cmd-palette-bd" onclick="gsClose()">
   <div class="cmd-palette" onclick="event.stopPropagation()">
     <div class="cmd-head">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
-      <input id="cmdPaletteInput" type="text" placeholder="Vazifa, odam, sahifa qidiring…" oninput="renderCmdPalette()" onkeydown="cmdPaletteKey(event)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+      <input id="cmdPaletteInput" type="text" placeholder="Xodim, telefon, vazifa, loyiha, bo'lim, filial…" oninput="gsOnInput()" onkeydown="gsKey(event)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+      <div id="gsSpin" class="gs-spin"></div>
+      <button id="gsClear" class="gs-clear" type="button" title="Tozalash" onclick="gsClearInput()">×</button>
       <span class="kbd">esc</span>
     </div>
     <div id="cmdPaletteList" class="cmd-list"></div>
@@ -14192,6 +14219,658 @@ async function tgNotifyTaskEdit(task, field, oldValue, newValue) {
   } catch (e) { console.error('tgNotifyTaskEdit:', e); }
 }
 
+// ============ 🔍 UNIVERSAL QIDIRUV (gs*) — topbar + ⌘K ============
+// Bitta maydon butun TaskFix bo'ylab qidiradi: xodimlar (ism/familiya, email,
+// telefon), vazifalar (nom, tavsif), loyihalar, bo'limlar, filiallar,
+// lavozimlar + sahifalar/amallar.
+//
+// AUDIT (2026-07-28) — eski qidiruv NEGA ISHLAMAGAN:
+//   Butun palette bloki `init()` FUNKSIYASI ICHIDA turgan edi. Funksiya
+//   ichidagi `function` deklaratsiyasi LOKAL bo'ladi, HTML'dagi inline
+//   handler esa GLOBAL scope'da baholanadi → `openCmdPalette is not defined`,
+//   `renderCmdPalette is not defined`, `cmdPaletteKey is not defined`.
+//   Natija: topbardagi maydonni bosish hech narsa qilmasdi; ⌘K (listener ham
+//   init ichida — shuning uchun ishlagan) panelni ochsa ham yozganda hech
+//   narsa ko'rinmasdi. Endi butun modul GLOBAL scope'da.
+//   Eski `topSearch*` dropdown kodi butunlay o'lik edi (input `readonly` +
+//   `pointer-events:none`, hech qanday `oninput`/`onkeydown` ulanmagan) —
+//   o'chirildi, o'rniga shu modul.
+//
+// Manbalar: (a) kesh — wsMembers / tasksCache / departments / branchesCache /
+// positionsCache / projectsCache — darhol ko'rsatiladi; (b) server `ilike` —
+// tasks, projects, positions — parallel `Promise.all`. Har so'rov `{error}`
+// tekshiradi: biri yiqilsa qolgan natijalar ko'rinadi va panelda
+// ogohlantirish chiqadi (jimgina yutilmaydi).
+
+const GS_MIN = 2;            // matn uchun minimal belgi
+const GS_MIN_DIGITS = 3;     // telefon/raqam uchun minimal raqam
+const GS_DEBOUNCE = 240;     // ms — jonli qidiruv
+const GS_PER_GROUP = 5;      // guruhda ko'rinadigan maksimal ("+ yana N ta")
+
+// Ko'rsatish tartibi
+const GS_GROUPS = [
+  { key: 'emp',    label: '👤 Xodimlar' },
+  { key: 'task',   label: '✓ Vazifalar' },
+  { key: 'proj',   label: '📁 Loyihalar' },
+  { key: 'dept',   label: '▦ Bo\'limlar' },
+  { key: 'branch', label: '🏢 Filiallar' },
+  { key: 'pos',    label: '🎖 Lavozimlar' },
+  { key: 'page',   label: '📄 Sahifalar' },
+  { key: 'act',    label: '⚡ Amallar' },
+];
+
+let _gsSeq = 0;              // so'rov navbati — eskirgan javob yangisini bosmaydi
+let _gsQ = '';               // hozirgi normallashtirilgan so'rov
+let _gsQd = '';              // hozirgi so'rovning raqamlari (telefon)
+let _gsFlat = [];            // klaviatura navigatsiyasi uchun tekis ro'yxat
+let _gsIdx = 0;
+let _gsLoading = false;
+let _gsMore = {};            // guruh kaliti -> hammasi ko'rsatilsinmi
+let _gsTimer = null;
+let _gsErrs = [];            // [{src, msg}] — yiqilgan manbalar
+let _gsBuckets = null;       // oxirgi natija: guruh kaliti -> item[]
+
+// ---- Kichik yordamchilar ----
+function gsNorm(s) { return String(s == null ? '' : s).toLowerCase().trim(); }
+function gsDigits(s) { return String(s == null ? '' : s).replace(/\D+/g, ''); }
+// PostgREST `.or()` ajratuvchilari (`,` `(` `)`) va LIKE joker belgilari
+function gsLikeSafe(t) { return String(t).replace(/[,()%*\\]/g, ' ').trim(); }
+function gsTextMatch(text, q) { return !!q && gsNorm(text).indexOf(q) !== -1; }
+
+// Telefon: ikki tomonni ham raqamlargacha normallashtiradi — shuning uchun
+// "+998 (90) 123-45-67" ni "998 90", "901234567", "0901234567", "90 123"
+// so'rovlarining hammasi topadi.
+function gsPhoneMatch(phone, qd) {
+  if (!qd || qd.length < GS_MIN_DIGITS) return false;
+  const d = gsDigits(phone);
+  if (!d) return false;
+  if (d.indexOf(qd) !== -1) return true;
+  const q9 = qd.length > 9 ? qd.slice(-9) : qd;   // 998/0 prefiksi bilan yozilgan
+  return d.slice(-9).indexOf(q9) !== -1;
+}
+
+// Topilgan bo'lakni ajratib ko'rsatadi. escapeHtml ichida — XSS yo'q.
+function gsHi(text, q) {
+  const s = String(text == null ? '' : text);
+  if (!q) return escapeHtml(s);
+  const i = s.toLowerCase().indexOf(q);
+  if (i === -1) return escapeHtml(s);
+  return escapeHtml(s.slice(0, i)) + '<mark class="gs-hi">' + escapeHtml(s.slice(i, i + q.length)) + '</mark>' + escapeHtml(s.slice(i + q.length));
+}
+
+// Telefon highlight: so'rov faqat raqamlardan, telefon esa formatlangan —
+// mos keladigan raqamlar oralig'ini topib shu bo'lakni ajratamiz.
+function gsHiPhone(phone, qd) {
+  const s = String(phone == null ? '' : phone);
+  if (!qd) return escapeHtml(s);
+  const idx = []; let d = '';
+  for (let i = 0; i < s.length; i++) {
+    if (s[i] >= '0' && s[i] <= '9') { idx.push(i); d += s[i]; }
+  }
+  let j = d.indexOf(qd), len = qd.length;
+  if (j === -1 && qd.length > 9) { const q9 = qd.slice(-9); j = d.indexOf(q9); len = q9.length; }
+  if (j === -1 || j + len > idx.length) return escapeHtml(s);
+  const a = idx[j], z = idx[j + len - 1] + 1;
+  return escapeHtml(s.slice(0, a)) + '<mark class="gs-hi">' + escapeHtml(s.slice(a, z)) + '</mark>' + escapeHtml(s.slice(z));
+}
+
+// Uzun tavsifdan mos bo'lakni kontekst bilan kesib oladi
+function gsSnip(text, q, len) {
+  const s = String(text == null ? '' : text).replace(/\s+/g, ' ').trim();
+  if (!s) return '';
+  const i = q ? s.toLowerCase().indexOf(q) : -1;
+  if (i < 0) return s.length > len ? s.slice(0, len) + '…' : s;
+  const start = Math.max(0, i - 24);
+  const end = Math.min(s.length, start + len);
+  return (start > 0 ? '…' : '') + s.slice(start, end) + (end < s.length ? '…' : '');
+}
+
+function gsRoleLbl(r) { return r === 'owner' ? 'Egasi' : r === 'admin' ? 'Admin' : 'A\'zo'; }
+function gsJoin(parts) { return parts.filter(Boolean).map(escapeHtml).join(' · '); }
+function gsBranchName(bid) { const b = (branchesCache || []).find(function (x) { return x.id === bid; }); return b ? b.name : ''; }
+function gsDeptName(did) { const d = (departments || []).find(function (x) { return x.id === did; }); return d ? d.name : ''; }
+function gsProjName(pid) { const p = (projectsCache || []).find(function (x) { return x.id === pid; }); return p ? p.name : ''; }
+function gsIsOrg() { return !!(currentWs && currentWs.kind === 'organization'); }
+function gsSetVal(id, v) { const el = $(id); if (el) el.value = v; }
+// Sahifa render'i tugagach filtrni qo'yamiz (select'lar to'lishini kutadi)
+function gsAfter(fn) { setTimeout(function () { try { fn(); } catch (e) { console.error('gs navigatsiya:', e); } }, 200); }
+
+function gsEmptyBuckets() {
+  const b = {};
+  GS_GROUPS.forEach(function (g) { b[g.key] = []; });
+  return b;
+}
+
+// Guruh ichidagi tartib: aniq moslik (rank 0) yuqorida, keyin sortKey
+function gsCmp(a, b) {
+  const ra = a.rank || 0, rb = b.rank || 0;
+  if (ra !== rb) return ra - rb;
+  const x = a.sortKey, y = b.sortKey;
+  if (typeof x === 'number' && typeof y === 'number') return x - y;
+  return String(x == null ? '' : x).localeCompare(String(y == null ? '' : y), undefined, { sensitivity: 'base' });
+}
+function gsSortBuckets(b) {
+  GS_GROUPS.forEach(function (g) {
+    if (g.key === 'page' || g.key === 'act') return;   // qo'lda berilgan tartib saqlanadi
+    (b[g.key] || []).sort(gsCmp);
+  });
+}
+
+// ---- Item qurish ----
+
+function gsTaskItem(t, q, hitTitle) {
+  const ctx = t.project_id ? gsProjName(t.project_id) : gsDeptName(t.department_id);
+  const meta = gsJoin([
+    statusName(t.status),
+    t.assigned_to ? tblMemberName(t.assigned_to) : 'Biriktirilmagan',
+    t.deadline ? '⏰ ' + fmtDeadline(t.deadline) : null,
+    ctx || null,
+  ]);
+  const done = t.status === 'completed' || t.status === 'cancelled';
+  return {
+    id: 'task:' + t.id,
+    rank: hitTitle ? 0 : 1,
+    sortKey: done ? 1 : 0,     // tugallanganlar pastda
+    icon: t.status === 'completed' ? '✔' : t.status === 'cancelled' ? '✕' : '○',
+    titleHtml: gsHi(t.title || '(nomsiz)', q),
+    subHtml: hitTitle
+      ? meta
+      : (meta + (t.description ? ' — ' + gsHi(gsSnip(t.description, q, 70), q) : '')),
+    run: function () { gsClose(); openDetail(t.id); },
+  };
+}
+
+function gsProjItem(p, q, hitName) {
+  const list = p._tasks || null;   // faqat projectsCache'da bo'lsa ma'lum
+  const ty = PRJ_TYPES[prjFlowType(p)];
+  const st = prjStatusKey(p);
+  const stLbl = st === 'done' ? 'Tugadi' : st === 'paused' ? 'To\'xtatilgan' : 'Faol';
+  let prog = null;
+  if (list && list.length) {
+    const dn = list.filter(function (x) { return x.status === 'completed'; }).length;
+    prog = dn + '/' + list.length + ' · ' + Math.round(dn / list.length * 100) + '%';
+  }
+  const meta = gsJoin([ty.icon + ' ' + ty.name, stLbl, prog]);
+  return {
+    id: 'proj:' + p.id,
+    rank: hitName ? 0 : 1,
+    sortKey: gsNorm(p.name),
+    icon: '📁',
+    titleHtml: gsHi(p.name || '(nomsiz loyiha)', q),
+    subHtml: hitName ? meta : (meta + (p.description ? ' — ' + gsHi(gsSnip(p.description, q, 60), q) : '')),
+    run: function () { gsClose(); openProject(p.id); },
+  };
+}
+
+function gsPosItem(p, q) {
+  const uids = Object.keys(empDetails || {});
+  let cnt = null;
+  if (uids.length) {
+    cnt = 0;
+    uids.forEach(function (uid) { if (empDetails[uid] && empDetails[uid].position_id === p.id) cnt++; });
+  }
+  return {
+    id: 'pos:' + p.id,
+    rank: 0,
+    sortKey: gsNorm(p.name),
+    icon: '🎖',
+    titleHtml: gsHi(p.name || '(nomsiz lavozim)', q),
+    subHtml: gsJoin([cnt == null ? 'Lavozim' : cnt + ' xodim']),
+    run: function () {
+      gsClose();
+      if (isOwnerLike()) {
+        goPage('positions');
+        gsAfter(function () {
+          gsSetVal('posSearch', p.name);
+          if (typeof filterPositionsList === 'function') filterPositionsList();
+        });
+        return;
+      }
+      goPage('team');
+      gsAfter(function () {
+        const el = $('teamFltPos');
+        if (el) { el.value = p.id; if (typeof teamOnFilterChange === 'function') teamOnFilterChange(); }
+      });
+    },
+  };
+}
+
+// Bo'lim/filial a'zolari soni — HR ma'lumoti yuklanmagan bo'lsa null (yolg'on 0 emas)
+function gsDeptCount(did) {
+  const ks = Object.keys(empDepts || {});
+  if (!ks.length) return null;
+  let n = 0;
+  ks.forEach(function (uid) { if ((empDepts[uid] || []).indexOf(did) !== -1) n++; });
+  return n;
+}
+function gsBranchCount(bid) {
+  const ks = Object.keys(empBranches || {});
+  if (!ks.length) return null;
+  let n = 0;
+  ks.forEach(function (uid) { if ((empBranches[uid] || []).indexOf(bid) !== -1) n++; });
+  return n;
+}
+
+function gsPushPages(b, q) {
+  const all = [
+    { label: 'Bosh sahifa', icon: '⌂', page: 'dashboard' },
+    { label: 'Vazifalar', icon: '✓', page: 'tasks' },
+    { label: 'Rejalashtirgich', icon: '🗓', page: 'planner' },
+    { label: 'Bo\'limlar', icon: '▦', page: 'departments', org: true },
+    { label: 'Loyihalar', icon: '📁', page: 'projects', org: true },
+    { label: 'Jamoa', icon: '👥', page: 'team' },
+    { label: 'Statistika', icon: '📊', page: 'stats', mgr: true },
+    { label: 'Tashkilot tuzilmasi', icon: '⛓', page: 'orgchart', mgr: true, org: true },
+    { label: 'Filiallar', icon: '🏪', page: 'branches', mgr: true, org: true },
+    { label: 'Lavozimlar', icon: '🎖', page: 'positions', mgr: true, org: true },
+    { label: 'Integratsiyalar', icon: '🔌', page: 'integrations', mgr: true, org: true },
+    { label: 'Sozlamalar', icon: '⚙', page: 'settings', mgr: true },
+    { label: 'Mening profilim', icon: '👤', page: 'profile' },
+  ];
+  all.forEach(function (p) {
+    if (p.mgr && !isOwnerLike()) return;
+    if (p.org && !gsIsOrg()) return;
+    if (q && !gsTextMatch(p.label, q)) return;
+    b.page.push({
+      id: 'page:' + p.page, rank: 0, sortKey: gsNorm(p.label), icon: p.icon,
+      titleHtml: gsHi(p.label, q), subHtml: 'Sahifa',
+      run: function () { gsClose(); goPage(p.page); },
+    });
+  });
+}
+
+function gsPushActions(b, q) {
+  const acts = [];
+  if (canEditWorkspace()) acts.push({ label: 'Yangi vazifa yaratish', icon: '+', kbd: 'N', run: function () { gsClose(); openCreate(); } });
+  if (isOwnerLike() && gsIsOrg()) {
+    acts.push({ label: 'Bo\'lim yaratish', icon: '▦', run: function () { gsClose(); openNewDept(); } });
+    acts.push({ label: 'Loyiha yaratish', icon: '📁', run: function () { gsClose(); goPage('projects'); gsAfter(function () { openCreateProject(); }); } });
+    acts.push({ label: 'A\'zo taklif qilish', icon: '✉', run: function () { gsClose(); goPage('team'); gsAfter(function () { const el = $('inviteBd'); if (el) el.classList.add('show'); }); } });
+  }
+  acts.forEach(function (a, i) {
+    if (q && !gsTextMatch(a.label, q)) return;
+    b.act.push({ id: 'act:' + i, rank: 0, sortKey: i, icon: a.icon, kbd: a.kbd || null, titleHtml: gsHi(a.label, q), subHtml: null, run: a.run });
+  });
+}
+
+// ---- 1-manba: kesh (darhol) ----
+function gsLocal(q, qd) {
+  const b = gsEmptyBuckets();
+
+  // 👤 Xodimlar — ism/familiya (full_name), email, telefon
+  (wsMembers || []).forEach(function (m) {
+    const p = m.profile || {};
+    const uid = m.user_id;
+    const name = (uid === me.id ? (myProfile.full_name || p.full_name) : p.full_name) || '';
+    const hitName = gsTextMatch(name, q);
+    const hitMail = gsTextMatch(p.email, q);
+    const hitPhone = gsPhoneMatch(p.phone, qd);
+    if (!hitName && !hitMail && !hitPhone) return;
+    const pos = teamMemberPos(uid);
+    const brs = (empBranches[uid] || []).map(gsBranchName).filter(Boolean);
+    const meta = gsJoin([pos || gsRoleLbl(m.role), brs[0] || null]);
+    const contact = hitPhone ? gsHiPhone(p.phone, qd)
+      : hitMail ? gsHi(p.email, q)
+      : escapeHtml(p.phone || p.email || '');
+    b.emp.push({
+      id: 'emp:' + uid,
+      rank: hitName ? 0 : 1,
+      sortKey: gsNorm(name),
+      icon: '👤',
+      avatar: avatarHtml(name || '?', 'sm', empAvatarUrl(uid, empDetails[uid] || {}, p)),
+      titleHtml: gsHi(name || '(ismsiz)', q),
+      subHtml: [meta, contact].filter(Boolean).join(' · '),
+      run: function () {
+        gsClose();
+        if (canManageTeam() || uid === me.id) { openEmployee(uid); return; }
+        // Ruxsat yo'q — bo'sh xato o'rniga Jamoa sahifasida topib beramiz
+        goPage('team');
+        gsAfter(function () {
+          gsSetVal('teamSearch', name);
+          if (typeof teamOnFilterChange === 'function') teamOnFilterChange();
+        });
+      },
+    });
+  });
+
+  // ✓ Vazifalar (kesh)
+  (tasksCache || []).forEach(function (t) {
+    const hitTitle = gsTextMatch(t.title, q);
+    if (!hitTitle && !gsTextMatch(t.description, q)) return;
+    b.task.push(gsTaskItem(t, q, hitTitle));
+  });
+
+  // 📁 Loyihalar (kesh — loyihalar sahifasi ochilgan bo'lsa)
+  (projectsCache || []).forEach(function (p) {
+    const hitName = gsTextMatch(p.name, q);
+    if (!hitName && !gsTextMatch(p.description, q)) return;
+    b.proj.push(gsProjItem(p, q, hitName));
+  });
+
+  // ▦ Bo'limlar
+  (departments || []).forEach(function (d) {
+    const hitName = gsTextMatch(d.name, q);
+    if (!hitName && !gsTextMatch(d.description, q)) return;
+    const cnt = gsDeptCount(d.id);
+    const isMem = (myDepts || []).some(function (x) { return x.department_id === d.id; });
+    b.dept.push({
+      id: 'dept:' + d.id,
+      rank: hitName ? 0 : 1,
+      sortKey: gsNorm(d.name),
+      icon: '▦',
+      titleHtml: gsHi(d.name || '(nomsiz)', q),
+      subHtml: gsJoin([cnt == null ? 'Bo\'lim' : cnt + ' a\'zo']) +
+        (!hitName && d.description ? ' — ' + gsHi(gsSnip(d.description, q, 60), q) : ''),
+      run: function () {
+        gsClose();
+        // goDept faqat a'zoga ruxsat beradi — aks holda ro'yxatdan topib beramiz
+        if (isMem) { goDept(d.id); return; }
+        goPage('departments');
+        gsAfter(function () {
+          gsSetVal('deptSearch', d.name);
+          if (typeof renderDeptsList === 'function') renderDeptsList();
+        });
+      },
+    });
+  });
+
+  // 🏢 Filiallar — nom, manzil, telefon
+  (branchesCache || []).forEach(function (br) {
+    const hitName = gsTextMatch(br.name, q);
+    const hitAddr = gsTextMatch(br.address, q);
+    const hitPhone = gsPhoneMatch(br.phone, qd);
+    if (!hitName && !hitAddr && !hitPhone) return;
+    const cnt = gsBranchCount(br.id);
+    const extra = hitPhone ? gsHiPhone(br.phone, qd) : hitAddr ? gsHi(br.address, q) : escapeHtml(br.address || '');
+    b.branch.push({
+      id: 'branch:' + br.id,
+      rank: hitName ? 0 : 1,
+      sortKey: gsNorm(br.name),
+      icon: '🏢',
+      titleHtml: gsHi(br.name || '(nomsiz filial)', q),
+      subHtml: [gsJoin([cnt == null ? 'Filial' : cnt + ' xodim']), extra].filter(Boolean).join(' · '),
+      run: function () {
+        gsClose();
+        goPage('team');
+        gsAfter(function () {
+          const el = $('teamFltBranch');
+          if (el) { el.value = br.id; if (typeof teamOnFilterChange === 'function') teamOnFilterChange(); }
+        });
+      },
+    });
+  });
+
+  // 🎖 Lavozimlar (kesh — Jamoa sahifasi ochilgan bo'lsa)
+  (positionsCache || []).forEach(function (p) {
+    if (!gsTextMatch(p.name, q)) return;
+    b.pos.push(gsPosItem(p, q));
+  });
+
+  gsPushPages(b, q);
+  gsPushActions(b, q);
+  gsSortBuckets(b);
+  return b;
+}
+
+// ---- 2-manba: server (parallel ilike) ----
+// Kesh to'liq bo'lmagan jadvallar: tasks (a'zoda faqat o'ziga tegishlisi
+// keshda), projects va positions (sahifasi ochilmaguncha umuman keshda yo'q).
+async function gsServer(q) {
+  const out = { task: [], proj: [], pos: [] };
+  const errs = [];
+  if (!currentWs || !sb) return { buckets: out, errs: errs };
+  const t = gsLikeSafe(q);
+  if (t.length < GS_MIN) return { buckets: out, errs: errs };
+  const wsId = currentWs.id;
+  const pat = '%' + t + '%';
+
+  const [tR, pR, posR] = await Promise.all([
+    sb.from('tasks').select('*').eq('workspace_id', wsId)
+      .or('title.ilike.' + pat + ',description.ilike.' + pat)
+      .order('created_at', { ascending: false }).limit(30),
+    sb.from('projects').select('*').eq('workspace_id', wsId)
+      .or('name.ilike.' + pat + ',description.ilike.' + pat)
+      .order('created_at', { ascending: false }).limit(20),
+    gsIsOrg()
+      ? sb.from('positions').select('id, name').eq('workspace_id', wsId).ilike('name', pat).order('name').limit(20)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  // Har manba mustaqil: biri yiqilsa qolganlari ko'rinadi, lekin JIM qolmaydi
+  if (tR.error) { console.error('gsServer tasks:', tR.error.message); errs.push({ src: 'Vazifalar', msg: translateErr(tR.error.message || String(tR.error)) }); }
+  else out.task = tR.data || [];
+  if (pR.error) { console.error('gsServer projects:', pR.error.message); errs.push({ src: 'Loyihalar', msg: translateErr(pR.error.message || String(pR.error)) }); }
+  else out.proj = pR.data || [];
+  if (posR.error) { console.error('gsServer positions:', posR.error.message); errs.push({ src: 'Lavozimlar', msg: translateErr(posR.error.message || String(posR.error)) }); }
+  else out.pos = posR.data || [];
+
+  return { buckets: out, errs: errs };
+}
+
+// Server natijalarini keshdagilar ustiga qo'shadi (id bo'yicha dublikatsiz)
+function gsApplyServer(b, srv, q) {
+  const seen = function (key) {
+    const s = {};
+    (b[key] || []).forEach(function (it) { s[it.id] = 1; });
+    return s;
+  };
+  const sT = seen('task');
+  (srv.task || []).forEach(function (t) {
+    if (sT['task:' + t.id]) return;
+    b.task.push(gsTaskItem(t, q, gsTextMatch(t.title, q)));
+  });
+  const sP = seen('proj');
+  (srv.proj || []).forEach(function (p) {
+    if (sP['proj:' + p.id]) return;
+    const cached = (projectsCache || []).find(function (x) { return x.id === p.id; });
+    b.proj.push(gsProjItem(cached || p, q, gsTextMatch(p.name, q)));
+  });
+  const sPos = seen('pos');
+  (srv.pos || []).forEach(function (p) {
+    if (sPos['pos:' + p.id]) return;
+    b.pos.push(gsPosItem(p, q));
+  });
+  gsSortBuckets(b);
+}
+
+// ---- Boshlang'ich (so'rovsiz) holat ----
+function gsIdle() {
+  const b = gsEmptyBuckets();
+  gsPushPages(b, '');
+  gsPushActions(b, '');
+  return b;
+}
+
+// ---- Ochish / yopish ----
+function gsOpen(seed) {
+  const bd = $('cmdPaletteBd'), inp = $('cmdPaletteInput');
+  if (!bd || !inp) return;
+  bd.classList.add('show');
+  inp.value = seed || '';
+  _gsSeq++;                    // ochilishda uchib kelayotgan javoblar bekor
+  if (_gsTimer) { clearTimeout(_gsTimer); _gsTimer = null; }
+  _gsQ = ''; _gsQd = ''; _gsIdx = 0; _gsMore = {}; _gsErrs = [];
+  _gsLoading = false; _gsBuckets = null;
+  gsSpin(false);
+  if (inp.value) { gsOnInput(); } else { gsPaint(); }
+  // Ko'p urinishli fokus — animatsiya/mobil klaviatura uchun
+  const f = function () { try { inp.focus(); } catch (e) {} };
+  f();
+  requestAnimationFrame(function () { f(); requestAnimationFrame(f); });
+  setTimeout(f, 100);
+  setTimeout(f, 250);
+}
+
+function gsClose() {
+  const bd = $('cmdPaletteBd');
+  if (bd) bd.classList.remove('show');
+  if (_gsTimer) { clearTimeout(_gsTimer); _gsTimer = null; }
+  _gsSeq++;                    // ochiq so'rov javobi endi ishlatilmaydi
+  _gsLoading = false;
+  gsSpin(false);
+}
+
+// Eski nomlar (⌘K va Escape ishlatadi)
+function openCmdPalette() { gsOpen(); }
+function closeCmdPalette() { gsClose(); }
+
+// Topbardagi qidiruv "tugmasi" — klaviatura bilan ham ochilsin
+function gsTriggerKey(ev) {
+  if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'Spacebar') { ev.preventDefault(); gsOpen(); }
+}
+
+function gsClearInput() {
+  const inp = $('cmdPaletteInput');
+  if (inp) { inp.value = ''; try { inp.focus(); } catch (e) {} }
+  gsOnInput();
+}
+
+function gsSpin(on) { const el = $('gsSpin'); if (el) el.classList.toggle('on', !!on); }
+
+// ---- Jonli qidiruv (debounce + eski so'rovni bekor qilish) ----
+function gsOnInput() {
+  const inp = $('cmdPaletteInput');
+  const raw = inp ? (inp.value || '') : '';
+  const cl = $('gsClear'); if (cl) cl.classList.toggle('on', !!raw);
+  if (_gsTimer) { clearTimeout(_gsTimer); _gsTimer = null; }
+
+  const q = gsNorm(raw);
+  const qd = gsDigits(raw);
+  if (q.length < GS_MIN && qd.length < GS_MIN_DIGITS) {
+    _gsSeq++;                  // yo'ldagi javoblar bekor
+    _gsQ = ''; _gsQd = ''; _gsBuckets = null; _gsErrs = [];
+    _gsLoading = false; _gsIdx = 0; _gsMore = {};
+    gsSpin(false); gsPaint();
+    return;
+  }
+
+  // Kesh natijasi DARHOL, server javobi debounce'dan keyin qo'shiladi
+  _gsQ = q; _gsQd = qd;
+  _gsBuckets = gsLocal(q, qd);
+  _gsIdx = 0; _gsMore = {}; _gsErrs = []; _gsLoading = true;
+  gsPaint();
+  gsSpin(true);
+  _gsTimer = setTimeout(function () { gsFetch(q, qd); }, GS_DEBOUNCE);
+}
+
+async function gsFetch(q, qd) {
+  const seq = ++_gsSeq;
+  let srv = null, errs = [];
+  try {
+    const r = await gsServer(q);
+    srv = r.buckets; errs = r.errs;
+  } catch (e) {
+    // Tarmoq/kutilmagan xato — butun qidiruv yiqilmasin, lekin jim qolmasin
+    console.error('gsFetch:', e);
+    errs = [{ src: 'Server', msg: translateErr((e && e.message) || String(e)) }];
+  }
+  if (seq !== _gsSeq) return;   // yangi harf yozilgan — bu javob eskirgan
+  const b = gsLocal(q, qd);
+  if (srv) gsApplyServer(b, srv, q);
+  _gsBuckets = b; _gsErrs = errs; _gsLoading = false;
+  gsSpin(false);
+  gsPaint();
+}
+
+// ---- Chizish ----
+function gsItemHtml(it, idx) {
+  const ic = it.avatar
+    ? '<span class="cmd-ic" style="background:none;padding:0;">' + it.avatar + '</span>'
+    : '<span class="cmd-ic">' + escapeHtml(it.icon || '◯') + '</span>';
+  return '<button class="cmd-item" type="button" onmouseenter="gsHover(' + idx + ')" onclick="gsPick(' + idx + ')">' +
+    ic +
+    '<span class="cmd-text">' +
+      '<span class="cmd-title">' + (it.titleHtml || '') + '</span>' +
+      (it.subHtml ? '<span class="cmd-sub">' + it.subHtml + '</span>' : '') +
+    '</span>' +
+    (it.kbd ? '<span class="cmd-kbd">' + escapeHtml(it.kbd) + '</span>' : '') +
+  '</button>';
+}
+
+function gsPaint() {
+  const list = $('cmdPaletteList');
+  if (!list) return;
+  const b = _gsQ ? (_gsBuckets || gsEmptyBuckets()) : gsIdle();
+  _gsFlat = [];
+  let html = '';
+
+  // Yiqilgan manbalar — jimgina yutilmaydi
+  if (_gsErrs.length) {
+    html += '<div class="gs-warn">⚠️ Ba\'zi natijalar yuklanmadi: ' +
+      _gsErrs.map(function (e) { return escapeHtml(e.src) + ' — ' + escapeHtml(e.msg); }).join('; ') + '</div>';
+  }
+
+  let total = 0;
+  GS_GROUPS.forEach(function (g) {
+    const items = b[g.key] || [];
+    if (!items.length) return;
+    total += items.length;
+    const show = _gsMore[g.key] ? items : items.slice(0, GS_PER_GROUP);
+    html += '<div class="cmd-group">' + escapeHtml(g.label) +
+      (_gsQ ? ' <span class="gs-cnt">(' + items.length + ')</span>' : '') + '</div>';
+    show.forEach(function (it) {
+      html += gsItemHtml(it, _gsFlat.length);
+      _gsFlat.push(it);
+    });
+    const rest = items.length - show.length;
+    if (rest > 0) {
+      html += '<button class="gs-more" type="button" onclick="gsShowMore(\'' + g.key + '\')">+ yana ' + rest + ' ta</button>';
+    }
+  });
+
+  if (!total) {
+    if (!_gsQ) {
+      html += '<div class="gs-hint">Yozishni boshlang — xodim (ism, email, telefon), vazifa, loyiha, bo\'lim, filial yoki lavozim.</div>';
+    } else if (_gsLoading) {
+      html += '<div class="gs-skel"></div><div class="gs-skel"></div><div class="gs-skel"></div>';
+    } else {
+      html += '<div class="cmd-empty"><div class="ic">🔍</div>' +
+        '<div style="font-weight:600;color:var(--ink);font-size:14px;margin-bottom:4px;">Hech narsa topilmadi</div>' +
+        '<div style="font-size:12.5px;">«' + escapeHtml(_gsQ) + '» bo\'yicha natija yo\'q. Boshqa so\'z yoki telefon raqami bilan urinib ko\'ring.</div></div>';
+    }
+  } else if (_gsLoading) {
+    html += '<div class="gs-skel"></div>';
+  }
+
+  list.innerHTML = html;
+  if (_gsIdx >= _gsFlat.length) _gsIdx = 0;
+  gsMarkActive(false);
+}
+
+function gsMarkActive(scroll) {
+  const list = $('cmdPaletteList');
+  if (!list) return;
+  const els = list.querySelectorAll('.cmd-item');
+  for (let i = 0; i < els.length; i++) els[i].classList.toggle('active', i === _gsIdx);
+  if (scroll && els[_gsIdx]) els[_gsIdx].scrollIntoView({ block: 'nearest' });
+}
+
+function gsHover(i) { _gsIdx = i; gsMarkActive(false); }
+function gsPick(i) { const it = _gsFlat[i]; if (it && it.run) it.run(); }
+function gsShowMore(key) { _gsMore[key] = true; gsPaint(); }
+
+// ---- Klaviatura: ↑↓ yurish, Enter ochish, Esc yopish ----
+function gsKey(e) {
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (_gsFlat.length) { _gsIdx = Math.min(_gsIdx + 1, _gsFlat.length - 1); gsMarkActive(true); }
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (_gsFlat.length) { _gsIdx = Math.max(_gsIdx - 1, 0); gsMarkActive(true); }
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    gsPick(_gsIdx);
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    gsClose();
+  } else if (e.key === 'Home' && _gsFlat.length) {
+    e.preventDefault(); _gsIdx = 0; gsMarkActive(true);
+  } else if (e.key === 'End' && _gsFlat.length) {
+    e.preventDefault(); _gsIdx = _gsFlat.length - 1; gsMarkActive(true);
+  }
+}
+
+
 async function init() {
   console.log('%cTaskFix build: 2026-07-06-planner+jadval', 'color:#0F1417;background:#FEF3C7;padding:2px 8px;border-radius:4px;font-weight:700;');
   // CDN guard: supabase-js yuklanmagan bo'lsa (O'zbekistonda CDN beqaror — ERR_CONNECTION_CLOSED),
@@ -14234,372 +14913,6 @@ async function init() {
   }
   if (session) { await bootstrap(); }
   else { setMode('login'); showAuth(); }
-
-// ============ ⌘K COMMAND PALETTE ============
-let _cmdItems = [];
-let _cmdIndex = 0;
-
-// Topbar search — mustaqil dropdown (palette'ga bog'liq emas)
-let _topSearchResults = [];
-let _topSearchIdx = 0;
-function topSearchRun() {
-  const inp = $('topSearchInp');
-  let drop = $('topSearchDrop');
-  if (!inp || !drop) return;
-  // Dropdown'ni body'ga ko'chiramiz (topbar stacking muammosini yo'q qiladi)
-  if (drop.parentElement && drop.parentElement.id === 'topSearchWrap') { document.body.appendChild(drop); }
-  const q = (inp.value || '').trim().toLowerCase();
-  if (!q) { drop.style.display = 'none'; drop.innerHTML = ''; _topSearchResults = []; return; }
-
-  const results = [];
-  const match = (text) => (text || '').toString().toLowerCase().includes(q);
-  const memberName = (uid) => uid === me.id ? (myProfile.full_name || 'Siz') : ((wsMembers.find(m => m.user_id === uid) && wsMembers.find(m => m.user_id === uid).profile && wsMembers.find(m => m.user_id === uid).profile.full_name) || '');
-
-  // 1. Vazifalar (nom, tavsif, id, bajaruvchi)
-  (tasksCache || []).forEach(t => {
-    if (match(t.title) || match(t.description) || String(t.id) === q || match(memberName(t.assigned_to))) {
-      const asg = t.assigned_to ? memberName(t.assigned_to) : '';
-      results.push({ type: 'task', icon: '✓', title: t.title || '(nomsiz)', sub: '#' + t.id + (asg ? ' · ' + asg : ''), action: () => { taskScope = 'all'; goPage('tasks'); openDetail(t.id); } });
-    }
-  });
-  // 2. Odamlar (ism, telefon, email)
-  (wsMembers || []).forEach(m => {
-    const p = m.profile || {};
-    const name = m.user_id === me.id ? (myProfile.full_name || 'Siz') : (p.full_name || '');
-    if (match(name) || match(p.phone) || match(p.email)) {
-      results.push({ type: 'user', icon: '👤', title: name || '(ismsiz)', sub: [p.phone, p.email].filter(Boolean).join(' · ') || 'Jamoa a\'zosi', action: () => { goPage('team'); } });
-    }
-  });
-  // 3. Bo'limlar
-  (departments || []).forEach(d => {
-    if (match(d.name)) {
-      results.push({ type: 'dept', icon: '▦', title: d.name, sub: 'Bo\'lim', action: () => { goDept(d.id); } });
-    }
-  });
-  // 4. Sahifalar
-  const pages = [
-    { label: 'Bosh sahifa', page: 'dashboard', mgr: false },
-    { label: 'Hamma vazifalar', page: 'tasks', mgr: false },
-    { label: 'Statistika', page: 'stats', mgr: true },
-    { label: 'Tashkilot', page: 'orgchart', mgr: true },
-    { label: 'Jamoa', page: 'team', mgr: false },
-    { label: 'Filiallar', page: 'branches', mgr: true },
-    { label: 'Lavozimlar', page: 'positions', mgr: true },
-    { label: 'Integratsiyalar', page: 'integrations', mgr: true },
-    { label: 'Sozlamalar', page: 'settings', mgr: true },
-    { label: 'Profil', page: 'profile', mgr: false },
-  ];
-  pages.filter(p => (!p.mgr || isOwnerLike()) && match(p.label)).forEach(p => {
-    results.push({ type: 'page', icon: '⚡', title: p.label, sub: 'Sahifa', action: () => { goPage(p.page); } });
-  });
-
-  _topSearchResults = results.slice(0, 30);
-  _topSearchIdx = 0;
-  topSearchPosition();
-  if (!_topSearchResults.length) {
-    drop.innerHTML = '<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px;">Hech narsa topilmadi</div>';
-    drop.style.display = 'block';
-    return;
-  }
-  topSearchRender();
-  drop.style.display = 'block';
-}
-function topSearchPosition() {
-  const inp = $('topSearchInp'); const drop = $('topSearchDrop');
-  if (!inp || !drop) return;
-  const wrap = $('topSearchWrap') || inp;
-  const r = wrap.getBoundingClientRect();
-  drop.style.position = 'fixed';
-  drop.style.top = (r.bottom + 6) + 'px';
-  drop.style.left = r.left + 'px';
-  drop.style.width = r.width + 'px';
-  drop.style.right = 'auto';
-  drop.style.zIndex = '2000';
-}
-function topSearchRender() {
-  const drop = $('topSearchDrop');
-  let lastType = '';
-  const typeLabels = { task: 'Vazifalar', user: 'Odamlar', dept: 'Bo\'limlar', page: 'Sahifalar' };
-  drop.innerHTML = _topSearchResults.map((r, i) => {
-    let head = '';
-    if (r.type !== lastType) { head = '<div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:8px 10px 4px;">' + typeLabels[r.type] + '</div>'; lastType = r.type; }
-    const active = i === _topSearchIdx ? 'background:var(--surface-2);' : '';
-    return head + '<div class="tsr-item" data-i="' + i + '" onmousedown="event.preventDefault();topSearchPick(' + i + ')" onmouseenter="topSearchHover(' + i + ')" style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;' + active + '">' +
-      '<span style="width:22px;text-align:center;">' + r.icon + '</span>' +
-      '<span style="flex:1;min-width:0;"><span style="display:block;font-size:13.5px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(r.title) + '</span>' +
-      '<span style="display:block;font-size:11.5px;color:var(--muted);">' + escapeHtml(r.sub) + '</span></span></div>';
-  }).join('');
-}
-function topSearchHover(i) { _topSearchIdx = i; topSearchRender(); }
-function topSearchPick(i) {
-  const r = _topSearchResults[i];
-  if (!r) return;
-  $('topSearchInp').value = '';
-  $('topSearchDrop').style.display = 'none';
-  _topSearchResults = [];
-  r.action();
-}
-function topSearchKey(ev) {
-  const drop = $('topSearchDrop');
-  if (!drop || drop.style.display === 'none' || !_topSearchResults.length) {
-    if (ev.key === 'Escape') { $('topSearchInp').blur(); }
-    return;
-  }
-  if (ev.key === 'ArrowDown') { ev.preventDefault(); _topSearchIdx = Math.min(_topSearchIdx + 1, _topSearchResults.length - 1); topSearchRender(); }
-  else if (ev.key === 'ArrowUp') { ev.preventDefault(); _topSearchIdx = Math.max(_topSearchIdx - 1, 0); topSearchRender(); }
-  else if (ev.key === 'Enter') { ev.preventDefault(); topSearchPick(_topSearchIdx); }
-  else if (ev.key === 'Escape') { ev.preventDefault(); drop.style.display = 'none'; $('topSearchInp').value = ''; $('topSearchInp').blur(); }
-}
-// Tashqariga bosilsa — yopiladi
-document.addEventListener('click', (e) => {
-  const wrap = $('topSearchWrap');
-  if (wrap && !wrap.contains(e.target)) { const d = $('topSearchDrop'); if (d) d.style.display = 'none'; }
-});
-
-function openCmdPalette() {
-  const bd = $('cmdPaletteBd');
-  const input = $('cmdPaletteInput');
-  if (!bd || !input) return;
-  bd.classList.add('show');
-  input.value = '';
-  _cmdIndex = 0;
-  renderCmdPalette();
-  // Multi-strategy focus: animatsiyalar tugagandan keyin
-  const focusInput = () => { try { input.focus(); } catch (_) {} };
-  focusInput();
-  requestAnimationFrame(() => {
-    focusInput();
-    requestAnimationFrame(focusInput);
-  });
-  setTimeout(focusInput, 100);
-  setTimeout(focusInput, 250);
-}
-
-function closeCmdPalette() {
-  const bd = $('cmdPaletteBd');
-  if (bd) bd.classList.remove('show');
-}
-
-function buildCmdItems() {
-  const q = ($('cmdPaletteInput').value || '').trim().toLowerCase();
-  const items = [];
-
-  // Helper: fuzzy match — q ning har bir harfi turli pozitsiyalarda match qilsa ham yetadi
-  const fuzzyMatch = (text, query) => {
-    if (!query) return true;
-    const t = (text || '').toLowerCase();
-    if (t.includes(query)) return true;
-    // Har xil joyda harflar — masalan "vazifa" → "vzfa"
-    let qi = 0;
-    for (let i = 0; i < t.length && qi < query.length; i++) {
-      if (t[i] === query[qi]) qi++;
-    }
-    return qi === query.length;
-  };
-
-  // Natijalar bo'limlarga ajratiladi. Push tartibi = ko'rsatish tartibi:
-  // Hodimlar → Filiallar → Bo'limlar → Vazifalar → Sahifalar → Amallar.
-  // Bo'sh bo'lim ko'rsatilmaydi (renderCmdPalette guruh sarlavhasini faqat
-  // element bo'lganda chizadi).
-
-  // ── 👤 Hodimlar (wsMembers) — ism, familiya, telefon, email; avatar + lavozim ──
-  if (Array.isArray(wsMembers) && wsMembers.length && q) {
-    wsMembers
-      .filter(m => {
-        const p = m.profile || {};
-        return fuzzyMatch(p.full_name || '', q) || fuzzyMatch(p.phone || '', q) || fuzzyMatch(p.email || '', q);
-      })
-      .slice(0, 8)
-      .forEach(m => {
-        const p = m.profile || {};
-        const name = p.full_name || 'Hodim';
-        const pos = teamMemberPos(m.user_id);
-        const subParts = [];
-        if (p.phone) subParts.push(p.phone);
-        subParts.push(pos || (m.role === 'owner' ? 'Egasi' : m.role === 'admin' ? 'Admin' : 'A\'zo'));
-        const uid = m.user_id;
-        items.push({
-          group: '👤 Hodimlar',
-          // Avatar keshdan (getPhotoUrl) — bo'sh bo'lsa initsiallar; palette bloklanmaydi
-          avatar: avatarHtml(name, 'sm', empAvatarUrl(uid, empDetails[uid] || {}, p)),
-          icon: '👤',
-          title: name,
-          sub: subParts.join(' · '),
-          kbd: null,
-          run: () => { closeCmdPalette(); openEmployee(uid); },
-        });
-      });
-  }
-
-  // ── 🏢 Filiallar (branchesCache) — nom bo'yicha; bosilsa Jamoa + filial filtri ──
-  if (Array.isArray(branchesCache) && branchesCache.length && q) {
-    branchesCache
-      .filter(b => fuzzyMatch(b.name || '', q) || fuzzyMatch(b.address || '', q))
-      .slice(0, 6)
-      .forEach(b => {
-        const bid = b.id;
-        items.push({
-          group: '🏢 Filiallar',
-          icon: '🏢',
-          title: b.name || '(nomsiz filial)',
-          sub: b.address || null,
-          kbd: null,
-          run: () => {
-            closeCmdPalette();
-            goPage('team');
-            // renderTeam select'ni to'ldirgach filtrni o'rnatamiz
-            setTimeout(() => {
-              const el = $('teamFltBranch');
-              if (el) { el.value = bid; teamOnFilterChange(); }
-            }, 180);
-          },
-        });
-      });
-  }
-
-  // ── ▦ Bo'limlar ──
-  if (Array.isArray(departments) && departments.length) {
-    const dFiltered = q
-      ? departments.filter(d => fuzzyMatch(d.name || '', q)).slice(0, 5)
-      : [];
-    dFiltered.forEach(d => {
-      items.push({
-        group: "▦ Bo'limlar",
-        icon: '▦',
-        title: d.name,
-        sub: null,
-        kbd: null,
-        run: () => { closeCmdPalette(); goDept(d.id); },
-      });
-    });
-  }
-
-  // ── ✓ Vazifalar (cache'dan) ──
-  if (Array.isArray(tasksCache) && tasksCache.length) {
-    const tFiltered = q
-      ? tasksCache.filter(t => fuzzyMatch(t.title || '', q) || fuzzyMatch(t.description || '', q)).slice(0, 8)
-      : tasksCache.slice(0, 4);
-    tFiltered.forEach(t => {
-      items.push({
-        group: '✓ Vazifalar',
-        icon: '✓',
-        title: t.title || '(nomsiz)',
-        sub: statusName(t.status),
-        kbd: null,
-        run: () => { closeCmdPalette(); openDetail(t.id); },
-      });
-    });
-  }
-
-  // ── 📄 Sahifalar ──
-  const pagesAll = [
-    { label: 'Bosh sahifa', icon: '⌂', page: 'dashboard', mgr: false },
-    { label: 'Vazifalar', icon: '✓', page: 'tasks', mgr: false },
-    { label: 'Statistika', icon: '📊', page: 'stats', mgr: true },
-    { label: 'Tashkilot tuzilmasi', icon: '⛓', page: 'orgchart', mgr: true },
-    { label: 'Jamoa', icon: '👥', page: 'team', mgr: false },
-    { label: 'Filiallar', icon: '🏪', page: 'branches', mgr: true },
-    { label: 'Lavozimlar', icon: '🎖', page: 'positions', mgr: true },
-    { label: 'Integratsiyalar', icon: '🔌', page: 'integrations', mgr: true },
-    { label: 'Sozlamalar', icon: '⚙', page: 'settings', mgr: true },
-    { label: 'Mening profilim', icon: '👤', page: 'profile', mgr: false },
-  ];
-  const pages = pagesAll.filter(p => !p.mgr || isOwnerLike());
-  const filteredPages = q ? pages.filter(p => fuzzyMatch(p.label, q)) : pages.slice(0, 5);
-  filteredPages.forEach(p => {
-    items.push({
-      group: '📄 Sahifalar',
-      icon: p.icon,
-      title: p.label,
-      sub: null,
-      kbd: null,
-      run: () => { closeCmdPalette(); goPage(p.page); },
-    });
-  });
-
-  // ── ⚡ Amallar ──
-  const actions = [];
-  if (canEditWorkspace()) {
-    actions.push({ label: 'Yangi vazifa yaratish', icon: '+', kbd: 'N', run: () => { closeCmdPalette(); openCreate(); } });
-  }
-  if (isOwnerLike()) {
-    actions.push({ label: 'Bo\'lim yaratish', icon: '▦', kbd: null, run: () => { closeCmdPalette(); openNewDept(); } });
-    actions.push({ label: 'A\'zo taklif qilish', icon: '✉', kbd: null, run: () => { closeCmdPalette(); goPage('team'); setTimeout(() => $('inviteBd')?.classList.add('show'), 100); } });
-  }
-  const aFiltered = q ? actions.filter(a => fuzzyMatch(a.label, q)) : actions;
-  aFiltered.forEach(a => {
-    items.push({ group: '⚡ Amallar', icon: a.icon, title: a.label, sub: null, kbd: a.kbd, run: a.run });
-  });
-
-  return items;
-}
-
-function renderCmdPalette() {
-  _cmdItems = buildCmdItems();
-  _cmdIndex = Math.max(0, Math.min(_cmdIndex, _cmdItems.length - 1));
-  const list = $('cmdPaletteList');
-  if (!list) return;
-
-  if (!_cmdItems.length) {
-    list.innerHTML = '<div class="cmd-empty"><div class="ic">🔍</div><div style="font-weight:600;color:var(--ink);font-size:14px;margin-bottom:4px;">Hech narsa topilmadi</div><div style="font-size:12.5px;">Boshqa kalit so\'z bilan urinib ko\'ring</div></div>';
-    return;
-  }
-
-  let html = '';
-  let lastGroup = '';
-  _cmdItems.forEach((item, idx) => {
-    if (item.group !== lastGroup) {
-      html += '<div class="cmd-group">' + escapeHtml(item.group) + '</div>';
-      lastGroup = item.group;
-    }
-    const active = idx === _cmdIndex ? ' active' : '';
-    const iconHtml = item.avatar ? '<span class="cmd-ic" style="background:none;padding:0;">' + item.avatar + '</span>' : '<span class="cmd-ic">' + (item.icon || '◯') + '</span>';
-    html += '<button class="cmd-item' + active + '" onmouseenter="cmdHover(' + idx + ')" onclick="cmdRun(' + idx + ')">' +
-      iconHtml +
-      '<span class="cmd-text">' +
-        '<span class="cmd-title">' + escapeHtml(item.title) + '</span>' +
-        (item.sub ? '<span class="cmd-sub">' + escapeHtml(item.sub) + '</span>' : '') +
-      '</span>' +
-      (item.kbd ? '<span class="cmd-kbd">' + item.kbd + '</span>' : '') +
-    '</button>';
-  });
-  list.innerHTML = html;
-}
-
-function cmdHover(idx) {
-  _cmdIndex = idx;
-  Array.from($('cmdPaletteList').querySelectorAll('.cmd-item')).forEach((el, i) => {
-    el.classList.toggle('active', i === idx);
-  });
-}
-
-function cmdRun(idx) {
-  const item = _cmdItems[idx];
-  if (item && item.run) item.run();
-}
-
-function cmdPaletteKey(e) {
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    _cmdIndex = Math.min(_cmdIndex + 1, _cmdItems.length - 1);
-    renderCmdPalette();
-    scrollCmdToActive();
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    _cmdIndex = Math.max(_cmdIndex - 1, 0);
-    renderCmdPalette();
-    scrollCmdToActive();
-  } else if (e.key === 'Enter') {
-    e.preventDefault();
-    cmdRun(_cmdIndex);
-  }
-}
-
-function scrollCmdToActive() {
-  const list = $('cmdPaletteList');
-  const active = list?.querySelector('.cmd-item.active');
-  if (active) active.scrollIntoView({ block: 'nearest' });
-}
 
   // Keyboard shortcuts
   // STALE CONNECTION FIX: tab background'dan qaytganda
