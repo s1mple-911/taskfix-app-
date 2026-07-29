@@ -420,6 +420,22 @@
   .th-item .th-meta { color: var(--muted); font-size: 11.5px; margin-left: auto; white-space: nowrap; }
   .th-empty { color: var(--muted); font-size: 12.5px; font-style: italic; padding: 10px 0; }
 
+  /* Xodimni o'chirishda vazifalarni qayta biriktirish (rmx*) */
+  .rmx-warn { font-size: 13px; line-height: 1.5; color: var(--ink); background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.25); border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; }
+  .rmx-bulk { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 12.5px; color: var(--muted); }
+  .rmx-bulk select { flex: 1; min-width: 0; }
+  .rmx-list { max-height: 44vh; overflow: auto; display: flex; flex-direction: column; gap: 8px; }
+  .rmx-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; }
+  .rmx-t { flex: 1; min-width: 0; }
+  .rmx-title { font-size: 13px; color: var(--ink); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rmx-meta { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .rmx-sel { width: 210px; flex: 0 0 auto; }
+  .rmx-acts { flex-wrap: wrap; }
+  @media (max-width: 560px) {
+    .rmx-item { flex-direction: column; align-items: stretch; }
+    .rmx-sel { width: 100%; }
+  }
+
   /* Avatar helper */
   .avatar { width: 28px; height: 28px; border-radius: 50%; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
   .avatar.sm { width: 22px; height: 22px; font-size: 10px; }
@@ -6551,31 +6567,34 @@ function thSame(field, a, b) {
   return na === nb;
 }
 
-// Eski va yangi vazifa obyektlarini solishtirib, o'zgargan maydonlarni yozadi.
-// prev — yangilanishdan OLDINGI nusxa (havola emas, yoki almashtirilmagan obyekt).
-async function thRecord(prev, next) {
-  try {
-    if (_thMissing || !prev || !next || !next.id) return;
-    const wsId = next.workspace_id || prev.workspace_id || (currentWs && currentWs.id) || null;
-    if (!wsId) { console.error('thRecord: workspace_id topilmadi, task=' + next.id); return; }
-    const rows = [];
-    TH_FIELDS.forEach(function (f) {
-      const a = prev[f] === undefined ? null : prev[f];
-      const b = next[f] === undefined ? null : next[f];
-      if (thSame(f, a, b)) return;
-      rows.push({
-        workspace_id: wsId,
-        task_id: next.id,
-        field: f,
-        old_value: (a === null || a === undefined) ? null : String(a),
-        new_value: (b === null || b === undefined) ? null : String(b),
-        old_label: thLabel(f, a),
-        new_label: thLabel(f, b),
-        changed_by: me ? me.id : null,
-        changed_by_name: (myProfile && myProfile.full_name) || (me && me.email) || null
-      });
+// Eski va yangi vazifa obyektini solishtirib, yoziladigan qatorlarni quradi.
+function thBuildRows(prev, next) {
+  const rows = [];
+  if (!prev || !next || !next.id) return rows;
+  const wsId = next.workspace_id || prev.workspace_id || (currentWs && currentWs.id) || null;
+  if (!wsId) { console.error('thBuildRows: workspace_id topilmadi, task=' + next.id); return rows; }
+  TH_FIELDS.forEach(function (f) {
+    const a = prev[f] === undefined ? null : prev[f];
+    const b = next[f] === undefined ? null : next[f];
+    if (thSame(f, a, b)) return;
+    rows.push({
+      workspace_id: wsId,
+      task_id: next.id,
+      field: f,
+      old_value: (a === null || a === undefined) ? null : String(a),
+      new_value: (b === null || b === undefined) ? null : String(b),
+      old_label: thLabel(f, a),
+      new_label: thLabel(f, b),
+      changed_by: me ? me.id : null,
+      changed_by_name: (myProfile && myProfile.full_name) || (me && me.email) || null
     });
-    if (!rows.length) return;
+  });
+  return rows;
+}
+
+async function thInsert(rows) {
+  try {
+    if (_thMissing || !rows || !rows.length) return;
     const { data, error } = await sb.from('task_history').insert(rows).select();
     if (error) {
       if (thTableMissing(error)) {
@@ -6586,13 +6605,29 @@ async function thRecord(prev, next) {
       throw error;
     }
     // Ochiq turgan detal oynasida darrov ko'rinsin (eng yangisi tepada)
-    if (currentDetailId === next.id) {
-      curDetailHistory = (data || []).concat(curDetailHistory);
+    const mine = (data || []).filter(function (r) { return r.task_id === currentDetailId; });
+    if (mine.length) {
+      curDetailHistory = mine.concat(curDetailHistory);
       renderDetailBody();
     }
   } catch (e) {
-    console.error('thRecord:', e);   // fon kuzatuvi — foydalanuvchiga toast chiqarmaymiz
+    console.error('thInsert:', e);   // fon kuzatuvi — foydalanuvchiga toast chiqarmaymiz
   }
+}
+
+// Bitta vazifa. prev — yangilanishdan OLDINGI nusxa (havola emas, yoki
+// almashtirilmagan obyekt).
+async function thRecord(prev, next) {
+  if (_thMissing) return;
+  await thInsert(thBuildRows(prev, next));
+}
+
+// Ko'p vazifa — BITTA so'rovda (masalan xodim o'chirilganda ommaviy qayta biriktirish)
+async function thRecordMany(pairs) {
+  if (_thMissing || !pairs || !pairs.length) return;
+  let rows = [];
+  pairs.forEach(function (pr) { rows = rows.concat(thBuildRows(pr[0], pr[1])); });
+  await thInsert(rows);
 }
 
 function thListHtml() {
@@ -11674,9 +11709,245 @@ async function changeWsRole(uid, role) {
     if (currentPage === 'team') renderTeam();
   } catch (e) { toast(translateErr(e.message), 'err'); }
 }
+// ============ XODIMNI O'CHIRISH + VAZIFALARNI QAYTA BIRIKTIRISH (rmx*) ============
+// ⚠️ Bu yerda "o'chirish" = workspace_members'dan CHIQARISH. Profil (profiles /
+//    auth.users) o'chmaydi — shuning uchun tasks.assigned_to baribir o'sha uid'da
+//    qolib ketadi va vazifa "jamoada yo'q odam"da osilib turadi. Aynan shuning
+//    uchun chiqarishdan OLDIN qayta biriktirish taklif qilinadi.
+//
+// Uch yo'l: "O'tkazib, o'chirish" (tanlangan xodim(lar)ga) ·
+//           "Biriktirmasdan o'chirish" (assigned_to bo'shatiladi — vazifa
+//            biriktirilmagan bo'lib ro'yxatda ko'rinadi, yo'qolmaydi) · "Bekor".
+// Har ikkala holatda ham o'zgarish task_history'ga tushadi (thRecord).
+let _rmxRows = [];   // [{id, title, status, deadline, target}]
+let _rmxUid = null;
+
+// Tanlagich: chiqarilayotgan xodimdan boshqa hamma a'zo, "Ism · Lavozim" bilan
+function rmxMemberOptions(excludeUid, selected) {
+  const opts = (wsMembers || [])
+    .filter(function (m) { return m.user_id !== excludeUid; })
+    .map(function (m) {
+      const nm = m.user_id === me.id ? (myProfile.full_name || 'Siz')
+                                     : ((m.profile && (m.profile.full_name || m.profile.email)) || 'A\'zo');
+      return { id: m.user_id, name: memberNamePos(m.user_id, nm) };
+    })
+    .sort(function (a, b) { return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }); });
+  return '<option value="">— biriktirilmagan holatga</option>' +
+    opts.map(function (o) {
+      return '<option value="' + escapeHtml(String(o.id)) + '"' +
+        (String(selected || '') === String(o.id) ? ' selected' : '') + '>' + escapeHtml(o.name) + '</option>';
+    }).join('');
+}
+
+function rmxRenderList(bd) {
+  const box = bd.querySelector('#rmxList');
+  if (!box) return;
+  box.innerHTML = _rmxRows.map(function (r) {
+    let st = ''; try { st = statusName(r.status); } catch (e) { st = String(r.status || ''); }
+    const dl = r.deadline ? fmtDeadline(r.deadline) : 'deadline yo\'q';
+    return '<div class="rmx-item">' +
+      '<div class="rmx-t">' +
+        '<div class="rmx-title">' + escapeHtml(r.title || '(nomsiz)') + '</div>' +
+        '<div class="rmx-meta">' + escapeHtml(st) + ' · ' + escapeHtml(dl) + '</div>' +
+      '</div>' +
+      '<select class="ui-input rmx-sel" data-tid="' + escapeHtml(String(r.id)) + '">' +
+        rmxMemberOptions(_rmxUid, r.target) +
+      '</select>' +
+    '</div>';
+  }).join('');
+}
+
+// Tanlovlarni qo'llaydi (target bo'yicha guruhlab) → true = hammasi o'tdi
+const RMX_CHUNK = 80;   // .in(...) URL uzunligi cheklovi uchun
+async function rmxApply(uid) {
+  // target bo'yicha guruhlaymiz: '' = biriktirilmagan (null)
+  const groups = {};
+  _rmxRows.forEach(function (r) { (groups[r.target || ''] = groups[r.target || ''] || []).push(r.id); });
+  const histPairs = [];
+  for (const key of Object.keys(groups)) {
+    const all = groups[key];
+    const val = key === '' ? null : key;
+    for (let k = 0; k < all.length; k += RMX_CHUNK) {
+      const ids = all.slice(k, k + RMX_CHUNK);
+      try {
+        const { data, error } = await sb.from('tasks').update({ assigned_to: val })
+          .in('id', ids).select('id, assigned_to');
+        if (error) throw error;
+        // RLS jimgina to'sib qo'ymasin — nechta qator o'zgargani tekshiriladi
+        if (!data || data.length !== ids.length) {
+          throw new Error('Vazifalarning bir qismi yangilanmadi (' + ((data && data.length) || 0) + '/' + ids.length + ') — ehtimol ruxsat yo\'q.');
+        }
+        data.forEach(function (row) {
+          const i = tasksCache.findIndex(function (x) { return x.id === row.id; });
+          if (i >= 0) tasksCache[i].assigned_to = row.assigned_to;
+          const j = prjTasks.findIndex(function (x) { return x.id === row.id; });
+          if (j >= 0) prjTasks[j].assigned_to = row.assigned_to;
+          // Tarix: "Bajaruvchi: {chiqarilgan} → {yangi}".
+          // Eski qiymat rt.cur dan olinadi (uid emas) — aks holda o'chirish
+          // qayta urinilganda o'zgarmagan vazifa uchun soxta yozuv chiqardi.
+          const rt = _rmxRows.find(function (x) { return x.id === row.id; });
+          const wasUid = rt ? rt.cur : uid;
+          histPairs.push([{ id: row.id, workspace_id: currentWs.id, assigned_to: wasUid },
+                          { id: row.id, workspace_id: currentWs.id, assigned_to: row.assigned_to }]);
+          if (rt) rt.cur = row.assigned_to;
+        });
+      } catch (e) {
+        console.error('rmxApply:', e);
+        toast('Vazifalar o\'tkazilmadi: ' + translateErr(e.message || String(e)) + ' — xodim O\'CHIRILMADI', 'err');
+        // O'tib bo'lganlari tarixga tushsin (yarim holat ham kuzatilsin)
+        thRecordMany(histPairs);
+        return false;
+      }
+    }
+  }
+  await thRecordMany(histPairs);
+  return true;
+}
+
+// workspace_members'dan chiqarish (yagona joy)
+async function rmxDoRemove(uid, name) {
+  try {
+    const { data, error } = await sb.from('workspace_members').delete()
+      .eq('workspace_id', currentWs.id).eq('user_id', uid).select();
+    if (error) throw error;
+    // .select() siz RLS to'sgani bilinmasdi — "O'chirildi" yolg'on chiqardi
+    if (!data || !data.length) throw new Error('O\'chirilmadi — ehtimol sizda ruxsat yo\'q (RLS).');
+    wsMembers = wsMembers.filter(function (x) { return x.user_id !== uid; });
+    logActivity('member_removed', { entityType: 'employee', entityId: uid, entityTitle: name });
+    toast('✓ ' + name + ' jamoadan chiqarildi', 'ok');
+    if (currentPage === 'team') renderTeam();
+    refreshActiveView();
+    return true;
+  } catch (e) {
+    console.error('rmxDoRemove:', e);
+    toast('Xato: ' + translateErr(e.message || String(e)), 'err');
+    return false;
+  }
+}
+
+function rmxOpenModal(uid, name, rows) {
+  _rmxUid = uid;
+  _rmxRows = rows.slice().sort(function (a, b) {
+    // Tugallanmaganlar tepada, keyin deadline bo'yicha
+    const ad = a.status === 'completed' ? 1 : 0, bd2 = b.status === 'completed' ? 1 : 0;
+    if (ad !== bd2) return ad - bd2;
+    return String(a.deadline || '9999').localeCompare(String(b.deadline || '9999'));
+  }).map(function (t) {
+    // cur — vazifaning HOZIRGI bajaruvchisi (tarix uchun); qayta urinishda yangilanadi
+    return { id: t.id, title: t.title, status: t.status, deadline: t.deadline, target: '', cur: uid };
+  });
+
+  const root = uiEnsureModalRoot();
+  const bd = document.createElement('div');
+  bd.className = 'ui-modal-bd';
+  bd.innerHTML =
+    '<div class="ui-modal" style="max-width:660px;">' +
+      '<div class="ui-modal-head"><div class="ui-modal-title">Xodimni o\'chirish</div>' +
+        '<button class="ui-x" data-act="cancel">×</button></div>' +
+      '<div class="ui-modal-body">' +
+        '<div class="rmx-warn"><b>' + escapeHtml(name) + '</b>ni jamoadan chiqarmoqchisiz. Unga biriktirilgan <b>' +
+          _rmxRows.length + ' ta vazifa</b> bor — kimga o\'tkazishni tanlang, aks holda ular egasiz qoladi.</div>' +
+        '<div class="rmx-bulk"><span>Hammasini bittaga:</span>' +
+          '<select class="ui-input" id="rmxBulk">' + rmxMemberOptions(uid, '') + '</select></div>' +
+        '<div class="rmx-list" id="rmxList"></div>' +
+      '</div>' +
+      '<div class="ui-modal-actions rmx-acts">' +
+        '<button class="ui-btn ui-btn-ghost" data-act="cancel">Bekor</button>' +
+        '<button class="ui-btn ui-btn-ghost" data-act="skip">Biriktirmasdan o\'chirish</button>' +
+        '<button class="ui-btn ui-btn-danger" data-act="ok">O\'tkazib, o\'chirish</button>' +
+      '</div>' +
+    '</div>';
+  root.appendChild(bd);
+  requestAnimationFrame(function () { bd.classList.add('show'); });
+  rmxRenderList(bd);
+
+  const close = function () { bd.classList.remove('show'); setTimeout(function () { bd.remove(); }, 180); };
+  const btns = bd.querySelectorAll('.ui-btn');
+  const setBusy = function (on, txt) {
+    btns.forEach(function (b) { b.disabled = on; });
+    const okb = bd.querySelector('[data-act="ok"]');
+    if (okb) okb.textContent = on ? (txt || 'Bajarilmoqda…') : 'O\'tkazib, o\'chirish';
+  };
+
+  // Tez yo'l: hamma qatorga bitta xodim
+  bd.querySelector('#rmxBulk').addEventListener('change', function () {
+    const v = this.value;
+    _rmxRows.forEach(function (r) { r.target = v; });
+    rmxRenderList(bd);
+  });
+  // Qator tanlagichlari (delegatsiya — ro'yxat qayta chizilganda ham ishlaydi)
+  bd.addEventListener('change', function (ev) {
+    const sel = ev.target && ev.target.closest ? ev.target.closest('select[data-tid]') : null;
+    if (!sel) return;
+    const r = _rmxRows.find(function (x) { return String(x.id) === sel.getAttribute('data-tid'); });
+    if (r) r.target = sel.value;
+  });
+
+  bd.querySelectorAll('[data-act="cancel"]').forEach(function (b) { b.onclick = close; });
+  bd.onclick = function (e) { if (e.target === bd) close(); };
+
+  bd.querySelector('[data-act="ok"]').onclick = async function () {
+    const empty = _rmxRows.filter(function (r) { return !r.target; }).length;
+    if (empty) {
+      const ok = await uiConfirm('Tanlanmagan vazifalar',
+        empty + ' ta vazifa uchun xodim tanlanmadi — ular biriktirilmagan holatga o\'tadi. Davom etamizmi?',
+        { danger: true, okText: 'Davom etish' });
+      if (!ok) return;
+    }
+    setBusy(true);
+    const moved = await rmxApply(uid);
+    if (!moved) { setBusy(false); return; }   // xodim o'chirilmaydi — vazifalar o'tmadi
+    const done = await rmxDoRemove(uid, name);
+    setBusy(false);
+    if (done) close();
+  };
+
+  bd.querySelector('[data-act="skip"]').onclick = async function () {
+    const ok = await uiConfirm('Biriktirmasdan o\'chirish',
+      _rmxRows.length + ' ta vazifa biriktirilmagan holatga o\'tadi (yo\'qolmaydi — ro\'yxatda "biriktirilmagan" bo\'lib turadi). Davom etamizmi?',
+      { danger: true, okText: 'Ha, biriktirmasdan' });
+    if (!ok) return;
+    _rmxRows.forEach(function (r) { r.target = ''; });
+    setBusy(true, 'O\'chirilmoqda…');
+    const moved = await rmxApply(uid);
+    if (!moved) { setBusy(false); return; }
+    const done = await rmxDoRemove(uid, name);
+    setBusy(false);
+    if (done) close();
+  };
+}
+
 async function removeMember(uid) {
-  if (!confirm('A\'zoni o\'chirasizmi?')) return;
-  try { const { error } = await sb.from('workspace_members').delete().eq('workspace_id', currentWs.id).eq('user_id', uid); if (error) throw error; wsMembers = wsMembers.filter(x => x.user_id !== uid); toast('O\'chirildi', 'ok'); if (currentPage === 'team') renderTeam(); } catch (e) { toast(translateErr(e.message), 'err'); }
+  if (!canManageTeam()) { toast('Bunga huquqingiz yo\'q', 'err'); return; }
+  if (uid === me.id) { toast('O\'zingizni jamoadan chiqara olmaysiz', 'err'); return; }
+  const m = (wsMembers || []).find(function (x) { return x.user_id === uid; });
+  const name = (m && m.profile && (m.profile.full_name || m.profile.email)) || 'Xodim';
+
+  // ⚠️ Vazifalar SERVERDAN o'qiladi: tasksCache ko'rinish/filtr bo'yicha to'liq
+  //    bo'lmasligi mumkin, u bilan "0 ta vazifa" deb yolg'on ko'rsatib qo'yardik.
+  let rows = [];
+  try {
+    const { data, error } = await sb.from('tasks')
+      .select('id, title, status, deadline')
+      .eq('workspace_id', currentWs.id).eq('assigned_to', uid);
+    if (error) throw error;
+    rows = data || [];
+  } catch (e) {
+    console.error('removeMember (vazifalar):', e);
+    // Bilmasdan o'chirmaymiz — vazifalar egasiz qolib ketishi mumkin
+    toast('Vazifalar ro\'yxati o\'qilmadi: ' + translateErr(e.message || String(e)) + ' — o\'chirish to\'xtatildi', 'err');
+    return;
+  }
+
+  if (!rows.length) {
+    const ok = await uiConfirm('Xodimni o\'chirish',
+      name + 'ni jamoadan chiqaramizmi? Unga biriktirilgan vazifa yo\'q.',
+      { danger: true, okText: 'O\'chirish' });
+    if (!ok) return;
+    await rmxDoRemove(uid, name);
+    return;
+  }
+  rmxOpenModal(uid, name, rows);
 }
 
 // ============ HODIM DETALI (HR) ============
