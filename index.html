@@ -500,7 +500,7 @@
   .ms-panel-clear:hover { background: var(--surface); color: var(--ink); }
   .ms-panel-list { max-height: 280px; min-height: 120px; overflow-y: auto; }
   .ms-group-head { padding: 8px 12px 5px; font-size: 10.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; background: var(--surface-2); position: sticky; top: 0; z-index: 1; }
-  .ms-opt { display: flex; align-items: center; gap: 10px; padding: 7px 12px; cursor: pointer; font-size: 13px; }
+  .ms-opt { display: flex; align-items: center; gap: 10px; padding: 9px 12px; cursor: pointer; font-size: 13px; }
   .ms-opt:hover { background: var(--accent-soft); }
   .ms-opt.selected { background: var(--accent-soft); }
   .ms-opt.disabled { opacity: .5; cursor: not-allowed; }
@@ -509,11 +509,21 @@
   .ms-opt .ic { width: 20px; text-align: center; font-size: 14px; flex-shrink: 0; }
   .ms-opt .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ms-opt .sub { font-size: 11.5px; color: var(--muted); flex-shrink: 0; }
-  /* Xodim qatori: ism / lavozim / email — ustma-ust, har biri bir qatorda */
-  .ms-opt .ms-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-  .ms-opt .ms-info .name { flex: none; }
-  .ms-opt .ms-pos { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ms-opt .ms-mail { font-size: 10.5px; color: var(--muted); opacity: .72; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* Xodim qatori: 1-qator "Ism · Lavozim" (YONMA-YON), 2-qator email.
+     Ajratgich .ms-pos::before da — shunda lavozim bo'lmasa nuqta ham chiqmaydi. */
+  .ms-opt .ms-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .ms-opt .ms-l1 { display: flex; align-items: baseline; min-width: 0; }
+  .ms-opt .ms-l1 .name { flex: 0 1 auto; min-width: 0; font-weight: 600; }
+  .ms-opt .ms-pos { flex: 0 1 auto; min-width: 0; font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ms-opt .ms-pos::before { content: '·'; margin: 0 6px; color: var(--subtle); }
+  .ms-opt .ms-mail { font-size: 11px; color: var(--muted); opacity: .72; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* Mobil: sig'masa lavozim 2-qatorga tushadi, email 3-qatorga */
+  @media (max-width: 640px) {
+    .ms-opt .ms-l1 { flex-direction: column; align-items: flex-start; gap: 1px; }
+    .ms-opt .ms-l1 .name { max-width: 100%; }
+    .ms-opt .ms-pos { max-width: 100%; }
+    .ms-opt .ms-pos::before { content: none; }
+  }
   .ms-empty { padding: 24px 16px; text-align: center; font-size: 12.5px; color: var(--muted); }
   .ms-summary { font-size: 12.5px; color: var(--muted); margin-top: 8px; padding: 0 4px; }
   .ms-summary.has-selection { color: var(--accent-ink); font-weight: 500; }
@@ -5987,14 +5997,16 @@ function msFilter() {
       const mail = (m.profile && m.profile.email) || '';
       const sel = msIsSelected('user', m.user_id);
       const safeName = name.replace(/'/g, "\\'");
-      // Avatar + ism, ostida lavozim, uning ostida kichikroq shriftda email
-      // (ikkalasi ham bo'lmasligi mumkin — bor bo'lgani ko'rsatiladi)
+      // Avatar · 1-qator "Ism · Lavozim" (yonma-yon) · 2-qator email (kulrang)
+      // Lavozim/email bo'lmasligi mumkin — bor bo'lgani ko'rsatiladi.
       html += '<div class="ms-opt' + (sel ? ' selected' : '') +
         '" onclick="msToggle(\'user\',\'' + m.user_id + '\',\'' + safeName + '\')">' +
         '<div class="ms-check">✓</div>' + avatarHtml(name, 'sm', null, m.user_id) +
         '<div class="ms-info">' +
-          '<div class="name">' + escapeHtml(name) + '</div>' +
-          (pos ? '<div class="ms-pos">' + escapeHtml(pos) + '</div>' : '') +
+          '<div class="ms-l1">' +
+            '<span class="name">' + escapeHtml(name) + '</span>' +
+            (pos ? '<span class="ms-pos">' + escapeHtml(pos) + '</span>' : '') +
+          '</div>' +
           (mail ? '<div class="ms-mail">' + escapeHtml(mail) + '</div>' : '') +
         '</div>' +
       '</div>';
