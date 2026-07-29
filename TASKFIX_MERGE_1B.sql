@@ -21,10 +21,22 @@
 -- ─── NEGA HAVOLALAR QO'LDA RO'YXAT EMAS, DINAMIK TOPILADI ───────────────────
 -- Brief "diagnostikada chiqqan TO'LIQ ro'yxatni ishlat, biror joy qolmasin"
 -- deydi. Qo'lda ko'chirilgan ro'yxatga ishonish o'rniga bu skript
--- birlashtirish PAYTIDA public + storage sxemasidagi HAR uuid ustunini
--- (va uuid saqlashi mumkin bo'lgan matn ustunlarini) o'zi skanerlaydi va
--- REMOVE uchraган joyning HAMMASINI ko'chiradi. Ya'ni diagnostikadan keyin
--- yangi qator/ustun qo'shilgan bo'lsa ham qolib ketmaydi.
+-- birlashtirish PAYTIDA **public sxemasidagi** HAR uuid ustunini (va uuid
+-- saqlashi mumkin bo'lgan matn ustunlarini) o'zi skanerlaydi va REMOVE
+-- uchragan joyning HAMMASINI ko'chiradi. Ya'ni diagnostikadan keyin yangi
+-- qator/ustun qo'shilgan bo'lsa ham qolib ketmaydi.
+--
+-- ⚠️ FAQAT public. TIZIM SXEMALARI (storage, auth, extensions, realtime,
+--    vault, pgsodium...) SKANERDAN CHIQARILGAN — ular Supabase'ga tegishli,
+--    postgres roli ularni o'zgartira olmaydi:
+--      1-urinishда storage.buckets_vectors ga UPDATE qilmoqchi bo'lib
+--      42501 "permission denied" chiqqan va butun merge to'xtagan.
+--    Tizim sxemasidagi 2 ta haqiqiy joy ALOHIDA ishlanadi:
+--      • auth.users  — 6-bosqichda, ichki BEGIN/EXCEPTION blokida
+--      • storage.objects (rasm) — 7c da faqat WARNING (SQL fayl ko'chira olmaydi)
+--    Qo'shimcha to'r: har jadval uchun has_table_privilege tekshiriladi —
+--    o'qib bo'lmasa WARNING, o'qilsa-yu havola bor va UPDATE qilib bo'lmasa
+--    RAISE EXCEPTION (jimgina qolib ketmaydi).
 --
 -- ─── UNIQUE TO'QNASHUV ──────────────────────────────────────────────────────
 -- workspace_members (ws, user), project_members (project, user),
@@ -37,7 +49,7 @@
 --
 -- ─── RASM (Storage) ─────────────────────────────────────────────────────────
 -- Fayl yo'li {ws}/{uid}.jpg. SQL fayl ko'chira olmaydi (Storage API kerak) —
--- skript oxirida NOTICE bilan xabar beradi.
+-- 7c bosqichda WARNING bilan xabar beradi (faqat o'qiydi, o'zgartirmaydi).
 -- ============================================================================
 
 BEGIN;
@@ -123,9 +135,9 @@ LOOP
   END IF;
 
   -- ── 2) HAR uuid ustuni: to'qnashuvni hal qilib, havolani ko'chirish ───────
-  --    'auth' sxemasi ATAYLAB chetda: auth.identities/sessions ni KEEP ga
-  --    ko'chirish = login identitetlarini birlashtirish, bu xavfli va kerak
-  --    emas (REMOVE akkaunt login qilmaydi va oxirida o'chiriladi).
+  --    FAQAT public. Tizim sxemalari (storage/auth/extensions/realtime/vault…)
+  --    chetda — ular Supabase'niki, postgres roli ularni o'zgartira olmaydi
+  --    (storage.buckets_vectors → 42501). auth.users 6-bosqichda, rasm 7c da.
   FOR c IN
     SELECT n.nspname::text AS sch, cl.relname::text AS tbl,
            a.attname::text AS col, cl.oid AS reloid
@@ -135,14 +147,22 @@ LOOP
      WHERE a.atttypid = 'uuid'::regtype
        AND a.attnum > 0 AND NOT a.attisdropped
        AND cl.relkind IN ('r', 'p')
-       AND n.nspname IN ('public', 'storage')
+       AND n.nspname = 'public'
        -- profiles.id — profilning O'ZI, u 4-bosqichda o'chiriladi
-       AND NOT (n.nspname = 'public' AND cl.relname = 'profiles' AND a.attname = 'id')
+       AND NOT (cl.relname = 'profiles' AND a.attname = 'id')
      ORDER BY 1, 2, 3
   LOOP
+    IF NOT has_table_privilege(c.reloid, 'SELECT') THEN
+      RAISE WARNING '  ⚠ %.% : SELECT ruxsati yo''q — skanerdan chetda qoldi', c.sch, c.tbl;
+      CONTINUE;
+    END IF;
     EXECUTE format('SELECT count(*) FROM %I.%I WHERE %I = $1', c.sch, c.tbl, c.col)
       INTO v_n USING p.remove_id;
     CONTINUE WHEN v_n = 0;
+    IF NOT has_table_privilege(c.reloid, 'UPDATE') THEN
+      RAISE EXCEPTION '%: %.%.% da REMOVE uid ning % ta havolasi bor, lekin UPDATE ruxsati yo''q — to''xtatildi (hech narsa saqlanmadi)',
+        p.label, c.sch, c.tbl, c.col, v_n;
+    END IF;
 
     -- 2a) Shu ustunni o'z ichiga olgan UNIQUE indekslar — to'qnashuvni oldindan hal qilamiz
     FOR ix IN
@@ -208,17 +228,22 @@ LOOP
   --    Faqat AYNAN teng bo'lganlar ko'chiriladi (substring EMAS — rasm yo'li
   --    kabi joylarga tegmaymiz, u pastda alohida xabar qilinadi).
   FOR c IN
-    SELECT n.nspname::text AS sch, cl.relname::text AS tbl, a.attname::text AS col
+    SELECT n.nspname::text AS sch, cl.relname::text AS tbl, a.attname::text AS col,
+           cl.oid AS reloid
       FROM pg_attribute a
       JOIN pg_class     cl ON cl.oid = a.attrelid
       JOIN pg_namespace n  ON n.oid = cl.relnamespace
      WHERE a.atttypid IN ('text'::regtype, 'varchar'::regtype)
        AND a.attnum > 0 AND NOT a.attisdropped
        AND cl.relkind IN ('r', 'p')
-       AND n.nspname IN ('public', 'storage')
+       AND n.nspname = 'public'                     -- tizim sxemalari chetda (42501)
        AND a.attname::text ~* '(_id$|_by$|_uid$|^id$|user)'
      ORDER BY 1, 2, 3
   LOOP
+    IF NOT has_table_privilege(c.reloid, 'UPDATE') THEN
+      RAISE WARNING '  ⚠ (matn) %.% : UPDATE ruxsati yo''q — o''tkazib yuborildi', c.sch, c.tbl;
+      CONTINUE;
+    END IF;
     EXECUTE format('UPDATE %I.%I SET %I = $1 WHERE %I = $2', c.sch, c.tbl, c.col, c.col)
       USING p.keep_id::text, p.remove_id::text;
     GET DIAGNOSTICS v_moved = ROW_COUNT;
@@ -261,24 +286,26 @@ LOOP
   -- ── 6) auth.users: yetim qolgan REMOVE akkaunti ──────────────────────────
   --    FAQAT hech qachon login qilmagan bo'lsa o'chiriladi. Login qilgan
   --    bo'lsa — TEGILMAYDI va xabar beriladi (odam qo'lda qaror qiladi).
+  --    Butun blok BEGIN/EXCEPTION ichida: auth — TIZIM sxemasi, o'qish ham
+  --    yozish ham ruxsat/FK/trigger sababli yiqilishi mumkin. Bu asosiy ishni
+  --    (havolalar ko'chirildi, profil o'chdi) qaytarib yubormasin.
+  --    Xato JIMGINA yutilmaydi — WARNING bo'lib chiqadi.
   IF v_del_auth THEN
-    SELECT (u.last_sign_in_at IS NULL) INTO v_auth_ok
-      FROM auth.users u WHERE u.id = p.remove_id;
-    IF v_auth_ok IS NULL THEN
-      RAISE NOTICE '  ℹ auth.users: REMOVE qatori yo''q (idempotent)';
-    ELSIF v_auth_ok THEN
-      -- Ichki BEGIN/EXCEPTION — auth sxemasidagi kutilmagan FK/trigger butun
-      -- birlashtirishni qaytarib yubormasin. Xato JIMGINA yutilmaydi: WARNING.
-      BEGIN
+    BEGIN
+      SELECT (u.last_sign_in_at IS NULL) INTO v_auth_ok
+        FROM auth.users u WHERE u.id = p.remove_id;
+      IF v_auth_ok IS NULL THEN
+        RAISE NOTICE '  ℹ auth.users: REMOVE qatori yo''q (idempotent)';
+      ELSIF v_auth_ok THEN
         DELETE FROM auth.users WHERE id = p.remove_id;
         RAISE NOTICE '  🗑 auth.users: REMOVE o''chirildi (hech qachon login qilmagan)';
-      EXCEPTION WHEN OTHERS THEN
-        RAISE WARNING '  ⚠ auth.users REMOVE (%) o''chirilmadi: %. Birlashtirish DAVOM ETDI — bu qatorni keyin qo''lda o''chiring (Supabase Auth paneli).',
-          p.remove_id, SQLERRM;
-      END;
-    ELSE
-      RAISE WARNING '  ⚠ auth.users: REMOVE (%) LOGIN QILGAN — o''chirilmadi. Qo''lda ko''rib chiqing.', p.remove_id;
-    END IF;
+      ELSE
+        RAISE WARNING '  ⚠ auth.users: REMOVE (%) LOGIN QILGAN — o''chirilmadi. Qo''lda ko''rib chiqing.', p.remove_id;
+      END IF;
+    EXCEPTION WHEN OTHERS THEN
+      RAISE WARNING '  ⚠ auth.users REMOVE (%) ishlanmadi: %. Birlashtirish DAVOM ETDI — bu qatorni keyin qo''lda o''chiring (Supabase Auth paneli).',
+        p.remove_id, SQLERRM;
+    END;
   END IF;
 
   -- ── 7) TEKSHIRUV — jimgina o'tmasin ──────────────────────────────────────
@@ -292,15 +319,17 @@ LOOP
   -- 7a) REMOVE uid HECH QAYERDA qolmadimi (qayta skanerlash — 2-bosqichning isboti)
   v_left := '';
   FOR c IN
-    SELECT n.nspname::text AS sch, cl.relname::text AS tbl, a.attname::text AS col
+    SELECT n.nspname::text AS sch, cl.relname::text AS tbl, a.attname::text AS col,
+           cl.oid AS reloid
       FROM pg_attribute a
       JOIN pg_class     cl ON cl.oid = a.attrelid
       JOIN pg_namespace n  ON n.oid = cl.relnamespace
      WHERE a.atttypid = 'uuid'::regtype
        AND a.attnum > 0 AND NOT a.attisdropped
        AND cl.relkind IN ('r', 'p')
-       AND n.nspname IN ('public', 'storage')
+       AND n.nspname = 'public'                     -- 2-bosqich bilan BIR XIL qamrov
   LOOP
+    CONTINUE WHEN NOT has_table_privilege(c.reloid, 'SELECT');
     EXECUTE format('SELECT count(*) FROM %I.%I WHERE %I = $1', c.sch, c.tbl, c.col)
       INTO v_cnt USING p.remove_id;
     IF v_cnt > 0 THEN
@@ -324,13 +353,18 @@ LOOP
     RAISE NOTICE '  ✅ %: KEEP ga biriktirilgan vazifa = % (kutilganidek)', p.label, v_cnt;
   END IF;
 
-  -- 7c) Rasm — SQL ko'chira olmaydi
+  -- 7c) Rasm — SQL ko'chira olmaydi. Bu storage sxemasidagi YAGONA murojaat va
+  --     u faqat O'QIYDI. Ruxsat bo'lmasa ham merge to'xtamasin (ichki blok).
   IF to_regclass('storage.objects') IS NOT NULL THEN
-    SELECT count(*) INTO v_cnt FROM storage.objects o WHERE o.name LIKE '%' || p.remove_id::text || '%';
-    IF v_cnt > 0 THEN
-      RAISE WARNING '  📷 %: Storage''da REMOVE uid li % ta fayl bor ({ws}/{uid}.jpg). SQL ularni ko''chira olmaydi — Storage API (move) kerak. employee_details.photo_path o''sha yo''lni ko''rsatib turadi, rasm KO''RINADI, lekin 41-migratsiya policy''si yo''ldan uid o''qigani uchun xodimning O''ZI ko''ra olmasligi mumkin (manager ko''radi).',
-        p.label, v_cnt;
-    END IF;
+    BEGIN
+      SELECT count(*) INTO v_cnt FROM storage.objects o WHERE o.name LIKE '%' || p.remove_id::text || '%';
+      IF v_cnt > 0 THEN
+        RAISE WARNING '  📷 %: Storage''da REMOVE uid li % ta fayl bor ({ws}/{uid}.jpg). SQL ularni ko''chira olmaydi — Storage API (move) kerak. employee_details.photo_path o''sha yo''lni ko''rsatib turadi, rasm KO''RINADI, lekin 41-migratsiya policy''si yo''ldan uid o''qigani uchun xodimning O''ZI ko''ra olmasligi mumkin (manager ko''radi).',
+          p.label, v_cnt;
+      END IF;
+    EXCEPTION WHEN OTHERS THEN
+      RAISE WARNING '  📷 %: storage.objects o''qilmadi (%) — rasmni qo''lda tekshiring.', p.label, SQLERRM;
+    END;
   END IF;
 
   RAISE NOTICE '  ✅ % — birlashtirildi', p.label;
@@ -370,4 +404,8 @@ COMMIT;
 --           Matnni menga bering — o'sha jadval uchun alohida qoida yozamiz.
 --     "23505 duplicate key ..."
 --         → ifodali/shartli unique indeks. Xabardagi indeks nomini bering.
+--     "42501 permission denied for table ..."
+--         → tizim sxemasidagi jadval skanerlanib qolgan. Dinamik skaner endi
+--           FAQAT public bilan cheklangan (storage/auth va boshqalar chetda),
+--           shuning uchun bu chiqmasligi kerak. Chiqsa — jadval nomini bering.
 -- ============================================================================
