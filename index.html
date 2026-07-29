@@ -410,6 +410,16 @@
   .upload-btn:hover { color: var(--ink); border-color: var(--accent); background: var(--accent-soft); color: var(--accent-ink); }
   .att-hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
+  /* Vazifa tarixi (task_history) — deadline / bajaruvchi / holat */
+  .th-list { display: flex; flex-direction: column; gap: 6px; }
+  .th-item { display: flex; flex-wrap: wrap; align-items: baseline; gap: 5px; font-size: 12.5px; line-height: 1.5; padding: 6px 9px; background: var(--surface-2); border-radius: 8px; }
+  .th-item .th-f { font-weight: 700; color: var(--ink); }
+  .th-item .th-old { color: var(--muted); text-decoration: line-through; }
+  .th-item .th-arr { color: var(--muted); }
+  .th-item .th-new { color: var(--ink); font-weight: 600; }
+  .th-item .th-meta { color: var(--muted); font-size: 11.5px; margin-left: auto; white-space: nowrap; }
+  .th-empty { color: var(--muted); font-size: 12.5px; font-style: italic; padding: 10px 0; }
+
   /* Avatar helper */
   .avatar { width: 28px; height: 28px; border-radius: 50%; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
   .avatar.sm { width: 22px; height: 22px; font-size: 10px; }
@@ -6485,6 +6495,126 @@ function taskGoneLocal(id, silent) {
   }
 }
 
+// ============ VAZIFA TARIXI (task_history) ============
+// FAQAT 3 maydon kuzatiladi: deadline, assigned_to (bajaruvchi), status.
+// Nom/tavsif/prioritet/bo'lim — kuzatilmaydi (kelishilgan).
+//
+// ⚠️ CHEKLOV: yozuv MIJOZDA amalga oshadi. Ya'ni ilova orqali qilingan
+//    o'zgarishlar yoziladi; Telegram bot / Edge Function to'g'ridan-to'g'ri
+//    tasks jadvalini yangilasa — tarixda ko'rinmaydi (buning uchun DB trigger
+//    kerak bo'lardi, hozir kiritilmadi: prod jadvaliga trigger qo'shish
+//    alohida qaror).
+//
+// ⚠️ Bu FON kuzatuvi: TASKFIX_HISTORY.sql hali ishga tushmagan bo'lsa
+//    (jadval yo'q) xato faqat console'ga chiqadi va saqlash oqimi buzilmaydi.
+//    Foydalanuvchiga "Saqlandi" xabari tarix yozuviga bog'liq emas.
+const TH_FIELDS = ['deadline', 'assigned_to', 'status'];
+const TH_LBL = { deadline: 'Deadline', assigned_to: 'Bajaruvchi', status: 'Holat' };
+let curDetailHistory = [];
+let _thMissing = false;   // jadval yo'q deb aniqlandi — qayta urinmaymiz
+
+// PostgREST: jadval yo'q → 'PGRST205' (schema cache) yoki Postgres '42P01'
+function thTableMissing(err) {
+  if (!err) return false;
+  const c = String(err.code || '');
+  const m = String(err.message || '').toLowerCase();
+  if (c === '42P01' || c === 'PGRST205') return true;
+  return m.indexOf('task_history') !== -1 &&
+         (m.indexOf('does not exist') !== -1 || m.indexOf('schema cache') !== -1);
+}
+
+function thUserName(uid) {
+  if (!uid) return '—';
+  if (me && uid === me.id) return (myProfile && myProfile.full_name) || 'Siz';
+  const m = (wsMembers || []).find(function (x) { return x.user_id === uid; });
+  return (m && m.profile && (m.profile.full_name || m.profile.email)) || 'Noma\'lum';
+}
+
+// ID emas — o'qib bo'ladigan yorliq (ism / holat nomi / sana)
+function thLabel(field, val) {
+  if (val === null || val === undefined || val === '') return '—';
+  if (field === 'deadline') { try { return fmtDeadline(val); } catch (e) { return String(val); } }
+  if (field === 'status') { try { return statusName(val); } catch (e) { return String(val); } }
+  if (field === 'assigned_to') return thUserName(val);
+  return String(val);
+}
+
+// Deadline ISO matni turli formatda kelishi mumkin — vaqt bo'yicha solishtiramiz
+function thSame(field, a, b) {
+  const na = (a === undefined || a === '') ? null : a;
+  const nb = (b === undefined || b === '') ? null : b;
+  if (field === 'deadline') {
+    if (na === null && nb === null) return true;
+    if (na === null || nb === null) return false;
+    return new Date(na).getTime() === new Date(nb).getTime();
+  }
+  return na === nb;
+}
+
+// Eski va yangi vazifa obyektlarini solishtirib, o'zgargan maydonlarni yozadi.
+// prev — yangilanishdan OLDINGI nusxa (havola emas, yoki almashtirilmagan obyekt).
+async function thRecord(prev, next) {
+  try {
+    if (_thMissing || !prev || !next || !next.id) return;
+    const wsId = next.workspace_id || prev.workspace_id || (currentWs && currentWs.id) || null;
+    if (!wsId) { console.error('thRecord: workspace_id topilmadi, task=' + next.id); return; }
+    const rows = [];
+    TH_FIELDS.forEach(function (f) {
+      const a = prev[f] === undefined ? null : prev[f];
+      const b = next[f] === undefined ? null : next[f];
+      if (thSame(f, a, b)) return;
+      rows.push({
+        workspace_id: wsId,
+        task_id: next.id,
+        field: f,
+        old_value: (a === null || a === undefined) ? null : String(a),
+        new_value: (b === null || b === undefined) ? null : String(b),
+        old_label: thLabel(f, a),
+        new_label: thLabel(f, b),
+        changed_by: me ? me.id : null,
+        changed_by_name: (myProfile && myProfile.full_name) || (me && me.email) || null
+      });
+    });
+    if (!rows.length) return;
+    const { data, error } = await sb.from('task_history').insert(rows).select();
+    if (error) {
+      if (thTableMissing(error)) {
+        _thMissing = true;
+        console.error('task_history jadvali yo\'q — TASKFIX_HISTORY.sql ishga tushirilmagan');
+        return;
+      }
+      throw error;
+    }
+    // Ochiq turgan detal oynasida darrov ko'rinsin (eng yangisi tepada)
+    if (currentDetailId === next.id) {
+      curDetailHistory = (data || []).concat(curDetailHistory);
+      renderDetailBody();
+    }
+  } catch (e) {
+    console.error('thRecord:', e);   // fon kuzatuvi — foydalanuvchiga toast chiqarmaymiz
+  }
+}
+
+function thListHtml() {
+  if (_thMissing) return '<div class="th-empty">Tarix yoqilmagan (TASKFIX_HISTORY.sql ishga tushirilmagan)</div>';
+  if (!curDetailHistory.length) return '<div class="th-empty">O\'zgarishlar yo\'q</div>';
+  return '<div class="th-list">' + curDetailHistory.map(function (h) {
+    const lbl = TH_LBL[h.field] || h.field;
+    const from = h.old_label || thLabel(h.field, h.old_value);
+    const to = h.new_label || thLabel(h.field, h.new_value);
+    const who = h.changed_by_name || thUserName(h.changed_by);
+    let when = '';
+    try { when = fmtDeadline(h.changed_at); } catch (e) { when = String(h.changed_at || ''); }
+    return '<div class="th-item">' +
+      '<span class="th-f">' + escapeHtml(lbl) + ':</span>' +
+      '<span class="th-old">' + escapeHtml(from) + '</span>' +
+      '<span class="th-arr">→</span>' +
+      '<span class="th-new">' + escapeHtml(to) + '</span>' +
+      '<span class="th-meta">' + escapeHtml(who) + ' · ' + escapeHtml(when) + '</span>' +
+    '</div>';
+  }).join('') + '</div>';
+}
+
 async function openDetail(id) {
   let t = tasksCache.find(x => x.id === id);
   if (!t) {
@@ -6500,19 +6630,29 @@ async function openDetail(id) {
   // Topilmadi = o'chirilgan (yoki ruxsat yo'q). Eskirgan kartani ro'yxatdan olib tashlaymiz.
   if (!t) { console.error('openDetail: vazifa topilmadi, id=' + id); taskGoneLocal(id); return; }
   currentDetailId = id;
+  curDetailHistory = [];   // oldingi vazifaning tarixi ko'rinib qolmasin
   $('dTitle').textContent = t.title || '—';
   $('dBody').innerHTML = '<div style="text-align:center; padding: 30px; color: var(--muted); font-size: 13px;">⏳ Yuklanmoqda…</div>';
   $('detailBd').classList.add('show');
 
   // Paralel ravishda hammasini yuklaymiz
-  const [subsRes, cmtsRes, attsRes] = await Promise.all([
+  const [subsRes, cmtsRes, attsRes, histRes] = await Promise.all([
     sb.from('task_subtasks').select('*').eq('task_id', id).order('sort_order', { ascending: true }).order('id', { ascending: true }),
     sb.from('task_comments').select('*').eq('task_id', id).order('created_at', { ascending: true }),
     sb.from('task_attachments').select('*').eq('task_id', id).order('uploaded_at', { ascending: true }),
+    // Tarix — eng yangisi tepada. Jadval yo'q bo'lsa (SQL ishga tushmagan) xato
+    // faqat console'ga chiqadi, detal oynasi baribir ochiladi.
+    _thMissing ? Promise.resolve({ data: [] })
+               : sb.from('task_history').select('*').eq('task_id', id).order('changed_at', { ascending: false }).limit(200),
   ]);
   curDetailSubs = subsRes.data || [];
   curDetailComments = cmtsRes.data || [];
   curDetailAttachments = attsRes.data || [];
+  curDetailHistory = histRes.data || [];
+  if (histRes.error) {
+    if (thTableMissing(histRes.error)) _thMissing = true;
+    console.error('task_history o\'qilmadi:', histRes.error.message);
+  }
 
   renderDetailBody();
   attachDetailPaste();
@@ -6708,6 +6848,12 @@ function renderDetailBody() {
     '<div class="detail-section">' +
       '<div class="detail-section-head">Izohlar ' + (curDetailComments.length ? '<span class="count">' + curDetailComments.length + '</span>' : '') + '</div>' +
       cmtsHtml +
+    '</div>' +
+
+    // Tarix — faqat deadline / bajaruvchi / holat o'zgarishlari
+    '<div class="detail-section">' +
+      '<div class="detail-section-head">Tarix ' + (curDetailHistory.length ? '<span class="count">' + curDetailHistory.length + '</span>' : '') + '</div>' +
+      thListHtml() +
     '</div>';
 
   $('dDelete').style.display = (canEditTask) ? 'inline-block' : 'none';
@@ -6875,6 +7021,10 @@ async function updateField(field, value) {
     renderDetailBody();
     refreshActiveView();
     toast('✓ Saqlandi', 'ok');
+    // Tarix (deadline/bajaruvchi/holat) — fon, saqlash natijasiga ta'sir qilmaydi.
+    // oldTask havolasi hali ESKI obyektga ishora qiladi (yuqorida tasksCache[i]
+    // yangi obyekt bilan ALMASHTIRILDI, mavjudi o'zgartirilmadi).
+    thRecord(oldTask, data);
     // Telegram'ga tahrirlangan xabar yuborish (faqat asosiy maydonlar uchun)
     if (['title','description','deadline','priority_level','status','assigned_to','assigned_to_tg_bot_user'].includes(field)) {
       tgNotifyTaskEdit(data, field, oldValue, value);
@@ -7196,6 +7346,8 @@ async function changeStatus(id, newStatus) {
     toast(newStatus === 'qabul_kutilyapti' ? '📤 Qabul qiluvchiga topshirildi' : '✅ Holat yangilandi', 'ok');
     refreshActiveView();
     if (currentDetailId === id) renderDetailBody();
+    // Tarix: holat + (qabul oqimida) bajaruvchi ham o'zgargan bo'lishi mumkin
+    thRecord(prev, data);
     // "Bajardi" kuzatuvi — KIM va QACHON "Bajarildi" belgiladi (qabul qiluvchi ko'rishi uchun).
     // Best-effort: yangi ustunlar (TASKFIX_V8.sql) hali ishga tushmagan bo'lsa xato faqat
     // console'ga chiqadi, asosiy oqim buzilmaydi (submitter_id/completed_at zaxira ko'rsatiladi).
@@ -7272,6 +7424,9 @@ async function prjShiftNextDeadline(task) {
     if (error) throw error; // xato bo'lsa — success toast chiqmasin, kesh ham o'zgармasin
     const ni = tasksCache.findIndex(x => x.id === next.id); if (ni >= 0) tasksCache[ni].deadline = newDl;
     const pi = prjTasks.findIndex(x => x.id === next.id); if (pi >= 0) prjTasks[pi].deadline = newDl;
+    // Tarix: deadline avtomatik surildi — kim (bajarilgan deb belgilagan odam) va qachon
+    thRecord({ id: next.id, workspace_id: task.workspace_id, deadline: next.deadline },
+             { id: next.id, workspace_id: task.workspace_id, deadline: newDl });
     const hrs = Math.round(delay / 3600000 * 10) / 10;
     toast('⏱ Kechikish (' + hrs + ' soat) keyingi bosqich deadline\'iga qo\'shildi', 'ok');
   } catch (e) { console.error('prjShiftNextDeadline:', e); }
@@ -7314,6 +7469,7 @@ async function acceptTask(id) {
     toast('✅ Qabul qilindi — Bajarildi', 'ok');
     refreshActiveView();
     if (currentDetailId === id) renderDetailBody();
+    thRecord(prev, data);
     logActivity('task_accepted', { entityType: 'task', entityId: id, entityTitle: data.title });
     if (data.project_id) { await prjShiftNextDeadline(data); await prjReloadTasks(data.project_id); }
     await maybeRecurTask(data);
@@ -7339,6 +7495,7 @@ async function returnTask(id) {
     toast('↩️ Bajaruvchiga qaytarildi', 'ok');
     refreshActiveView();
     if (currentDetailId === id) renderDetailBody();
+    thRecord(prev, data);
     logActivity('task_returned', { entityType: 'task', entityId: id, entityTitle: data.title });
     // Loyiha bosqichi qaytarildi — keyingi bosqichlar qulfi o'zgargan bo'lishi mumkin
     if (data.project_id) { try { await prjReloadTasks(data.project_id); } catch (e2) { console.error('prjReloadTasks (qaytarish):', e2); } }
@@ -9281,6 +9438,9 @@ async function tblUpdate(taskId, field, value) {
   if (['priority_level', 'assigned_to', 'department_id'].includes(field) && _t && !canEditTaskMeta(_t)) { toast('Buni faqat vazifa bergan odam yoki admin/owner o\'zgartira oladi', 'err'); renderTasksTable(); return; }
   const idx = tasksCache.findIndex(t => t.id === taskId);
   const old = idx >= 0 ? tasksCache[idx][field] : undefined;
+  // Tarix uchun nusxa — optimistik yozuvdan OLDIN olinishi shart (bu yerda
+  // obyektning O'ZI o'zgartiriladi, boshqa joylardagidek almashtirilmaydi).
+  const _thPrev = idx >= 0 ? Object.assign({}, tasksCache[idx]) : null;
   if (idx >= 0) tasksCache[idx][field] = value; // optimistik
   try {
     const { error } = await sb.from('tasks').update({ [field]: value }).eq('id', taskId);
@@ -9295,6 +9455,9 @@ async function tblUpdate(taskId, field, value) {
     if (field === 'assigned_to') logActivity('task_assigned', { entityType: 'task', entityId: taskId, entityTitle: _tt && _tt.title, details: { from: old ? tblMemberName(old) : '—', to: value ? tblMemberName(value) : '—' } });
     else if (field === 'status') logActivity('task_status_changed', { entityType: 'task', entityId: taskId, entityTitle: _tt && _tt.title, details: { from: statusName(old), to: statusName(value) } });
     else logActivity('task_updated', { entityType: 'task', entityId: taskId, entityTitle: _tt && _tt.title, details: { field, to: value } });
+    // Tarix (deadline/bajaruvchi). status bu yerga yetib kelmaydi — yuqorida
+    // changeStatus'ga yo'naltiriladi va tarix o'sha yerda yoziladi.
+    if (_thPrev && _tt) thRecord(_thPrev, _tt);
     // Realtime boshqa joylarni yangilaydi; jadvalni ham qayta chizamiz
     renderTasksTable();
   } catch (e) {
