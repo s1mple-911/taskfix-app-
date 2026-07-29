@@ -420,20 +420,64 @@
   .th-item .th-meta { color: var(--muted); font-size: 11.5px; margin-left: auto; white-space: nowrap; }
   .th-empty { color: var(--muted); font-size: 12.5px; font-style: italic; padding: 10px 0; }
 
-  /* Xodimni o'chirishda vazifalarni qayta biriktirish (rmx*) */
-  .rmx-warn { font-size: 13px; line-height: 1.5; color: var(--ink); background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.25); border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; }
-  .rmx-bulk { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 12.5px; color: var(--muted); }
-  .rmx-bulk select { flex: 1; min-width: 0; }
-  .rmx-list { max-height: 44vh; overflow: auto; display: flex; flex-direction: column; gap: 8px; }
-  .rmx-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; }
-  .rmx-t { flex: 1; min-width: 0; }
-  .rmx-title { font-size: 13px; color: var(--ink); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .rmx-meta { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
-  .rmx-sel { width: 210px; flex: 0 0 auto; }
-  .rmx-acts { flex-wrap: wrap; }
-  @media (max-width: 560px) {
-    .rmx-item { flex-direction: column; align-items: stretch; }
-    .rmx-sel { width: 100%; }
+  /* ===== Xodimni o'chirishda vazifalarni qayta biriktirish (rmx*) ===== */
+  /* ⚠️ MAXSUSLIK: tanlagichlar .ui-input klassini ham oladi, .ui-input esa
+     { width:100% } bilan SHU BLOKDAN KEYIN e'lon qilingan. Bir xil maxsuslikda
+     keyingisi yutadi → select butun qatorni egallab, vazifa nomi uning ostiga
+     tushib ketardi. Shuning uchun barcha o'lchov qoidalari ikki klassli
+     (.rmx-item .rmx-sel) — ular .ui-input dan ustun turadi. */
+
+  /* Modal: header/footer qotgan, faqat ro'yxat scroll qiladi */
+  .rmx-modal { display: flex; flex-direction: column; max-height: 88vh; }
+  .rmx-modal .rmx-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
+
+  .rmx-warn { flex: 0 0 auto; font-size: 13px; line-height: 1.55; color: var(--ink); background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.22); border-radius: 14px; padding: 11px 13px; margin-bottom: 14px; }
+
+  /* "Hammasini bittaga" — ro'yxatdan chiziq bilan ajratilgan */
+  .rmx-bulk { flex: 0 0 auto; display: flex; align-items: center; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+  .rmx-bulk-lbl { font-size: 12.5px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+  .rmx-bulk .rmx-sel { flex: 1 1 auto; min-width: 0; }
+
+  /* Ustun sarlavhalari — tanlagich ustuni bilan tekislangan */
+  .rmx-listhead { flex: 0 0 auto; display: flex; align-items: center; gap: 14px; padding: 0 15px 8px; font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+  .rmx-lh-a { flex: 1 1 auto; min-width: 0; }
+  .rmx-lh-b { flex: 0 0 auto; width: 250px; }
+  .rmx-prog { margin-left: 8px; text-transform: none; letter-spacing: 0; font-weight: 600; color: var(--muted); }
+  .rmx-prog.done { color: #059669; }
+
+  .rmx-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 10px; padding: 1px 1px 18px; }
+  .rmx-list::-webkit-scrollbar { width: 8px; }
+  .rmx-list::-webkit-scrollbar-track { background: transparent; }
+  .rmx-list::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
+  .rmx-list::-webkit-scrollbar-thumb:hover { background: var(--line-strong); }
+
+  .rmx-item { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); transition: border-color .12s, background .12s; }
+  .rmx-item:hover { background: var(--surface-2); }
+  .rmx-item.done { border-color: rgba(16,185,129,.5); background: rgba(16,185,129,.06); }
+  .rmx-t { flex: 1 1 auto; min-width: 0; }
+  /* Uzun nom kesilmaydi — 2 qatorgacha yoyiladi, to'lig'i title'da (hover) */
+  .rmx-title { font-size: 13.5px; font-weight: 600; color: var(--ink); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+  .rmx-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin-top: 7px; }
+  .rmx-badge { font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+  .rmx-item:hover .rmx-badge { background: var(--surface); }
+  .rmx-dl { font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+  .rmx-dl.over { color: #EF4444; font-weight: 600; }
+  /* 250px — "Ism · Lavozim" yopiq holatda ham imkon qadar ko'rinsin
+     (to'lig'i ochilgan ro'yxatda ko'rinadi) */
+  .rmx-item .rmx-sel { flex: 0 0 auto; width: 250px; }
+  .rmx-bulk .rmx-sel, .rmx-item .rmx-sel { padding: 9px 11px; font-size: 12.5px; border-radius: 10px; text-overflow: ellipsis; }
+  .rmx-empty { padding: 22px; text-align: center; color: var(--muted); font-size: 12.5px; font-style: italic; }
+
+  .rmx-acts { flex: 0 0 auto; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 14px; }
+  .rmx-acts .ui-btn { min-width: 130px; }
+
+  @media (max-width: 620px) {
+    .rmx-modal { max-height: 92vh; }
+    .rmx-listhead { display: none; }
+    .rmx-bulk { flex-direction: column; align-items: stretch; gap: 8px; }
+    .rmx-item { flex-direction: column; align-items: stretch; gap: 11px; }
+    .rmx-item .rmx-sel { width: 100%; }
+    .rmx-acts .ui-btn { flex: 1 1 100%; }
   }
 
   /* Avatar helper */
@@ -465,6 +509,11 @@
   .ms-opt .ic { width: 20px; text-align: center; font-size: 14px; flex-shrink: 0; }
   .ms-opt .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ms-opt .sub { font-size: 11.5px; color: var(--muted); flex-shrink: 0; }
+  /* Xodim qatori: ism / lavozim / email — ustma-ust, har biri bir qatorda */
+  .ms-opt .ms-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .ms-opt .ms-info .name { flex: none; }
+  .ms-opt .ms-pos { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ms-opt .ms-mail { font-size: 10.5px; color: var(--muted); opacity: .72; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ms-empty { padding: 24px 16px; text-align: center; font-size: 12.5px; color: var(--muted); }
   .ms-summary { font-size: 12.5px; color: var(--muted); margin-top: 8px; padding: 0 4px; }
   .ms-summary.has-selection { color: var(--accent-ink); font-weight: 500; }
@@ -5926,22 +5975,29 @@ function msFilter() {
   // 4. Sayt foydalanuvchilari
   const userMatches = (wsMembers || []).filter(m => {
     if (m.user_id === me.id) return false;
-    // Lavozim bo'yicha ham qidiriladi ("dasturchi" → hamma dasturchi)
-    return msMatchesQuery(((m.profile && m.profile.full_name) || '') + ' ' + memberPos(m.user_id), q);
+    // Lavozim va email bo'yicha ham qidiriladi ("dasturchi" → hamma dasturchi)
+    return msMatchesQuery(((m.profile && m.profile.full_name) || '') + ' ' +
+                          memberPos(m.user_id) + ' ' + ((m.profile && m.profile.email) || ''), q);
   });
   if (userMatches.length) {
     html += '<div class="ms-group-head">👥 SAYT FOYDALANUVCHILARI</div>';
     userMatches.forEach(m => {
       const name = (m.profile && m.profile.full_name) || "A'zo";
       const pos = memberPos(m.user_id);
+      const mail = (m.profile && m.profile.email) || '';
       const sel = msIsSelected('user', m.user_id);
       const safeName = name.replace(/'/g, "\\'");
-      // Avatar + ism + lavozim (avatarHtml uid bo'yicha rasm keshidan oladi)
+      // Avatar + ism, ostida lavozim, uning ostida kichikroq shriftda email
+      // (ikkalasi ham bo'lmasligi mumkin — bor bo'lgani ko'rsatiladi)
       html += '<div class="ms-opt' + (sel ? ' selected' : '') +
         '" onclick="msToggle(\'user\',\'' + m.user_id + '\',\'' + safeName + '\')">' +
-        '<div class="ms-check">✓</div>' + avatarHtml(name, 'sm', null, m.user_id) + '<div class="name">' +
-        escapeHtml(name) + '</div>' +
-        (pos ? '<span class="sub">' + escapeHtml(pos) + '</span>' : '') + '</div>';
+        '<div class="ms-check">✓</div>' + avatarHtml(name, 'sm', null, m.user_id) +
+        '<div class="ms-info">' +
+          '<div class="name">' + escapeHtml(name) + '</div>' +
+          (pos ? '<div class="ms-pos">' + escapeHtml(pos) + '</div>' : '') +
+          (mail ? '<div class="ms-mail">' + escapeHtml(mail) + '</div>' : '') +
+        '</div>' +
+      '</div>';
     });
   }
 
@@ -11739,22 +11795,44 @@ function rmxMemberOptions(excludeUid, selected) {
     }).join('');
 }
 
+// "K / N tanlandi" hisoblagichi (ro'yxat tepasida)
+function rmxUpdateProgress(bd) {
+  const el = bd.querySelector('#rmxProg');
+  if (!el) return;
+  const n = _rmxRows.filter(function (r) { return !!r.target; }).length;
+  el.textContent = '· ' + n + ' / ' + _rmxRows.length + ' tanlandi';
+  el.classList.toggle('done', n > 0 && n === _rmxRows.length);
+}
+
 function rmxRenderList(bd) {
   const box = bd.querySelector('#rmxList');
   if (!box) return;
+  if (!_rmxRows.length) {
+    box.innerHTML = '<div class="rmx-empty">Biriktirilgan vazifa yo\'q</div>';
+    rmxUpdateProgress(bd);
+    return;
+  }
+  const now = Date.now();
   box.innerHTML = _rmxRows.map(function (r) {
     let st = ''; try { st = statusName(r.status); } catch (e) { st = String(r.status || ''); }
-    const dl = r.deadline ? fmtDeadline(r.deadline) : 'deadline yo\'q';
-    return '<div class="rmx-item">' +
+    const over = !!(r.deadline && r.status !== 'completed' && new Date(r.deadline).getTime() < now);
+    const dl = r.deadline ? ('⏱ ' + fmtDeadline(r.deadline)) : 'Deadline yo\'q';
+    const title = r.title || '(nomsiz)';
+    // title="" — nom 2 qatordan uzun bo'lsa hover'da to'lig'i ko'rinadi
+    return '<div class="rmx-item' + (r.target ? ' done' : '') + '">' +
       '<div class="rmx-t">' +
-        '<div class="rmx-title">' + escapeHtml(r.title || '(nomsiz)') + '</div>' +
-        '<div class="rmx-meta">' + escapeHtml(st) + ' · ' + escapeHtml(dl) + '</div>' +
+        '<div class="rmx-title" title="' + escapeHtml(title) + '">' + escapeHtml(title) + '</div>' +
+        '<div class="rmx-meta">' +
+          '<span class="rmx-badge">' + escapeHtml(st) + '</span>' +
+          '<span class="rmx-dl' + (over ? ' over' : '') + '">' + escapeHtml(dl) + '</span>' +
+        '</div>' +
       '</div>' +
-      '<select class="ui-input rmx-sel" data-tid="' + escapeHtml(String(r.id)) + '">' +
+      '<select class="ui-input rmx-sel" data-tid="' + escapeHtml(String(r.id)) + '" aria-label="Kimga o\'tkaziladi">' +
         rmxMemberOptions(_rmxUid, r.target) +
       '</select>' +
     '</div>';
   }).join('');
+  rmxUpdateProgress(bd);
 }
 
 // Tanlovlarni qo'llaydi (target bo'yicha guruhlab) → true = hammasi o'tdi
@@ -11841,14 +11919,20 @@ function rmxOpenModal(uid, name, rows) {
   const bd = document.createElement('div');
   bd.className = 'ui-modal-bd';
   bd.innerHTML =
-    '<div class="ui-modal" style="max-width:660px;">' +
+    '<div class="ui-modal rmx-modal" style="max-width:680px;">' +
       '<div class="ui-modal-head"><div class="ui-modal-title">Xodimni o\'chirish</div>' +
         '<button class="ui-x" data-act="cancel">×</button></div>' +
-      '<div class="ui-modal-body">' +
+      '<div class="ui-modal-body rmx-body">' +
         '<div class="rmx-warn"><b>' + escapeHtml(name) + '</b>ni jamoadan chiqarmoqchisiz. Unga biriktirilgan <b>' +
           _rmxRows.length + ' ta vazifa</b> bor — kimga o\'tkazishni tanlang, aks holda ular egasiz qoladi.</div>' +
-        '<div class="rmx-bulk"><span>Hammasini bittaga:</span>' +
-          '<select class="ui-input" id="rmxBulk">' + rmxMemberOptions(uid, '') + '</select></div>' +
+        '<div class="rmx-bulk">' +
+          '<span class="rmx-bulk-lbl">Hammasini bittaga o\'tkazish</span>' +
+          '<select class="ui-input rmx-sel" id="rmxBulk">' + rmxMemberOptions(uid, '') + '</select>' +
+        '</div>' +
+        '<div class="rmx-listhead">' +
+          '<span class="rmx-lh-a">Vazifa<span class="rmx-prog" id="rmxProg"></span></span>' +
+          '<span class="rmx-lh-b">Kimga o\'tkaziladi</span>' +
+        '</div>' +
         '<div class="rmx-list" id="rmxList"></div>' +
       '</div>' +
       '<div class="ui-modal-actions rmx-acts">' +
@@ -11880,7 +11964,12 @@ function rmxOpenModal(uid, name, rows) {
     const sel = ev.target && ev.target.closest ? ev.target.closest('select[data-tid]') : null;
     if (!sel) return;
     const r = _rmxRows.find(function (x) { return String(x.id) === sel.getAttribute('data-tid'); });
-    if (r) r.target = sel.value;
+    if (!r) return;
+    r.target = sel.value;
+    // Butun ro'yxatni qayta chizmaymiz — scroll joyida qolsin
+    const item = sel.closest('.rmx-item');
+    if (item) item.classList.toggle('done', !!sel.value);
+    rmxUpdateProgress(bd);
   });
 
   bd.querySelectorAll('[data-act="cancel"]').forEach(function (b) { b.onclick = close; });
