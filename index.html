@@ -241,6 +241,7 @@
   .emp-filter-opt .efo-check { width:18px; height:18px; flex:0 0 auto; border:1.5px solid var(--line-strong); border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:12px; color:#fff; }
   .emp-filter-opt.on .efo-check { background:var(--accent-ink); border-color:var(--accent-ink); }
   .emp-filter-opt .efo-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .emp-filter-opt .efo-pos { color:var(--muted); font-size:12px; }
   .emp-filter-empty { padding:12px; text-align:center; font-size:12.5px; color:var(--muted); }
   .emp-filter-chips { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
   .emp-chip { display:inline-flex; align-items:center; gap:6px; padding:5px 6px 5px 9px; border:1px solid var(--line); border-radius:999px; background:var(--surface-2); font-size:12.5px; font-weight:500; color:var(--ink); }
@@ -3400,7 +3401,7 @@ async function prjAddTask() {
   const ft = prjFlowType(window._curProject);
   const seq = ft === 'sequential';
   const memberOpts = [{ value: '', label: '— Biriktirilmagan —' }].concat(
-    (wsMembers || []).map(m => ({ value: m.user_id, label: m.user_id === me.id ? (myProfile.full_name || 'Siz') : ((m.profile && m.profile.full_name) || 'A\'zo') }))
+    (wsMembers || []).map(m => ({ value: m.user_id, label: memberNamePos(m.user_id, m.user_id === me.id ? (myProfile.full_name || 'Siz') : ((m.profile && m.profile.full_name) || 'A\'zo')) }))
   );
   const v = await uiForm('Yangi bosqich (vazifa)', [
     { id: 'title', label: 'Vazifa nomi', type: 'text', placeholder: 'Nima qilinishi kerak?' },
@@ -3456,7 +3457,7 @@ async function prjInviteMember() {
   const candidates = (wsMembers || []).filter(m => !prjMembers.some(pm => pm.user_id === m.user_id));
   if (!candidates.length) { toast('Barcha a\'zolar allaqachon qo\'shilgan', 'ok'); return; }
   const v = await uiForm('A\'zo taklif qilish', [
-    { id: 'uid', label: 'Kimni taklif qilamiz?', type: 'select', value: candidates[0].user_id, options: candidates.map(m => ({ value: m.user_id, label: (m.profile && m.profile.full_name) || 'A\'zo' })), hint: 'Taklif qilingan a\'zo loyihani to\'liq ko\'radi, lekin o\'zgartira olmaydi.' }
+    { id: 'uid', label: 'Kimni taklif qilamiz?', type: 'select', value: candidates[0].user_id, options: candidates.map(m => ({ value: m.user_id, label: memberNamePos(m.user_id, (m.profile && m.profile.full_name) || 'A\'zo') })), hint: 'Taklif qilingan a\'zo loyihani to\'liq ko\'radi, lekin o\'zgartira olmaydi.' }
   ], { okText: 'Taklif qilish' });
   if (!v || !v.uid) return;
   try {
@@ -4437,11 +4438,16 @@ async function loadCurrentContext() {
   // Rasmlar keshini oldindan to'ldiramiz (photo_path -> signed URL) — shunda avatarlar
   // butun ilovada (vazifa kartalari, kanban, izohlar, org chart...) ko'rinadi, team
   // sahifasini kutmasdan. Yengil: bitta select + bitta createSignedUrls. Xato — jimgina.
+  // ⚠️ Avval bu yerda faqat photo_path o'qilardi. Endi butun HR qatlami
+  // (positions + employee_details + employee_branches) yuklanadi — chunki xodim
+  // TANLAGICHLARIDA "Ism · Lavozim" ko'rsatiladi (memberNamePos), va lavozim
+  // positionsCache/empDetails dan keladi. loadHrData ichida prefetchPhotoUrls
+  // ham bor, shuning uchun avvalgi alohida rasm so'rovi ortiqcha bo'ldi.
   if (isOrg) {
-    try {
-      const { data: phRows } = await sb.from('employee_details').select('user_id, photo_path').eq('workspace_id', wsId).not('photo_path', 'is', null);
-      if (phRows && phRows.length) await prefetchPhotoUrls(phRows);
-    } catch (e) { /* sokin — initsiallarga tushadi */ }
+    const hrOk = await loadHrData();
+    // Fon boyitishi — bloklamaydi (avatar initsiallarga, lavozim bo'sh matnga tushadi),
+    // lekin jimgina yutilmasin.
+    if (!hrOk) console.error('loadHrData (workspace yuklash):', _hrError);
   }
 
   // Tasks + kanban — parallel
@@ -5340,16 +5346,19 @@ function empFilterRenderList(scope) {
   const q = ($(_efPfx(scope) + 'Search')?.value || '').trim().toLowerCase();
   const opts = (wsMembers || []).map(function (m) {
     const nm = m.user_id === me.id ? (myProfile.full_name || 'Siz') : ((m.profile && (m.profile.full_name || m.profile.email)) || 'Noma\'lum');
-    return { id: m.user_id, name: nm };
+    return { id: m.user_id, name: nm, pos: memberPos(m.user_id) };
   }).sort(function (a, b) { return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }); });
-  const filtered = q ? opts.filter(function (o) { return o.name.toLowerCase().includes(q); }) : opts;
+  // Qidiruv lavozim bo'yicha ham ishlaydi ("kuryer" deb yozib hammasini topish)
+  const filtered = q ? opts.filter(function (o) { return (o.name + ' ' + o.pos).toLowerCase().includes(q); }) : opts;
   if (!filtered.length) { box.innerHTML = '<div class="emp-filter-empty">Xodim topilmadi</div>'; return; }
   box.innerHTML = filtered.map(function (o) {
     const on = empFilter.has(o.id);
     return '<div class="emp-filter-opt' + (on ? ' on' : '') + '" onclick="empFilterToggleMember(\'' + o.id + '\')">' +
       '<span class="efo-check">' + (on ? '✓' : '') + '</span>' +
       avatarHtml(o.name, 'sm', null, o.id) +
-      '<span class="efo-name">' + escapeHtml(o.name) + '</span>' +
+      '<span class="efo-name">' + escapeHtml(o.name) +
+        (o.pos ? '<span class="efo-pos"> · ' + escapeHtml(o.pos) + '</span>' : '') +
+      '</span>' +
     '</div>';
   }).join('');
 }
@@ -5481,7 +5490,7 @@ function openCreateInternal(forceDeptId) {
   if (_acc) {
     const opts = (wsMembers || []).map(m => ({ id: m.user_id, name: m.user_id === me.id ? (myProfile.full_name || 'Siz') : ((m.profile && m.profile.full_name) || 'A\'zo') }))
       .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
-    _acc.innerHTML = '<option value="">— Yo\'q (oddiy vazifa)</option>' + opts.map(o => '<option value="' + o.id + '">' + escapeHtml(o.name) + '</option>').join('');
+    _acc.innerHTML = '<option value="">— Yo\'q (oddiy vazifa)</option>' + opts.map(o => '<option value="' + o.id + '">' + escapeHtml(memberNamePos(o.id, o.name)) + '</option>').join('');
     _acc.value = '';
   }
   $('cNewSub').value = '';
@@ -5840,11 +5849,13 @@ function msFilter() {
 
   // 1. Mening o'zimga
   const meName = (myProfile && myProfile.full_name) || 'Siz';
-  if (msMatchesQuery('mening ozimga siz me ' + meName, q)) {
+  const mePos = memberPos(me.id);
+  if (msMatchesQuery('mening ozimga siz me ' + meName + ' ' + mePos, q)) {
     const sel = msIsSelected('me', 'me');
     html += '<div class="ms-opt' + (sel ? ' selected' : '') +
       '" onclick="msToggle(\'me\',\'me\',\'Mening o\\\'zimga\')">' +
-      '<div class="ms-check">✓</div><span class="ic">👤</span><div class="name">Mening o\'zimga</div></div>';
+      '<div class="ms-check">✓</div><span class="ic">👤</span><div class="name">Mening o\'zimga</div>' +
+      (mePos ? '<span class="sub">' + escapeHtml(mePos) + '</span>' : '') + '</div>';
   }
 
   // 2. Filiallar — butun jamoaga
@@ -5889,18 +5900,22 @@ function msFilter() {
   // 4. Sayt foydalanuvchilari
   const userMatches = (wsMembers || []).filter(m => {
     if (m.user_id === me.id) return false;
-    return msMatchesQuery((m.profile && m.profile.full_name) || '', q);
+    // Lavozim bo'yicha ham qidiriladi ("dasturchi" → hamma dasturchi)
+    return msMatchesQuery(((m.profile && m.profile.full_name) || '') + ' ' + memberPos(m.user_id), q);
   });
   if (userMatches.length) {
     html += '<div class="ms-group-head">👥 SAYT FOYDALANUVCHILARI</div>';
     userMatches.forEach(m => {
       const name = (m.profile && m.profile.full_name) || "A'zo";
+      const pos = memberPos(m.user_id);
       const sel = msIsSelected('user', m.user_id);
       const safeName = name.replace(/'/g, "\\'");
+      // Avatar + ism + lavozim (avatarHtml uid bo'yicha rasm keshidan oladi)
       html += '<div class="ms-opt' + (sel ? ' selected' : '') +
         '" onclick="msToggle(\'user\',\'' + m.user_id + '\',\'' + safeName + '\')">' +
-        '<div class="ms-check">✓</div><span class="ic">👤</span><div class="name">' +
-        escapeHtml(name) + '</div></div>';
+        '<div class="ms-check">✓</div>' + avatarHtml(name, 'sm', null, m.user_id) + '<div class="name">' +
+        escapeHtml(name) + '</div>' +
+        (pos ? '<span class="sub">' + escapeHtml(pos) + '</span>' : '') + '</div>';
     });
   }
 
@@ -6924,9 +6939,9 @@ function cmtMentionInput(inp) {
   if (!m) { if (drop) drop.style.display = 'none'; _cmtMentionList = []; return; }
   const q = (m[1] || '').trim().toLowerCase();
   const members = (wsMembers || []).filter(mm => mm.user_id !== me.id).map(mm => ({
-    id: mm.user_id, name: (mm.profile && mm.profile.full_name) || 'A\'zo'
+    id: mm.user_id, name: (mm.profile && mm.profile.full_name) || 'A\'zo', pos: memberPos(mm.user_id)
   }));
-  _cmtMentionList = members.filter(mm => !q || mm.name.toLowerCase().includes(q)).slice(0, 8);
+  _cmtMentionList = members.filter(mm => !q || (mm.name + ' ' + mm.pos).toLowerCase().includes(q)).slice(0, 8);
   _cmtMentionIdx = 0;
   if (!_cmtMentionList.length) { if (drop) drop.style.display = 'none'; return; }
   cmtMentionRender();
@@ -6937,8 +6952,11 @@ function cmtMentionRender() {
   if (!drop) return;
   drop.innerHTML = _cmtMentionList.map((mm, i) =>
     '<div onmousedown="event.preventDefault();cmtMentionPick(' + i + ')" style="display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:7px;cursor:pointer;' + (i===_cmtMentionIdx?'background:var(--surface-2);':'') + '">' +
-    '<span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">' + escapeHtml((mm.name[0]||'?').toUpperCase()) + '</span>' +
-    '<span style="font-size:13px;color:var(--ink);">' + escapeHtml(mm.name) + '</span></div>'
+    '<span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">' + escapeHtml((mm.name[0]||'?').toUpperCase()) + '</span>' +
+    '<span style="font-size:13px;color:var(--ink);">' + escapeHtml(mm.name) + '</span>' +
+    // Lavozim — faqat ko'rsatish uchun; matnga qo'shiladigan qism o'zgarmaydi (@Ism)
+    (mm.pos ? '<span style="font-size:11.5px;color:var(--muted);margin-left:auto;white-space:nowrap;">' + escapeHtml(mm.pos) + '</span>' : '') +
+    '</div>'
   ).join('');
 }
 function cmtMentionPick(i) {
@@ -7901,7 +7919,8 @@ async function ocOpenAddModal(parentNodeId) {
     .map(u => ({ id: 't:' + u.id, name: u.full_name || '(ism yo\'q)', position: u.position, kind: 'tg' }));
   const userCandidates = wsMembers
     .filter(u => !inChartIds.has('u:' + u.user_id))
-    .map(u => ({ id: 'u:' + u.user_id, name: u.profile?.full_name || 'A\'zo', position: u.role === 'owner' ? 'ceo' : null, kind: 'user' }));
+    // Lavozim: avval HR ma'lumoti (employee_details → positions), zaxira — ws roli
+    .map(u => ({ id: 'u:' + u.user_id, name: u.profile?.full_name || 'A\'zo', position: memberPos(u.user_id) || (u.role === 'owner' ? 'ceo' : null), kind: 'user' }));
 
   _ocAddCandidates = [...userCandidates, ...tgCandidates];
 
@@ -9239,12 +9258,12 @@ function tblCloseAsgDrop() { const d = $('tblAsgDrop'); if (d) d.remove(); docum
 function tblAsgFilter() { tblAsgRenderList(($('tblAsgSearch').value || '').toLowerCase()); }
 function tblAsgRenderList(q) {
   const t = tasksCache.find(x => x.id === _tblAsgTask);
-  const members = (wsMembers || []).map(m => ({ id: m.user_id, name: m.user_id === me.id ? (myProfile.full_name || 'Siz') : ((m.profile && m.profile.full_name) || 'A\'zo') }))
-    .filter(m => !q || m.name.toLowerCase().includes(q))
+  const members = (wsMembers || []).map(m => ({ id: m.user_id, name: m.user_id === me.id ? (myProfile.full_name || 'Siz') : ((m.profile && m.profile.full_name) || 'A\'zo'), pos: memberPos(m.user_id) }))
+    .filter(m => !q || (m.name + ' ' + m.pos).toLowerCase().includes(q))
     .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
   const itemStyle = 'width:100%;text-align:left;padding:9px 12px;background:none;border:none;cursor:pointer;font-size:13px;color:var(--ink);display:block;';
   let html = '<button onmouseover="this.style.background=\'var(--surface-2)\'" onmouseout="this.style.background=\'none\'" style="' + itemStyle + 'color:var(--muted);" onclick="tblAsgPick(null)">— (bo\'sh qoldirish)</button>';
-  html += members.map(m => '<button onmouseover="this.style.background=\'var(--surface-2)\'" onmouseout="this.style.background=\'none\'" style="' + itemStyle + (t && t.assigned_to === m.id ? 'font-weight:700;' : '') + '" onclick="tblAsgPick(\'' + m.id + '\')">' + escapeHtml(m.name) + (t && t.assigned_to === m.id ? ' ✓' : '') + '</button>').join('');
+  html += members.map(m => '<button onmouseover="this.style.background=\'var(--surface-2)\'" onmouseout="this.style.background=\'none\'" style="' + itemStyle + (t && t.assigned_to === m.id ? 'font-weight:700;' : '') + '" onclick="tblAsgPick(\'' + m.id + '\')">' + escapeHtml(m.name) + (m.pos ? '<span style="color:var(--muted);font-weight:400;font-size:12px;"> · ' + escapeHtml(m.pos) + '</span>' : '') + (t && t.assigned_to === m.id ? ' ✓' : '') + '</button>').join('');
   if (!members.length) html += '<div style="padding:10px 12px;color:var(--muted);font-size:12.5px;">Topilmadi</div>';
   $('tblAsgList').innerHTML = html;
 }
@@ -9313,7 +9332,7 @@ function tblNewRowHtml(cols) {
       case 'department':
         cell = '<select id="tblNewDept" class="cell-sel"><option value="">—</option>' + (departments||[]).map(d=>'<option value="'+d.id+'">'+escapeHtml(d.name)+'</option>').join('') + '</select>'; break;
       case 'assignee':
-        cell = '<select id="tblNewAsg" class="cell-sel"><option value="">—</option>' + (wsMembers||[]).map(m=>'<option value="'+m.user_id+'">'+escapeHtml(m.user_id===me.id?(myProfile.full_name||'Siz'):((m.profile&&m.profile.full_name)||'A\'zo'))+'</option>').join('') + '</select>'; break;
+        cell = '<select id="tblNewAsg" class="cell-sel"><option value="">—</option>' + (wsMembers||[]).map(m=>'<option value="'+m.user_id+'">'+escapeHtml(memberNamePos(m.user_id, m.user_id===me.id?(myProfile.full_name||'Siz'):((m.profile&&m.profile.full_name)||'A\'zo')))+'</option>').join('') + '</select>'; break;
       case 'deadline':
         cell = '<input id="tblNewDl" class="cell-inp" type="datetime-local">'; break;
       case 'priority':
@@ -10570,7 +10589,7 @@ function renderDeptTeam() {
   // Dropdown: workspace members not yet in this dept
   if (canManage) {
     const here = new Set(deptTeamCache.map(d => d.user_id));
-    const opts = wsMembers.filter(m => !here.has(m.user_id)).map(m => '<option value="'+m.user_id+'">' + escapeHtml(m.profile.full_name || m.profile.phone || 'A\'zo') + '</option>').join('');
+    const opts = wsMembers.filter(m => !here.has(m.user_id)).map(m => '<option value="'+m.user_id+'">' + escapeHtml(memberNamePos(m.user_id, m.profile.full_name || m.profile.phone || 'A\'zo')) + '</option>').join('');
     $('deptAddSel').innerHTML = opts || '<option value="">(Qo\'shiladigan a\'zo yo\'q)</option>';
   }
   const list = $('deptTeamList');
@@ -10803,6 +10822,22 @@ function teamMemberPos(uid) {
   if (!d || !d.position_id) return '';
   const p = positionsCache.find(function (x) { return x.id === d.position_id; });
   return p ? p.name : '';
+}
+
+// ---- Xodim tanlagichlar uchun lavozim (butun ilova bo'ylab izchil) ----
+// Manba: employee_details.position_id → positions.name. Ikkalasini ham
+// loadHrData() yuklaydi — u endi workspace ochilishida chaqiriladi
+// (loadWorkspaceData), shuning uchun Jamoa sahifasiga kirmasdan ham lavozim bor.
+// HR yuklanmagan/xato bo'lsa — jimgina bo'sh qaytadi va faqat ism ko'rinadi.
+function memberPos(uid) {
+  if (!uid) return '';
+  try { return teamMemberPos(uid) || ''; } catch (e) { return ''; }
+}
+// "Asilbek Ermatov · Backend Dasturchi" (lavozim yo'q bo'lsa — faqat ism).
+// ⚠️ escapeHtml QILMAYDI — chaqiruvchi joyda qilinadi (select option/HTML).
+function memberNamePos(uid, name) {
+  const p = memberPos(uid);
+  return p ? (name + ' · ' + p) : name;
 }
 // Yangi lavozim qo'shadi (yoki mavjudini qaytaradi) → position id
 async function teamAddPosition(name) {
