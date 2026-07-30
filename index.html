@@ -4340,11 +4340,17 @@ async function bootstrap() {
   showLoading(); // qayta urinishda ham loading ko'rinsin
 
   // ── 1) Foydalanuvchi ──
+  // ⚠️ Avval sb.auth.getUser() edi — u HAR SAFAR /auth/v1/user ga tarmoq
+  // so'rovi yuboradi (~350ms) va undan keyingi hamma narsa kutib turardi.
+  // getSession() sessiyani localStorage'dan oladi (tarmoqsiz) va faqat token
+  // muddati tugagan bo'lsa yangilash uchun tarmoqqa chiqadi. Xavfsizlik
+  // pasaymaydi: token baribir serverda tekshiriladi (RLS) — noto'g'ri bo'lsa
+  // keyingi so'rov 401 beradi.
   let user = null;
   try {
-    const { data, error } = await sb.auth.getUser();
+    const { data: sess, error } = await sb.auth.getSession();
     if (error) throw error;
-    user = data && data.user;
+    user = (sess && sess.session && sess.session.user) || null;
   } catch (e) {
     showBootErr('Sessiyani tekshirishda xatolik: ' + (e && e.message ? e.message : String(e)));
     return;
@@ -4352,12 +4358,19 @@ async function bootstrap() {
   me = user;
   if (!me) { showAuth(); return; }
 
-  // ── 2) Profil o'qish ──
+  // ── 2) Profil + workspace ro'yxati — PARALLEL ──
+  // Ikkalasi ham faqat me.id ga bog'liq, bir-birini kutishi shart emas edi.
+  // (Avval: profiles → … → loadWorkspaces = 2 ta ketma-ket round-trip.)
   let prof = null;
+  let wsErr = null;
   try {
-    const { data, error } = await sb.from('profiles').select('*').eq('id', me.id).maybeSingle();
-    if (error) throw error;
-    prof = data;
+    const [profR, wsR] = await Promise.all([
+      sb.from('profiles').select('*').eq('id', me.id).maybeSingle(),
+      loadWorkspaces(),                 // xatoni qaytaradi (yoki null), workspaces ni to'ldiradi
+    ]);
+    if (profR.error) throw profR.error;
+    prof = profR.data;
+    wsErr = wsR || null;
   } catch (e) {
     showBootErr('Profil ma\'lumotini o\'qishda xatolik: ' + (e && e.message ? e.message : String(e)));
     return;
@@ -4410,14 +4423,17 @@ async function bootstrap() {
         _inviteTaskId = accRes.task_id || null;
         _inviteWsId = accRes.workspace_id || null;
         toast('✅ Taklif qabul qilindi!', 'ok');
+        // ⚠️ Workspace ro'yxati yuqorida (profil bilan parallel) o'qilgan —
+        // taklif ENDI yangi a'zolik qo'shdi, shuning uchun qayta o'qiymiz.
+        // Bu faqat taklif havolasi bilan kelganda (kam uchraydigan yo'l).
+        wsErr = await loadWorkspaces();
       }
-    } catch (e) {}
+    } catch (e) { console.error('taklifni qabul qilish:', e); }
     try { sessionStorage.removeItem('pending_invite'); } catch (e) {}
     try { history.replaceState({}, '', location.pathname); } catch (e) {}
   }
 
-  // ── 3) Workspace ro'yxati ──
-  let wsErr = await loadWorkspaces();
+  // ── 3) Workspace ro'yxati (yuqorida parallel o'qilgan) ──
   if (wsErr) { showBootErr('Workspace ro\'yxatini o\'qishda xatolik: ' + (wsErr.message || String(wsErr))); return; }
   if (!workspaces.length) {
     // Trigger poygasi bo'lishi mumkin — bir marta qayta urinamiz
@@ -4484,10 +4500,12 @@ async function loadCurrentContext() {
   const wsId = currentWs.id;
   const isOrg = currentWs.kind === 'organization';
 
-  // ─── Hammasini PARALLEL chaqiramiz (9 query birga, ~80% tez) ───
+  // ─── 1-TO'LQIN: faqat currentWs/me.id ga bog'liq HAMMA narsa ───
+  // ⚠️ kanban_columns va tg_bot_users(linked_user_id) avval alohida to'lqinda
+  // (oxirida) o'qilardi — hech kimga bog'liq emas edi, shu yerga ko'chirildi.
   const [
     myMemberR, myDeptsR, deptsR, wsMembersR,
-    intgsR, branchesR, subR
+    intgsR, branchesR, subR, _kanbanR, myTgR
   ] = await Promise.all([
     sb.from('workspace_members').select('role').eq('workspace_id', wsId).eq('user_id', me.id).maybeSingle(),
     isOrg ? sb.from('department_members').select('department_id, role, departments!inner(workspace_id)').eq('user_id', me.id).eq('departments.workspace_id', wsId) : Promise.resolve({ data: [] }),
@@ -4496,7 +4514,27 @@ async function loadCurrentContext() {
     isOrg ? sb.from('integrations_safe').select('*').eq('workspace_id', wsId) : Promise.resolve({ data: [] }),
     isOrg ? sb.from('branches').select('*').eq('workspace_id', wsId).order('name') : Promise.resolve({ data: [] }),
     sb.from('subscriptions').select('*').eq('workspace_id', wsId).maybeSingle(),
+    loadKanbanColumns(),
+    sb.from('tg_bot_users').select('id').eq('linked_user_id', me.id),
   ]);
+
+  // "Mening vazifalarim" uchun — mening Telegram identitetlarim.
+  //
+  // ⚠️ Bu avval funksiya OXIRIDA, alohida to'lqinda o'qilardi. Bundan tashqari
+  // loadTasksFull() (oddiy a'zo yo'li) AYNAN SHU so'rovni yana bir marta
+  // yuborardi — ya'ni bitta so'rov ikki marta, ikki alohida to'lqinda.
+  // Endi bir marta, 1-to'lqinda; loadTasksFull uni keshdan oladi.
+  //
+  // ⚠️ Xato jimgina yutilmasin: so'rov yiqilsa _myTgBotIds=[] bo'ladi va
+  // Telegram orqali biriktirilgan vazifa "meniki emas" deb hisoblanadi
+  // (applyTaskScope uni yashiradi, canSeeTask false qaytaradi) — vazifa
+  // serverdan kelgan bo'lsa ham ekranda ko'rinmaydi.
+  if (myTgR.error) {
+    window._myTgBotIds = [];
+    loadTasksErr('Telegram identiteti o\'qilmadi — "Mening vazifalarim" to\'liq bo\'lmasligi mumkin', myTgR.error);
+  } else {
+    window._myTgBotIds = (myTgR.data || []).map(x => x.id);
+  }
 
   myWsRole = myMemberR.data ? myMemberR.data.role : null;
   myDepts = (myDeptsR.data || []).map(x => ({ department_id: x.department_id, role: x.role }));
@@ -4511,9 +4549,13 @@ async function loadCurrentContext() {
   // tg_bot_users — telegram integratsiya bor bo'lsa
   const tgIntg = integrationsCache.find(i => i.tool === 'telegram');
 
+  // ─── 2-TO'LQIN: 1-to'lqin natijasiga bog'liq bo'lganlar ───
+  // Vazifalar ham SHU YERDA: loadTasksFull() faqat myWsRole (1-to'lqin) va
+  // _myTgBotIds (1-to'lqin) ga bog'liq edi, lekin alohida to'lqinda kutardi.
   const [profsR, tgBusR] = await Promise.all([
     memberIds.length ? sb.from('profiles').select('id, full_name, phone, avatar_url, email').in('id', memberIds) : Promise.resolve({ data: [] }),
     (isOrg && tgIntg) ? sb.from('tg_bot_users').select('*').eq('integration_id', tgIntg.id).eq('state', 'completed') : Promise.resolve({ data: [] }),
+    loadTasksFull(),
   ]);
 
   const profMap = {};
@@ -4521,49 +4563,37 @@ async function loadCurrentContext() {
   wsMembers = wm.map(x => Object.assign({}, x, { profile: profMap[x.user_id] || {} }));
   tgUsersCache = tgBusR.data || [];
 
-  // Rasmlar keshini oldindan to'ldiramiz (photo_path -> signed URL) — shunda avatarlar
-  // butun ilovada (vazifa kartalari, kanban, izohlar, org chart...) ko'rinadi, team
-  // sahifasini kutmasdan. Yengil: bitta select + bitta createSignedUrls. Xato — jimgina.
-  // ⚠️ Avval bu yerda faqat photo_path o'qilardi. Endi butun HR qatlami
-  // (positions + employee_details + employee_branches) yuklanadi — chunki xodim
-  // TANLAGICHLARIDA "Ism · Lavozim" ko'rsatiladi (memberNamePos), va lavozim
-  // positionsCache/empDetails dan keladi. loadHrData ichida prefetchPhotoUrls
-  // ham bor, shuning uchun avvalgi alohida rasm so'rovi ortiqcha bo'ldi.
+  // ─── HR qatlami (lavozim + filial + rasm) — KRITIK YO'LDAN TASHQARIDA ───
+  // loadHrData: positions, employee_roles, employee_details, employee_branches,
+  // department_members (5 parallel) + prefetchPhotoUrls → Storage signed-URL
+  // POST. O'lchov (2026-07-30): shu POST yolg'iz 1466ms, butun blok ~2s.
+  //
+  // Ilova ochilishi bularni kutishi SHART EMAS — ma'lumot emas, BEZAK:
+  // lavozim yo'q bo'lsa faqat ism ko'rinadi (memberNamePos bo'sh qaytaradi),
+  // rasm yo'q bo'lsa initsiallar (getPhotoUrl null). Tayyor bo'lgach ochiq
+  // ko'rinishlar jimgina qayta chiziladi.
+  //
+  // ⚠️ Fon chaqiruvi bo'lgani uchun loadHrData ichida "workspace almashdimi"
+  // tekshiruvi bor — eski ws natijasi yangisining ustiga yozilmasin.
   if (isOrg) {
-    const hrOk = await loadHrData();
-    // Fon boyitishi — bloklamaydi (avatar initsiallarga, lavozim bo'sh matnga tushadi),
-    // lekin jimgina yutilmasin.
-    if (!hrOk) console.error('loadHrData (workspace yuklash):', _hrError);
+    loadHrData().then(function (ok) {
+      if (!ok) { console.error('loadHrData (fon):', _hrError); return; }
+      // Lavozim/rasm endi bor — ekrandagini yangilaymiz (ma'lumot o'zgarmaydi)
+      try { refreshActiveView(); } catch (e) { console.error('loadHrData → refreshActiveView:', e); }
+      try { if (currentPage === 'team') renderTeam(); } catch (e) { console.error('loadHrData → renderTeam:', e); }
+      // Vazifa yaratish modali ochiq bo'lsa — bajaruvchi ro'yxatida lavozim paydo bo'lsin
+      try {
+        const cb = document.getElementById('createBd');
+        if (cb && cb.classList.contains('show')) msFilter();
+      } catch (e) { console.error('loadHrData → msFilter:', e); }
+    }).catch(function (e) { console.error('loadHrData (fon):', e); });
   }
-
-  // Tasks + kanban — parallel
-  await Promise.all([loadTasksFull(), loadKanbanColumns()]);
 
   // Jadval sozlamalarini (kenglik, tartib, filtr, sort) tiklaymiz
   tblLoadSettings();
   // Xodim filtrini (workspace bo'yicha) tiklaymiz + panelni yangilaymiz
   empFilterLoad();
   try { empFilterRenderBar(); } catch (e) {}
-
-  // "Mening vazifalarim" uchun — mening Telegram identitetlarim
-  //
-  // ⚠️ loadTasksFull() dagi bilan bir xil xato shu yerda ham bor edi: error
-  // tekshirilmagan, catch esa hech qachon ishlamaydi (supabase-js tashlamaydi).
-  // Bu yerda oqibati boshqacha va yashirinroq — so'rov yiqilsa _myTgBotIds=[]
-  // bo'ladi va Telegram orqali biriktirilgan vazifa "meniki emas" deb
-  // hisoblanadi: "Mening vazifalarim" filtri (applyTaskScope, 4370) uni
-  // yashiradi, canSeeTask (2287) esa false qaytaradi. Vazifa serverdan
-  // KELGAN bo'lsa ham ekranda ko'rinmaydi.
-  //
-  // Owner uchun loadTasksFull() bu so'rovni umuman qilmaydi (u erta qaytadi),
-  // shuning uchun bu chaqiruv ortiqcha emas — ikkalasi ham kerak.
-  const { data: tgu, error: tguErr } = await sb.from('tg_bot_users').select('id').eq('linked_user_id', me.id);
-  if (tguErr) {
-    window._myTgBotIds = [];
-    loadTasksErr('Telegram identiteti o\'qilmadi — "Mening vazifalarim" to\'liq bo\'lmasligi mumkin', tguErr);
-  } else {
-    window._myTgBotIds = (tgu || []).map(x => x.id);
-  }
 
   setupRealtime();
   renderSidebar();
@@ -4690,10 +4720,17 @@ async function loadTasksFull() {
   // orqali biriktirilgan vazifalar ro'yxatdan jimgina yo'qoladi — qolgani esa
   // to'liqdek ko'rinadi. Shuning uchun to'xtamaymiz (a va b baribir kerak), lekin
   // ro'yxat to'liqmasligini AYTAMIZ.
-  let myTgIds = [];
-  const { data: tgu, error: tgErr } = await sb.from('tg_bot_users').select('id').eq('linked_user_id', me.id);
-  if (tgErr) loadTasksErr('Telegram identiteti o\'qilmadi — ro\'yxat to\'liq bo\'lmasligi mumkin', tgErr);
-  else myTgIds = (tgu || []).map(x => x.id);
+  // ⚠️ Bu so'rov avval SHU YERDA ham, loadCurrentContext oxirida ham
+  // yuborilardi — bir xil so'rov ikki marta, ikki alohida to'lqinda.
+  // Endi loadCurrentContext uni 1-to'lqinda bir marta o'qiydi; bu yerda
+  // keshdan olamiz. Kesh bo'sh bo'lsa (masalan alohida qayta yuklash)
+  // avvalgidek o'zimiz so'raymiz.
+  let myTgIds = Array.isArray(window._myTgBotIds) ? window._myTgBotIds : null;
+  if (myTgIds === null) {
+    const { data: tgu, error: tgErr } = await sb.from('tg_bot_users').select('id').eq('linked_user_id', me.id);
+    if (tgErr) { loadTasksErr('Telegram identiteti o\'qilmadi — ro\'yxat to\'liq bo\'lmasligi mumkin', tgErr); myTgIds = []; }
+    else { myTgIds = (tgu || []).map(x => x.id); window._myTgBotIds = myTgIds; }
+  }
 
   const orParts = ['assigned_to.eq.' + me.id, 'created_by.eq.' + me.id, 'acceptor_id.eq.' + me.id];
   if (myTgIds.length) orParts.push('assigned_to_tg_bot_user.in.(' + myTgIds.join(',') + ')');
@@ -10959,6 +10996,13 @@ async function loadHrData(force) {
     if (detR.error) throw detR.error;
     if (brR.error) throw brR.error;
     if (dmR.error) throw dmR.error;
+    // ⚠️ Bu funksiya endi boot'da FONDA chaqiriladi (kritik yo'lda emas).
+    // Shu sababli javob kelguncha foydalanuvchi workspace almashtirgan
+    // bo'lishi mumkin — eski ws ma'lumotini yangisining ustiga yozmaymiz.
+    if (!currentWs || currentWs.id !== wsId) {
+      console.warn('loadHrData: workspace almashdi, eski natija tashlandi');
+      return false;
+    }
     positionsCache = (posR.data || []).sort(function (a, b) { return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }); });
     empRolesCache = (rolesR.data || []).sort(function (a, b) { return a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }); });
     empDetails = {};

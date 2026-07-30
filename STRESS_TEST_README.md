@@ -87,6 +87,41 @@ node stress_test.js --yes --anon
 
 ---
 
+## 1-TEST NATIJASI (2026-07-30) va TUZATISH
+
+**O'lchandi:** boot **6079ms** · 9 to'lqin · 2.1× parallellik.
+Qolgan sahifalar 300–2100ms — yaxshi. Har so'rov 300–400ms (DB **sekin emas**).
+Ya'ni sekinlik **ketma-ketlikda** edi, ma'lumot hajmida yoki SQL'da emas.
+
+**Tuzatildi (index.html):**
+
+| # | Nima | Qanday |
+|---|---|---|
+| 1 | `auth.getUser()` — har boot'da tarmoq so'rovi | `getSession()` (localStorage'dan; token eskirgandagina tarmoq) → **−1 to'lqin** |
+| 2 | `profiles` → `loadWorkspaces` ketma-ket | `Promise.all` — ikkalasi ham faqat `me.id` ga bog'liq → **−1 to'lqin** |
+| 3 | `kanban_columns` va `tg_bot_users` oxirida alohida | 1-to'lqinga ko'chirildi (hech kimga bog'liq emas edi) → **−2 to'lqin** |
+| 4 | `tg_bot_users(linked_user_id)` **ikki marta** so'ralardi | bir marta 1-to'lqinda, `loadTasksFull` keshdan oladi → **−1 so'rov, −1 to'lqin** |
+| 5 | `loadTasksFull` alohida to'lqinda kutardi | 2-to'lqinga (u faqat `myWsRole` + `_myTgBotIds` ga bog'liq) → **−1 to'lqin** |
+| 6 | `loadHrData` + Storage POST (**1466ms**) kritik yo'lda | **fonga** — tayyor bo'lgach ekran jimgina yangilanadi → **−2 to'lqin, ~2s** |
+
+**`department_members` 2 marta** (844 + 1036ms) — bu dublikat emas edi, ikki xil so'rov:
+biri *mening* bo'limlarim (boot uchun kerak), ikkinchisi *hamma xodim* bo'limlari
+(HR/Jamoa uchun). Ikkinchisi `loadHrData` bilan birga **fonga** ketdi — boot yo'lida bittasi qoldi.
+
+**`storage:object` POST 1466ms** — `prefetchPhotoUrls` → `createSignedUrls`, 80 ta rasm
+uchun bitta imzolash so'rovi. `loadHrData` ichida, ya'ni endi **fonda**. Rasm tayyor
+bo'lgunча avatarlar initsial bilan ko'rinadi.
+
+**Kutilgan natija:** 9 to'lqin → **4** (2 boot + 2 kontekst), ~350ms/to'lqin ≈ **1.5–2s**.
+
+> Tekshirildi: haqiqiy `loadCurrentContext` kodi sandbox'da (soxta klient, har so'rov 350ms)
+> ishga tushirildi — **2 ta bloklovchi to'lqin**, kritik yo'l 720ms, HR fonda (721→1627ms,
+> kritik yo'ldan tashqarida). Avval 5 to'lqin edi.
+
+⚠️ **Qayta o'lchang**: `?perf=1` → boot qatorini avvalgi 6079ms bilan solishtiring.
+
+---
+
 ## O'lchashdan OLDIN ma'lum bo'lgan narsalar (kodni o'qib)
 
 Bular **statik tahlil** — raqam emas, tuzilma. Testlar shularni tasdiqlaydi yoki rad etadi.
