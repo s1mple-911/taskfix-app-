@@ -420,6 +420,9 @@
   .th-item .th-meta { color: var(--muted); font-size: 11.5px; margin-left: auto; white-space: nowrap; }
   .th-empty { color: var(--muted); font-size: 12.5px; font-style: italic; padding: 10px 0; }
 
+  /* Vazifalar fonda sahifalab yuklanmoqda — kichik ko'rsatkich */
+  .tsk-chip { position: fixed; right: 16px; bottom: 16px; z-index: 8000; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 8px 14px; font-size: 12.5px; color: var(--muted); box-shadow: var(--shadow); pointer-events: none; }
+
   /* ===== Xodimni o'chirishda vazifalarni qayta biriktirish (rmx*) ===== */
   /* ⚠️ MAXSUSLIK: tanlagichlar .ui-input klassini ham oladi, .ui-input esa
      { width:100% } bilan SHU BLOKDAN KEYIN e'lon qilingan. Bir xil maxsuslikda
@@ -4702,44 +4705,120 @@ function loadTasksErr(prefix, error) {
   toast(prefix + ': ' + translateErr(error.message), 'err');
 }
 
-async function loadTasksFull() {
-  if (!currentWs) { tasksCache = []; return; }
-  // Owner/admin — hamma vazifa
-  if (isOwnerLike()) {
-    const { data, error } = await sb.from('tasks').select('*').eq('workspace_id', currentWs.id).order('created_at', { ascending: false });
-    // Xatoda tasksCache ga TEGMAYMIZ. Eski (to'g'ri) ro'yxat qolgani — uni
-    // bo'sh qilib qo'yishdan yaxshi. Birinchi yuklashda u allaqachon [].
-    if (error) { loadTasksErr('Vazifalarni yuklab bo\'lmadi', error); return; }
-    tasksCache = data || [];
-    return;
+// ============ VAZIFALARNI SAHIFALAB YUKLASH ============
+// ⚠️ Avval bu funksiya LIMITSIZ edi: owner uchun BUTUN workspace bitta so'rovda
+// brauzerga tashilardi. Stress-test (50 000 vazifa): 176ms raw → 855ms RLS,
+// ustiga megabaytlab JSON. 10k+ vazifada boshqarib bo'lmaydigan bo'lardi.
+//
+// Yechim — BOSQICHMA-BOSQICH yuklash. UX O'ZGARMAYDI:
+//   1) Birinchi sahifa (TASKS_PAGE) yuklanadi → ilova darrov ochiladi
+//   2) Qolgani FONDA sahifalab keladi, har sahifadan keyin ko'rinish yangilanadi
+// Foydalanuvchi baribir HAMMASINI ko'radi — faqat birinchi ekran tez chiqadi.
+// Shuning uchun "Ko'proq yuklash" tugmasi kerak emas; jarayonni chip ko'rsatadi.
+//
+// ⚠️ ANCHOR: 2-sahifadan boshlab `created_at <= anchor` filtri qo'yiladi
+// (anchor = 1-sahifadagi eng yangi qator vaqti — SERVER bergan qiymat, brauzer
+// soatiga tayanmaymiz). Busiz, yuklash davomida yangi vazifa qo'shilsa OFFSET
+// bir pozitsiyaga siljib, bitta qator JIMGINA TUSHIB QOLARDI.
+const TASKS_PAGE = 500;      // bitta so'rovda nechta qator
+const TASKS_MAX = 20000;     // himoya: bundan ortig'i brauzer xotirasiga og'ir
+let _tasksMore = false;      // serverda yana bormi
+let _tasksOffset = 0;        // nechta qator OLINDI (tasksCache.length EMAS — realtime uni siljitadi)
+let _tasksAnchor = null;     // 1-sahifadagi eng yangi created_at
+let _tasksLoadingRest = false;
+
+// Owner/a'zo farqi shu yerda — qolgan mantiq bir xil
+function tasksQuery(from, to) {
+  let q = sb.from('tasks').select('*').eq('workspace_id', currentWs.id);
+  if (!isOwnerLike()) {
+    // Oddiy a'zo — o'ziga tegishlilar: (a) menga biriktirilgan, (b) men yaratgan,
+    // (c) qabul qiluvchi menman, (d) Telegram identitetimga biriktirilgan.
+    //
+    // ⚠️ _myTgBotIds loadCurrentContext'ning 1-to'lqinida bir marta o'qiladi.
+    // Kesh bo'sh bo'lsa (d) sharti tushib qoladi va Telegram orqali biriktirilgan
+    // vazifalar ro'yxatdan jimgina yo'qoladi — shuning uchun bo'sh emas, NULL
+    // holatini alohida ajratamiz (chaqiruvchi to'ldiradi).
+    const myTgIds = Array.isArray(window._myTgBotIds) ? window._myTgBotIds : [];
+    const orParts = ['assigned_to.eq.' + me.id, 'created_by.eq.' + me.id, 'acceptor_id.eq.' + me.id];
+    if (myTgIds.length) orParts.push('assigned_to_tg_bot_user.in.(' + myTgIds.join(',') + ')');
+    q = q.or(orParts.join(','));
   }
-  // Oddiy a'zo — o'ziga tegishli barcha vazifalar:
-  // (a) assigned_to = men, (b) men yaratgan, (c) Telegram identitetimga biriktirilgan
-  //
-  // ⚠️ Bu so'rov yiqilsa (c) sharti quyidagi or() dan TUSHIB QOLADI va Telegram
-  // orqali biriktirilgan vazifalar ro'yxatdan jimgina yo'qoladi — qolgani esa
-  // to'liqdek ko'rinadi. Shuning uchun to'xtamaymiz (a va b baribir kerak), lekin
-  // ro'yxat to'liqmasligini AYTAMIZ.
-  // ⚠️ Bu so'rov avval SHU YERDA ham, loadCurrentContext oxirida ham
-  // yuborilardi — bir xil so'rov ikki marta, ikki alohida to'lqinda.
-  // Endi loadCurrentContext uni 1-to'lqinda bir marta o'qiydi; bu yerda
-  // keshdan olamiz. Kesh bo'sh bo'lsa (masalan alohida qayta yuklash)
-  // avvalgidek o'zimiz so'raymiz.
-  let myTgIds = Array.isArray(window._myTgBotIds) ? window._myTgBotIds : null;
-  if (myTgIds === null) {
+  if (_tasksAnchor) q = q.lte('created_at', _tasksAnchor);
+  // id — barqaror tartib uchun (created_at teng bo'lsa sahifalar aralashmasin).
+  // idx_tasks_ws_created (workspace_id, created_at DESC, id DESC) shuni qoplaydi.
+  return q.order('created_at', { ascending: false }).order('id', { ascending: false }).range(from, to);
+}
+
+async function loadTasksFull() {
+  if (!currentWs) { tasksCache = []; _tasksMore = false; return; }
+  const wsId = currentWs.id;
+
+  // Telegram identitetlari — a'zo yo'li uchun kerak (owner uchun shart emas)
+  if (!isOwnerLike() && !Array.isArray(window._myTgBotIds)) {
     const { data: tgu, error: tgErr } = await sb.from('tg_bot_users').select('id').eq('linked_user_id', me.id);
-    if (tgErr) { loadTasksErr('Telegram identiteti o\'qilmadi — ro\'yxat to\'liq bo\'lmasligi mumkin', tgErr); myTgIds = []; }
-    else { myTgIds = (tgu || []).map(x => x.id); window._myTgBotIds = myTgIds; }
+    if (tgErr) { loadTasksErr('Telegram identiteti o\'qilmadi — ro\'yxat to\'liq bo\'lmasligi mumkin', tgErr); window._myTgBotIds = []; }
+    else window._myTgBotIds = (tgu || []).map(x => x.id);
   }
 
-  const orParts = ['assigned_to.eq.' + me.id, 'created_by.eq.' + me.id, 'acceptor_id.eq.' + me.id];
-  if (myTgIds.length) orParts.push('assigned_to_tg_bot_user.in.(' + myTgIds.join(',') + ')');
-  const { data, error } = await sb.from('tasks').select('*')
-    .eq('workspace_id', currentWs.id)
-    .or(orParts.join(','))
-    .order('created_at', { ascending: false });
+  _tasksAnchor = null;
+  const { data, error } = await tasksQuery(0, TASKS_PAGE - 1);
+  // Xatoda tasksCache ga TEGMAYMIZ. Eski (to'g'ri) ro'yxat qolgani — uni bo'sh
+  // qilib qo'yishdan yaxshi. Birinchi yuklashda u allaqachon [].
   if (error) { loadTasksErr('Vazifalarni yuklab bo\'lmadi', error); return; }
-  tasksCache = data || [];
+  if (!currentWs || currentWs.id !== wsId) return;   // yuklash paytida ws almashdi
+
+  const rows = data || [];
+  tasksCache = rows;
+  _tasksOffset = rows.length;
+  _tasksAnchor = rows.length ? rows[0].created_at : null;
+  _tasksMore = rows.length === TASKS_PAGE;
+  if (_tasksMore) tasksLoadRest(wsId);   // ⚠️ await YO'Q — fonda davom etadi
+  tasksChip();
+}
+
+// Qolgan sahifalarni fonda yuklaydi. Ilovani BLOKLAMAYDI.
+async function tasksLoadRest(wsId) {
+  if (_tasksLoadingRest) return;
+  _tasksLoadingRest = true;
+  tasksChip();
+  try {
+    while (_tasksMore) {
+      if (!currentWs || currentWs.id !== wsId) break;          // ws almashdi — to'xtaymiz
+      if (_tasksOffset >= TASKS_MAX) {
+        _tasksMore = false;
+        console.error('tasksLoadRest: ' + TASKS_MAX + ' chegarasiga yetildi, qolgani yuklanmadi');
+        toast('⚠️ ' + TASKS_MAX + ' ta vazifa yuklandi — qolgani ko\'rsatilmadi. Filtr yoki qidiruvdan foydalaning.', 'err');
+        break;
+      }
+      const { data, error } = await tasksQuery(_tasksOffset, _tasksOffset + TASKS_PAGE - 1);
+      if (error) { loadTasksErr('Qolgan vazifalar yuklanmadi', error); break; }
+      if (!currentWs || currentWs.id !== wsId) break;
+      const rows = data || [];
+      _tasksOffset += rows.length;
+      // Realtime shu orada qator qo'shgan bo'lishi mumkin — id bo'yicha dublikatsiz
+      const have = new Set(tasksCache.map(function (t) { return t.id; }));
+      rows.forEach(function (r) { if (!have.has(r.id)) tasksCache.push(r); });
+      _tasksMore = rows.length === TASKS_PAGE;
+      tasksChip();
+      refreshActiveView();
+    }
+  } finally {
+    _tasksLoadingRest = false;
+    tasksChip();
+  }
+}
+
+// Fonda yuklash jarayoni — kichik chip (yuklash tugagach o'zi yo'qoladi)
+function tasksChip() {
+  let el = document.getElementById('tskChip');
+  if (!_tasksLoadingRest || !_tasksMore) { if (el) el.remove(); return; }
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'tskChip';
+    el.className = 'tsk-chip';
+    document.body.appendChild(el);
+  }
+  el.textContent = '⏳ Vazifalar yuklanmoqda… ' + tasksCache.length;
 }
 
 function renderSidebar() {
