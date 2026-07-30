@@ -7,7 +7,7 @@ Har testdan keyin natijani menga bering, oxirida 4-bo'lim (xulosa) yoziladi.
 |---|---|---|---|
 | 1. Sahifa ochilish tezligi | `index.html` ichida `pf*` (o'chiq turadi) | **yo'q** — faqat o'lchov | 10 daq |
 | 2. Yuklama (10/50/100/500) | `stress_test.js` | **bor** — prod Supabase'ga yuk | 5 daq |
-| 3. Hajm (1k/10k/50k) | `TASKFIX_STRESS_VOLUME.sql` + `..._CLEANUP.sql` | **bor** — prod bazaga yozadi (alohida ws) | 15 daq |
+| 3. Hajm (1k/10k/50k) | `TASKFIX_STRESS_SMOKE.sql` → `..._VOLUME.sql` → `..._CLEANUP.sql` | **bor** — prod bazaga yozadi (alohida ws) | 15 daq |
 
 > ⚠️ 2 va 3 — prod loyihada. **Ish vaqtidan tashqarida** (kechqurun) ishga tushiring.
 > 3-testdan keyin `TASKFIX_STRESS_CLEANUP.sql` ni **albatta** ishga tushiring.
@@ -66,6 +66,10 @@ node stress_test.js --yes --anon
 
 ## 3-test — hajm
 
+0. **AVVAL `TASKFIX_STRESS_SMOKE.sql`** — 10 qatorlik sinov (2 soniya).
+   Volume faylidagi INSERT'ning **aynan o'zini** 10 qator bilan sinaydi, 10 qatorni
+   ko'rsatadi va **o'sha zahoti o'chiradi** (iz qolmaydi). Sintaksis/tip xatolari
+   shu yerda chiqadi — 50k qator kutmasdan. Jadval chiqsa, 1-qadamga o'ting.
 1. `TASKFIX_STRESS_VOLUME.sql` — Supabase SQL Editor'da RUN.
    - Alohida test ws yaratadi (`ZZZ STRESS TEST — o'chirish uchun`), 1k → 10k → 50k
      vazifa qo'shadi, har hajmda 7 ta haqiqiy so'rovni `EXPLAIN ANALYZE` bilan o'lchaydi.

@@ -101,19 +101,32 @@ BEGIN
 
     IF v_need > 0 THEN
       RAISE NOTICE '→ % ta vazifa qo''shilmoqda (hozir %, kerak %)...', v_need, v_have, v_vol;
+      -- ⚠️ TIP MASALASI: generate_series(bigint, bigint) → g BIGINT.
+      --    Shu sababli avvalgi variant yiqilgan edi:
+      --      repeat('...', 1 + (g % 5))        → repeat(text, INTEGER) kutadi,
+      --                                          bigint bilan mos funksiya yo'q
+      --      (ARRAY[...])[1 + (g % 4)]         → massiv indeksi INTEGER bo'lishi kerak
+      --      (g % 120) * interval '1 day'      → bigint * interval operatori yo'q
+      --    Endi: massiv indekslash umuman ishlatilmaydi (CASE), har bir
+      --    arifmetika ::int ga keltirilgan, interval make_interval() bilan.
       INSERT INTO public.tasks (workspace_id, title, description, status, priority_level,
                                 created_by, assigned_to, deadline, created_at)
       SELECT
         v_ws,
-        'Stress test vazifa #' || g || ' ' || substr(md5(g::text), 1, 8),
-        'Avtomatik hosil qilingan test ma''lumot. ' || repeat('lorem ipsum ', 1 + (g % 5)),
-        (ARRAY['new','in_progress','completed','qabul_kutilyapti'])[1 + (g % 4)],
-        g % 11,
+        'Stress test vazifa #' || g::text || ' ' || substr(md5(g::text), 1, 8),
+        'Avtomatik hosil qilingan test ma''lumot ' || substr(md5((g * 7)::text), 1, 24),
+        CASE (g % 4)::int
+          WHEN 0 THEN 'new'
+          WHEN 1 THEN 'in_progress'
+          WHEN 2 THEN 'completed'
+          ELSE 'qabul_kutilyapti'
+        END,
+        (g % 11)::int,
         v_owner,
-        CASE WHEN g % 3 = 0 THEN v_owner ELSE NULL END,
-        now() + ((g % 120) - 60) * interval '1 day',
-        now() - (g % 365) * interval '1 day'
-      FROM generate_series(v_have + 1, v_vol) AS g;
+        CASE WHEN (g % 3)::int = 0 THEN v_owner ELSE NULL END,
+        now() + make_interval(days => ((g % 120) - 60)::int),
+        now() - make_interval(days => (g % 365)::int)
+      FROM generate_series((v_have + 1)::bigint, v_vol::bigint) AS s(g);
     END IF;
 
     -- Rejalashtiruvchi yangi hajmni ko'rishi uchun
