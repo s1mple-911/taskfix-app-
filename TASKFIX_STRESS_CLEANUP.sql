@@ -53,17 +53,35 @@ BEGIN
      OR EXISTS (SELECT 1 FROM public.workspaces WHERE id = v_ws) THEN
     RAISE EXCEPTION 'Tozalash to''liq bo''lmadi — qo''lda tekshiring';
   END IF;
-  RAISE NOTICE '✅ Tozalandi. Endi VACUUM ANALYZE (pastda).';
+  RAISE NOTICE '✅ Tozalandi. Statistika ANALYZE bilan tiklanadi (pastda).';
 END
 $cleanup$;
 
--- ⚠️ VACUUM tranzaksiya ichida ishlamaydi — ALOHIDA ishga tushiring.
---    50k qator o'chgandan keyin statistikani tiklaydi (prod so'rovlari
---    eskirgan statistika bilan noto'g'ri rejalashtirilmasin).
-VACUUM ANALYZE public.tasks;
+-- ── Statistikani tiklash ────────────────────────────────────────────────────
+-- ⚠️ Bu yerda ANALYZE (VACUUM EMAS). Supabase SQL Editor butun skriptni BITTA
+--    tranzaksiyada bajaradi, VACUUM esa tranzaksiya ichida ishlay olmaydi
+--    (25001). Avval shu yerda VACUUM ANALYZE turgan edi va u butun skriptni
+--    yiqitardi — o'chirishlar ham ORQAGA QAYTARDI.
+--    ANALYZE tranzaksiya ichida bemalol ishlaydi va bizga kerak bo'lgan
+--    narsani (rejalashtiruvchi statistikasi) aynan o'zi tiklaydi.
+--    Bo'sh joyni qaytarish (VACUUM) shart emas — autovacuum o'zi qiladi.
+ANALYZE public.tasks;
 
 -- Nazorat (0 qaytishi kerak)
 SELECT
   (SELECT count(*) FROM public.tasks WHERE workspace_id = 'a57e5511-0000-4d00-9000-000057e55001') AS qolgan_vazifa,
   (SELECT count(*) FROM public.workspaces WHERE id = 'a57e5511-0000-4d00-9000-000057e55001') AS qolgan_ws,
   (SELECT count(*) FROM public.tasks) AS jami_vazifa_prod;
+
+-- ============================================================================
+-- IXTIYORIY: bo'sh joyni diskka qaytarish
+-- ============================================================================
+-- Yuqoridagi skript ishlagach, XOHLASANGIZ quyidagi qatorni ALOHIDA ishga
+-- tushiring — FAQAT SHU QATORNI belgilab (select qilib) RUN bosing, aks holda
+-- yana "VACUUM cannot run inside a transaction block" (25001) chiqadi:
+--
+--   VACUUM (ANALYZE) public.tasks;
+--
+-- Shart emas: autovacuum bir necha daqiqada o'zi bajaradi. Statistikani esa
+-- yuqoridagi ANALYZE allaqachon tikladi.
+-- ============================================================================
