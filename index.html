@@ -4336,6 +4336,7 @@ async function notifyN8n(event, payload) {
 }
 
 async function bootstrap() {
+  pfStart('boot (login → ilova)');   // perf o'lchov (perf=1 bo'lsa; aks holda no-op)
   showLoading(); // qayta urinishda ham loading ko'rinsin
 
   // ── 1) Foydalanuvchi ──
@@ -5077,6 +5078,7 @@ function toggleTgSidebar() {
 }
 
 function goPage(p) {
+  pfStart('page:' + p);   // perf o'lchov oynasi (perf=1 bo'lsa; aks holda no-op)
   // Rol himoyasi: oddiy a'zo faqat ruxsat etilgan sahifalarga kira oladi
   const managerOnlyPages = ['stats', 'orgchart', 'integrations', 'tgusers', 'branches', 'positions', 'settings', 'logs', 'botsettings', 'botcommands'];
   if (managerOnlyPages.includes(p) && !isOwnerLike()) {
@@ -15507,7 +15509,274 @@ function gsKey(e) {
 }
 
 
+// ============ PERFORMANCE O'LCHOV (pf*) — BRIEF_TASKFIX_STRESS, 1-test ============
+// ⚠️ SUKUT BO'YICHA O'CHIQ. Yoqilmagan bo'lsa fetch ham o'ralmaydi —
+//    prod foydalanuvchiga ta'siri NOL (bitta localStorage o'qishdan boshqa).
+//
+// YOQISH:    URL'ga ?perf=1 qo'shing  YOKI konsolda pfEnable()
+// O'CHIRISH: pfDisable()
+// KO'RISH:   pfReport() — konsol jadvali · pfPanel() — ekranda panel
+//            pfDetail(n) — bitta sahifaning waterfall'i · pfExport() — markdown (clipboard)
+//
+// QANDAY ISHLAYDI: window.fetch o'raladi va Supabase'ga ketgan HAR so'rov
+// yoziladi (jadval, usul, boshlanish/tugash, davomiylik, status, qator).
+// goPage() chaqirilganda yangi "oyna" ochiladi, tarmoq PF_IDLE ms jim
+// turganda yopiladi. Shundan hisoblanadi:
+//   • so'rov soni
+//   • jami vaqt (bosishdan oxirgi javobgacha)
+//   • eng sekin so'rov
+//   • TO'LQIN soni — ENG MUHIM ko'rsatkich: bir-birini kutgan bosqichlar.
+//     1 to'lqin = hammasi parallel. N to'lqin = N marta ketma-ket kutish.
+//   • parallellik = Σ(so'rov vaqti) / (real o'tgan vaqt). 1.0× = to'liq ketma-ket.
+const PF_IDLE = 500;       // tarmoq shuncha ms jim tursa — sahifa yuklandi
+const PF_MAXWIN = 20000;   // himoya: bitta oyna eng ko'pi shuncha ms
+const PF = { on: false, ready: false, win: null, pages: [], inflight: 0, idleT: null, hardT: null, panel: null };
+
+function pfWanted() {
+  try {
+    if (/[?&#]perf=1/.test(location.href)) return true;
+    return localStorage.getItem('tfPerf') === '1';
+  } catch (e) { return false; }
+}
+function pfEnable()  { try { localStorage.setItem('tfPerf', '1'); } catch (e) {} location.reload(); }
+function pfDisable() { try { localStorage.removeItem('tfPerf'); } catch (e) {} location.reload(); }
+
+function pfKind(u) {
+  if (u.indexOf('/rest/v1/rpc/') !== -1) return 'rpc';
+  if (u.indexOf('/rest/v1/') !== -1) return 'rest';
+  if (u.indexOf('/auth/v1/') !== -1) return 'auth';
+  if (u.indexOf('/storage/v1/') !== -1) return 'storage';
+  if (u.indexOf('/functions/v1/') !== -1) return 'fn';
+  return 'other';
+}
+function pfTable(u) {
+  let m = u.match(/\/rest\/v1\/rpc\/([^?/]+)/); if (m) return 'rpc:' + m[1];
+  m = u.match(/\/rest\/v1\/([^?/]+)/);          if (m) return m[1];
+  m = u.match(/\/(auth|storage|functions)\/v1\/([^?]*)/);
+  if (m) return m[1] + ':' + (m[2] || '').split('/')[0];
+  return '?';
+}
+// content-range: "0-99/*" → 100 qator
+function pfRows(cr) {
+  if (!cr) return null;
+  const m = String(cr).match(/^(\d+)-(\d+)/);
+  return m ? (parseInt(m[2], 10) - parseInt(m[1], 10) + 1) : 0;
+}
+
+function pfInit() {
+  if (PF.ready) return;
+  PF.ready = true;
+  PF.on = pfWanted();
+  if (!PF.on) return;                       // ← o'chiq bo'lsa fetch TEGILMAYDI
+  const orig = window.fetch.bind(window);
+  window.fetch = function (input, opts) {
+    const url = (typeof input === 'string') ? input : ((input && input.url) || '');
+    if (!PF.on || url.indexOf(SUPABASE_URL) !== 0) return orig(input, opts);
+    const rec = {
+      url: url, method: (opts && opts.method) || (input && input.method) || 'GET',
+      kind: pfKind(url), table: pfTable(url),
+      t0: performance.now(), t1: 0, dur: 0, status: 0, rows: null,
+      win: PF.win                            // so'rov BOSHLANGAN oynaga tegishli
+    };
+    PF.inflight++;
+    const fin = function (res, err) {
+      rec.t1 = performance.now();
+      rec.dur = rec.t1 - rec.t0;
+      if (res) {
+        rec.status = res.status;
+        try { rec.rows = pfRows(res.headers && res.headers.get && res.headers.get('content-range')); } catch (e) {}
+      }
+      if (err) { rec.status = -1; rec.err = String((err && err.message) || err); }
+      PF.inflight--;
+      if (rec.win) rec.win.reqs.push(rec);
+      pfTouchIdle();
+    };
+    return orig(input, opts).then(
+      function (r) { fin(r, null); return r; },
+      function (e) { fin(null, e); throw e; }
+    );
+  };
+  console.log('%c⏱ TaskFix perf o\'lchov YOQILGAN', 'background:#FEF3C7;color:#854D0E;padding:2px 8px;border-radius:4px;font-weight:700;');
+  console.log('   pfReport() · pfPanel() · pfDetail(n) · pfExport() · pfDisable()');
+  setTimeout(pfButton, 1500);
+}
+
+function pfTouchIdle() {
+  if (!PF.win) return;
+  clearTimeout(PF.idleT);
+  PF.idleT = setTimeout(function () {
+    if (PF.inflight === 0) pfFinish(false); else pfTouchIdle();
+  }, PF_IDLE);
+}
+
+// Yangi o'lchov oynasi (sahifa ochilishi)
+function pfStart(label) {
+  if (!PF.on) return;
+  if (PF.win) pfFinish(true);              // oldingisi tugamagan bo'lsa — kesib yopamiz
+  PF.win = { label: label, t0: performance.now(), reqs: [] };
+  clearTimeout(PF.hardT);
+  PF.hardT = setTimeout(function () { pfFinish(true); }, PF_MAXWIN);
+  pfTouchIdle();
+}
+
+// Ustma-ust tushmaydigan "to'lqin"lar soni = ketma-ket bosqichlar soni.
+// ⚠️ Ketma-ket so'rovda keyingisi oldingisi TUGAGAN payt boshlanadi (t0 ≈ prev t1).
+//    Shuning uchun "tegib turish" ustma-ust deb hisoblanmaydi: yangi to'lqin
+//    so'rov joriy to'lqin oxiridan PF_OVERLAP ms oldin boshlanmasa ochiladi.
+//    (Bu chegara bo'lmasa 3 ta ketma-ket so'rov 1 to'lqin bo'lib ko'rinardi.)
+const PF_OVERLAP = 5;
+function pfWaves(reqs) {
+  const iv = reqs.map(function (r) { return [r.t0, r.t1]; }).sort(function (a, b) { return a[0] - b[0]; });
+  let waves = 0, curEnd = -Infinity;
+  iv.forEach(function (p) {
+    if (p[0] >= curEnd - PF_OVERLAP) { waves++; curEnd = p[1]; }   // haqiqiy ustma-ustlik yo'q → yangi to'lqin
+    else if (p[1] > curEnd) { curEnd = p[1]; }
+  });
+  return waves;
+}
+
+function pfFinish(cut) {
+  const w = PF.win;
+  if (!w) return;
+  PF.win = null;
+  clearTimeout(PF.idleT); clearTimeout(PF.hardT);
+  const rs = w.reqs;
+  const row = { sahifa: w.label, sorov: rs.length, tolqin: 0, jami_ms: 0, sorov_ms: 0, eng_sekin: '—', parallel: '—', _reqs: rs, _t0: w.t0 };
+  if (rs.length) {
+    let first = Infinity, last = -Infinity, sum = 0, slow = rs[0];
+    rs.forEach(function (r) {
+      if (r.t0 < first) first = r.t0;
+      if (r.t1 > last) last = r.t1;
+      sum += r.dur;
+      if (r.dur > slow.dur) slow = r;
+    });
+    row.tolqin = pfWaves(rs);
+    row.jami_ms = Math.round(last - w.t0);
+    row.sorov_ms = Math.round(sum);
+    row.eng_sekin = slow.table + ' ' + Math.round(slow.dur) + 'ms';
+    row.parallel = (sum / Math.max(1, last - first)).toFixed(1) + '×';
+  } else {
+    row.jami_ms = Math.round(performance.now() - w.t0);
+  }
+  if (cut) row.sahifa += ' (kesilgan)';
+  PF.pages.push(row);
+  if (PF.panel) pfPanelRender();
+}
+
+function pfRowsPublic() {
+  return PF.pages.map(function (p, i) {
+    return { '#': i, sahifa: p.sahifa, sorov: p.sorov, tolqin: p.tolqin,
+             jami_ms: p.jami_ms, sorov_ms: p.sorov_ms, eng_sekin: p.eng_sekin, parallel: p.parallel };
+  });
+}
+function pfReport() {
+  if (!PF.on) { console.warn('perf o\'chiq — pfEnable() qiling'); return []; }
+  const rows = pfRowsPublic();
+  console.table(rows);
+  console.log('to\'lqin = ketma-ket bosqich soni (1 = hammasi parallel, ko\'p = sekinlik sababi)');
+  console.log('pfDetail(#) — bitta sahifaning waterfall\'i');
+  return rows;
+}
+
+// Bitta sahifaning so'rovlari + ASCII waterfall
+function pfDetail(i) {
+  const p = PF.pages[i];
+  if (!p) { console.warn('bunday sahifa yo\'q: ' + i); return; }
+  console.log('%c' + p.sahifa + ' — ' + p.sorov + ' so\'rov, ' + p.tolqin + ' to\'lqin, ' + p.jami_ms + 'ms',
+    'background:#FEF3C7;color:#854D0E;padding:2px 8px;border-radius:4px;font-weight:700;');
+  console.log(pfWaterfall(p));
+}
+function pfWaterfall(p) {
+  const rs = p._reqs.slice().sort(function (a, b) { return a.t0 - b.t0; });
+  if (!rs.length) return '(so\'rov yo\'q)';
+  const t0 = p._t0, span = Math.max(1, Math.max.apply(null, rs.map(function (r) { return r.t1; })) - t0);
+  const W = 56;
+  return rs.map(function (r) {
+    const s = Math.round((r.t0 - t0) / span * W);
+    const e = Math.max(s + 1, Math.round((r.t1 - t0) / span * W));
+    const bar = ' '.repeat(s) + '█'.repeat(e - s);
+    const nm = (r.method + ' ' + r.table).slice(0, 26).padEnd(26);
+    const ms = String(Math.round(r.dur)).padStart(5) + 'ms';
+    const rw = r.rows == null ? '' : ('  ' + r.rows + ' qator');
+    const st = (r.status >= 400 || r.status === -1) ? ('  ⚠ ' + r.status) : '';
+    return nm + ms + ' |' + bar.padEnd(W) + '|' + rw + st;
+  }).join('\n');
+}
+
+// Markdown — natijani menga yuborish uchun (clipboard'ga ham nusxalanadi)
+function pfExport() {
+  const rows = pfRowsPublic();
+  let md = '| # | Sahifa | So\'rov | To\'lqin | Jami ms | Σ so\'rov ms | Eng sekin | Parallellik |\n';
+  md += '|---|--------|--------|---------|---------|-------------|-----------|-------------|\n';
+  rows.forEach(function (r) {
+    md += '| ' + r['#'] + ' | ' + r.sahifa + ' | ' + r.sorov + ' | ' + r.tolqin + ' | ' +
+          r.jami_ms + ' | ' + r.sorov_ms + ' | ' + r.eng_sekin + ' | ' + r.parallel + ' |\n';
+  });
+  md += '\n';
+  PF.pages.forEach(function (p, i) {
+    md += '\n### ' + i + '. ' + p.sahifa + '\n```\n' + pfWaterfall(p) + '\n```\n';
+  });
+  try { navigator.clipboard.writeText(md); console.log('✓ markdown clipboard\'ga nusxalandi'); }
+  catch (e) { console.log('clipboard ishlamadi — quyidagini qo\'lda nusxalang'); }
+  console.log(md);
+  return md;
+}
+function pfClear() { PF.pages = []; if (PF.panel) pfPanelRender(); }
+
+// ---- Ekrandagi panel ----
+function pfButton() {
+  if (!PF.on || document.getElementById('pfBtn')) return;
+  const b = document.createElement('button');
+  b.id = 'pfBtn';
+  b.textContent = '⏱';
+  b.title = 'Perf o\'lchov';
+  b.setAttribute('style', 'position:fixed;left:14px;bottom:14px;z-index:9400;width:40px;height:40px;border-radius:50%;border:1px solid #C8C5BA;background:#FEF3C7;color:#854D0E;font-size:18px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.18);');
+  b.onclick = pfPanel;
+  document.body.appendChild(b);
+}
+function pfPanel() {
+  if (PF.panel) { PF.panel.remove(); PF.panel = null; return; }
+  const d = document.createElement('div');
+  d.id = 'pfPanel';
+  d.setAttribute('style', 'position:fixed;left:14px;bottom:64px;z-index:9400;width:min(760px,calc(100vw - 28px));max-height:70vh;overflow:auto;background:#fff;border:1px solid #C8C5BA;border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.25);padding:14px;font-size:12px;');
+  document.body.appendChild(d);
+  PF.panel = d;
+  pfPanelRender();
+}
+function pfPanelRender() {
+  const d = PF.panel; if (!d) return;
+  const rows = pfRowsPublic();
+  let h = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">' +
+    '<b style="font-size:14px;">⏱ Sahifa o\'lchovi</b>' +
+    '<span style="color:#6B7280;">to\'lqin = ketma-ket bosqich</span>' +
+    '<span style="margin-left:auto;display:flex;gap:6px;">' +
+      '<button id="pfCopy" style="padding:5px 10px;border:1px solid #C8C5BA;border-radius:8px;background:#FEF3C7;color:#854D0E;cursor:pointer;font-weight:600;">Nusxa (markdown)</button>' +
+      '<button id="pfClr" style="padding:5px 10px;border:1px solid #C8C5BA;border-radius:8px;background:#F3F1EA;cursor:pointer;">Tozalash</button>' +
+      '<button id="pfCls" style="padding:5px 10px;border:1px solid #C8C5BA;border-radius:8px;background:#F3F1EA;cursor:pointer;">Yopish</button>' +
+    '</span></div>';
+  if (!rows.length) {
+    h += '<div style="color:#6B7280;padding:10px 0;">Hali o\'lchov yo\'q — sahifalarni aylanib chiqing.</div>';
+  } else {
+    h += '<table style="width:100%;border-collapse:collapse;"><tr style="text-align:left;color:#6B7280;">' +
+      '<th>#</th><th>Sahifa</th><th>So\'rov</th><th>To\'lqin</th><th>Jami</th><th>Eng sekin</th><th>Par.</th></tr>';
+    rows.forEach(function (r) {
+      const warn = r.tolqin >= 3;
+      h += '<tr style="border-top:1px solid #E5E2D8;' + (warn ? 'background:#FEE2E2;' : '') + '">' +
+        '<td>' + r['#'] + '</td><td>' + escapeHtml(r.sahifa) + '</td><td>' + r.sorov + '</td>' +
+        '<td style="' + (warn ? 'font-weight:700;color:#B91C1C;' : '') + '">' + r.tolqin + '</td>' +
+        '<td>' + r.jami_ms + 'ms</td><td>' + escapeHtml(r.eng_sekin) + '</td><td>' + r.parallel + '</td></tr>';
+    });
+    h += '</table>';
+    h += '<div style="margin-top:8px;color:#6B7280;">Qizil qator = 3+ to\'lqin (ketma-ket so\'rov — asosiy sekinlik nomzodi). Batafsil: konsolda <code>pfDetail(#)</code></div>';
+  }
+  d.innerHTML = h;
+  d.querySelector('#pfCopy').onclick = pfExport;
+  d.querySelector('#pfClr').onclick = pfClear;
+  d.querySelector('#pfCls').onclick = pfPanel;
+}
+
 async function init() {
+  pfInit();   // ⚠️ createClient'dan OLDIN — fetch o'ralishi kerak (perf=1 bo'lsa)
   console.log('%cTaskFix build: 2026-07-06-planner+jadval', 'color:#0F1417;background:#FEF3C7;padding:2px 8px;border-radius:4px;font-weight:700;');
   // CDN guard: supabase-js yuklanmagan bo'lsa (O'zbekistonda CDN beqaror — ERR_CONNECTION_CLOSED),
   // cheksiz "Yuklanmoqda…" o'rniga aniq xabar + sahifani qayta yuklash tugmasi.
