@@ -985,6 +985,67 @@
   .ui-btn-danger:hover { filter:brightness(1.08); }
   .dl-chip { padding:5px 11px; border:1px solid var(--line); border-radius:99px; background:var(--surface); font-size:12px; color:var(--muted); cursor:pointer; font-family:inherit; transition:all .12s; }
   .dl-chip:hover { border-color:var(--accent-ink); color:var(--accent-ink); background:var(--accent); }
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     KICHIK EKRANLI KOMPYUTER (1024 / 1280 / 1366)
+     ═══════════════════════════════════════════════════════════════════════
+     ⚠️ ASOSIY TUZATISH — `.main { min-width: 0 }`.
+        `.app.show` grid'ining o'ng track'i `1fr`, lekin grid track'ning
+        `min-width` i sukut bo'yicha `auto` — ya'ni KONTENTDAN kichik
+        bo'lolmaydi. Shu sababli kanban (5 ustun × 280px), keng jadval yoki
+        planner tarmog'i o'ng ustunni CHO'ZIB yuborardi va BUTUN SAHIFA
+        gorizontal scroll bo'lardi ("ilovaning yarmi ko'rinmaydi, surib
+        ko'rishga majbur"). min-width:0 bilan track sidebar'dan qolgan
+        joyga sig'adi va keng kontent O'Z idishida scroll bo'ladi
+        (.kanban / .tbl-wrap / .pln-cal — ularda allaqachon overflow:auto).
+        O'lchov (1024px): oldin scrollWidth 1752 / clientWidth 1014 →
+        keyin 1014 / 1014.
+     ⚠️ Bu blok ATAYLAB stylesheet OXIRIDA: media query o'ziga xoslik
+        (specificity) qo'shmaydi, shuning uchun .kan-col / .pln-grid kabi
+        asosiy qoidalardan KEYIN turishi shart — aks holda ular buni bosadi.
+     ⚠️ min-width chegaralari ham ataylab: 980px/880px dagi mavjud mobil
+        qoidalar (kanban ustma-ust, sidebar gorizontal) buzilmasin.        */
+  .main { min-width: 0; }
+
+  /* 1366–1440: faqat chekka bo'shliqni qisqartiramiz */
+  @media (min-width: 881px) and (max-width: 1440px) {
+    .topbar { padding: 0 22px; }
+    .main > section { padding: 24px 22px 34px; }
+  }
+
+  /* 1024–1280: ustunlar torayadi, sarlavha kichrayadi, dashboard 1 ustun */
+  @media (min-width: 981px) and (max-width: 1280px) {
+    .topbar { padding: 0 16px; gap: 10px; }
+    .main > section { padding: 20px 16px 30px; }
+    .h2 { font-size: 21px; margin-bottom: 16px; }
+    .kan-col { flex: 0 0 252px; min-width: 252px; }
+    .pln-grid { grid-template-columns: 48px repeat(7, minmax(96px, 1fr)); }
+    .stat-grid { grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 10px; }
+    #dashSplit { grid-template-columns: 1fr !important; }
+    .intg-grid, .prj-grid, .prj-par { grid-template-columns: repeat(auto-fill, minmax(238px, 1fr)); }
+    .hr-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  }
+
+  /* 1024–1180: kanban yana bir oz torayadi (3 ustun sig'sin) */
+  @media (min-width: 981px) and (max-width: 1180px) {
+    .kan-col { flex: 0 0 236px; min-width: 236px; }
+  }
+
+  /* Planner: yon panel + kalendar yonma-yon 1180px dan tor ekranga sig'maydi
+     (280 + 16 + 56 + 7×120 = 1192px) — ustma-ust qo'yamiz. */
+  @media (max-width: 1180px) {
+    .pln-layout { grid-template-columns: 1fr; }
+    .pln-side { position: static; }
+  }
+
+  /* Past ekran (masalan 1366×768 noutbuk): kanban/jadval vertikal
+     scrollga majburlamasin — min-height 500px shunday qilardi. */
+  @media (max-height: 780px) {
+    .kanban { height: calc(100vh - 190px); min-height: 340px; }
+    .tbl-wrap { max-height: calc(100vh - 210px); }
+    .pln-cal { max-height: calc(100vh - 160px); }
+    .pln-side-list { max-height: calc(100vh - 190px); }
+  }
 </style>
 </head>
 <body>
