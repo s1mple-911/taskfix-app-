@@ -11,17 +11,14 @@
 --         (chunki emailni yuborayotgan mijoz — o'sha a'zoning brauzeri —
 --         yuborishdan OLDIN shu sozlamani tekshiradi).
 --
--- ⚠️ DEFAULT — ATAYLAB "KAM BEZOVTA" (brief: assign + deadline yoniq,
---    qolgani o'chiq). Ya'ni bu fayl ishga tushgandan keyin:
---      • biriktirildi (assign)      → email KETADI     (avvalgidek)
---      • qabul qiluvchi tayinlandi  → email KETADI     (avvalgidek)
---      • deadline                   → yoniq (zaxira — hozir yuboruvchi yo'q)
---      • HOLAT o'zgardi / bajarildi → email KETMAYDI   ⬅ O'ZGARISH
---      • vazifa yaratildi           → o'chiq (hozir yuboruvchi yo'q)
---      • izoh                       → o'chiq (hozir yuboruvchi yo'q)
---    Hammasi yoniq bo'lishini istasangiz — pastdagi "HAMMASI YONIQ"
---    bo'limidagi UPDATE ni ishga tushiring, yoki ilovada Sozlamalar →
---    "Email bildirishnomalari" bo'limidan yoqing.
+-- ⚠️ DEFAULT — HAMMASI O'CHIQ (false). Ya'ni bu fayl ishga tushgandan
+--    keyin ilova HECH QANDAY bildirishnoma emaili yubormaydi:
+--      • biriktirildi (assign)      → email KETMAYDI   ⬅ O'ZGARISH
+--      • qabul qiluvchi tayinlandi  → email KETMAYDI   ⬅ O'ZGARISH
+--      • holat o'zgardi / bajarildi → email KETMAYDI   ⬅ O'ZGARISH
+--      • vazifa yaratildi / izoh / deadline → o'chiq (baribir yuboruvchi yo'q)
+--    Admin kerakli amalni ilovada YOQADI: Sozlamalar →
+--    "Email bildirishnomalari" (faqat owner/admin).
 --
 -- ⚠️ BU FAYL ISHGA TUSHMASA — ilova YIQILMAYDI. Mijoz jadvalni topa
 --    olmasa "hammasi yoniq" deb hisoblaydi, ya'ni AVVALGI xatti-harakat
@@ -60,17 +57,17 @@ END $$;
 CREATE TABLE IF NOT EXISTS public.workspace_settings (
   workspace_id          uuid PRIMARY KEY REFERENCES public.workspaces(id) ON DELETE CASCADE,
 
+  -- ⚠️ HAMMASI DEFAULT false — admin ilovadan o'zi yoqadi.
   -- Ilova HOZIR shu 3 tasini ishlatadi (index.html → emailNotify):
-  email_on_assign       boolean NOT NULL DEFAULT true,   -- 'task_assigned'
-  email_on_acceptor     boolean NOT NULL DEFAULT true,   -- 'task_acceptor'
+  email_on_assign       boolean NOT NULL DEFAULT false,  -- 'task_assigned'
+  email_on_acceptor     boolean NOT NULL DEFAULT false,  -- 'task_acceptor'
   email_on_status       boolean NOT NULL DEFAULT false,  -- 'task_completed' (holat o'zgardi)
 
   -- Zaxira: hozir mijozda email yuboruvchi yo'q (Telegram/ilova ichida bor).
-  -- Sozlama baribir saqlanadi va n8n webhook payload'iga qo'shiladi — n8n
-  -- yoki kelajakdagi Edge Function shu bayroqqa qarab shoxlanadi.
+  -- Sozlama baribir saqlanadi va n8n webhook payload'iga qo'shiladi.
   email_on_task_create  boolean NOT NULL DEFAULT false,
   email_on_comment      boolean NOT NULL DEFAULT false,
-  email_on_deadline     boolean NOT NULL DEFAULT true,
+  email_on_deadline     boolean NOT NULL DEFAULT false,
 
   updated_at            timestamptz NOT NULL DEFAULT now(),
   updated_by            uuid
@@ -78,14 +75,23 @@ CREATE TABLE IF NOT EXISTS public.workspace_settings (
 
 -- Qayta ishga tushirilganda (jadval avval boshqa/kamroq ustun bilan
 -- yaratilgan bo'lsa) — yetishmayotganini qo'shamiz.
-ALTER TABLE public.workspace_settings ADD COLUMN IF NOT EXISTS email_on_assign      boolean NOT NULL DEFAULT true;
-ALTER TABLE public.workspace_settings ADD COLUMN IF NOT EXISTS email_on_acceptor    boolean NOT NULL DEFAULT true;
+ALTER TABLE public.workspace_settings ADD COLUMN IF NOT EXISTS email_on_assign      boolean NOT NULL DEFAULT false;
+ALTER TABLE public.workspace_settings ADD COLUMN IF NOT EXISTS email_on_acceptor    boolean NOT NULL DEFAULT false;
 ALTER TABLE public.workspace_settings ADD COLUMN IF NOT EXISTS email_on_status      boolean NOT NULL DEFAULT false;
 ALTER TABLE public.workspace_settings ADD COLUMN IF NOT EXISTS email_on_task_create boolean NOT NULL DEFAULT false;
 ALTER TABLE public.workspace_settings ADD COLUMN IF NOT EXISTS email_on_comment     boolean NOT NULL DEFAULT false;
-ALTER TABLE public.workspace_settings ADD COLUMN IF NOT EXISTS email_on_deadline    boolean NOT NULL DEFAULT true;
+ALTER TABLE public.workspace_settings ADD COLUMN IF NOT EXISTS email_on_deadline    boolean NOT NULL DEFAULT false;
 ALTER TABLE public.workspace_settings ADD COLUMN IF NOT EXISTS updated_at           timestamptz NOT NULL DEFAULT now();
 ALTER TABLE public.workspace_settings ADD COLUMN IF NOT EXISTS updated_by           uuid;
+
+-- Ustun avval boshqa default bilan yaratilgan bo'lsa — default'ni ham
+-- tuzatamiz (ADD COLUMN IF NOT EXISTS mavjud ustunga tegmaydi).
+ALTER TABLE public.workspace_settings ALTER COLUMN email_on_assign      SET DEFAULT false;
+ALTER TABLE public.workspace_settings ALTER COLUMN email_on_acceptor    SET DEFAULT false;
+ALTER TABLE public.workspace_settings ALTER COLUMN email_on_status      SET DEFAULT false;
+ALTER TABLE public.workspace_settings ALTER COLUMN email_on_task_create SET DEFAULT false;
+ALTER TABLE public.workspace_settings ALTER COLUMN email_on_comment     SET DEFAULT false;
+ALTER TABLE public.workspace_settings ALTER COLUMN email_on_deadline    SET DEFAULT false;
 
 COMMENT ON TABLE  public.workspace_settings IS
   'Workspace darajasidagi sozlamalar. Hozircha: qaysi amalda email bildirishnoma ketishi. Yozish — faqat owner/admin, o''qish — hamma a''zo (mijoz email yuborishdan oldin tekshiradi).';
@@ -143,6 +149,22 @@ INSERT INTO public.workspace_settings (workspace_id)
 SELECT w.id FROM public.workspaces w
 ON CONFLICT (workspace_id) DO NOTHING;
 
+-- Agar bu fayl AVVALGI (ba'zi bayroqlari true bo'lgan) versiyada allaqachon
+-- ishga tushirilgan bo'lsa — o'sha qatorlarni ham o'chiramiz.
+-- ⚠️ `updated_by IS NULL` sharti MUHIM: ilovadagi emailSetSave() saqlaganda
+--    DOIM updated_by yozadi. Ya'ni admin UI'dan bir marta saqlagan bo'lsa,
+--    bu skriptni qayta ishga tushirish uning tanlovini O'CHIRMAYDI.
+UPDATE public.workspace_settings SET
+  email_on_assign      = false,
+  email_on_acceptor    = false,
+  email_on_status      = false,
+  email_on_task_create = false,
+  email_on_comment     = false,
+  email_on_deadline    = false
+WHERE updated_by IS NULL
+  AND (email_on_assign OR email_on_acceptor OR email_on_status
+       OR email_on_task_create OR email_on_comment OR email_on_deadline);
+
 -- ── 5) Tekshiruv — jimgina o'tmasin ─────────────────────────────────────────
 DO $$
 DECLARE v_cnt int; v_ws int;
@@ -180,21 +202,44 @@ BEGIN
   END IF;
 
   RAISE NOTICE '✅ workspace_settings tayyor: % ta workspace, RLS yoqiq, % ta policy.', v_ws, v_cnt;
-  RAISE NOTICE '   Default: assign=ON, acceptor=ON, deadline=ON, status=OFF, create=OFF, comment=OFF';
+
+  -- Yoqilgan bayroq qolganini ochiq aytamiz (admin UI'dan yoqqan bo'lishi
+  -- mumkin — bu normal; lekin jimgina o'tib ketmasin).
+  SELECT count(*) INTO v_cnt FROM public.workspace_settings
+   WHERE email_on_assign OR email_on_acceptor OR email_on_status
+      OR email_on_task_create OR email_on_comment OR email_on_deadline;
+  IF v_cnt = 0 THEN
+    RAISE NOTICE '   Default: HAMMASI O''CHIQ — hech qanday email yuborilmaydi.';
+    RAISE NOTICE '   Yoqish: ilovada Sozlamalar → "Email bildirishnomalari" (owner/admin).';
+  ELSE
+    RAISE NOTICE '   % ta workspace''da bildirishnoma YOQILGAN (UI''dan saqlangan — tegilmadi).', v_cnt;
+  END IF;
 END $$;
 
 COMMIT;
 
 -- ============================================================================
--- HAMMASI YONIQ (avvalgi xatti-harakatni tiklash) — ixtiyoriy
+-- YOQISH — ilovadan (tavsiya) yoki SQL bilan
 -- ============================================================================
--- Agar "status o'zgardi" emailini ham qaytarmoqchi bo'lsangiz:
+-- Odatdagi yo'l: ilovada Sozlamalar → "Email bildirishnomalari"
+-- (faqat owner/admin) — kerakli amalni yoqib, "Saqlash".
+--
+-- SQL bilan yoqmoqchi bo'lsangiz (masalan faqat biriktirish emaili):
+--
+--   UPDATE public.workspace_settings
+--      SET email_on_assign = true
+--    WHERE workspace_id = '<workspace uuid>';
+--
+-- Hammasini yoqish (avvalgi xatti-harakat):
 --
 --   UPDATE public.workspace_settings SET
 --     email_on_assign = true, email_on_acceptor = true, email_on_status = true,
---     email_on_task_create = true, email_on_comment = true, email_on_deadline = true;
+--     email_on_task_create = true, email_on_comment = true, email_on_deadline = true
+--   WHERE workspace_id = '<workspace uuid>';
 --
--- Yoki ilovada: Sozlamalar → "Email bildirishnomalari" (faqat owner/admin).
+-- ⚠️ SQL bilan yozsangiz updated_by NULL qoladi — ya'ni bu skriptni QAYTA
+--    ishga tushirsangiz yuqoridagi tozalash UPDATE'i uni o'chirib qo'yadi.
+--    Shu bois yoqishni ilovadan qilgan ma'qul (u updated_by yozadi).
 -- ============================================================================
 
 -- ============================================================================

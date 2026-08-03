@@ -2026,7 +2026,7 @@
       <!-- Email bildirishnomalari — faqat owner/admin ko'radi (loadSettings ochadi) -->
       <div class="settings-section" id="emailSetSection" style="display:none">
         <h3>Email bildirishnomalari</h3>
-        <p class="esn-sub">Qaysi amalda xodimlarga email xat ketishini shu yerdan boshqaring. O'chirilgan amalda email <b>umuman yuborilmaydi</b>. Sozlama butun workspace uchun amal qiladi.</p>
+        <p class="esn-sub">Qaysi amalda xodimlarga email xat ketishini shu yerdan boshqaring. Sukut bo'yicha <b>hammasi o'chiq</b> — kerakligini o'zingiz yoqasiz. O'chirilgan amalda email <b>umuman yuborilmaydi</b>. Sozlama butun workspace uchun amal qiladi.</p>
         <div id="emailSetNote"></div>
         <div id="emailSetList"></div>
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:16px;">
@@ -4491,7 +4491,7 @@ function emailSetRender() {
   if (!isOwnerLike()) { sec.style.display = 'none'; return; }
   sec.style.display = 'block';
 
-  _emailSetDraft = Object.assign(emailSetFallback(), emailSettings || {});
+  _emailSetDraft = Object.assign(emailSetOff(), emailSettings || {});
 
   // Ogohlantirish: jadval yo'q yoki o'qilmadi
   let note = '';
@@ -4538,7 +4538,7 @@ function emailSetRender() {
 }
 
 function emailSetChange(el, key) {
-  if (!_emailSetDraft) _emailSetDraft = emailSetFallback();
+  if (!_emailSetDraft) _emailSetDraft = emailSetOff();
   _emailSetDraft[key] = !!el.checked;
 }
 
@@ -4562,18 +4562,19 @@ async function emailSetSave() {
     if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (faqat owner/admin o\'zgartira oladi)');
 
     const saved = data[0];
-    emailSettings = emailSetFallback();
+    // Baza "o'chiq" — serverdan qaytmagan ustun tasodifan YONIQ bo'lib qolmasin.
+    emailSettings = emailSetOff();
     EMAIL_SET_KEYS.forEach(function (k) { if (typeof saved[k] === 'boolean') emailSettings[k] = saved[k]; });
     _emailSetUpdatedAt = saved.updated_at || null;
     _emailSetMissing = false; _emailSetErr = null;
 
-    const offCnt = EMAIL_SET_KEYS.filter(function (k) { return emailSettings[k] === false; }).length;
+    const onCnt = EMAIL_SET_KEYS.filter(function (k) { return emailSettings[k] === true; }).length;
     logActivity('email_settings_updated', {
       entityType: 'workspace', entityId: currentWs.id, entityTitle: currentWs.name,
       details: Object.assign({}, emailSettings)
     });
     emailSetRender();
-    toast(offCnt ? ('✅ Saqlandi — ' + offCnt + ' ta bildirishnoma o\'chirilgan') : '✅ Saqlandi — hamma bildirishnoma yoniq', 'ok');
+    toast(onCnt ? ('✅ Saqlandi — ' + onCnt + ' ta bildirishnoma yoniq') : '✅ Saqlandi — hamma email bildirishnoma o\'chirilgan', 'ok');
   } catch (e) {
     if (emailSetTableMissing(e)) {
       _emailSetMissing = true;
@@ -4659,11 +4660,22 @@ let _emailSetMissing = false;   // true = jadval yo'q (SQL ishga tushirilmagan)
 let _emailSetErr = null;        // oxirgi o'qish xatosi (Sozlamalarda ko'rsatiladi)
 let _emailSetUpdatedAt = null;  // oxirgi o'zgartirilgan vaqt (ko'rsatish uchun)
 
-// Zaxira qiymat: HAMMASI YONIQ. Sozlama o'qilmasa eski xatti-harakat qoladi —
-// "o'qiy olmadik" hech qachon "jimgina o'chirdik" ga aylanmasin.
+// Zaxira qiymat: HAMMASI YONIQ. Faqat sozlamani O'QIB BO'LMAGANDA ishlatiladi
+// (jadval yo'q / so'rov yiqildi) — eski xatti-harakat qoladi va
+// "o'qiy olmadik" hech qachon "jimgina o'chirdik" ga aylanmaydi.
 function emailSetFallback() {
   const o = {};
   EMAIL_SET_KEYS.forEach(function (k) { o[k] = true; });
+  return o;
+}
+
+// HAMMASI O'CHIQ — bu jadvaldagi DEFAULT (TASKFIX_EMAIL_SETTINGS.sql).
+// Jadval BOR, lekin bu workspace uchun qator hali yo'q bo'lganda ishlatiladi
+// (masalan SQL'dan keyin yaratilgan workspace) — DB default'i bilan bir xil
+// bo'lishi kerak, aks holda UI bir narsa ko'rsatib, ilova boshqacha ishlardi.
+function emailSetOff() {
+  const o = {};
+  EMAIL_SET_KEYS.forEach(function (k) { o[k] = false; });
   return o;
 }
 
@@ -4686,10 +4698,11 @@ async function loadEmailSettings() {
       .select(EMAIL_SET_KEYS.join(', ') + ', updated_at')
       .eq('workspace_id', currentWs.id).maybeSingle();
     if (error) throw error;
-    // Qator yo'q (yangi workspace) — jadval bor, lekin sozlanmagan.
-    // Bunday holatda ham eski xatti-harakat: hammasi yoniq.
+    // Qator yo'q (SQL'dan keyin yaratilgan workspace) — jadval bor, lekin
+    // sozlanmagan. Jadval default'i "hammasi o'chiq", shuning uchun bu yerda
+    // ham o'chiq (UI va haqiqiy xatti-harakat bir xil bo'lsin).
     _emailSetUpdatedAt = data ? (data.updated_at || null) : null;
-    emailSettings = emailSetFallback();
+    emailSettings = emailSetOff();
     if (data) EMAIL_SET_KEYS.forEach(function (k) { if (typeof data[k] === 'boolean') emailSettings[k] = data[k]; });
   } catch (e) {
     emailSettings = emailSetFallback();
