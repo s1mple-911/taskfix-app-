@@ -930,6 +930,19 @@
   .ui-toggle input:checked + .ui-toggle-track { background:#34C759; }
   .ui-toggle input:checked + .ui-toggle-track .ui-toggle-dot { transform:translateX(18px); }
   .ui-toggle-lbl { font-size:13.5px; color:var(--ink); font-weight:500; }
+  /* Email bildirishnoma sozlamasi (esn-*) — Sozlamalar sahifasi */
+  .esn-sub { font-size:12.5px; color:var(--muted); margin:0 0 14px; line-height:1.55; }
+  .esn-row { display:flex; align-items:flex-start; gap:14px; padding:12px 0; border-top:1px solid var(--line); }
+  .esn-row:first-child { border-top:none; padding-top:2px; }
+  .esn-txt { flex:1; min-width:0; }
+  .esn-lbl { font-size:13.5px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .esn-desc { font-size:12px; color:var(--muted); margin-top:3px; line-height:1.5; }
+  .esn-tag { font-size:10.5px; font-weight:600; padding:2px 7px; border-radius:99px; background:var(--surface-2); color:var(--muted); border:1px solid var(--line); white-space:nowrap; }
+  .esn-row .ui-toggle { flex:0 0 auto; margin-top:2px; }
+  .esn-note { font-size:12.5px; line-height:1.55; padding:10px 12px; border-radius:10px; margin-bottom:14px; }
+  .esn-note.warn { background:#FEF3C7; color:#92400E; border:1px solid #FDE68A; }
+  .esn-note.err  { background:#FEE2E2; color:#991B1B; border:1px solid #FECACA; }
+  .esn-upd { font-size:11.5px; color:var(--muted); }
   .ui-modal-actions { display:flex; gap:10px; padding:14px 20px 20px; }
   .ui-btn { flex:1; padding:12px; border-radius:13px; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; border:none; transition:filter .12s, background .12s; }
   .ui-btn-ghost { background:var(--surface-2); color:var(--ink); }
@@ -1853,6 +1866,19 @@
         <div class="field"><label>Nomi *</label><input id="setWsName" type="text" /></div>
         <div style="display:flex; gap:10px;">
           <button class="btn" onclick="saveWsName()">Saqlash</button>
+        </div>
+      </div>
+
+      <!-- Email bildirishnomalari — faqat owner/admin ko'radi (loadSettings ochadi) -->
+      <div class="settings-section" id="emailSetSection" style="display:none">
+        <h3>📧 Email bildirishnomalari</h3>
+        <p class="esn-sub">Qaysi amalda xodimlarga email xat ketishini shu yerdan boshqaring. O'chirilgan amalda email <b>umuman yuborilmaydi</b>. Sozlama butun workspace uchun amal qiladi.</p>
+        <div id="emailSetNote"></div>
+        <div id="emailSetList"></div>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:16px;">
+          <button class="btn" id="emailSetSaveBtn" onclick="emailSetSave()">Saqlash</button>
+          <button class="btn secondary" onclick="emailSetReset()">Bekor qilish</button>
+          <span class="esn-upd" id="emailSetUpd"></span>
         </div>
       </div>
 
@@ -3757,6 +3783,7 @@ function logActionMeta(action) {
     column_deleted: { icon: '🗑', label: 'Ustunni o\'chirdi', color: '#EF4444' },
     project_created: { icon: '🗂', label: 'Loyiha yaratdi', color: '#0EA5E9' },
     project_deleted: { icon: '🗑', label: 'Loyihani o\'chirdi', color: '#EF4444' },
+    email_settings_updated: { icon: '📧', label: 'Email bildirishnomalarini o\'zgartirdi', color: '#F59E0B' },
   };
   return map[action] || { icon: '•', label: action, color: '#6B7280' };
 }
@@ -4277,6 +4304,133 @@ function loadSettings() {
   $('setProfName').value = myProfile.full_name || '';
   $('setProfPhone').value = myProfile.phone || '';
   $('deleteWsBtn').style.display = (currentWs.kind === 'organization' && isWorkspaceOwner()) ? 'inline-block' : 'none';
+  emailSetRender();
+}
+
+// ── Email bildirishnomalari bo'limi (Sozlamalar) ────────────────────────────
+// Faqat owner/admin ko'radi va o'zgartiradi (RLS ham shuni talab qiladi:
+// ws_settings_insert/update → is_ws_manager). Oddiy a'zoga bo'lim yashirin.
+//
+// live:false — ilova hozir bu holatda email YUBORMAYDI (Telegram / ilova
+// ichidagi bildirishnoma bor). Bayroq baribir saqlanadi va n8n webhook
+// payload'ida uzatiladi — shuning uchun ko'rsatamiz, lekin ochiq belgilaymiz.
+const EMAIL_SET_ROWS = [
+  { key: 'email_on_assign',      live: true,  label: 'Vazifa biriktirildi',
+    desc: 'Vazifa yaratilganda yoki bajaruvchi o\'zgarganda — yangi bajaruvchiga xat.' },
+  { key: 'email_on_acceptor',    live: true,  label: 'Qabul qiluvchi tayinlandi',
+    desc: 'Vazifani qabul qiluvchi etib belgilangan odamga xat.' },
+  { key: 'email_on_status',      live: true,  label: 'Holat o\'zgardi',
+    desc: 'Vazifa bajarildi / qabul qilindi / qaytarildi — yaratuvchi va bajaruvchiga xat.' },
+  { key: 'email_on_task_create', live: false, label: 'Vazifa yaratildi',
+    desc: 'Yangi vazifa yaratilgani haqida xat (bajaruvchidan tashqari).' },
+  { key: 'email_on_comment',     live: false, label: 'Yangi izoh',
+    desc: 'Vazifaga izoh qo\'shilganda xat.' },
+  { key: 'email_on_deadline',    live: false, label: 'Deadline yaqinlashdi yoki o\'tdi',
+    desc: 'Muddat haqida eslatma xati.' }
+];
+let _emailSetDraft = null;   // ekrandagi (hali saqlanmagan) holat
+
+function emailSetRender() {
+  const sec = $('emailSetSection');
+  if (!sec) return;
+  // Oddiy a'zoga ko'rsatmaymiz — u baribir o'zgartira olmaydi (RLS).
+  if (!isOwnerLike()) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+
+  _emailSetDraft = Object.assign(emailSetFallback(), emailSettings || {});
+
+  // Ogohlantirish: jadval yo'q yoki o'qilmadi
+  let note = '';
+  if (_emailSetMissing) {
+    note = '<div class="esn-note warn">⚠️ <b>TASKFIX_EMAIL_SETTINGS.sql</b> hali ishga tushirilmagan — ' +
+           'sozlama saqlanmaydi va hozircha <b>hamma bildirishnoma yoniq</b> (avvalgi holat). ' +
+           'SQL faylni Supabase SQL Editor\'da ishga tushiring.</div>';
+  } else if (_emailSetErr) {
+    note = '<div class="esn-note err">⚠️ Sozlama o\'qilmadi: ' +
+           escapeHtml(translateErr(_emailSetErr.message || String(_emailSetErr))) +
+           ' — hozircha hamma bildirishnoma yoniq deb hisoblanmoqda.</div>';
+  }
+  $('emailSetNote').innerHTML = note;
+
+  let html = '';
+  EMAIL_SET_ROWS.forEach(function (r) {
+    const on = _emailSetDraft[r.key] !== false;
+    html += '<div class="esn-row">' +
+      '<div class="esn-txt">' +
+        '<div class="esn-lbl">' + escapeHtml(r.label) +
+          (r.live ? '' : '<span class="esn-tag" title="Ilova hozir bu holatda email yubormaydi — Telegram va ilova ichida bildirishnoma bor. Sozlama saqlanadi va n8n\'ga uzatiladi.">hozircha email yo\'q</span>') +
+        '</div>' +
+        '<div class="esn-desc">' + escapeHtml(r.desc) + '</div>' +
+      '</div>' +
+      '<label class="ui-toggle">' +
+        '<input type="checkbox" ' + (on ? 'checked' : '') +
+          ' onchange="emailSetChange(this, \'' + r.key + '\')">' +
+        '<span class="ui-toggle-track"><span class="ui-toggle-dot"></span></span>' +
+      '</label>' +
+    '</div>';
+  });
+  $('emailSetList').innerHTML = html;
+
+  const upd = $('emailSetUpd');
+  if (upd) {
+    let t = '';
+    if (_emailSetUpdatedAt) {
+      try { t = 'Oxirgi o\'zgarish: ' + new Date(_emailSetUpdatedAt).toLocaleString('uz-UZ'); } catch (e) { t = ''; }
+    }
+    upd.textContent = t;
+  }
+  const btn = $('emailSetSaveBtn');
+  if (btn) { btn.disabled = false; btn.textContent = 'Saqlash'; }
+}
+
+function emailSetChange(el, key) {
+  if (!_emailSetDraft) _emailSetDraft = emailSetFallback();
+  _emailSetDraft[key] = !!el.checked;
+}
+
+function emailSetReset() { emailSetRender(); }
+
+async function emailSetSave() {
+  if (!isOwnerLike()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  if (!_emailSetDraft) return;
+  const btn = $('emailSetSaveBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saqlanmoqda…'; }
+  try {
+    const row = { workspace_id: currentWs.id, updated_by: me.id };
+    EMAIL_SET_KEYS.forEach(function (k) { row[k] = _emailSetDraft[k] !== false; });
+
+    // ⚠️ .select() SHART: RLS jimgina to'ssa upsert xato bermay 0 qator
+    // qaytaradi — busiz "Saqlandi" yolg'on chiqardi.
+    const { data, error } = await sb.from('workspace_settings')
+      .upsert(row, { onConflict: 'workspace_id' })
+      .select(EMAIL_SET_KEYS.join(', ') + ', updated_at');
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (faqat owner/admin o\'zgartira oladi)');
+
+    const saved = data[0];
+    emailSettings = emailSetFallback();
+    EMAIL_SET_KEYS.forEach(function (k) { if (typeof saved[k] === 'boolean') emailSettings[k] = saved[k]; });
+    _emailSetUpdatedAt = saved.updated_at || null;
+    _emailSetMissing = false; _emailSetErr = null;
+
+    const offCnt = EMAIL_SET_KEYS.filter(function (k) { return emailSettings[k] === false; }).length;
+    logActivity('email_settings_updated', {
+      entityType: 'workspace', entityId: currentWs.id, entityTitle: currentWs.name,
+      details: Object.assign({}, emailSettings)
+    });
+    emailSetRender();
+    toast(offCnt ? ('✅ Saqlandi — ' + offCnt + ' ta bildirishnoma o\'chirilgan') : '✅ Saqlandi — hamma bildirishnoma yoniq', 'ok');
+  } catch (e) {
+    if (emailSetTableMissing(e)) {
+      _emailSetMissing = true;
+      emailSetRender();
+      toast('TASKFIX_EMAIL_SETTINGS.sql ishga tushirilmagan — saqlab bo\'lmadi', 'err');
+    } else {
+      console.error('emailSetSave:', e);
+      toast(translateErr(e.message || String(e)), 'err');
+    }
+    if (btn) { btn.disabled = false; btn.textContent = 'Saqlash'; }
+  }
 }
 async function saveWsName() {
   const n = ($('setWsName').value || '').trim();
@@ -4320,6 +4474,91 @@ async function deleteWs() {
   } catch (e) { toast(translateErr(e.message), 'err'); }
 }
 
+// ============ 📧 EMAIL BILDIRISHNOMA SOZLAMASI (emailSet*) ============
+// MUAMMO: har amalda email ketardi (biriktirish / qabul qiluvchi / bajarildi)
+// → juda ko'p xat. Endi har action workspace bo'yicha ALOHIDA yoqiladi
+// yoki o'chiriladi: Sozlamalar → "Email bildirishnomalari" (faqat owner/admin).
+// Jadval: public.workspace_settings (TASKFIX_EMAIL_SETTINGS.sql).
+//
+// ⚠️ YAGONA CHOKE-POINT — emailNotify(). 'send-email' Edge Function butun
+//    ilovada FAQAT o'sha funksiya ichidan chaqiriladi (boshqa email yo'li
+//    yo'q), shuning uchun tekshiruv o'sha bitta joyda. O'chiq bo'lsa
+//    invoke UMUMAN bo'lmaydi — email butunlay ketmaydi.
+//
+// ⚠️ SQL ISHGA TUSHMAGAN BO'LSA ilova yiqilmaydi: jadval topilmasa
+//    _emailSetMissing=true bo'ladi va hamma bayroq YONIQ deb hisoblanadi,
+//    ya'ni AVVALGI xatti-harakat saqlanadi (bildirishnoma jimgina o'chib
+//    qolmaydi). Sozlamalar bo'limi buni ochiq yozadi.
+const EMAIL_SET_KEYS = ['email_on_assign', 'email_on_acceptor', 'email_on_status',
+                        'email_on_task_create', 'email_on_comment', 'email_on_deadline'];
+// emailNotify(type) → workspace_settings ustuni
+const EMAIL_TYPE_KEY = {
+  task_assigned:  'email_on_assign',
+  task_acceptor:  'email_on_acceptor',
+  task_completed: 'email_on_status',
+  task_created:   'email_on_task_create',   // zaxira — hozir yuboruvchi yo'q
+  task_comment:   'email_on_comment',       // zaxira
+  task_deadline:  'email_on_deadline'       // zaxira
+};
+let emailSettings = null;       // {email_on_*: bool} — null = hali o'qilmagan
+let _emailSetMissing = false;   // true = jadval yo'q (SQL ishga tushirilmagan)
+let _emailSetErr = null;        // oxirgi o'qish xatosi (Sozlamalarda ko'rsatiladi)
+let _emailSetUpdatedAt = null;  // oxirgi o'zgartirilgan vaqt (ko'rsatish uchun)
+
+// Zaxira qiymat: HAMMASI YONIQ. Sozlama o'qilmasa eski xatti-harakat qoladi —
+// "o'qiy olmadik" hech qachon "jimgina o'chirdik" ga aylanmasin.
+function emailSetFallback() {
+  const o = {};
+  EMAIL_SET_KEYS.forEach(function (k) { o[k] = true; });
+  return o;
+}
+
+function emailSetTableMissing(err) {
+  if (!err) return false;
+  const c = String(err.code || '');
+  const m = String(err.message || '').toLowerCase();
+  if (c === '42P01' || c === 'PGRST205') return true;
+  return m.indexOf('workspace_settings') !== -1 &&
+         (m.indexOf('does not exist') !== -1 || m.indexOf('schema cache') !== -1);
+}
+
+// loadCurrentContext 1-to'lqinida chaqiriladi. Xato bo'lsa ham hech qachon
+// throw qilmaydi — ilova ochilishi email sozlamasiga bog'liq emas.
+async function loadEmailSettings() {
+  _emailSetMissing = false; _emailSetErr = null;
+  if (!currentWs) { emailSettings = emailSetFallback(); return; }
+  try {
+    const { data, error } = await sb.from('workspace_settings')
+      .select(EMAIL_SET_KEYS.join(', ') + ', updated_at')
+      .eq('workspace_id', currentWs.id).maybeSingle();
+    if (error) throw error;
+    // Qator yo'q (yangi workspace) — jadval bor, lekin sozlanmagan.
+    // Bunday holatda ham eski xatti-harakat: hammasi yoniq.
+    _emailSetUpdatedAt = data ? (data.updated_at || null) : null;
+    emailSettings = emailSetFallback();
+    if (data) EMAIL_SET_KEYS.forEach(function (k) { if (typeof data[k] === 'boolean') emailSettings[k] = data[k]; });
+  } catch (e) {
+    emailSettings = emailSetFallback();
+    if (emailSetTableMissing(e)) {
+      _emailSetMissing = true;
+      console.warn('workspace_settings jadvali yo\'q — TASKFIX_EMAIL_SETTINGS.sql ishga tushirilmagan. Email sozlamasi: hammasi yoniq.');
+    } else {
+      _emailSetErr = e;
+      console.error('loadEmailSettings:', e);
+    }
+  }
+}
+
+// Shu turdagi email yuborilsinmi? Sozlama hali o'qilmagan bo'lsa — ha
+// (eski xatti-harakat). Noma'lum tur ham o'tadi (kutilmagan turni jimgina
+// yutib yubormaslik uchun).
+function emailAllowed(type) {
+  const key = EMAIL_TYPE_KEY[type];
+  if (!key) { console.warn('emailAllowed: noma\'lum email turi:', type); return true; }
+  if (!emailSettings) return true;
+  return emailSettings[key] !== false;
+}
+
 async function notifyN8n(event, payload) {
   if (currentWs.kind !== 'organization') return;
   // n8n integratsiyasi yoqilganmi?
@@ -4333,7 +4572,10 @@ async function notifyN8n(event, payload) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       keepalive: true,
-      body: JSON.stringify({ event, workspace_id: currentWs.id, workspace_name: currentWs.name, ...payload })
+      // ⚠️ email_settings — n8n workflow'i email yuborsa, biz uni mijozdan
+      // to'sa olmaymiz. Shuning uchun sozlamani payload bilan uzatamiz:
+      // n8n'da IF node → {{ $json.email_settings.email_on_status }} kabi.
+      body: JSON.stringify({ event, workspace_id: currentWs.id, workspace_name: currentWs.name, email_settings: emailSettings || emailSetFallback(), ...payload })
     });
   } catch (e) { /* sokin */ }
 }
@@ -4508,7 +4750,7 @@ async function loadCurrentContext() {
   // (oxirida) o'qilardi — hech kimga bog'liq emas edi, shu yerga ko'chirildi.
   const [
     myMemberR, myDeptsR, deptsR, wsMembersR,
-    intgsR, branchesR, subR, _kanbanR, myTgR
+    intgsR, branchesR, subR, _kanbanR, myTgR, _emailSetR
   ] = await Promise.all([
     sb.from('workspace_members').select('role').eq('workspace_id', wsId).eq('user_id', me.id).maybeSingle(),
     isOrg ? sb.from('department_members').select('department_id, role, departments!inner(workspace_id)').eq('user_id', me.id).eq('departments.workspace_id', wsId) : Promise.resolve({ data: [] }),
@@ -4519,6 +4761,9 @@ async function loadCurrentContext() {
     sb.from('subscriptions').select('*').eq('workspace_id', wsId).maybeSingle(),
     loadKanbanColumns(),
     sb.from('tg_bot_users').select('id').eq('linked_user_id', me.id),
+    // Email bildirishnoma sozlamasi — emailNotify() shuni tekshiradi.
+    // O'zi throw qilmaydi; xato bo'lsa "hammasi yoniq" (eski xatti-harakat).
+    loadEmailSettings(),
   ]);
 
   // "Mening vazifalarim" uchun — mening Telegram identitetlarim.
@@ -6619,7 +6864,13 @@ async function saveCreate() {
 }
 
 // Email notify (fire and forget — agar RESEND_API_KEY o'rnatilmagan bo'lsa, sukut qoladi)
+//
+// ⚠️ Bu — butun ilovadagi YAGONA email chiqish nuqtasi ('send-email' EF
+//    boshqa hech qayerdan chaqirilmaydi). Workspace sozlamasi o'chiq bo'lsa
+//    invoke UMUMAN qilinmaydi — email butunlay ketmaydi. Sozlama:
+//    Sozlamalar → "Email bildirishnomalari" (emailSet*, workspace_settings).
 async function emailNotify(type, taskId, recipientUserId) {
+  if (!emailAllowed(type)) return;   // admin o'chirgan — chiqmaydi
   try {
     const { error } = await sb.functions.invoke('send-email', {
       body: { type, task_id: taskId, recipient_user_id: recipientUserId }
