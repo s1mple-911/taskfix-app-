@@ -118,12 +118,17 @@
   .side-link { padding: 8px 12px; border-radius: 8px; font-size: 13.5px; font-weight: 500; color: var(--side-ink); cursor: pointer; display: flex; align-items: center; gap: 10px; border: none; background: transparent; text-align: left; width: 100%; }
   .side-link:hover { background: var(--side-hover); }
   .side-link.active { background: var(--side-active); }
-  .side-link .ic { width: 16px; opacity: .8; text-align: center; }
+  /* Ikonka (ic*): SVG 24×24 viewBox, currentColor — matn rangiga ergashadi */
+  .ic-svg { display: block; flex: 0 0 auto; }
+  .side-link .ic { width: 18px; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; opacity: .78; transition: opacity .14s; }
+  .side-link:hover .ic { opacity: .95; }
+  .side-link.active .ic { opacity: 1; }
+  .ms-opt .ic { display: inline-flex; align-items: center; justify-content: center; color: var(--muted); flex: 0 0 auto; }
   .side-link.side-group { font-weight: 600; }
   .side-link.side-group.has-active { color: var(--accent-ink); }
   .side-link.side-sub { padding-left: 42px; font-size: 13px; font-weight: 400; }
   .side-section { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--side-muted); padding: 14px 12px 6px; display: flex; justify-content: space-between; align-items: center; }
-  .side-section .add-mini { background: none; border: none; color: var(--side-muted); cursor: pointer; padding: 2px 4px; border-radius: 4px; font-size: 14px; line-height: 1; }
+  .side-section .add-mini { background: none; border: none; color: var(--side-muted); cursor: pointer; padding: 3px; border-radius: 5px; line-height: 0; display: inline-flex; align-items: center; }
   .side-section .add-mini:hover { color: var(--side-ink); background: var(--side-hover); }
   .side-spacer { flex: 1; }
   .side-bottom { border-top: 1px solid rgba(255,255,255,.08); padding-top: 12px; margin-top: 12px; }
@@ -148,8 +153,10 @@
      span'da EMAS (oddiy matn tuguni) — shuning uchun .side-link ga
      font-size:0 beriladi va .ic da qaytariladi. Matn hover'da title
      orqali ko'rinadi (sbTitles()).                                        */
-  .sb-toggle { margin-left: auto; flex: 0 0 auto; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: transparent; border: 1px solid rgba(255,255,255,.10); border-radius: 7px; color: var(--side-muted); cursor: pointer; font-size: 15px; line-height: 1; padding: 0; font-family: inherit; transition: background .14s, color .14s; }
+  .sb-toggle { margin-left: auto; flex: 0 0 auto; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: transparent; border: 1px solid rgba(255,255,255,.10); border-radius: 7px; color: var(--side-muted); cursor: pointer; line-height: 1; padding: 0; font-family: inherit; transition: background .14s, color .14s; }
   .sb-toggle:hover { background: var(--side-hover); color: var(--side-ink); }
+  .sb-toggle svg { transition: transform .2s ease; transform: rotate(180deg); }   /* ochiq: ‹ */
+  .sb-toggle.sb-open svg { transform: rotate(0deg); }                             /* yig'iq: › */
 
   .app.show.sb-collapsed { grid-template-columns: var(--sidebar-w-collapsed) 1fr; }
   .sb-collapsed .sidebar { padding: 16px 8px; }
@@ -1146,7 +1153,7 @@
     <div class="brand-top">
       <svg class="brand-logo" width="20" height="20" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#FEF3C7"/><path d="M 9 16 L 14 21 L 23 11" stroke="#0F1417" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
       <span class="brand-txt">TaskFix</span>
-      <button class="sb-toggle" id="sbToggleBtn" type="button" onclick="sbToggle()" title="Menyuni yig'ish (Ctrl+B)" aria-label="Menyuni yig'ish">‹</button>
+      <button class="sb-toggle" id="sbToggleBtn" type="button" onclick="sbToggle()" title="Menyuni yig'ish (Ctrl+B)" aria-label="Menyuni yig'ish"></button>
     </div>
     <div class="ws-switch" onclick="toggleWsDrop(event)">
       <div class="ws-avatar" id="wsAvatar">P</div>
@@ -1189,7 +1196,7 @@
     <!-- Dashboard -->
     <section id="page-planner" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap;">
-        <h2 class="h2" style="margin:0" id="plnPageTitle">🗓 Rejalashtirgich</h2>
+        <h2 class="h2" style="margin:0" id="plnPageTitle">Rejalashtirgich</h2>
         <div id="plnWeekNav" style="display:flex;align-items:center;gap:8px;">
           <button class="btn sm secondary" onclick="plnNav(-1)">‹</button>
           <span id="plnWeekLbl" style="font-weight:600;font-size:14px;min-width:180px;text-align:center;">—</span>
@@ -1439,7 +1446,7 @@
     <!-- Statistika -->
     <section id="page-stats" style="display:none">
       <div class="row-head" style="margin-bottom: 18px;">
-        <h2 class="h2" style="margin:0">📊 Statistika</h2>
+        <h2 class="h2" style="margin:0">Statistika</h2>
         <div style="display:flex;gap:8px;align-items:center;">
           <select id="statsRange" onchange="renderStats()" style="padding:6px 10px;font-size:13px;">
             <option value="7">Oxirgi 7 kun</option>
@@ -1644,7 +1651,7 @@
 
     <!-- Bot sozlamalari -->
     <section id="page-botsettings" style="display:none">
-      <div class="row-head"><h2 class="h2" style="margin:0">⚙ Bot sozlamalari</h2></div>
+      <div class="row-head"><h2 class="h2" style="margin:0">Bot sozlamalari</h2></div>
       <div style="margin-bottom: 18px; font-size: 13.5px; color: var(--muted); line-height: 1.5;">
         Botingiz xabarlarini va ro'yxatdan o'tish jarayonini sozlang. O'zgarishlar darrov amalda bo'ladi.
       </div>
@@ -1740,7 +1747,7 @@
     <!-- Bot komandalar -->
     <section id="page-botcommands" style="display:none">
       <div class="row-head">
-        <h2 class="h2" style="margin:0">⌘ Bot komandalar</h2>
+        <h2 class="h2" style="margin:0">Bot komandalar</h2>
         <button class="btn" onclick="openCmdEdit(null)">+ Yangi komanda</button>
       </div>
       <div style="margin-bottom: 18px; font-size: 13.5px; color: var(--muted); line-height: 1.5;">
@@ -1758,7 +1765,7 @@
     <!-- Tashkilot tuzilmasi -->
     <section id="page-orgchart" style="display:none">
       <div class="row-head" style="margin-bottom: 14px;">
-        <h2 class="h2" style="margin:0">⛓ Tashkilot tuzilmasi</h2>
+        <h2 class="h2" style="margin:0">Tashkilot tuzilmasi</h2>
         <div style="display:flex;gap:8px;align-items:center;">
           <button class="btn" onclick="ocOpenAddModal(null)">+ Xodim</button>
           <button class="btn secondary" onclick="ocZoomOut()" title="Kichraytirish">−</button>
@@ -1799,7 +1806,7 @@
 
     <!-- Profile -->
     <section id="page-profile" style="display:none">
-      <div class="row-head"><h2 class="h2" style="margin:0">👤 Mening profilim</h2></div>
+      <div class="row-head"><h2 class="h2" style="margin:0">Mening profilim</h2></div>
       <div style="max-width: 720px;">
         <!-- Hero card: avatar + ism -->
         <div class="settings-section" style="display:flex; gap: 24px; align-items: center;">
@@ -1904,7 +1911,7 @@
     <!-- Settings (faqat owner) -->
     <section id="page-projects" style="display:none">
       <div class="row-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-        <h2 class="h2" style="margin:0">🗂 Loyihalar</h2>
+        <h2 class="h2" style="margin:0">Loyihalar</h2>
         <button class="btn" id="prjNewBtn" onclick="openCreateProject()" style="display:none">+ Yangi loyiha</button>
       </div>
       <div style="font-size:12.5px;color:var(--muted);margin:6px 0 16px;">Loyiha ikki xil bo'ladi: <b>🔗 Ketma-ket</b> — bosqichlar navbatma-navbat ochiladi; <b>⚡ Parallel</b> — hamma vazifa birdan ochiq. Qaysi bosqichda ekanini va kim ushlab turganini shu yerdan ko'ring.</div>
@@ -1933,7 +1940,7 @@
 
     <section id="page-logs" style="display:none">
       <div class="row-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-        <h2 class="h2" style="margin:0">📋 Loglar (harakatlar tarixi)</h2>
+        <h2 class="h2" style="margin:0">Loglar (harakatlar tarixi)</h2>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <input id="logSearch" placeholder="Qidirish..." oninput="renderLogs()" style="padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;width:200px;" />
           <select id="logActionFilter" onchange="renderLogs()" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;">
@@ -1965,7 +1972,7 @@
 
       <!-- Email bildirishnomalari — faqat owner/admin ko'radi (loadSettings ochadi) -->
       <div class="settings-section" id="emailSetSection" style="display:none">
-        <h3>📧 Email bildirishnomalari</h3>
+        <h3>Email bildirishnomalari</h3>
         <p class="esn-sub">Qaysi amalda xodimlarga email xat ketishini shu yerdan boshqaring. O'chirilgan amalda email <b>umuman yuborilmaydi</b>. Sozlama butun workspace uchun amal qiladi.</p>
         <div id="emailSetNote"></div>
         <div id="emailSetList"></div>
@@ -1986,7 +1993,7 @@
       </div>
 
       <div class="settings-section">
-        <h3>📊 Excel'dan vazifa import</h3>
+        <h3>Excel'dan vazifa import</h3>
         <p style="font-size:12.5px;color:var(--muted);margin:0 0 12px;">Bir nechta vazifani bir vaqtda Excel fayldan yuklang. Shablonni yuklab, to'ldiring va import qiling. Bajaruvchi bo'sh qolsa — keyin Jadvalda tanlaysiz.</p>
         <input type="file" id="xlsFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="onXlsPick(this)" />
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -5160,6 +5167,49 @@ function tasksChip() {
   el.textContent = '⏳ Vazifalar yuklanmoqda… ' + tasksCache.length;
 }
 
+// ============ 🎨 IKONKA TO'PLAMI (ic*) ============
+// Bitta izchil to'plam (Lucide geometriyasi): 24×24 viewBox, stroke 2,
+// yumaloq uchlar, `currentColor`. Emoji/matn belgilar (◐ ▦ ☆ ▢ …) o'rniga —
+// ular OS'ga qarab har xil ko'rinardi va o'lchami/og'irligi izchil emas edi.
+//
+// ⚠️ TASHQI CDN YO'Q: ikonkalar shu yerda inline. Ilova build'siz xizmat
+//    qiladi va O'zbekistonda CDN beqaror (supabase-js allaqachon shundan
+//    qoqilgan) — ikonka uchun yana bir tashqi so'rovga bog'lanmaymiz.
+//
+// Qo'shish: ICON_PATHS ga 24×24 path/rect qo'shiladi, xolos.
+const ICON_PATHS = {
+  dashboard: '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
+  calendar:  '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/>',
+  checks:    '<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>',
+  chart:     '<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
+  folder:    '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
+  project:   '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/><path d="M8 12v4"/><path d="M12 12v2"/><path d="M16 12v5"/>',
+  grid:      '<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>',
+  users:     '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  logs:      '<path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/>',
+  zap:       '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>',
+  send:      '<path d="M14.54 21.69a.5.5 0 0 0 .93-.03l6.5-19a.5.5 0 0 0-.63-.63l-19 6.5a.5.5 0 0 0-.03.93l7.93 3.18a2 2 0 0 1 1.11 1.11z"/><path d="m21.85 2.15-10.94 10.94"/>',
+  building:  '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>',
+  settings:  '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+  orgchart:  '<rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/>',
+  badge:     '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/>',
+  plus:      '<path d="M5 12h14"/><path d="M12 5v14"/>',
+  chevron:   '<path d="m9 18 6-6-6-6"/>'
+};
+
+// Ikonka SVG matni. Noma'lum nom — bo'sh (ilova yiqilmasin, joy ham egallamasin).
+function icon(name, size) {
+  const p = ICON_PATHS[name];
+  if (!p) { console.warn('icon(): noma\'lum ikonka:', name); return ''; }
+  const s = size || 17;
+  return '<svg class="ic-svg" width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" ' +
+         'stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" ' +
+         'aria-hidden="true" focusable="false">' + p + '</svg>';
+}
+
+// Chap menu tugmasi uchun: <span class="ic">SVG</span>
+function sideIcon(name) { return '<span class="ic">' + icon(name) + '</span>'; }
+
 // ============ CHAP MENU YIG'ISH (sb*) ============
 // Yig'ilganda faqat ikonka qoladi (kontentga ko'proq joy) — CSS `.sb-collapsed`
 // `#appView` da. Holat localStorage'da: 'sb_collapsed' = '1' | '0'.
@@ -5210,7 +5260,8 @@ function sbApply() {
   app.classList.toggle('sb-collapsed', on);
   const btn = document.getElementById('sbToggleBtn');
   if (btn) {
-    btn.textContent = on ? '›' : '‹';
+    btn.innerHTML = icon('chevron', 15);
+    btn.classList.toggle('sb-open', on);   // CSS SVG'ni aylantiradi (› / ‹)
     const t = (on ? 'Menyuni ochish' : 'Menyuni yig\'ish') + ' (Ctrl+B)';
     btn.title = t;
     btn.setAttribute('aria-label', t);
@@ -5272,14 +5323,14 @@ function renderSidebar() {
   const canManage = isOwnerLike();
 
   let html = '';
-  html += '<button class="side-link ' + (currentPage === 'dashboard' ? 'active' : '') + '" onclick="goPage(\'dashboard\')"><span class="ic">◐</span> Bosh sahifa</button>';
-  html += '<button class="side-link ' + (currentPage === 'planner' ? 'active' : '') + '" onclick="goPage(\'planner\')"><span class="ic">🗓</span> Rejalashtirgich</button>';
-  html += '<button class="side-link ' + (currentPage === 'tasks' && taskScope === 'all' ? 'active' : '') + '" onclick="goTaskScope(\'all\')"><span class="ic">✓</span> Barcha vazifalar</button>';
+  html += '<button class="side-link ' + (currentPage === 'dashboard' ? 'active' : '') + '" onclick="goPage(\'dashboard\')">' + sideIcon('dashboard') + ' Bosh sahifa</button>';
+  html += '<button class="side-link ' + (currentPage === 'planner' ? 'active' : '') + '" onclick="goPage(\'planner\')">' + sideIcon('calendar') + ' Rejalashtirgich</button>';
+  html += '<button class="side-link ' + (currentPage === 'tasks' && taskScope === 'all' ? 'active' : '') + '" onclick="goTaskScope(\'all\')">' + sideIcon('checks') + ' Barcha vazifalar</button>';
   if (isOrg && canManage) {
-    html += '<button class="side-link ' + (currentPage === 'stats' ? 'active' : '') + '" onclick="goPage(\'stats\')"><span class="ic">📊</span> Statistika</button>';
+    html += '<button class="side-link ' + (currentPage === 'stats' ? 'active' : '') + '" onclick="goPage(\'stats\')">' + sideIcon('chart') + ' Statistika</button>';
   }
   if (isOrg) {
-    html += '<div class="side-section">Bo\'limlar' + (canManage ? '<button class="add-mini" title="Yangi bo\'lim" onclick="openNewDept()">+</button>' : '') + '</div>';
+    html += '<div class="side-section">Bo\'limlar' + (canManage ? '<button class="add-mini" title="Yangi bo\'lim" onclick="openNewDept()">' + icon('plus', 14) + '</button>' : '') + '</div>';
     if (departments.length) {
       const myDeptIds = new Set(myDepts.map(d => d.department_id));
       // Qattiq xavfsizlik: faqat a'zo bo'lgan bo'limlarni ko'rsatamiz (admin ham bundan mustasno emas)
@@ -5287,7 +5338,7 @@ function renderSidebar() {
       if (visible.length) {
         visible.forEach(d => {
           const isActive = currentPage === 'department' && currentDeptId === d.id;
-          html += '<button class="side-link ' + (isActive ? 'active' : '') + '" onclick="goDept(\''+d.id+'\')"><span class="ic">◫</span> ' + escapeHtml(d.name) + '</button>';
+          html += '<button class="side-link ' + (isActive ? 'active' : '') + '" onclick="goDept(\''+d.id+'\')">' + sideIcon('folder') + ' ' + escapeHtml(d.name) + '</button>';
         });
       } else {
         html += '<div style="padding: 6px 12px; font-size: 11.5px; color: var(--side-muted);">Sizga ochiq bo\'lim yo\'q</div>';
@@ -5296,15 +5347,15 @@ function renderSidebar() {
       html += '<div style="padding: 6px 12px; font-size: 11.5px; color: var(--side-muted);">Hali yo\'q</div>';
     }
     html += '<div class="side-section">Loyihalar</div>';
-    html += '<button class="side-link ' + (currentPage === 'projects' || currentPage === 'project' ? 'active' : '') + '" onclick="goPage(\'projects\')"><span class="ic">🗂</span> Loyihalar</button>';
+    html += '<button class="side-link ' + (currentPage === 'projects' || currentPage === 'project' ? 'active' : '') + '" onclick="goPage(\'projects\')">' + sideIcon('project') + ' Loyihalar</button>';
     html += '<div class="side-section">Boshqaruv</div>';
-    html += '<button class="side-link ' + (currentPage === 'departments' ? 'active' : '') + '" onclick="goPage(\'departments\')"><span class="ic">▦</span> Bo\'limlar ro\'yxati</button>';
-    html += '<button class="side-link ' + (currentPage === 'team' ? 'active' : '') + '" onclick="goPage(\'team\')"><span class="ic">☆</span> Jamoa</button>';
+    html += '<button class="side-link ' + (currentPage === 'departments' ? 'active' : '') + '" onclick="goPage(\'departments\')">' + sideIcon('grid') + ' Bo\'limlar ro\'yxati</button>';
+    html += '<button class="side-link ' + (currentPage === 'team' ? 'active' : '') + '" onclick="goPage(\'team\')">' + sideIcon('users') + ' Jamoa</button>';
     if (canManage) {
-      html += '<button class="side-link ' + (currentPage === 'logs' ? 'active' : '') + '" onclick="goPage(\'logs\')"><span class="ic">📋</span> Loglar</button>';
+      html += '<button class="side-link ' + (currentPage === 'logs' ? 'active' : '') + '" onclick="goPage(\'logs\')">' + sideIcon('logs') + ' Loglar</button>';
     }
     if (canManage) {
-      html += '<button class="side-link ' + (currentPage === 'integrations' ? 'active' : '') + '" onclick="goPage(\'integrations\')"><span class="ic">⚡</span> Integratsiyalar</button>';
+      html += '<button class="side-link ' + (currentPage === 'integrations' ? 'active' : '') + '" onclick="goPage(\'integrations\')">' + sideIcon('zap') + ' Integratsiyalar</button>';
     }
     if (canManage) {
       // Telegram section — faqat bot ulangan bo'lsa ko'rinadi
@@ -5316,7 +5367,7 @@ function renderSidebar() {
           ? (localStorage.getItem('sb_tg_v2') === 'open')
           : !!window._tgSbOpen;
         html += '<button class="side-link side-group ' + (inTgSection ? 'has-active' : '') + '" onclick="toggleTgSidebar()">' +
-          '<span class="ic">✈</span> Telegram' +
+          '' + sideIcon('send') + ' Telegram' +
           '<span style="margin-left:auto;font-size:10px;color:var(--muted);">' + (tgExpanded ? '▼' : '▶') + '</span>' +
         '</button>';
         if (tgExpanded) {
@@ -5325,13 +5376,13 @@ function renderSidebar() {
           html += '<button class="side-link side-sub ' + (currentPage === 'botcommands' ? 'active' : '') + '" onclick="goPage(\'botcommands\')">Komandalar</button>';
         }
       }
-      html += '<button class="side-link ' + (currentPage === 'branches' ? 'active' : '') + '" onclick="goPage(\'branches\')"><span class="ic">▢</span> Filiallar</button>';
+      html += '<button class="side-link ' + (currentPage === 'branches' ? 'active' : '') + '" onclick="goPage(\'branches\')">' + sideIcon('building') + ' Filiallar</button>';
       // Lavozimlar — vaqtincha yashirilgan (kerak bo'lsa qaytaramiz)
-      // html += '<button class="side-link ' + (currentPage === 'positions' ? 'active' : '') + '" onclick="goPage(\'positions\')"><span class="ic">⌬</span> Lavozimlar</button>';
+      // html += '<button class="side-link ' + (currentPage === 'positions' ? 'active' : '') + '" onclick="goPage(\'positions\')">' + sideIcon('badge') + ' Lavozimlar</button>';
     }
   }
   if (isOwnerLike()) {
-    html += '<button class="side-link ' + (currentPage === 'settings' ? 'active' : '') + '" onclick="goPage(\'settings\')"><span class="ic">⚙</span> Sozlamalar</button>';
+    html += '<button class="side-link ' + (currentPage === 'settings' ? 'active' : '') + '" onclick="goPage(\'settings\')">' + sideIcon('settings') + ' Sozlamalar</button>';
   }
   $('sideNav').innerHTML = html;
   sbTitles();   // yig'iq menyuda ikonka ustiga kelganda matn ko'rinsin
@@ -5622,7 +5673,7 @@ function goPage(p) {
   ['dashboard','planner','tasks','departments','department','team','employee','projects','project','integrations','tgusers','branches','positions','settings','logs','stats','botsettings','botcommands','profile'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
   if (p === 'planner') plnSetTab(plnTab);
   if (p === 'tasks') {
-    const titles = { mine: '📥 Mening vazifalarim', assigned: '📤 Men topshirganlar', all: '✓ Barcha vazifalar' };
+    const titles = { mine: 'Mening vazifalarim', assigned: 'Men topshirganlar', all: 'Barcha vazifalar' };
     const el = $('tasksPageTitle'); if (el) el.textContent = titles[taskScope] || '✓ Barcha vazifalar';
     empFilterRenderBar();
     renderTasksList();
@@ -6489,7 +6540,7 @@ function msFilter() {
       const safeName = (b.name || '').replace(/'/g, "\\'");
       html += '<div class="ms-opt' + (sel ? ' selected' : '') + (enabled ? '' : ' disabled') + '" ' +
         (enabled ? 'onclick="msToggle(\'branch\',\'' + b.id + '\',\'' + safeName + '\',' + count + ')"' : '') +
-        '><div class="ms-check">✓</div><span class="ic">▢</span><div class="name">' +
+        '><div class="ms-check">✓</div>' + sideIcon('building') + '<div class="name">' +
         escapeHtml(b.name) + '</div><span class="sub">' + count + ' xodim</span></div>';
     });
   }
@@ -6510,7 +6561,7 @@ function msFilter() {
       const label = posLabelFull(p);
       html += '<div class="ms-opt' + (sel ? ' selected' : '') + (enabled ? '' : ' disabled') + '" ' +
         (enabled ? 'onclick="msToggle(\'position\',\'' + safeId + '\',\'' + safeId + '\',' + count + ')"' : '') +
-        '><div class="ms-check">✓</div><span class="ic">⌬</span><div class="name">' +
+        '><div class="ms-check">✓</div>' + sideIcon('badge') + '<div class="name">' +
         escapeHtml(label) + '</div><span class="sub">' + count + ' xodim</span></div>';
     });
   }
@@ -6563,7 +6614,7 @@ function msFilter() {
       const safeName = name.replace(/'/g, "\\'");
       html += '<div class="ms-opt' + (sel ? ' selected' : '') +
         '" onclick="msToggle(\'tg\',\'' + u.id + '\',\'' + safeName + '\')">' +
-        '<div class="ms-check">✓</div><span class="ic">✈</span><div class="name">' +
+        '<div class="ms-check">✓</div>' + sideIcon('send') + '<div class="name">' +
         escapeHtml(name) + '</div>' + (sub ? '<span class="sub">' + escapeHtml(sub) + '</span>' : '') + '</div>';
     });
   }
@@ -9626,7 +9677,7 @@ function goTaskScope(scope) {
   // Planfix'dagidek — kanban ko'rinishda ochamiz
   currentTasksView = 'kanban';
   goPage('tasks');
-  const titles = { mine: '📥 Mening vazifalarim', assigned: '📤 Men topshirganlar', all: '✓ Barcha vazifalar' };
+  const titles = { mine: 'Mening vazifalarim', assigned: 'Men topshirganlar', all: 'Barcha vazifalar' };
   const el = $('tasksPageTitle'); if (el) el.textContent = titles[scope] || 'Vazifalar';
   setTasksView('kanban');
 }
@@ -10385,8 +10436,8 @@ function plnSetTab(tab) {
   $('plnCalPane').style.display = isSchedule ? 'block' : 'none';
   $('plnKanbanPane').style.display = isSchedule ? 'none' : 'block';
   $('plnWeekNav').style.display = isSchedule ? 'flex' : 'none';
-  const titles = { schedule: '🗓 Mening jadvalim', mine: '📥 Mening vazifalarim', assigned: '📤 Men topshirganlar', all: '✓ Barcha vazifalar' };
-  $('plnPageTitle').textContent = titles[tab] || '🗓 Rejalashtirgich';
+  const titles = { schedule: 'Mening jadvalim', mine: 'Mening vazifalarim', assigned: 'Men topshirganlar', all: 'Barcha vazifalar' };
+  $('plnPageTitle').textContent = titles[tab] || 'Rejalashtirgich';
   if (isSchedule) {
     renderPlanner();
   } else {
