@@ -34,6 +34,7 @@
     --shadow: 0 1px 2px rgba(28,31,36,.05), 0 4px 16px rgba(28,31,36,.04);
     --shadow-lg: 0 12px 40px rgba(15,20,23,.18);
     --sidebar-w: 240px;
+    --sidebar-w-collapsed: 64px;   /* yig'ilgan chap menu (sb*) */
   }
   /* Animations */
   @keyframes tzFade { from { opacity: 0; } to { opacity: 1; } }
@@ -141,6 +142,34 @@
   .bell-btn { background: none; border: none; color: var(--side-ink); padding: 6px 8px; border-radius: 7px; cursor: pointer; font-size: 16px; position: relative; }
   .bell-btn:hover { background: var(--side-hover); }
   .bell-dot { position: absolute; top: 6px; right: 7px; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); border: 2px solid var(--side); }
+
+  /* ── CHAP MENU YIG'ISH (sb-*) ─────────────────────────────────────────────
+     Yig'ilganda faqat ikonka qoladi. Menyu tugmalaridagi matn ALOHIDA
+     span'da EMAS (oddiy matn tuguni) — shuning uchun .side-link ga
+     font-size:0 beriladi va .ic da qaytariladi. Matn hover'da title
+     orqali ko'rinadi (sbTitles()).                                        */
+  .sb-toggle { margin-left: auto; flex: 0 0 auto; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: transparent; border: 1px solid rgba(255,255,255,.10); border-radius: 7px; color: var(--side-muted); cursor: pointer; font-size: 15px; line-height: 1; padding: 0; font-family: inherit; transition: background .14s, color .14s; }
+  .sb-toggle:hover { background: var(--side-hover); color: var(--side-ink); }
+
+  .app.show.sb-collapsed { grid-template-columns: var(--sidebar-w-collapsed) 1fr; }
+  .sb-collapsed .sidebar { padding: 16px 8px; }
+  .sb-collapsed .brand-top { padding: 2px 0 12px; justify-content: center; }
+  .sb-collapsed .brand-logo, .sb-collapsed .brand-txt { display: none; }
+  .sb-collapsed .sb-toggle { margin-left: 0; }
+  .sb-collapsed .ws-switch { padding: 8px; justify-content: center; margin-bottom: 10px; }
+  .sb-collapsed .ws-info, .sb-collapsed .ws-chev { display: none; }
+  .sb-collapsed .ws-dropdown { left: 0; right: auto; width: 230px; }
+  .sb-collapsed .side-link { justify-content: center; padding: 9px 0; gap: 0; font-size: 0; }
+  .sb-collapsed .side-link .ic { font-size: 16px; width: auto; opacity: .9; }
+  .sb-collapsed .side-link.side-sub { display: none; }
+  .sb-collapsed .side-link.side-group > span:last-child { display: none; }   /* ▼ / ▶ */
+  .sb-collapsed .side-section { font-size: 0; padding: 10px 0 4px; margin-top: 6px; border-top: 1px solid rgba(255,255,255,.08); justify-content: center; }
+  .sb-collapsed .side-section .add-mini { display: none; }
+  .sb-collapsed .side-nav > div:not(.side-section) { display: none; }        /* "Hali yo'q" kabi matnlar */
+  .sb-collapsed .side-bottom { padding-top: 10px; margin-top: 10px; }
+  .sb-collapsed .side-user { flex-direction: column; gap: 4px; padding: 8px 0; }
+  .sb-collapsed .side-user-info { display: none; }
+  .sb-collapsed .profile-menu { left: 8px; right: auto; width: 200px; }
 
   /* MAIN */
   .main { padding: 0; width: 100%; max-width: none; }
@@ -887,7 +916,10 @@
     .shell { grid-template-columns: 1fr; }
     .brand { padding: 30px 26px; gap: 26px; min-height: auto; }
     .brand-hero h1 { font-size: 26px; }
-    .app.show { grid-template-columns: 1fr; }
+    /* Mobil: sidebar gorizontal panel — yig'ish ma'nosiz. sbApply() ham
+       880px dan tor ekranda .sb-collapsed ni qo'ymaydi; bu — zaxira. */
+    .app.show, .app.show.sb-collapsed { grid-template-columns: 1fr; }
+    .sb-toggle { display: none; }
     .sidebar { position: relative; height: auto; min-height: auto; flex-direction: row; align-items: center; padding: 10px 12px; gap: 8px; overflow-x: auto; overflow-y: visible; }
     .ws-switch { margin: 0; flex-shrink: 0; min-width: 180px; }
     .side-nav { flex-direction: row; gap: 4px; }
@@ -1051,8 +1083,9 @@
 <div class="app" id="appView">
   <aside class="sidebar">
     <div class="brand-top">
-      <svg width="20" height="20" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#FEF3C7"/><path d="M 9 16 L 14 21 L 23 11" stroke="#0F1417" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-      <span>TaskFix</span>
+      <svg class="brand-logo" width="20" height="20" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#FEF3C7"/><path d="M 9 16 L 14 21 L 23 11" stroke="#0F1417" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      <span class="brand-txt">TaskFix</span>
+      <button class="sb-toggle" id="sbToggleBtn" type="button" onclick="sbToggle()" title="Menyuni yig'ish (Ctrl+B)" aria-label="Menyuni yig'ish">‹</button>
     </div>
     <div class="ws-switch" onclick="toggleWsDrop(event)">
       <div class="ws-avatar" id="wsAvatar">P</div>
@@ -5066,6 +5099,81 @@ function tasksChip() {
   el.textContent = '⏳ Vazifalar yuklanmoqda… ' + tasksCache.length;
 }
 
+// ============ CHAP MENU YIG'ISH (sb*) ============
+// Yig'ilganda faqat ikonka qoladi (kontentga ko'proq joy) — CSS `.sb-collapsed`
+// `#appView` da. Holat localStorage'da: 'sb_collapsed' = '1' | '0'.
+//
+// ⚠️ Qiymat YO'Q = foydalanuvchi hali tanlamagan → ekran kengligiga qarab
+//    avtomatik (SB_AUTO_W dan tor bo'lsa yig'iq). Bir marta tugmani bossa —
+//    tanlovi saqlanadi va o'lcham o'zgarganda ham BUZILMAYDI.
+//
+// ⚠️ Inline handler (onclick="sbToggle()") global scope'da baholanadi —
+//    shuning uchun bu funksiyalar top-level (init() ichida EMAS).
+const SB_KEY = 'sb_collapsed';
+const SB_AUTO_W = 1280;    // shundan tor ekranda avtomatik yig'iladi
+const SB_MOBILE_W = 880;   // bundan tor — sidebar gorizontal panel, yig'ish ma'nosiz
+let _sbCollapsed = false;
+
+function sbStored() {
+  try {
+    const v = localStorage.getItem(SB_KEY);
+    return v === '1' ? true : (v === '0' ? false : null);
+  } catch (e) { console.error('sbStored:', e); return null; }
+}
+
+function sbInit() {
+  const v = sbStored();
+  _sbCollapsed = (v === null) ? (window.innerWidth <= SB_AUTO_W) : v;
+  sbApply();
+  window.addEventListener('resize', sbOnResize);
+}
+
+function sbOnResize() {
+  // Foydalanuvchi o'zi tanlagan bo'lsa — tanloviga tegmaymiz, faqat
+  // mobil chegarasi uchun qayta qo'llaymiz.
+  if (sbStored() === null) _sbCollapsed = window.innerWidth <= SB_AUTO_W;
+  sbApply();
+}
+
+function sbToggle() {
+  _sbCollapsed = !_sbCollapsed;
+  try { localStorage.setItem(SB_KEY, _sbCollapsed ? '1' : '0'); }
+  catch (e) { console.error('sbToggle localStorage:', e); }   // saqlanmasa ham ochilib/yopiladi
+  sbApply();
+}
+
+function sbApply() {
+  const app = document.getElementById('appView');
+  if (!app) return;
+  const on = _sbCollapsed && window.innerWidth > SB_MOBILE_W;
+  app.classList.toggle('sb-collapsed', on);
+  const btn = document.getElementById('sbToggleBtn');
+  if (btn) {
+    btn.textContent = on ? '›' : '‹';
+    const t = (on ? 'Menyuni ochish' : 'Menyuni yig\'ish') + ' (Ctrl+B)';
+    btn.title = t;
+    btn.setAttribute('aria-label', t);
+  }
+  sbTitles();
+  // Yig'ilganda ochiq dropdown joyidan siljib qolmasin
+  const d = document.getElementById('wsDrop'); if (d) d.classList.remove('show');
+  const pm = document.getElementById('profileMenu'); if (pm) pm.classList.remove('show');
+}
+
+// Yig'iq holatda faqat ikonka ko'rinadi — hover matni (title) bo'lmasa menyu
+// o'qib bo'lmaydigan bo'lardi. renderSidebar() dan keyin ham chaqiriladi.
+function sbTitles() {
+  const nav = document.getElementById('sideNav');
+  if (!nav) return;
+  nav.querySelectorAll('.side-link').forEach(function (b) {
+    // Faqat matn tugunlari: ikonka (<span class="ic">) va ochish o'qi (▼/▶)
+    // alohida span'da — ular sarlavhaga tushmasin.
+    const t = Array.prototype.filter.call(b.childNodes, function (n) { return n.nodeType === 3; })
+                   .map(function (n) { return n.textContent; }).join(' ').trim();
+    if (t) b.title = t;
+  });
+}
+
 function renderSidebar() {
   $('wsName').textContent = currentWs.name;
   $('wsKind').textContent = currentWs.kind === 'personal' ? 'Shaxsiy' : 'Kompaniya';
@@ -5165,6 +5273,7 @@ function renderSidebar() {
     html += '<button class="side-link ' + (currentPage === 'settings' ? 'active' : '') + '" onclick="goPage(\'settings\')"><span class="ic">⚙</span> Sozlamalar</button>';
   }
   $('sideNav').innerHTML = html;
+  sbTitles();   // yig'iq menyuda ikonka ustiga kelganda matn ko'rinsin
 
   // Viewer'dan yaratish tugmalarini yashiramiz
   const editable = canEditWorkspace();
@@ -16165,6 +16274,7 @@ async function init() {
     return;
   }
   try { window.hideCompleted = localStorage.getItem('hideCompleted') === '1'; } catch (e) { window.hideCompleted = false; }
+  sbInit();   // chap menu yig'iq/ochiq holati (localStorage + ekran kengligi)
   // MUHIM: hash'ni createClient'dan OLDIN o'qiymiz — detectSessionInUrl uni tozalaydi
   const _rawHash = window.location.hash || '';
   const _rawSearch = window.location.search || '';
@@ -16235,6 +16345,12 @@ async function init() {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault();
       openCmdPalette();
+      return;
+    }
+    // Ctrl/Cmd + B => chap menuni yig'ish/ochish
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+      e.preventDefault();
+      sbToggle();
       return;
     }
     // 'n' => new task (when not typing)
