@@ -46,6 +46,15 @@ BEGIN
                   WHERE n.nspname = 'public' AND c.relname = 'departments') THEN
     RAISE EXCEPTION 'public.departments topilmadi — noto''g''ri baza?';
   END IF;
+
+  -- ⚠️ Bu skript `departments` dan FAQAT shu 4 ustunni o'qiydi. Boshqasiga
+  --    (masalan sort_order) tayanish 42703 beradi — shuning uchun mavjudligi
+  --    OLDINDAN tekshiriladi, keyinroq funksiya ichida yiqilmasin.
+  IF (SELECT count(*) FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'departments'
+         AND column_name IN ('id','workspace_id','name','created_at')) <> 4 THEN
+    RAISE EXCEPTION 'departments da kutilgan ustunlar yo''q (id, workspace_id, name, created_at)';
+  END IF;
   IF NOT EXISTS (
     SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
      WHERE p.proname = 'is_ws_member' AND n.nspname = 'public'
@@ -345,14 +354,28 @@ BEGIN
     RAISE EXCEPTION 'Ruxsat yo''q';
   END IF;
 
+  -- ⚠️ `departments` da FAQAT 6 ustun bor: id, workspace_id, name,
+  --    description, created_by, created_at. `sort_order`/`ordering` YO'Q —
+  --    o'qishga urinilsa 42703 bilan yiqilardi.
+  --
+  --    Tartib `created_at` dan hosil qilinadi (row_number) — ilova bo'limlarni
+  --    aynan shu tartibda yuklaydi (`.order('created_at')`), demak Org Schema
+  --    va chap menyu bir xil ketma-ketlikda ko'rinadi.
+  --
+  --    row_number NOT EXISTS filtridan OLDIN hisoblanadi (ichki SELECT'da) —
+  --    shunda keyinroq qo'shilgan bo'lim mavjudlarining tartibini surmaydi.
   INSERT INTO public.org_folders (workspace_id, parent_id, name, kind, department_id, sort_order)
-  SELECT d.workspace_id, NULL, d.name, 'department', d.id, COALESCE(d.sort_order, 0)
-    FROM public.departments d
-   WHERE d.workspace_id = p_workspace_id
-     AND NOT EXISTS (
-       SELECT 1 FROM public.org_folders f
-        WHERE f.workspace_id = d.workspace_id AND f.department_id = d.id
-     );
+  SELECT s.workspace_id, NULL, s.name, 'department', s.id, s.ord
+    FROM (
+      SELECT d.workspace_id, d.name, d.id,
+             (row_number() OVER (ORDER BY d.created_at, d.id))::int AS ord
+        FROM public.departments d
+       WHERE d.workspace_id = p_workspace_id
+    ) s
+   WHERE NOT EXISTS (
+     SELECT 1 FROM public.org_folders f
+      WHERE f.workspace_id = s.workspace_id AND f.department_id = s.id
+   );
 
   GET DIAGNOSTICS v_added = ROW_COUNT;
   RETURN v_added;

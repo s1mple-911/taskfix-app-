@@ -5858,8 +5858,11 @@ async function onbFinish() {
     if (e1) throw e1;
 
     // 2. Birinchi bo'lim (workspace yaratildi — buni jimgina yutmaymiz, lekin bloklamaymiz)
+    // ⚠️ `departments` da sort_order YO'Q (id, workspace_id, name, description,
+    //    created_by, created_at) — yozishga urinish 42703 berardi va yangi
+    //    kompaniyaning BIRINCHI bo'limi yaratilmasdan qolardi.
     const { error: e2 } = await sb.from('departments').insert({
-      workspace_id: ws.id, name: onbData.deptName, sort_order: 1
+      workspace_id: ws.id, name: onbData.deptName, created_by: me.id
     });
     if (e2) { console.error('Onboarding: birinchi bo\'lim yaratilmadi:', e2); toast('⚠ Birinchi bo\'lim yaratilmadi: ' + translateErr(e2.message || String(e2)), 'err'); }
 
@@ -5963,7 +5966,14 @@ async function onbBoardCreate() {
     if (e2 && e2.code !== '23505') throw e2;
 
     // 3) Birinchi bo'lim (best-effort — asosiy oqimni bloklamaydi)
-    try { await sb.from('departments').insert({ workspace_id: ws.id, name: 'Umumiy', sort_order: 1 }); } catch (e) { /* sokin */ }
+    // ⚠️ Ikki xato tuzatildi: (a) `sort_order` ustuni YO'Q edi → insert 42703
+    //    bilan rad etilardi; (b) supabase-js throw QILMAYDI, ya'ni try/catch
+    //    hech qachon ishlamas edi va rad etish JIMGINA yo'qolardi — natijada
+    //    yangi kompaniya "Umumiy" bo'limisiz qolardi va hech kim bilmasdi.
+    const { error: e3 } = await sb.from('departments').insert({
+      workspace_id: ws.id, name: 'Umumiy', created_by: me.id
+    });
+    if (e3) console.error('createOrgQuick: "Umumiy" bo\'limi yaratilmadi:', e3);
 
     // 4) Ilovaga o'tish
     await loadWorkspaces();
