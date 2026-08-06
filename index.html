@@ -914,6 +914,12 @@
   .osc-av .avatar.sm { width: 22px; height: 22px; font-size: 9px; }
   .osc-pos { flex-shrink: 1; min-width: 0; font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .osc-pos::before { content: '·'; margin-right: 6px; color: var(--subtle); }
+  /* "N o'rin" — bir xodim bir necha joyda turganda */
+  .osc-seat { flex-shrink: 0; font-size: 11px; font-weight: 600; color: var(--info); background: var(--info-soft); border-radius: 5px; padding: 1px 7px; }
+  .osc-card-seat { position: absolute; top: 6px; right: 8px; min-width: 17px; height: 17px; padding: 0 5px;
+    display: flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 700;
+    color: var(--info); background: var(--info-soft); border-radius: 999px; }
+  .osc-card:hover .osc-card-seat { opacity: 0; transition: opacity .12s ease; }
   .osc-mgr { flex-shrink: 0; font-size: 11.5px; color: var(--subtle); background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 6px; padding: 1px 7px; }
   .osc-cnt.people { background: var(--accent-soft); color: var(--accent-ink); }
 
@@ -16407,6 +16413,40 @@ function oscPersonTitle(row) {
   return t || memberPos(row.user_id) || '';
 }
 function oscPersonById(id) { return oscPeople.find(function (p) { return p.id === id; }); }
+
+// Shu xodimning sxemadagi O'RINLARI soni (bir odam bir necha joyda bo'lishi
+// mumkin — 2026-08-06 dan). 1 bo'lsa belgi ko'rsatilmaydi.
+function oscSeatCount(uid) {
+  let n = 0;
+  oscPeople.forEach(function (p) { if (p.user_id === uid) n++; });
+  return n;
+}
+
+// "N o'rin" belgisi — bir odam bir necha joyda bo'lganda ko'rsatiladi.
+// ⚠️ Busiz foydalanuvchi bir xil ismni ikki joyda ko'rib "bu xatolikmi?"
+//    deb o'ylardi. Tooltip'da qayerda turgani sanab beriladi.
+function oscSeatBadge(uid, tree) {
+  const seats = oscPeople.filter(function (p) { return p.user_id === uid; });
+  if (seats.length < 2) return '';
+  const t = tree || oscTree();
+  const where = seats.map(function (p) {
+    const pk = t.parentOf[oscKey('person', p.id)];
+    const n = pk ? t.byKey[pk] : null;
+    return n ? oscNodeName(n) : 'Ildiz';
+  });
+  return '<span class="osc-seat" title="' + escapeHtml(seats.length + ' o\'rin: ' + where.join(', ')) + '">' + seats.length + ' o\'rin</span>';
+}
+
+// AYNI SHU o'rinda (bir xil ota tugunda) allaqachon bormi?
+// pk: 'f' | 'p' | '' (ildiz), pid: ota id yoki null.
+function oscHasSeat(uid, pk, pid) {
+  return oscPeople.some(function (p) {
+    if (p.user_id !== uid) return false;
+    if (pk === 'f') return p.folder_id === pid;
+    if (pk === 'p') return p.parent_person_id === pid;
+    return !p.folder_id && !p.parent_person_id;   // ildiz
+  });
+}
 function oscFolderById(id) { return oscFolders.find(function (f) { return f.id === id; }); }
 function oscNodeName(n) { return n.type === 'folder' ? (n.row.name || '') : oscPersonName(n.row.user_id); }
 
@@ -16512,6 +16552,7 @@ function oscNodeRowHtml(n, t, seen) {
     html += '<span class="osc-av">' + avatarHtml(nm, 'sm', null, n.row.user_id) + '</span>';
     html += '<span class="osc-nm">' + escapeHtml(nm) + '</span>';
     if (title) html += '<span class="osc-pos">' + escapeHtml(title) + '</span>';
+    html += oscSeatBadge(n.row.user_id, t);
     html += oscMgrBadge(n.row, t);
   }
   if (nF) html += '<span class="osc-cnt" title="Ichki papkalar">' + nF + '</span>';
@@ -16935,12 +16976,15 @@ function oscNodeHtml(n) {
       { icon: 'plus',     title: 'Ostiga papka qo\'shish',  run: 'oscNewFolder(\'p\',\'' + p.id + '\')' },
       { icon: 'pencil',   title: 'Papka nomini o\'zgartirish', run: 'oscRenameFolder(\'' + f.id + '\')' }
     ]) : '';
+    const mSeats = oscSeatCount(p.user_id);
     return '<div class="osc-card merged" style="' + st + '" onclick="oscCardOpen(\'' + escapeHtml(p.user_id) + '\')" title="' + escapeHtml(f.name + ' · ' + name) + '">' +
       '<span class="osc-card-av">' + avatarHtml(name, 'sm', null, p.user_id) + '</span>' +
       '<span class="osc-card-txt">' +
         '<span class="osc-card-nm">' + escapeHtml(f.name || '') + '</span>' +
         '<span class="osc-card-sub">' + escapeHtml(name) + '</span>' +
-      '</span>' + acts +
+      '</span>' +
+      (mSeats > 1 ? '<span class="osc-card-seat" title="' + escapeHtml('Bu xodim ' + mSeats + ' o\'rinda') + '">' + mSeats + '</span>' : '') +
+      acts +
     '</div>';
   }
 
@@ -16969,12 +17013,17 @@ function oscNodeHtml(n) {
     { icon: 'plus',     title: 'Ostiga papka qo\'shish',  run: 'oscNewFolder(\'p\',\'' + p.id + '\')' },
     { icon: 'trash',    title: 'Sxemadan olib tashlash',  run: 'oscRemovePerson(\'' + p.id + '\')', danger: true }
   ]) : '';
+  const seats = oscSeatCount(p.user_id);
   return '<div class="osc-card person" style="' + st + '" onclick="oscCardOpen(\'' + escapeHtml(p.user_id) + '\')" title="' + escapeHtml(name) + '">' +
     '<span class="osc-card-av">' + avatarHtml(name, 'sm', null, p.user_id) + '</span>' +
     '<span class="osc-card-txt">' +
       '<span class="osc-card-nm">' + escapeHtml(name) + '</span>' +
       '<span class="osc-card-sub">' + escapeHtml(title || '—') + '</span>' +
-    '</span>' + acts +
+    '</span>' +
+    // Bir odam bir necha o'rinda → chartda bir necha kartochka. Belgi
+    // "bu takroriy chizish emas, boshqa o'rin" ekanini aytadi.
+    (seats > 1 ? '<span class="osc-card-seat" title="' + escapeHtml('Bu xodim ' + seats + ' o\'rinda') + '">' + seats + '</span>' : '') +
+    acts +
   '</div>';
 }
 
@@ -17150,34 +17199,48 @@ function oscNodeOptions(tree, bannedKeys, rootLabel) {
   return opts;
 }
 
+// ⚠️ 2026-08-06: bir xodim BIR NECHA O'RINDA bo'la oladi (ikki bo'limda,
+//    bir necha rolda). Shuning uchun ro'yxatdan "allaqachon sxemada"
+//    bo'lganlar OLIB TASHLANMAYDI — faqat AYNI O'SHA o'ringa ikkinchi
+//    marta qo'shish to'siladi (DB'da ham qisman UNIQUE indekslar bor).
 async function oscAddPerson(parentKind, parentId) {
   if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  if (!wsMembers || !wsMembers.length) { toast('Jamoada xodim yo\'q', 'err'); return; }
 
-  // Sxemada bor odam qayta qo'shilmaydi (DB'da ham unique ws+user).
-  const taken = new Set(oscPeople.map(function (p) { return p.user_id; }));
-  const free = wsMembers.filter(function (m) { return !taken.has(m.user_id); });
-  if (!free.length) {
-    toast('Jamoadagi hamma xodim allaqachon sxemada', 'err');
-    return;
-  }
-  // KO'P tanlash: bitta joyga bir necha xodimni bir yo'la qo'shish tabiiy.
-  const people = ssMemberItems(free);
+  // Hamma a'zo ko'rsatiladi; kimda allaqachon o'rin bor bo'lsa — nechta
+  // ekanini izohda aytamiz (foydalanuvchi bilib tursin, lekin to'silmasin).
+  const people = ssMemberItems(wsMembers).map(function (it) {
+    const n = oscSeatCount(it.value);
+    return n ? Object.assign({}, it, { sub: (it.sub ? it.sub + ' · ' : '') + n + ' o\'rinda bor' }) : it;
+  });
+
   const cur = parentId ? ((parentKind === 'p' ? 'p' : 'f') + ':' + parentId) : '';
   const pname = oscParentLabel(parentKind, parentId);
 
   const vals = await uiForm(pname ? ('"' + pname + '" ostiga xodim') : 'Sxemaga xodim qo\'shish', [
-    { id: 'uids', label: 'Xodimlar', type: 'msearch', value: [], items: people, placeholder: 'Ism, lavozim, telefon…' },
+    { id: 'uids', label: 'Xodimlar', type: 'msearch', value: [], items: people, placeholder: 'Ism, lavozim, telefon…',
+      hint: 'Bir xodim bir necha o\'rinda tura oladi — turli papkalarga qo\'sha berasiz.' },
     { id: 'parent', label: 'Qayerda tursin?', type: 'search', value: cur, items: oscNodeOptions(null, null, '— Ildiz (papkasiz) —'),
       placeholder: 'Papka yoki xodimni qidiring…' },
     { id: 'title', label: 'Lavozim (ixtiyoriy)', type: 'text', placeholder: 'Bo\'sh qoldirilsa HR ma\'lumotidan olinadi', hint: 'Faqat bitta xodim tanlanganda qo\'llanadi.' }
   ], { okText: 'Qo\'shish' });
   if (!vals) return;
-  const uids = vals.uids || [];
+  let uids = vals.uids || [];
   if (!uids.length) { toast('Kamida bitta xodimni tanlang', 'err'); return; }
 
   const pick = vals.parent || '';
   const pk = pick ? pick.slice(0, 1) : '';
   const pid = pick ? pick.slice(2) : null;
+
+  // AYNI SHU o'rinda allaqachon bor bo'lganlarni ajratamiz — DB 23505
+  // qaytarib butun so'rovni yiqitmasin va foydalanuvchi nima bo'lganini bilsin.
+  const dupes = uids.filter(function (u) { return oscHasSeat(u, pk, pid); });
+  if (dupes.length) {
+    uids = uids.filter(function (u) { return dupes.indexOf(u) === -1; });
+    const names = dupes.map(oscPersonName).join(', ');
+    if (!uids.length) { toast(names + ' — bu yerda allaqachon bor', 'err'); return; }
+    toast(names + ' — bu yerda allaqachon bor, o\'tkazib yuborildi', 'err');
+  }
 
   try {
     // ⚠️ Lavozim maydoni faqat BITTA xodim tanlanganda ma'noli — ko'p
@@ -17197,7 +17260,7 @@ async function oscAddPerson(parentKind, parentId) {
     if (error) throw error;
     if (!data || data.length !== rows.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
     if (pid) { oscLoadExpanded().add(oscKey(pk === 'p' ? 'person' : 'folder', pid)); oscSaveExpanded(); }
-    toast('✅ ' + data.length + ' xodim qo\'shildi', 'ok');
+    toast('✅ ' + data.length + ' o\'rin qo\'shildi', 'ok');
     logActivity('org_person_added', { entityType: 'org_person', entityId: data[0].id, entityTitle: oscPersonName(uids[0]), details: uids.length + ' ta' });
     await loadOrgSchema();
   } catch (e) {
@@ -17224,11 +17287,18 @@ async function oscRemovePerson(personId) {
   const _t = oscTree();
   const _n = _t.byKey[oscKey('person', personId)];
   const under = _n ? (oscSubtreeKeys(_t, _n).size - 1) : 0;
-  let msg = oscPersonName(p.user_id) + ' tashkiliy sxemadan olib tashlanadi.';
-  if (under) msg += ' Uning ostidagi ' + under + ' ta tugun ildizga ko\'chadi (o\'chmaydi).';
-  msg += ' ⚠️ Xodim jamoadan CHIQARILMAYDI va vazifalariga tegilmaydi — faqat sxemadan chiqadi.';
+  // ⚠️ FAQAT SHU O'RIN o'chadi (org_people.id bo'yicha) — xodimning boshqa
+  //    o'rinlari (boshqa papkalardagi) joyida qoladi.
+  const pk = _t.parentOf[oscKey('person', personId)];
+  const pn = pk && _t.byKey[pk] ? oscNodeName(_t.byKey[pk]) : null;
+  const seats = oscSeatCount(p.user_id);
 
-  const ok = await uiConfirm('Sxemadan olib tashlash', msg, { danger: true, okText: 'Olib tashlash' });
+  let msg = oscPersonName(p.user_id) + (pn ? (' — "' + pn + '" dagi o\'rni') : '') + ' sxemadan olib tashlanadi.';
+  if (seats > 1) msg += ' Uning qolgan ' + (seats - 1) + ' o\'rni JOYIDA QOLADI.';
+  if (under) msg += ' Ostidagi ' + under + ' ta tugun ildizga ko\'chadi (o\'chmaydi).';
+  msg += ' ⚠️ Xodim jamoadan CHIQARILMAYDI va vazifalariga tegilmaydi.';
+
+  const ok = await uiConfirm(seats > 1 ? 'Shu o\'rinni olib tashlash' : 'Sxemadan olib tashlash', msg, { danger: true, okText: 'Olib tashlash' });
   if (!ok) return;
 
   try {

@@ -17,9 +17,10 @@
 --                      ⚠️ Papkalarni foydalanuvchi NOLDAN o'zi yaratadi.
 --                      TaskFix'dagi mavjud `departments` AVTOMAT tortilmaydi
 --                      (2026-08-06 qarori — pastda 5-bo'limga qarang).
---   3) org_people    — sxemadagi hodimlar. Hodim bitta papkada turadi
---                      (folder_id). ⚠️ Bo'ysunish SAQLANMAYDI — papka
---                      joylashuvidan hisoblanadi (5b-bo'lim).
+--   3) org_people    — sxemadagi O'RINLAR. ⚠️ Bitta xodim BIR NECHA
+--                      o'rinda bo'la oladi (ikki bo'limda, bir necha rolda) —
+--                      har qatori alohida o'rin. Bo'ysunish SAQLANMAYDI,
+--                      daraxtdan hisoblanadi (5b-bo'lim).
 --
 -- IKKI KO'RINISH, BITTA MANBA: papka ko'rinishi ham, org chart vizuali ham
 -- AYNAN shu 2 jadvaldan o'qiydi. Org chart joylashuvi avtomatik hisoblanadi
@@ -163,14 +164,34 @@ ALTER TABLE public.org_people ADD COLUMN IF NOT EXISTS created_by uuid;
 ALTER TABLE public.org_people ADD COLUMN IF NOT EXISTS created_at timestamptz NOT NULL DEFAULT now();
 ALTER TABLE public.org_people ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
 
--- Bitta odam daraxtda BIR MARTA
-CREATE UNIQUE INDEX IF NOT EXISTS org_people_ws_user_uniq
-  ON public.org_people (workspace_id, user_id);
+-- ⚠️ 2026-08-06: "bir odam sxemada BIR MARTA" cheklovi OLIB TASHLANDI.
+--    Haqiqiy hayotda bir xodim bir necha o'rinda bo'lishi mumkin (ikki
+--    bo'limda, yoki bir necha rolda). Endi bir user_id bir necha org_people
+--    qatori bo'la oladi — har biri ALOHIDA O'RIN.
+DROP INDEX IF EXISTS public.org_people_ws_user_uniq;
+
+-- Lekin BIR XIL O'RINDA ikki marta bo'lmasin (tasodifiy dublikat).
+-- "O'rin" = ota tugun: papka ichida / hodim ostida / ildizda.
+-- ⚠️ Uchta ALOHIDA qisman indeks kerak, chunki NULL ustunli oddiy UNIQUE
+--    indeks ishlamaydi: Postgres'da NULL != NULL, ya'ni folder_id NULL
+--    bo'lgan qatorlar cheksiz takrorlanardi.
+CREATE UNIQUE INDEX IF NOT EXISTS org_people_uniq_in_folder
+  ON public.org_people (workspace_id, user_id, folder_id)
+  WHERE folder_id IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS org_people_uniq_under_person
+  ON public.org_people (workspace_id, user_id, parent_person_id)
+  WHERE parent_person_id IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS org_people_uniq_root
+  ON public.org_people (workspace_id, user_id)
+  WHERE folder_id IS NULL AND parent_person_id IS NULL;
 
 CREATE INDEX IF NOT EXISTS org_people_ws_folder_idx ON public.org_people (workspace_id, folder_id, sort_order);
+CREATE INDEX IF NOT EXISTS org_people_ws_user_idx   ON public.org_people (workspace_id, user_id);
 
 COMMENT ON TABLE public.org_people IS
-  'Org Schema hodimlari. folder_id → qaysi papkada turishi. Bo''ysunish saqlanmaydi — papka daraxtidan hisoblanadi.';
+  'Org Schema O''RINLARI (lavozim/joy). Bitta xodim bir necha o''rinda bo''la oladi — har qatori alohida o''rin. folder_id / parent_person_id → o''sha o''rin qayerda turishi. Bo''ysunish saqlanmaydi, daraxtdan hisoblanadi.';
 
 
 -- ════════════════════════════════════════════════════════════════════════════
@@ -537,6 +558,17 @@ BEGIN
     IF EXISTS (SELECT 1 FROM information_schema.columns
                 WHERE table_schema='public' AND table_name='org_folders' AND column_name=t) THEN
       RAISE EXCEPTION 'org_folders.% hali ham bor — olib tashlanmadi!', t;
+    END IF;
+  END LOOP;
+
+  -- 7.4c "Bir odam bir marta" cheklovi OLIB TASHLANGANMI?
+  -- (bir xodim bir necha o'rinda bo'la olishi SHART)
+  IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'org_people_ws_user_uniq') THEN
+    RAISE EXCEPTION 'org_people_ws_user_uniq hali ham bor — xodim bir necha o''rinda bo''la olmaydi!';
+  END IF;
+  FOREACH t IN ARRAY ARRAY['org_people_uniq_in_folder','org_people_uniq_under_person','org_people_uniq_root'] LOOP
+    IF NOT EXISTS (SELECT 1 FROM pg_class WHERE relname = t) THEN
+      RAISE EXCEPTION '% indeksi yaratilmadi (bir o''rinda dublikat oldini oladi)', t;
     END IF;
   END LOOP;
 
