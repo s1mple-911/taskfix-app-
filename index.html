@@ -843,6 +843,17 @@
   .osc-act svg { display: block; }
   .osc-act:focus-visible, .osc-tw:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 1px; }
 
+  /* Xodim qatori — papkadan ko'ra "yengilroq" ko'rinadi (ierarxiya o'qilsin) */
+  .osc-row.person .osc-nm { font-weight: 400; }
+  .osc-av { flex-shrink: 0; display: flex; align-items: center; }
+  .osc-av .avatar.sm { width: 22px; height: 22px; font-size: 9px; }
+  .osc-pos { flex-shrink: 1; min-width: 0; font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .osc-pos::before { content: '·'; margin-right: 6px; color: var(--subtle); }
+  .osc-mgr { flex-shrink: 0; font-size: 11.5px; color: var(--subtle); background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 6px; padding: 1px 7px; }
+  .osc-cnt.people { background: var(--accent-soft); color: var(--accent-ink); }
+
+  .osc-loose-h { margin: 20px 0 8px; font-size: 11.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+
   /* Barmoq bilan boshqariladigan ekranda hover yo'q — amallar doim ko'rinsin */
   @media (hover: none) { .osc-acts { opacity: 1; } }
 
@@ -15854,6 +15865,108 @@ async function oscLoad() {
   }
 }
 
+// ── Hodimlar ────────────────────────────────────────────────────────────────
+// Bir odam sxemada BIR MARTA (unique ws+user). Bo'ysunish: manager_id →
+// boshqa org_people qatori. Rahbar BOSHQA papkada bo'lishi mumkin (masalan
+// bo'lim boshlig'i direktorga bo'ysunadi) — u holda hodim o'z papkasining
+// yuqori darajasida turadi va yonida "→ Rahbar: ..." ko'rsatiladi.
+function oscPersonName(uid) {
+  const m = wsMembers.find(function (x) { return x.user_id === uid; });
+  const p = m && m.profile ? m.profile : null;
+  return (p && (p.full_name || p.email)) || 'Noma\'lum xodim';
+}
+function oscPersonTitle(row) {
+  const t = (row.title || '').trim();
+  return t || memberPos(row.user_id) || '';
+}
+function oscPersonById(id) { return oscPeople.find(function (p) { return p.id === id; }); }
+
+// Bo'ysunish daraxti: manager_id → [qo'l ostidagilar]. Rahbari ko'rinmaydigan
+// (o'chirilgan/boshqa ws) hodim jimgina yo'qolmasin — ildizga chiqadi.
+function oscPeopleMap() {
+  const byId = {}, kids = { root: [] };
+  oscPeople.forEach(function (p) { byId[p.id] = p; });
+  oscPeople.forEach(function (p) {
+    const key = (p.manager_id && byId[p.manager_id]) ? p.manager_id : 'root';
+    (kids[key] = kids[key] || []).push(p);
+  });
+  Object.keys(kids).forEach(function (k) {
+    kids[k].sort(function (a, b) {
+      const d = (a.sort_order || 0) - (b.sort_order || 0);
+      return d !== 0 ? d : oscPersonName(a.user_id).localeCompare(oscPersonName(b.user_id), 'uz');
+    });
+  });
+  return { byId: byId, kids: kids };
+}
+
+// Hodim va uning butun qo'l osti (o'zi ham) — rahbar tanlashda taqiqlanadi.
+function oscPersonDescendants(id) {
+  const pm = oscPeopleMap();
+  const out = [], seen = new Set();
+  (function walk(pid) {
+    if (seen.has(pid)) { console.error('oscPersonDescendants: bo\'ysunishda sikl —', pid); return; }
+    seen.add(pid);
+    out.push(pid);
+    (pm.kids[pid] || []).forEach(function (c) { walk(c.id); });
+  })(id);
+  return out;
+}
+
+// Bitta hodim qatori (+ qo'l ostidagilari, agar SHU papkada bo'lsa).
+function oscPersonRowHtml(p, pm, folderId, seen) {
+  if (seen.has(p.id)) { console.error('oscPersonRowHtml: bo\'ysunishda sikl —', p.id); return ''; }
+  seen.add(p.id);
+
+  // Faqat SHU papkadagi qo'l ostidagilar ichma-ich chiziladi. Boshqa papkadagi
+  // qo'l osti o'z papkasida ko'rinadi (ikki joyda takrorlanmasin).
+  const subs = (pm.kids[p.id] || []).filter(function (c) { return (c.folder_id || null) === (folderId || null); });
+  const name = oscPersonName(p.user_id);
+  const title = oscPersonTitle(p);
+  const mgr = p.manager_id ? pm.byId[p.manager_id] : null;
+  const mgrElsewhere = mgr && (mgr.folder_id || null) !== (folderId || null);
+  const canEdit = oscCanEdit();
+
+  let html = '<div class="osc-node">';
+  html += '<div class="osc-row person">';
+  // Papka qatorlari bilan bir vertikalda tursin (yoyish tugmasi o'rni bo'sh);
+  // qo'l osti .osc-kids ichma-ichligi bilan ko'rsatiladi.
+  html += '<span class="osc-tw empty"></span>';
+  html += '<span class="osc-av">' + avatarHtml(name, 'sm', null, p.user_id) + '</span>';
+  html += '<span class="osc-nm">' + escapeHtml(name) + '</span>';
+  if (title) html += '<span class="osc-pos">' + escapeHtml(title) + '</span>';
+  if (mgrElsewhere) html += '<span class="osc-mgr" title="Rahbari boshqa papkada">→ ' + escapeHtml(oscPersonName(mgr.user_id)) + '</span>';
+  if (subs.length) html += '<span class="osc-cnt">' + subs.length + '</span>';
+
+  if (canEdit) {
+    html += '<span class="osc-acts">' +
+      '<button class="osc-act" title="Rahbarini belgilash" onclick="oscSetManager(\'' + p.id + '\')">' + icon('network', 14) + '</button>' +
+      '<button class="osc-act" title="Boshqa papkaga ko\'chirish" onclick="oscMovePerson(\'' + p.id + '\')">' + icon('folder', 14) + '</button>' +
+      '<button class="osc-act danger" title="Sxemadan olib tashlash" onclick="oscRemovePerson(\'' + p.id + '\')">' + icon('trash', 14) + '</button>' +
+    '</span>';
+  }
+  html += '</div>';
+
+  if (subs.length) {
+    html += '<div class="osc-kids">';
+    subs.forEach(function (c) { html += oscPersonRowHtml(c, pm, folderId, seen); });
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+// Papka ichidagi hodimlar (bo'ysunish daraxti bo'lib).
+function oscFolderPeopleHtml(folderId, pm, seen) {
+  const mine = oscPeople.filter(function (p) { return (p.folder_id || null) === (folderId || null); });
+  if (!mine.length) return '';
+  const mineIds = new Set(mine.map(function (p) { return p.id; }));
+  // Ildiz = rahbari yo'q YOKI rahbari shu papkada emas
+  const roots = mine.filter(function (p) { return !p.manager_id || !mineIds.has(p.manager_id); });
+  let html = '';
+  roots.forEach(function (p) { html += oscPersonRowHtml(p, pm, folderId, seen); });
+  return html;
+}
+
 // ── Chizish ─────────────────────────────────────────────────────────────────
 function oscRenderActions() {
   const box = $('oscActions'); if (!box) return;
@@ -15861,43 +15974,48 @@ function oscRenderActions() {
   box.innerHTML =
     '<button class="btn secondary sm" onclick="oscExpandAll(true)">Hammasini yoyish</button>' +
     '<button class="btn secondary sm" onclick="oscExpandAll(false)">Yig\'ish</button>' +
+    '<button class="btn secondary sm" onclick="oscAddPerson(null)">' + icon('userPlus', 14) + ' Xodim</button>' +
     '<button class="btn sm" onclick="oscNewFolder(null)">' + icon('plus', 14) + ' Papka</button>';
 }
 
 function oscRenderCount() {
   const el = $('oscCount'); if (!el) return;
   if (_oscMissing) { el.textContent = ''; return; }
-  el.textContent = oscFolders.length + ' papka';
+  el.textContent = oscFolders.length + ' papka · ' + oscPeople.length + ' xodim';
 }
 
 // ⚠️ Daraxt (`t`) chaqiruvchida BIR MARTA hisoblanadi va pastga uzatiladi —
 // har qator uchun qayta qurilsa katta sxemada O(n²) bo'lardi.
 // ⚠️ `seen` — sikl himoyasi (oscDescendants dagi bilan bir xil sabab):
 //    buzilgan ma'lumot butun sahifani yiqitmasin.
-function oscFolderRowHtml(f, t, seen) {
+function oscFolderRowHtml(f, t, seen, pm, pseen) {
   seen = seen || new Set();
   if (seen.has(f.id)) { console.error('oscFolderRowHtml: papka daraxtida sikl —', f.id); return ''; }
   seen.add(f.id);
   const kids = t.kids[f.id] || [];
+  const nPeople = oscPeople.filter(function (p) { return p.folder_id === f.id; }).length;
   const exp = oscLoadExpanded().has(f.id);
   const isDept = f.kind === 'department';
   const canEdit = oscCanEdit();
+  const hasInside = kids.length + nPeople > 0;
 
   let html = '<div class="osc-node">';
   html += '<div class="osc-row' + (isDept ? ' dept' : '') + '">';
 
-  // Yoyish tugmasi — bolasi bo'lmasa bo'sh joy (tekislik buzilmasin)
-  html += kids.length
+  // Yoyish tugmasi — ichi bo'sh bo'lsa bo'sh joy (tekislik buzilmasin)
+  html += hasInside
     ? '<button class="osc-tw' + (exp ? ' open' : '') + '" onclick="oscToggle(\'' + f.id + '\')" title="' + (exp ? 'Yig\'ish' : 'Yoyish') + '" aria-label="Yoyish">' + icon('chevron', 14) + '</button>'
     : '<span class="osc-tw empty"></span>';
 
-  html += '<span class="osc-fic">' + icon(exp && kids.length ? 'folderOpen' : 'folder', 17) + '</span>';
+  html += '<span class="osc-fic">' + icon(exp && hasInside ? 'folderOpen' : 'folder', 17) + '</span>';
   html += '<span class="osc-nm">' + escapeHtml(f.name || '') + '</span>';
   if (isDept) html += '<span class="osc-chip">Bo\'lim</span>';
-  if (kids.length) html += '<span class="osc-cnt">' + kids.length + '</span>';
+  if (kids.length)  html += '<span class="osc-cnt" title="Ichki papkalar">' + kids.length + '</span>';
+  if (nPeople)      html += '<span class="osc-cnt people" title="Xodimlar">' + nPeople + '</span>';
 
   if (canEdit) {
     html += '<span class="osc-acts">' +
+      '<button class="osc-act" title="Xodim qo\'shish" onclick="oscAddPerson(\'' + f.id + '\')">' + icon('userPlus', 14) + '</button>' +
       '<button class="osc-act" title="Ichiga papka qo\'shish" onclick="oscNewFolder(\'' + f.id + '\')">' + icon('plus', 14) + '</button>' +
       '<button class="osc-act" title="Nomini o\'zgartirish" onclick="oscRenameFolder(\'' + f.id + '\')">' + icon('pencil', 14) + '</button>' +
       '<button class="osc-act" title="Boshqa papkaga ko\'chirish" onclick="oscMoveFolder(\'' + f.id + '\')">' + icon('network', 14) + '</button>' +
@@ -15908,9 +16026,11 @@ function oscFolderRowHtml(f, t, seen) {
   }
   html += '</div>';
 
-  if (exp && kids.length) {
+  if (exp && hasInside) {
     html += '<div class="osc-kids">';
-    kids.forEach(function (c) { html += oscFolderRowHtml(c, t, seen); });
+    // Avval ichki papkalar, keyin shu papkadagi xodimlar
+    kids.forEach(function (c) { html += oscFolderRowHtml(c, t, seen, pm, pseen); });
+    if (pm) html += oscFolderPeopleHtml(f.id, pm, pseen);
     html += '</div>';
   }
   html += '</div>';
@@ -15933,8 +16053,13 @@ function oscRenderFolders() {
   }
 
   const t = oscChildMap();
+  const pm = oscPeopleMap();
   const roots = t.kids.root || [];
-  if (!roots.length) {
+  // Papkasi yo'q xodimlar — alohida bo'limda. JIMGINA yo'qolmasligi shart:
+  // papka o'chirilganda ular shu yerga tushadi (ON DELETE SET NULL).
+  const loose = oscPeople.filter(function (p) { return !p.folder_id; });
+
+  if (!roots.length && !loose.length) {
     pane.innerHTML = '<div class="empty"><strong>Sxema hali bo\'sh</strong>' +
       (oscCanEdit()
         ? 'Yuqoridagi <b>+ Papka</b> bilan boshlang. Mavjud bo\'limlar avtomatik qo\'shiladi.'
@@ -15942,10 +16067,17 @@ function oscRenderFolders() {
     return;
   }
 
-  const seen = new Set();
-  let html = '<div class="osc-tree">';
-  roots.forEach(function (f) { html += oscFolderRowHtml(f, t, seen); });
-  html += '</div>';
+  const seen = new Set(), pseen = new Set();
+  let html = '';
+  if (roots.length) {
+    html += '<div class="osc-tree">';
+    roots.forEach(function (f) { html += oscFolderRowHtml(f, t, seen, pm, pseen); });
+    html += '</div>';
+  }
+  if (loose.length) {
+    html += '<div class="osc-loose-h">Papkasiz xodimlar <span class="osc-cnt">' + loose.length + '</span></div>';
+    html += '<div class="osc-tree">' + oscFolderPeopleHtml(null, pm, pseen) + '</div>';
+  }
   pane.innerHTML = html;
 }
 
@@ -16113,6 +16245,168 @@ async function oscDeleteFolder(id) {
     await loadOrgSchema();
   } catch (e) {
     console.error('oscDeleteFolder:', e);
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+// ── Hodim amallari ──────────────────────────────────────────────────────────
+// Papka tanlash uchun tekis ro'yxat (ichma-ichligi "— " bilan ko'rsatiladi).
+function oscFolderOptions(includeRoot, bannedIds) {
+  const t = oscChildMap();
+  const banned = bannedIds || new Set();
+  const opts = includeRoot ? [{ value: '', label: '— Papkasiz —' }] : [];
+  const seen = new Set();
+  (function walk(key, prefix) {
+    (t.kids[key] || []).forEach(function (c) {
+      if (seen.has(c.id)) return;   // sikl himoyasi
+      seen.add(c.id);
+      if (!banned.has(c.id)) opts.push({ value: c.id, label: prefix + c.name });
+      walk(c.id, prefix + '— ');
+    });
+  })('root', '');
+  return opts;
+}
+
+async function oscAddPerson(folderId) {
+  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+
+  // Sxemada bor odam qayta qo'shilmaydi (DB'da ham unique ws+user).
+  const taken = new Set(oscPeople.map(function (p) { return p.user_id; }));
+  const free = wsMembers.filter(function (m) { return !taken.has(m.user_id); });
+  if (!free.length) {
+    toast('Jamoadagi hamma xodim allaqachon sxemada', 'err');
+    return;
+  }
+  const people = free.map(function (m) {
+    const nm = (m.profile && (m.profile.full_name || m.profile.email)) || 'Noma\'lum';
+    return { value: m.user_id, label: memberNamePos(m.user_id, nm) || nm };
+  }).sort(function (a, b) { return a.label.localeCompare(b.label, 'uz'); });
+
+  const f = folderId ? oscFolders.find(function (x) { return x.id === folderId; }) : null;
+  const vals = await uiForm(f ? ('"' + f.name + '" ga xodim') : 'Sxemaga xodim qo\'shish', [
+    { id: 'uid', label: 'Xodim', type: 'select', options: people },
+    { id: 'folder', label: 'Papka', type: 'select', value: folderId || '', options: oscFolderOptions(true, null) },
+    { id: 'title', label: 'Lavozim (ixtiyoriy)', type: 'text', placeholder: 'Bo\'sh qoldirilsa HR ma\'lumotidan olinadi' }
+  ], { okText: 'Qo\'shish' });
+  if (!vals) return;
+  if (!vals.uid) { toast('Xodimni tanlang', 'err'); return; }
+
+  try {
+    const { data, error } = await sb.from('org_people').insert({
+      workspace_id: currentWs.id,
+      user_id: vals.uid,
+      folder_id: vals.folder || null,
+      title: (vals.title || '').trim() || null,
+      sort_order: oscPeople.length,
+      created_by: me.id
+    }).select();
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    if (vals.folder) { oscLoadExpanded().add(vals.folder); oscSaveExpanded(); }
+    toast('✅ Xodim qo\'shildi', 'ok');
+    logActivity('org_person_added', { entityType: 'org_person', entityId: data[0].id, entityTitle: oscPersonName(vals.uid) });
+    await loadOrgSchema();
+  } catch (e) {
+    console.error('oscAddPerson:', e);
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+async function oscSetManager(personId) {
+  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  const p = oscPersonById(personId);
+  if (!p) { toast('Xodim topilmadi', 'err'); return; }
+
+  // O'zini va butun QO'L OSTINI rahbar qilib bo'lmaydi (sikl). Server ham
+  // to'sadi (org_people_guard), lekin ro'yxatda ko'rsatmaslik tushunarliroq.
+  const banned = new Set(oscPersonDescendants(personId));
+  const opts = [{ value: '', label: '— Rahbari yo\'q (ildiz) —' }];
+  oscPeople.forEach(function (x) {
+    if (banned.has(x.id)) return;
+    const f = x.folder_id ? oscFolders.find(function (y) { return y.id === x.folder_id; }) : null;
+    const t = oscPersonTitle(x);
+    opts.push({
+      value: x.id,
+      label: oscPersonName(x.user_id) + (t ? ' · ' + t : '') + (f ? '  [' + f.name + ']' : '')
+    });
+  });
+  opts.sort(function (a, b) { return a.value === '' ? -1 : (b.value === '' ? 1 : a.label.localeCompare(b.label, 'uz')); });
+
+  if (opts.length === 1) { toast('Rahbar qilib tanlash uchun boshqa xodim yo\'q', 'err'); return; }
+
+  const vals = await uiForm(oscPersonName(p.user_id) + ' — rahbari', [
+    { id: 'mgr', label: 'Kimga bo\'ysunadi?', type: 'select', value: p.manager_id || '', options: opts,
+      hint: 'O\'ziga yoki o\'z qo\'l ostidagiga bo\'ysundirib bo\'lmaydi.' }
+  ], { okText: 'Saqlash' });
+  if (!vals) return;
+  const mgr = vals.mgr || null;
+  if ((mgr || null) === (p.manager_id || null)) return;
+
+  try {
+    const { data, error } = await sb.from('org_people').update({ manager_id: mgr }).eq('id', personId).select();
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    toast('✅ Saqlandi', 'ok');
+    logActivity('org_manager_changed', { entityType: 'org_person', entityId: personId, entityTitle: oscPersonName(p.user_id) });
+    await loadOrgSchema();
+  } catch (e) {
+    console.error('oscSetManager:', e);
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+async function oscMovePerson(personId) {
+  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  const p = oscPersonById(personId);
+  if (!p) { toast('Xodim topilmadi', 'err'); return; }
+
+  const vals = await uiForm(oscPersonName(p.user_id) + ' — papkasi', [
+    { id: 'folder', label: 'Qaysi papkada tursin?', type: 'select', value: p.folder_id || '', options: oscFolderOptions(true, null) },
+    { id: 'title', label: 'Lavozim (ixtiyoriy)', type: 'text', value: p.title || '', placeholder: 'Bo\'sh qoldirilsa HR ma\'lumotidan olinadi' }
+  ], { okText: 'Saqlash' });
+  if (!vals) return;
+
+  const newFolder = vals.folder || null;
+  const newTitle = (vals.title || '').trim() || null;
+  if (newFolder === (p.folder_id || null) && newTitle === (p.title || null)) return;
+
+  try {
+    const { data, error } = await sb.from('org_people')
+      .update({ folder_id: newFolder, title: newTitle }).eq('id', personId).select();
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    if (newFolder) { oscLoadExpanded().add(newFolder); oscSaveExpanded(); }
+    toast('✅ Saqlandi', 'ok');
+    await loadOrgSchema();
+  } catch (e) {
+    console.error('oscMovePerson:', e);
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+async function oscRemovePerson(personId) {
+  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  const p = oscPersonById(personId);
+  if (!p) { toast('Xodim topilmadi', 'err'); return; }
+
+  const subs = oscPeople.filter(function (x) { return x.manager_id === personId; });
+  let msg = oscPersonName(p.user_id) + ' tashkiliy sxemadan olib tashlanadi.';
+  if (subs.length) msg += ' Uning qo\'l ostidagi ' + subs.length + ' xodim rahbarsiz qoladi.';
+  msg += ' ⚠️ Xodim jamoadan CHIQARILMAYDI va vazifalariga tegilmaydi — faqat sxemadan chiqadi.';
+
+  const ok = await uiConfirm('Sxemadan olib tashlash', msg, { danger: true, okText: 'Olib tashlash' });
+  if (!ok) return;
+
+  try {
+    // ⚠️ .select() — RLS jimgina to'ssa "Olib tashlandi" yolg'on chiqmasin.
+    const { data, error } = await sb.from('org_people').delete().eq('id', personId).select();
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('O\'chirilmadi — ruxsat yo\'q (RLS)');
+    toast('Olib tashlandi', 'ok');
+    logActivity('org_person_removed', { entityType: 'org_person', entityId: personId, entityTitle: oscPersonName(p.user_id) });
+    await loadOrgSchema();
+  } catch (e) {
+    console.error('oscRemovePerson:', e);
     toast(translateErr(e.message || String(e)), 'err');
   }
 }
