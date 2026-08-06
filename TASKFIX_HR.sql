@@ -174,6 +174,45 @@ COMMENT ON TABLE public.org_people IS
 
 
 -- ════════════════════════════════════════════════════════════════════════════
+-- 3b) HODIM OSTIDA DAVOM ETISH (2026-08-06)
+-- ════════════════════════════════════════════════════════════════════════════
+-- Endi ISTALGAN tugun pastga davom etadi: hodim ostiga ham papka, ham hodim
+-- qo'yiladi. Shuning uchun har ikkala jadvalda "otam kim?" ikki xil bo'lishi
+-- mumkin:
+--   org_folders : parent_id (papka ostida)  YOKI  parent_person_id (hodim ostida)
+--   org_people  : folder_id (papkada)       YOKI  parent_person_id (hodim ostida)
+--
+-- ⚠️ Nega `parent_kind text` + bitta `parent_id` EMAS? Chunki u holda FK
+--    yozib bo'lmaydi — o'chirilgan tugun "osilib" qolardi (eski oc*/
+--    org_containers dagi muammo). Ikki alohida FK ustuni bilan baza o'zi
+--    butunligini saqlaydi.
+--
+-- ⚠️ ON DELETE SET NULL (CASCADE emas): rahbar sxemadan olib tashlansa
+--    uning ostidagi butun shox O'CHIB KETMASIN — ular ildizga ko'chadi.
+ALTER TABLE public.org_folders ADD COLUMN IF NOT EXISTS parent_person_id uuid REFERENCES public.org_people(id) ON DELETE SET NULL;
+ALTER TABLE public.org_people  ADD COLUMN IF NOT EXISTS parent_person_id uuid REFERENCES public.org_people(id) ON DELETE SET NULL;
+
+-- Bir vaqtda IKKI ota bo'lmasin (aks holda daraxt ikkilanardi)
+ALTER TABLE public.org_folders DROP CONSTRAINT IF EXISTS org_folders_one_parent_chk;
+ALTER TABLE public.org_folders ADD  CONSTRAINT org_folders_one_parent_chk
+  CHECK (parent_id IS NULL OR parent_person_id IS NULL);
+
+ALTER TABLE public.org_people DROP CONSTRAINT IF EXISTS org_people_one_parent_chk;
+ALTER TABLE public.org_people ADD  CONSTRAINT org_people_one_parent_chk
+  CHECK (folder_id IS NULL OR parent_person_id IS NULL);
+
+ALTER TABLE public.org_people DROP CONSTRAINT IF EXISTS org_people_self_parent_chk;
+ALTER TABLE public.org_people ADD  CONSTRAINT org_people_self_parent_chk
+  CHECK (parent_person_id IS NULL OR parent_person_id <> id);
+
+CREATE INDEX IF NOT EXISTS org_folders_pp_idx ON public.org_folders (workspace_id, parent_person_id);
+CREATE INDEX IF NOT EXISTS org_people_pp_idx  ON public.org_people  (workspace_id, parent_person_id);
+
+COMMENT ON COLUMN public.org_folders.parent_person_id IS 'Papka SHU HODIM ostida turadi (parent_id bilan bir vaqtda to''ldirilmaydi).';
+COMMENT ON COLUMN public.org_people.parent_person_id  IS 'Hodim SHU HODIM ostida turadi, ya''ni unga bo''ysunadi (folder_id bilan bir vaqtda to''ldirilmaydi).';
+
+
+-- ════════════════════════════════════════════════════════════════════════════
 -- 4) Triggerlar — updated_at + SIKL taqiqi
 -- ════════════════════════════════════════════════════════════════════════════
 CREATE OR REPLACE FUNCTION public.org_touch()
@@ -195,55 +234,97 @@ DROP TRIGGER IF EXISTS org_people_touch_trg ON public.org_people;
 CREATE TRIGGER org_people_touch_trg BEFORE UPDATE ON public.org_people
   FOR EACH ROW EXECUTE FUNCTION public.org_touch();
 
--- ── Papka sikli: A → B → A bo'lmasin ────────────────────────────────────────
--- ⚠️ Mijoz tomonda ham tekshiruv bor, lekin YAGONA HAQIQIY himoya shu yerda:
---    sikl paydo bo'lsa daraxt chizuvchi rekursiya cheksiz aylanadi.
-CREATE OR REPLACE FUNCTION public.org_folders_guard()
-RETURNS trigger LANGUAGE plpgsql AS $$
+-- ── SIKL QO'RIQCHISI (ikki jadval bo'ylab) ─────────────────────────────────
+-- Daraxt endi org_folders + org_people bo'ylab yoyilgan: papka hodim ostida,
+-- hodim papka ichida yoki boshqa hodim ostida bo'lishi mumkin. Demak sikl ham
+-- ARALASH bo'lishi mumkin (papka → hodim → papka → …), va uni bitta jadvalni
+-- kuzatib tutib bo'lmaydi.
+--
+-- ⚠️ Bu YAGONA haqiqiy himoya: sikl paydo bo'lsa daraxt chizuvchi rekursiya
+--    cheksiz aylanadi. Mijozda ham tekshiruv bor, lekin unga ishonib bo'lmaydi.
+--
+-- Berilgan (kind,id) tugunning YANGI otasidan yuqoriga yuriladi; yo'lda
+-- o'zimiz uchrasak — sikl.
+CREATE OR REPLACE FUNCTION public.org_check_ancestor(
+  p_kind text, p_id uuid, p_pkind text, p_pid uuid, p_ws uuid
+) RETURNS void
+LANGUAGE plpgsql AS $$
 DECLARE
-  v_cur   uuid;
+  v_kind  text := p_pkind;
+  v_id    uuid := p_pid;
   v_ws    uuid;
+  v_next_folder uuid;
+  v_next_person uuid;
   v_steps int := 0;
 BEGIN
-  IF NEW.parent_id IS NULL THEN RETURN NEW; END IF;
-
-  -- Ota boshqa workspace'da bo'lmasin
-  SELECT workspace_id INTO v_ws FROM public.org_folders WHERE id = NEW.parent_id;
-  IF v_ws IS NULL THEN
-    RAISE EXCEPTION 'Ota papka topilmadi';
-  END IF;
-  IF v_ws <> NEW.workspace_id THEN
-    RAISE EXCEPTION 'Ota papka boshqa workspace''da';
-  END IF;
-
-  -- Yuqoriga yuramiz: yo'lda o'zimiz uchrasak — sikl
-  v_cur := NEW.parent_id;
-  WHILE v_cur IS NOT NULL LOOP
-    IF v_cur = NEW.id THEN
-      RAISE EXCEPTION 'Papkani o''zining ichiga ko''chirib bo''lmaydi (sikl)';
+  WHILE v_id IS NOT NULL LOOP
+    IF v_kind = p_kind AND v_id = p_id THEN
+      RAISE EXCEPTION 'Tugunni o''zining ichiga ko''chirib bo''lmaydi (sikl)';
     END IF;
+
     v_steps := v_steps + 1;
-    IF v_steps > 100 THEN
-      RAISE EXCEPTION 'Papka daraxti juda chuqur yoki siklda';
+    IF v_steps > 200 THEN
+      RAISE EXCEPTION 'Daraxt juda chuqur yoki siklda';
     END IF;
-    SELECT parent_id INTO v_cur FROM public.org_folders WHERE id = v_cur;
-  END LOOP;
 
+    IF v_kind = 'folder' THEN
+      SELECT workspace_id, parent_id, parent_person_id
+        INTO v_ws, v_next_folder, v_next_person
+        FROM public.org_folders WHERE id = v_id;
+    ELSE
+      SELECT workspace_id, folder_id, parent_person_id
+        INTO v_ws, v_next_folder, v_next_person
+        FROM public.org_people WHERE id = v_id;
+    END IF;
+
+    IF v_ws IS NULL THEN
+      RAISE EXCEPTION 'Ota tugun topilmadi';
+    END IF;
+    IF v_ws <> p_ws THEN
+      RAISE EXCEPTION 'Ota tugun boshqa workspace''da';
+    END IF;
+
+    IF v_next_person IS NOT NULL THEN
+      v_kind := 'person'; v_id := v_next_person;
+    ELSIF v_next_folder IS NOT NULL THEN
+      v_kind := 'folder'; v_id := v_next_folder;
+    ELSE
+      v_id := NULL;   -- ildizga yetdik
+    END IF;
+  END LOOP;
+END $$;
+
+CREATE OR REPLACE FUNCTION public.org_folders_guard()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF NEW.parent_id IS NOT NULL THEN
+    PERFORM public.org_check_ancestor('folder', NEW.id, 'folder', NEW.parent_id, NEW.workspace_id);
+  ELSIF NEW.parent_person_id IS NOT NULL THEN
+    PERFORM public.org_check_ancestor('folder', NEW.id, 'person', NEW.parent_person_id, NEW.workspace_id);
+  END IF;
   RETURN NEW;
 END $$;
 
 DROP TRIGGER IF EXISTS org_folders_guard_trg ON public.org_folders;
 CREATE TRIGGER org_folders_guard_trg
-  BEFORE INSERT OR UPDATE OF parent_id, workspace_id ON public.org_folders
+  BEFORE INSERT OR UPDATE OF parent_id, parent_person_id, workspace_id ON public.org_folders
   FOR EACH ROW EXECUTE FUNCTION public.org_folders_guard();
 
--- ── Bo'ysunish sikli qo'riqchisi — KERAK EMAS (2026-08-06) ─────────────────
--- Bo'ysunish endi SAQLANMAYDI: `manager_id` ustuni olib tashlandi va kim
--- kimga bo'ysunishi PAPKA JOYLASHUVIDAN hisoblanadi. Papka daraxtida sikl
--- bo'lishi org_folders_guard bilan allaqachon to'silgan, demak bo'ysunishda
--- ham sikl paydo bo'la olmaydi. Ortiqcha trigger — ortiqcha xavf.
-DROP TRIGGER  IF EXISTS org_people_guard_trg ON public.org_people;
-DROP FUNCTION IF EXISTS public.org_people_guard();
+CREATE OR REPLACE FUNCTION public.org_people_guard()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF NEW.parent_person_id IS NOT NULL THEN
+    PERFORM public.org_check_ancestor('person', NEW.id, 'person', NEW.parent_person_id, NEW.workspace_id);
+  ELSIF NEW.folder_id IS NOT NULL THEN
+    PERFORM public.org_check_ancestor('person', NEW.id, 'folder', NEW.folder_id, NEW.workspace_id);
+  END IF;
+  RETURN NEW;
+END $$;
+
+DROP TRIGGER IF EXISTS org_people_guard_trg ON public.org_people;
+CREATE TRIGGER org_people_guard_trg
+  BEFORE INSERT OR UPDATE OF folder_id, parent_person_id, workspace_id ON public.org_people
+  FOR EACH ROW EXECUTE FUNCTION public.org_people_guard();
 
 
 -- ════════════════════════════════════════════════════════════════════════════
@@ -407,13 +488,27 @@ BEGIN
   SELECT count(*) INTO v_cnt FROM pg_policies WHERE schemaname='public' AND tablename='org_people';
   IF v_cnt < 4 THEN RAISE EXCEPTION 'org_people policy''lari to''liq emas (% ta, 4 kutilgan)', v_cnt; END IF;
 
-  -- 7.3 Trigger: faqat papka sikli qo'riqchisi qoladi
-  -- (org_people_guard_trg olib tashlandi — bo'ysunish saqlanmagach kerak emas)
-  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'org_folders_guard_trg' AND NOT tgisinternal) THEN
-    RAISE EXCEPTION 'org_folders_guard_trg yaratilmadi';
+  -- 7.3 Sikl qo'riqchilari — ikkala jadvalda ham bo'lishi SHART
+  -- (daraxt endi org_folders + org_people bo'ylab yoyilgan → aralash sikl
+  --  mumkin, shuning uchun ikkovi ham org_check_ancestor() ni chaqiradi)
+  FOREACH t IN ARRAY ARRAY['org_folders_guard_trg','org_people_guard_trg'] LOOP
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = t AND NOT tgisinternal) THEN
+      RAISE EXCEPTION '% yaratilmadi', t;
+    END IF;
+  END LOOP;
+  IF NOT EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+                  WHERE n.nspname='public' AND p.proname='org_check_ancestor') THEN
+    RAISE EXCEPTION 'org_check_ancestor() yaratilmadi';
   END IF;
-  IF EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'org_people_guard_trg' AND NOT tgisinternal) THEN
-    RAISE EXCEPTION 'org_people_guard_trg hali ham bor — o''chirilmadi!';
+
+  -- 7.3b Yangi "hodim ostida" ustunlari
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                  WHERE table_schema='public' AND table_name='org_folders' AND column_name='parent_person_id') THEN
+    RAISE EXCEPTION 'org_folders.parent_person_id yaratilmadi';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                  WHERE table_schema='public' AND table_name='org_people' AND column_name='parent_person_id') THEN
+    RAISE EXCEPTION 'org_people.parent_person_id yaratilmadi';
   END IF;
 
   -- 7.4 Avtomatik bog'lanish HAQIQATAN yo'qmi? (teskari tekshiruv)
@@ -430,6 +525,8 @@ BEGIN
 
   -- 7.4b Model soddaligini tasdiqlaymiz: bo'ysunish/bo'lim ustunlari
   -- QOLMAGAN bo'lishi shart, aks holda ikki xil manba paydo bo'lardi.
+  -- (manager_id — eski qo'lda tanlanadigan rahbar; parent_person_id uni
+  --  almashtirdi va bo'ysunish endi daraxtdan hisoblanadi)
   FOREACH t IN ARRAY ARRAY['manager_id','is_head'] LOOP
     IF EXISTS (SELECT 1 FROM information_schema.columns
                 WHERE table_schema='public' AND table_name='org_people' AND column_name=t) THEN
@@ -464,30 +561,48 @@ BEGIN
   END IF;
 END $$;
 
--- ── 7.6 Sikl triggeri HAQIQATAN ishlaydimi? ────────────────────────────────
+-- ── 7.6 Sikl triggerlari HAQIQATAN ishlaydimi? ─────────────────────────────
 -- Tirik ma'lumot ustida sinaymiz, lekin test qatorlari SAQLANMAYDI:
 -- ichki subtranzaksiya ataylab RAISE bilan qaytariladi.
+-- Ikki holat: (a) sof papka sikli, (b) ARALASH sikl (papka → hodim → papka).
 DO $$
-DECLARE v_ws uuid; v_a uuid; v_b uuid; v_ok boolean := false;
+DECLARE
+  v_ws uuid; v_u uuid; v_a uuid; v_b uuid; v_p uuid;
+  v_ok1 boolean := false; v_ok2 boolean := false;
 BEGIN
   SELECT id INTO v_ws FROM public.workspaces LIMIT 1;
   IF v_ws IS NULL THEN
     RAISE NOTICE 'Workspace yo''q — sikl testi o''tkazib yuborildi';
     RETURN;
   END IF;
+  SELECT user_id INTO v_u FROM public.workspace_members WHERE workspace_id = v_ws LIMIT 1;
 
   BEGIN
     INSERT INTO public.org_folders (workspace_id, name) VALUES (v_ws, '__test_a__') RETURNING id INTO v_a;
     INSERT INTO public.org_folders (workspace_id, name, parent_id) VALUES (v_ws, '__test_b__', v_a) RETURNING id INTO v_b;
 
+    -- (a) A → B → A
     BEGIN
-      UPDATE public.org_folders SET parent_id = v_b WHERE id = v_a;   -- A → B → A = sikl
-    EXCEPTION WHEN others THEN
-      v_ok := true;   -- trigger to'sdi — shu kerak
+      UPDATE public.org_folders SET parent_id = v_b WHERE id = v_a;
+    EXCEPTION WHEN others THEN v_ok1 := true;
     END;
+    IF NOT v_ok1 THEN
+      RAISE EXCEPTION 'PAPKA SIKLI TRIGGERI ISHLAMADI — org_folders_guard tekshiring!';
+    END IF;
 
-    IF NOT v_ok THEN
-      RAISE EXCEPTION 'SIKL TRIGGERI ISHLAMADI — org_folders_guard tekshiring!';
+    -- (b) aralash: papka A ichida hodim P, keyin A ni P ostiga ko'chirmoqchi bo'lamiz
+    IF v_u IS NOT NULL THEN
+      INSERT INTO public.org_people (workspace_id, user_id, folder_id)
+      VALUES (v_ws, v_u, v_a) RETURNING id INTO v_p;
+      BEGIN
+        UPDATE public.org_folders SET parent_id = NULL, parent_person_id = v_p WHERE id = v_a;
+      EXCEPTION WHEN others THEN v_ok2 := true;
+      END;
+      IF NOT v_ok2 THEN
+        RAISE EXCEPTION 'ARALASH SIKL TRIGGERI ISHLAMADI — org_check_ancestor tekshiring!';
+      END IF;
+    ELSE
+      RAISE NOTICE 'Workspace a''zosi yo''q — aralash sikl testi o''tkazib yuborildi';
     END IF;
 
     RAISE EXCEPTION '__rollback_test__';   -- test qatorlarini qaytaramiz
@@ -495,7 +610,7 @@ BEGIN
     IF SQLERRM <> '__rollback_test__' THEN RAISE; END IF;
   END;
 
-  RAISE NOTICE 'Sikl triggeri OK (test qatorlari qaytarildi)';
+  RAISE NOTICE 'Sikl triggerlari OK (test qatorlari qaytarildi)';
 END $$;
 
 COMMIT;

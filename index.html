@@ -927,8 +927,18 @@
     transition: transform .16s cubic-bezier(.32,.72,0,1), box-shadow .16s ease, border-color .16s ease; }
   .osc-card.person { cursor: pointer; }
   .osc-card.person:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(28,31,36,.13); border-color: var(--line-strong); }
+  /* Hodim qatori papkadan "yengilroq" — ierarxiya ko'z bilan o'qilsin */
+  .osc-row.person .osc-nm { font-weight: 400; }
   /* Papka tuguni — "idish" ekani ko'rinib tursin: iliqroq fon, ustki urg'u */
   .osc-card.folder { background: var(--surface-2); border-color: var(--line-soft); }
+  /* Birlashgan kartochka (papka·hodim) — ikkalasining rolini bitta kartada
+     ko'rsatadi: tepada papka nomi (kuchli), pastda hodim ismi. Chap chekkada
+     nozik urg'u chizig'i "bu oddiy hodim emas, boshliq" ekanini bildiradi. */
+  .osc-card.merged { background: var(--surface); border-color: var(--line-strong); cursor: pointer; box-shadow: 0 1px 2px rgba(28,31,36,.06), 0 3px 10px rgba(28,31,36,.05); }
+  .osc-card.merged::before { content: ''; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; border-radius: 0 3px 3px 0; background: var(--accent-ink); }
+  .osc-card.merged:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(28,31,36,.14); }
+  .osc-card.merged .osc-card-nm { font-weight: 650; }
+  .osc-card.merged .osc-card-sub { color: var(--ink-soft); font-weight: 500; }
   .osc-card-ic { flex-shrink: 0; display: flex; color: var(--muted); }
   .osc-card-av { flex-shrink: 0; display: flex; }
   .osc-card-av .avatar.sm { width: 34px; height: 34px; font-size: 12px; }
@@ -16220,37 +16230,75 @@ function oscSaveExpanded() {
 }
 
 // ── Daraxt tuzilishi ────────────────────────────────────────────────────────
-// parent_id → [bola papkalar]. Yetim qolgan (otasi ko'rinmaydigan) papkalar
-// JIMGINA YO'QOLMASIN — ular ildizga chiqariladi.
-function oscChildMap() {
-  const byId = {}, kids = { root: [] };
-  oscFolders.forEach(function (f) { byId[f.id] = f; });
-  oscFolders.forEach(function (f) {
-    const key = (f.parent_id && byId[f.parent_id]) ? f.parent_id : 'root';
-    (kids[key] = kids[key] || []).push(f);
+// ⚠️ BITTA BIRLASHGAN DARAXT: tugun papka ham, hodim ham bo'lishi mumkin va
+//    HAR QANDAY tugun pastga davom etadi.
+//      papka ostida  → papkalar (parent_id) + hodimlar (folder_id)
+//      hodim ostida  → papkalar (parent_person_id) + hodimlar (parent_person_id)
+//    Ikkala ko'rinish (papka ro'yxati va org chart) SHU daraxtdan o'qiydi —
+//    shuning uchun ular ajralib qola olmaydi.
+//
+// Tugun: { type:'folder'|'person', id, row, children:[] }
+// Kalit: 'f:<id>' / 'p:<id>' — ikki jadval id'lari to'qnashmasin.
+function oscKey(type, id) { return (type === 'folder' ? 'f:' : 'p:') + id; }
+
+// Butun daraxt: { roots:[...], byKey:{}, parentOf:{} }
+// ⚠️ Yetim tugun (otasi ko'rinmaydi) JIMGINA YO'QOLMAYDI — ildizga chiqadi.
+function oscTree() {
+  const fById = {}, pById = {};
+  oscFolders.forEach(function (f) { fById[f.id] = f; });
+  oscPeople.forEach(function (p) { pById[p.id] = p; });
+
+  const nodes = {};   // key → node
+  oscFolders.forEach(function (f) { nodes[oscKey('folder', f.id)] = { type: 'folder', id: f.id, row: f, children: [] }; });
+  oscPeople.forEach(function (p) { nodes[oscKey('person', p.id)] = { type: 'person', id: p.id, row: p, children: [] }; });
+
+  // Har tugunning otasi (ko'rinadigan bo'lsa)
+  function parentKeyOfFolder(f) {
+    if (f.parent_person_id && pById[f.parent_person_id]) return oscKey('person', f.parent_person_id);
+    if (f.parent_id && fById[f.parent_id]) return oscKey('folder', f.parent_id);
+    return null;
+  }
+  function parentKeyOfPerson(p) {
+    if (p.parent_person_id && pById[p.parent_person_id]) return oscKey('person', p.parent_person_id);
+    if (p.folder_id && fById[p.folder_id]) return oscKey('folder', p.folder_id);
+    return null;
+  }
+
+  const parentOf = {}, roots = [];
+  Object.keys(nodes).forEach(function (k) {
+    const n = nodes[k];
+    const pk = n.type === 'folder' ? parentKeyOfFolder(n.row) : parentKeyOfPerson(n.row);
+    parentOf[k] = pk;
+    if (pk && nodes[pk]) nodes[pk].children.push(n);
+    else roots.push(n);
   });
-  Object.keys(kids).forEach(function (k) {
-    kids[k].sort(function (a, b) {
-      const d = (a.sort_order || 0) - (b.sort_order || 0);
-      return d !== 0 ? d : String(a.name || '').localeCompare(String(b.name || ''), 'uz');
-    });
-  });
-  return { byId: byId, kids: kids };
+
+  // Tartib: avval papkalar, keyin hodimlar; ichida sort_order → nom
+  function cmp(a, b) {
+    if (a.type !== b.type) return a.type === 'folder' ? -1 : 1;
+    const d = (a.row.sort_order || 0) - (b.row.sort_order || 0);
+    if (d !== 0) return d;
+    const an = a.type === 'folder' ? (a.row.name || '') : oscPersonName(a.row.user_id);
+    const bn = b.type === 'folder' ? (b.row.name || '') : oscPersonName(b.row.user_id);
+    return an.localeCompare(bn, 'uz');
+  }
+  roots.sort(cmp);
+  Object.keys(nodes).forEach(function (k) { nodes[k].children.sort(cmp); });
+
+  return { roots: roots, byKey: nodes, parentOf: parentOf };
 }
 
-// Papka va uning butun avlodi (o'zi ham kiradi) — ko'chirish/o'chirishda kerak.
-// ⚠️ `seen` — sikl himoyasi. Server sikl yaratishga yo'l qo'ymaydi, lekin
-//    ma'lumot boshqa yo'l bilan buzilsa (qo'lda SQL, eski qator) bu funksiya
-//    rekursiyada osilib ilovani YIQITMASLIGI kerak.
-function oscDescendants(id) {
-  const t = oscChildMap();
-  const out = [], seen = new Set();
-  (function walk(fid) {
-    if (seen.has(fid)) { console.error('oscDescendants: papka daraxtida sikl —', fid); return; }
-    seen.add(fid);
-    out.push(fid);
-    (t.kids[fid] || []).forEach(function (c) { walk(c.id); });
-  })(id);
+// Tugun va butun avlodi (o'zi ham) — kalitlar to'plami.
+// ⚠️ `seen` — sikl himoyasi: server sikl yaratmaydi, lekin ma'lumot boshqa
+//    yo'l bilan buzilsa ilova rekursiyada YIQILMASLIGI kerak.
+function oscSubtreeKeys(tree, node) {
+  const out = new Set();
+  (function walk(n) {
+    const k = oscKey(n.type, n.id);
+    if (out.has(k)) { console.error('oscSubtreeKeys: daraxtda sikl —', k); return; }
+    out.add(k);
+    n.children.forEach(walk);
+  })(node);
   return out;
 }
 
@@ -16295,18 +16343,11 @@ async function oscLoad() {
 }
 
 // ── Hodimlar ────────────────────────────────────────────────────────────────
-// ⚠️ MODEL (2026-08-06 da soddalashtirildi): PAPKA DARAXTI = BO'YSUNISH SXEMASI.
-//    Alohida `manager_id` YO'Q va qo'lda rahbar tanlanmaydi. Hodim qaysi
-//    papkada tursa — bo'ysunishi o'shandan kelib chiqadi:
-//      • bitta papkadagi hodimlar TENG (bir-biriga bo'ysunmaydi);
-//      • hammasi YUQORIDAGI papkadagi hodimlarga bo'ysunadi;
-//      • yuqoridagi papka bo'sh bo'lsa — undan ham yuqoriga qaraladi,
-//        odam topilguncha (ildizgacha);
+// ⚠️ MODEL: DARAXT = BO'YSUNISH SXEMASI. Alohida `manager_id` yo'q.
+//      • hodim ostidagi hodim → o'sha hodimga bo'ysunadi;
+//      • papka ichidagi hodimlar TENG, hammasi yuqoridagi eng yaqin
+//        hodim(lar)ga bo'ysunadi (yo'lda bo'sh papkalar o'tkazib yuboriladi);
 //      • boshqa ildiz (alohida daraxt) bilan bog'lanish YO'Q.
-//
-//    Shu sababli bo'ysunish hech qachon papka joylashuvidan ayri tushmaydi
-//    va sikl bo'lishi mumkin emas — sikl faqat papka daraxtida bo'lishi
-//    mumkin, uni esa server trigger'i to'sadi.
 function oscPersonName(uid) {
   const m = wsMembers.find(function (x) { return x.user_id === uid; });
   const p = m && m.profile ? m.profile : null;
@@ -16317,88 +16358,50 @@ function oscPersonTitle(row) {
   return t || memberPos(row.user_id) || '';
 }
 function oscPersonById(id) { return oscPeople.find(function (p) { return p.id === id; }); }
+function oscFolderById(id) { return oscFolders.find(function (f) { return f.id === id; }); }
+function oscNodeName(n) { return n.type === 'folder' ? (n.row.name || '') : oscPersonName(n.row.user_id); }
 
-// Papka bo'yicha guruhlangan hodimlar: folderId (yoki 'root' = papkasiz).
-function oscPeopleByFolder() {
-  const map = {};
-  oscPeople.forEach(function (p) {
-    const k = p.folder_id || 'root';
-    (map[k] = map[k] || []).push(p);
-  });
-  Object.keys(map).forEach(function (k) {
-    map[k].sort(function (a, b) {
-      const d = (a.sort_order || 0) - (b.sort_order || 0);
-      return d !== 0 ? d : oscPersonName(a.user_id).localeCompare(oscPersonName(b.user_id), 'uz');
-    });
-  });
-  return map;
-}
+// Shu hodim KIMGA bo'ysunadi — daraxtdan hisoblanadi, saqlanmaydi.
+//   • otasi HODIM bo'lsa → o'sha hodim (to'g'ridan-to'g'ri bo'ysunish);
+//   • otasi PAPKA bo'lsa → o'sha papkadagilar TENGDOSH (o'zi ham shu yerda!),
+//     shuning uchun ular emas, YUQORIDAGI eng yaqin hodim(lar) rahbar.
+//
+// ⚠️ Shu "o'z papkasini o'tkazib yuborish" qadami MUHIM: busiz hodim o'zini
+//    va tengdoshlarini rahbar deb ko'rsatardi.
+function oscDerivedManagers(person, tree) {
+  const t = tree || oscTree();
+  const first = t.parentOf[oscKey('person', person.id)];
+  if (!first) return [];                       // ildiz — hech kimga bo'ysunmaydi
 
-// Shu hodim KIMGA bo'ysunadi — hisoblab topiladi, saqlanmaydi.
-// Yuqoriga qarab birinchi ODAMLI papka topilguncha yuriladi.
-// Papkasiz hodim hech kimga bo'ysunmaydi (ildiz).
-function oscDerivedManagers(person) {
-  if (!person || !person.folder_id) return [];
-  const byId = {};
-  oscFolders.forEach(function (f) { byId[f.id] = f; });
-  const byFolder = oscPeopleByFolder();
+  const firstNode = t.byKey[first];
+  if (!firstNode) return [];
+  if (firstNode.type === 'person') return [firstNode.row];   // to'g'ridan-to'g'ri
 
-  let cur = byId[person.folder_id];
-  const seen = new Set();
+  // Otasi papka → o'sha papkani O'TKAZIB YUBORAMIZ (tengdoshlar) va
+  // undan yuqoridagi birinchi "odamli" tugunni qidiramiz.
+  let key = t.parentOf[first];
+  const seen = new Set([first]);
   let steps = 0;
-  while (cur && cur.parent_id && steps < 100) {
-    if (seen.has(cur.id)) { console.error('oscDerivedManagers: papka daraxtida sikl —', cur.id); return []; }
-    seen.add(cur.id);
-    steps++;
-    const parent = byId[cur.parent_id];
-    if (!parent) return [];                    // ota ko'rinmaydi — ildiz deb hisoblaymiz
-    const here = byFolder[parent.id] || [];
-    if (here.length) return here;              // birinchi odamli yuqori papka
-    cur = parent;                              // bo'sh — yana yuqoriga
+  while (key && steps < 200) {
+    if (seen.has(key)) { console.error('oscDerivedManagers: daraxtda sikl —', key); return []; }
+    seen.add(key); steps++;
+    const n = t.byKey[key];
+    if (!n) return [];
+    if (n.type === 'person') return [n.row];
+    const here = n.children.filter(function (c) { return c.type === 'person'; }).map(function (c) { return c.row; });
+    if (here.length) return here;
+    key = t.parentOf[key];   // bo'sh papka — yana yuqoriga
   }
   return [];
 }
 
 // "→ Rahbar" belgisi (faqat ma'lumot uchun; tanlanmaydi).
-function oscMgrBadge(person) {
-  const mgrs = oscDerivedManagers(person);
+function oscMgrBadge(person, tree) {
+  const mgrs = oscDerivedManagers(person, tree);
   if (!mgrs.length) return '';
   const names = mgrs.map(function (m) { return oscPersonName(m.user_id); });
   const label = names.length === 1 ? names[0] : (names.length + ' kishi');
   return '<span class="osc-mgr" title="' + escapeHtml('Bo\'ysunadi: ' + names.join(', ')) + '">→ ' + escapeHtml(label) + '</span>';
-}
-
-// Bitta hodim qatori. ⚠️ Ichma-ichlik YO'Q: bir papkadagi hodimlar teng.
-function oscPersonRowHtml(p) {
-  const name = oscPersonName(p.user_id);
-  const title = oscPersonTitle(p);
-  const canEdit = oscCanEdit();
-
-  let html = '<div class="osc-node">';
-  html += '<div class="osc-row person">';
-  // Papka qatorlari bilan bir vertikalda tursin (yoyish tugmasi o'rni bo'sh)
-  html += '<span class="osc-tw empty"></span>';
-  html += '<span class="osc-av">' + avatarHtml(name, 'sm', null, p.user_id) + '</span>';
-  html += '<span class="osc-nm">' + escapeHtml(name) + '</span>';
-  if (title) html += '<span class="osc-pos">' + escapeHtml(title) + '</span>';
-  html += oscMgrBadge(p);
-
-  if (canEdit) {
-    html += '<span class="osc-acts">' +
-      '<button class="osc-act" title="Boshqa papkaga ko\'chirish" onclick="oscMovePerson(\'' + p.id + '\')">' + icon('folder', 14) + '</button>' +
-      '<button class="osc-act danger" title="Sxemadan olib tashlash" onclick="oscRemovePerson(\'' + p.id + '\')">' + icon('trash', 14) + '</button>' +
-    '</span>';
-  }
-  html += '</div></div>';
-  return html;
-}
-
-// Papka ichidagi hodimlar — tekis ro'yxat (ular o'zaro teng).
-function oscFolderPeopleHtml(folderId, byFolder) {
-  const mine = (byFolder || oscPeopleByFolder())[folderId || 'root'] || [];
-  let html = '';
-  mine.forEach(function (p) { html += oscPersonRowHtml(p); });
-  return html;
 }
 
 // ── Chizish ─────────────────────────────────────────────────────────────────
@@ -16408,8 +16411,8 @@ function oscRenderActions() {
   box.innerHTML =
     '<button class="btn secondary sm" onclick="oscExpandAll(true)">Hammasini yoyish</button>' +
     '<button class="btn secondary sm" onclick="oscExpandAll(false)">Yig\'ish</button>' +
-    '<button class="btn secondary sm" onclick="oscAddPerson(null)">' + icon('userPlus', 14) + ' Xodim</button>' +
-    '<button class="btn sm" onclick="oscNewFolder(null)">' + icon('plus', 14) + ' Papka</button>';
+    '<button class="btn secondary sm" onclick="oscAddPerson(\'\',\'\')">' + icon('userPlus', 14) + ' Xodim</button>' +
+    '<button class="btn sm" onclick="oscNewFolder(\'\',\'\')">' + icon('plus', 14) + ' Papka</button>';
 }
 
 function oscRenderCount() {
@@ -16418,62 +16421,71 @@ function oscRenderCount() {
   el.textContent = oscFolders.length + ' papka · ' + oscPeople.length + ' xodim';
 }
 
-// ⚠️ Daraxt (`t`) chaqiruvchida BIR MARTA hisoblanadi va pastga uzatiladi —
-// har qator uchun qayta qurilsa katta sxemada O(n²) bo'lardi.
-// ⚠️ `seen` — sikl himoyasi (oscDescendants dagi bilan bir xil sabab):
-//    buzilgan ma'lumot butun sahifani yiqitmasin.
-// ⚠️ BUTUN QATOR bosiladi → FAQAT SHU papka ochiladi/yopiladi. Har papka
-//    mustaqil (accordion emas) — boshqalarining holati o'zgarmaydi.
-//    Avval faqat kichkina uchburchak bosilardi, undan foydalanish qiyin edi.
-//    Chevron endi bezak (span) — qator o'zi hodisani oladi, ikki marta
-//    toggle bo'lib qolmaydi.
+// Bitta tugun qatori (papka ham, hodim ham) — birlashgan daraxt bo'yicha.
+//
+// ⚠️ BUTUN QATOR bosiladi → FAQAT SHU tugun ochiladi/yopiladi. Har tugun
+//    mustaqil (accordion emas). Chevron — bezak (span): qator o'zi hodisani
+//    oladi, ikki marta toggle bo'lmaydi.
 // ⚠️ Amal tugmalari event.stopPropagation() qiladi, aks holda "o'chirish"
-//    bosilganda papka ham yig'ilib ketardi.
-function oscFolderRowHtml(f, t, seen, byFolder) {
-  seen = seen || new Set();
-  if (seen.has(f.id)) { console.error('oscFolderRowHtml: papka daraxtida sikl —', f.id); return ''; }
-  seen.add(f.id);
-  const kids = t.kids[f.id] || [];
-  const nPeople = ((byFolder || {})[f.id] || []).length;
-  const exp = oscLoadExpanded().has(f.id);
+//    bosilganda tugun ham yig'ilib ketardi.
+// ⚠️ `seen` — sikl himoyasi: buzilgan ma'lumot butun sahifani yiqitmasin.
+function oscNodeRowHtml(n, t, seen) {
+  const key = oscKey(n.type, n.id);
+  if (seen.has(key)) { console.error('oscNodeRowHtml: daraxtda sikl —', key); return ''; }
+  seen.add(key);
+
+  const isF = n.type === 'folder';
+  const kids = n.children;
+  const exp = oscLoadExpanded().has(key);
   const canEdit = oscCanEdit();
-  const hasInside = kids.length + nPeople > 0;
+  const has = kids.length > 0;
+  const nF = kids.filter(function (c) { return c.type === 'folder'; }).length;
+  const nP = kids.length - nF;
 
   let html = '<div class="osc-node">';
-  html += '<div class="osc-row folder' + (hasInside ? ' clickable' : '') + '"' +
-          (hasInside
-            ? ' onclick="oscToggle(\'' + f.id + '\')" onkeydown="oscRowKey(event,\'' + f.id + '\')"' +
+  html += '<div class="osc-row ' + (isF ? 'folder' : 'person') + (has ? ' clickable' : '') + '"' +
+          (has
+            ? ' onclick="oscToggle(\'' + key + '\')" onkeydown="oscRowKey(event,\'' + key + '\')"' +
               ' role="button" tabindex="0" aria-expanded="' + (exp ? 'true' : 'false') + '"' +
               ' title="' + (exp ? 'Yig\'ish' : 'Yoyish') + '"'
             : '') + '>';
 
-  // Yoyish uchburchagi — BEZAK (bosish qatorga tegishli). Ichi bo'sh papkada
-  // ham joy egallaydi, shunda nomlar bir vertikalda turadi.
-  html += hasInside
+  html += has
     ? '<span class="osc-tw' + (exp ? ' open' : '') + '" aria-hidden="true">' + icon('chevron', 14) + '</span>'
     : '<span class="osc-tw empty"></span>';
 
-  html += '<span class="osc-fic">' + icon(exp && hasInside ? 'folderOpen' : 'folder', 17) + '</span>';
-  html += '<span class="osc-nm">' + escapeHtml(f.name || '') + '</span>';
-  if (kids.length)  html += '<span class="osc-cnt" title="Ichki papkalar">' + kids.length + '</span>';
-  if (nPeople)      html += '<span class="osc-cnt people" title="Xodimlar">' + nPeople + '</span>';
+  if (isF) {
+    html += '<span class="osc-fic">' + icon(exp && has ? 'folderOpen' : 'folder', 17) + '</span>';
+    html += '<span class="osc-nm">' + escapeHtml(n.row.name || '') + '</span>';
+  } else {
+    const nm = oscPersonName(n.row.user_id);
+    const title = oscPersonTitle(n.row);
+    html += '<span class="osc-av">' + avatarHtml(nm, 'sm', null, n.row.user_id) + '</span>';
+    html += '<span class="osc-nm">' + escapeHtml(nm) + '</span>';
+    if (title) html += '<span class="osc-pos">' + escapeHtml(title) + '</span>';
+    html += oscMgrBadge(n.row, t);
+  }
+  if (nF) html += '<span class="osc-cnt" title="Ichki papkalar">' + nF + '</span>';
+  if (nP) html += '<span class="osc-cnt people" title="Xodimlar">' + nP + '</span>';
 
   if (canEdit) {
+    const k = isF ? 'f' : 'p';
     html += '<span class="osc-acts">' +
-      '<button class="osc-act" title="Xodim qo\'shish" onclick="event.stopPropagation();oscAddPerson(\'' + f.id + '\')">' + icon('userPlus', 14) + '</button>' +
-      '<button class="osc-act" title="Ichiga papka qo\'shish" onclick="event.stopPropagation();oscNewFolder(\'' + f.id + '\')">' + icon('plus', 14) + '</button>' +
-      '<button class="osc-act" title="Nomini o\'zgartirish" onclick="event.stopPropagation();oscRenameFolder(\'' + f.id + '\')">' + icon('pencil', 14) + '</button>' +
-      '<button class="osc-act" title="Boshqa papkaga ko\'chirish" onclick="event.stopPropagation();oscMoveFolder(\'' + f.id + '\')">' + icon('network', 14) + '</button>' +
-      '<button class="osc-act danger" title="O\'chirish" onclick="event.stopPropagation();oscDeleteFolder(\'' + f.id + '\')">' + icon('trash', 14) + '</button>' +
+      // ⚠️ HAR QANDAY tugun pastga davom etadi — hodim ostiga ham papka,
+      //    ham hodim qo'shiladi.
+      '<button class="osc-act" title="Ostiga xodim qo\'shish" onclick="event.stopPropagation();oscAddPerson(\'' + k + '\',\'' + n.id + '\')">' + icon('userPlus', 14) + '</button>' +
+      '<button class="osc-act" title="Ostiga papka qo\'shish" onclick="event.stopPropagation();oscNewFolder(\'' + k + '\',\'' + n.id + '\')">' + icon('plus', 14) + '</button>' +
+      (isF ? '<button class="osc-act" title="Nomini o\'zgartirish" onclick="event.stopPropagation();oscRenameFolder(\'' + n.id + '\')">' + icon('pencil', 14) + '</button>' : '') +
+      '<button class="osc-act" title="Boshqa joyga ko\'chirish" onclick="event.stopPropagation();oscMoveNode(\'' + k + '\',\'' + n.id + '\')">' + icon('network', 14) + '</button>' +
+      '<button class="osc-act danger" title="' + (isF ? 'O\'chirish' : 'Sxemadan olib tashlash') + '" onclick="event.stopPropagation();' +
+        (isF ? 'oscDeleteFolder(\'' + n.id + '\')' : 'oscRemovePerson(\'' + n.id + '\')') + '">' + icon('trash', 14) + '</button>' +
     '</span>';
   }
   html += '</div>';
 
-  if (exp && hasInside) {
+  if (exp && has) {
     html += '<div class="osc-kids">';
-    // Avval ichki papkalar, keyin shu papkadagi xodimlar
-    kids.forEach(function (c) { html += oscFolderRowHtml(c, t, seen, byFolder); });
-    html += oscFolderPeopleHtml(f.id, byFolder);
+    kids.forEach(function (c) { html += oscNodeRowHtml(c, t, seen); });
     html += '</div>';
   }
   html += '</div>';
@@ -16495,33 +16507,19 @@ function oscRenderFolders() {
     return;
   }
 
-  const t = oscChildMap();
-  const byFolder = oscPeopleByFolder();
-  const roots = t.kids.root || [];
-  // Papkasi yo'q xodimlar — alohida bo'limda. JIMGINA yo'qolmasligi shart:
-  // papka o'chirilganda ular shu yerga tushadi (ON DELETE SET NULL).
-  const loose = oscPeople.filter(function (p) { return !p.folder_id; });
-
-  if (!roots.length && !loose.length) {
+  const t = oscTree();
+  if (!t.roots.length) {
     pane.innerHTML = '<div class="empty"><strong>Sxema hali bo\'sh</strong>' +
       (oscCanEdit()
-        ? 'Yuqoridagi <b>+ Papka</b> bilan boshlang — tuzilmani noldan o\'zingiz qurasiz.'
+        ? 'Yuqoridagi <b>+ Papka</b> yoki <b>+ Xodim</b> bilan boshlang — tuzilmani noldan o\'zingiz qurasiz.'
         : 'Boshqaruvchi hali tuzilmani qurmagan.') + '</div>';
     return;
   }
 
   const seen = new Set();
-  let html = '';
-  if (roots.length) {
-    html += '<div class="osc-tree">';
-    roots.forEach(function (f) { html += oscFolderRowHtml(f, t, seen, byFolder); });
-    html += '</div>';
-  }
-  if (loose.length) {
-    // Papkasiz hodimlar hech kimga bo'ysunmaydi (ildiz) — papka joylashuvi yo'q.
-    html += '<div class="osc-loose-h">Papkasiz xodimlar <span class="osc-cnt">' + loose.length + '</span></div>';
-    html += '<div class="osc-tree">' + oscFolderPeopleHtml(null, byFolder) + '</div>';
-  }
+  let html = '<div class="osc-tree">';
+  t.roots.forEach(function (n) { html += oscNodeRowHtml(n, t, seen); });
+  html += '</div>';
   pane.innerHTML = html;
 }
 
@@ -16553,10 +16551,28 @@ function oscExpandAll(open) {
   oscRenderFolders();
 }
 
-async function oscNewFolder(parentId) {
+// Tugun ota sifatida: 'f' (papka) yoki 'p' (hodim). Bo'sh — ildiz.
+// ⚠️ HAR QANDAY tugun pastga davom etadi (2026-08-06 talab).
+function oscParentPatch(kind, id) {
+  if (kind === 'p' && id) return { parent_id: null, parent_person_id: id };
+  if (kind === 'f' && id) return { parent_id: id, parent_person_id: null };
+  return { parent_id: null, parent_person_id: null };
+}
+function oscPersonParentPatch(kind, id) {
+  if (kind === 'p' && id) return { folder_id: null, parent_person_id: id };
+  if (kind === 'f' && id) return { folder_id: id, parent_person_id: null };
+  return { folder_id: null, parent_person_id: null };
+}
+function oscParentLabel(kind, id) {
+  if (kind === 'f' && id) { const f = oscFolderById(id); return f ? f.name : ''; }
+  if (kind === 'p' && id) { const p = oscPersonById(id); return p ? oscPersonName(p.user_id) : ''; }
+  return '';
+}
+
+async function oscNewFolder(parentKind, parentId) {
   if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
-  const parent = parentId ? oscFolders.find(function (f) { return f.id === parentId; }) : null;
-  const vals = await uiForm(parent ? ('"' + parent.name + '" ichiga papka') : 'Yangi papka', [
+  const pname = oscParentLabel(parentKind, parentId);
+  const vals = await uiForm(pname ? ('"' + pname + '" ostiga papka') : 'Yangi papka', [
     { id: 'name', label: 'Papka nomi', type: 'text', placeholder: 'Masalan: Sotuv bo\'limi' }
   ], { okText: 'Yaratish' });
   if (!vals) return;
@@ -16564,20 +16580,17 @@ async function oscNewFolder(parentId) {
   if (!name) { toast('Nom kiriting', 'err'); return; }
 
   try {
-    const { data, error } = await sb.from('org_folders').insert({
+    const row = Object.assign({
       workspace_id: currentWs.id,
-      parent_id: parentId || null,
       name: name,
-      // ⚠️ `kind` yozilmaydi: ustun TASKFIX_HR.sql da olib tashlandi.
-      //    Eski (hali yangilanmagan) bazada u NOT NULL DEFAULT 'folder' —
-      //    demak bu insert HAR IKKALA holatda ham ishlaydi.
       sort_order: oscFolders.length,
       created_by: me.id
-    }).select();
+    }, oscParentPatch(parentKind, parentId));
+    const { data, error } = await sb.from('org_folders').insert(row).select();
     if (error) throw error;
     if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
-    // Ota papka ochiq bo'lsin, yangi papka ko'rinsin
-    if (parentId) { oscLoadExpanded().add(parentId); oscSaveExpanded(); }
+    // Ota tugun ochiq bo'lsin, yangi papka ko'rinsin
+    if (parentId) { oscLoadExpanded().add(oscKey(parentKind === 'p' ? 'person' : 'folder', parentId)); oscSaveExpanded(); }
     toast('✅ Papka yaratildi', 'ok');
     logActivity('org_folder_created', { entityType: 'org_folder', entityId: data[0].id, entityTitle: name });
     await loadOrgSchema();
@@ -16618,43 +16631,72 @@ async function oscRenameFolder(id) {
   }
 }
 
-async function oscMoveFolder(id) {
+// Ko'chirish — papka ham, hodim ham. Istalgan tugun ostiga.
+// ⚠️ O'zini va butun avlodini tanlab bo'lmaydi (sikl). Server ham to'sadi
+//    (org_check_ancestor), lekin ro'yxatda ko'rsatmaslik tushunarliroq.
+async function oscMoveNode(kind, id) {
   if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
-  const f = oscFolders.find(function (x) { return x.id === id; });
-  if (!f) { toast('Papka topilmadi', 'err'); return; }
+  const isF = kind === 'f';
+  const row = isF ? oscFolderById(id) : oscPersonById(id);
+  if (!row) { toast('Tugun topilmadi', 'err'); return; }
 
-  // O'zini va butun avlodini tanlab bo'lmaydi (sikl). Server ham to'sadi,
-  // lekin ro'yxatda ko'rsatmaslik — foydalanuvchiga tushunarliroq.
-  const banned = new Set(oscDescendants(id));
-  const t = oscChildMap();
+  const t = oscTree();
+  const me_ = t.byKey[oscKey(isF ? 'folder' : 'person', id)];
+  if (!me_) { toast('Tugun topilmadi', 'err'); return; }
+  const banned = oscSubtreeKeys(t, me_);
+
   const opts = [{ value: '', label: '— Ildiz (eng yuqori daraja) —' }];
-  (function walk(key, prefix) {
-    (t.kids[key] || []).forEach(function (c) {
-      if (!banned.has(c.id)) opts.push({ value: c.id, label: prefix + c.name });
-      walk(c.id, prefix + '— ');
+  const seen = new Set();
+  (function walk(nodes, prefix) {
+    nodes.forEach(function (n) {
+      const k = oscKey(n.type, n.id);
+      if (seen.has(k)) return;      // sikl himoyasi
+      seen.add(k);
+      if (!banned.has(k)) {
+        opts.push({
+          value: (n.type === 'folder' ? 'f' : 'p') + ':' + n.id,
+          label: prefix + oscNodeName(n),
+          sub: n.type === 'folder' ? 'Papka' : (oscPersonTitle(n.row) || 'Xodim'),
+          uid: n.type === 'person' ? n.row.user_id : null
+        });
+      }
+      walk(n.children, prefix + '— ');
     });
-  })('root', '');
+  })(t.roots, '');
 
-  if (opts.length === 1) { toast('Ko\'chirish uchun boshqa papka yo\'q', 'err'); return; }
+  if (opts.length === 1) { toast('Ko\'chirish uchun boshqa joy yo\'q', 'err'); return; }
 
-  const vals = await uiForm('"' + f.name + '" ni ko\'chirish', [
-    { id: 'parent', label: 'Qaysi papka ichiga?', type: 'search', value: f.parent_id || '', options: opts, placeholder: 'Papkani qidiring…',
-      hint: 'O\'zining ichiga yoki o\'z bolasining ichiga ko\'chirib bo\'lmaydi.' }
+  const curKind = isF ? (row.parent_person_id ? 'p' : (row.parent_id ? 'f' : ''))
+                      : (row.parent_person_id ? 'p' : (row.folder_id ? 'f' : ''));
+  const curId = isF ? (row.parent_person_id || row.parent_id || '')
+                    : (row.parent_person_id || row.folder_id || '');
+  const cur = curId ? (curKind + ':' + curId) : '';
+
+  const nm = isF ? row.name : oscPersonName(row.user_id);
+  const vals = await uiForm('"' + nm + '" ni ko\'chirish', [
+    { id: 'parent', label: 'Qaysi tugun ostiga?', type: 'search', value: cur, items: opts,
+      placeholder: 'Papka yoki xodimni qidiring…',
+      hint: 'O\'zining yoki o\'z ostidagining ichiga ko\'chirib bo\'lmaydi.' }
   ], { okText: 'Ko\'chirish' });
   if (!vals) return;
-  const newParent = vals.parent || null;
-  if ((newParent || null) === (f.parent_id || null)) return;
+  const pick = vals.parent || '';
+  if (pick === cur) return;
+  const pk = pick ? pick.slice(0, 1) : '';
+  const pid = pick ? pick.slice(2) : null;
 
   try {
-    const { data, error } = await sb.from('org_folders').update({ parent_id: newParent }).eq('id', id).select();
+    const patch = isF ? oscParentPatch(pk, pid) : oscPersonParentPatch(pk, pid);
+    const { data, error } = await sb.from(isF ? 'org_folders' : 'org_people')
+      .update(patch).eq('id', id).select();
     if (error) throw error;
     if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
-    if (newParent) { oscLoadExpanded().add(newParent); oscSaveExpanded(); }
+    if (pid) { oscLoadExpanded().add(oscKey(pk === 'p' ? 'person' : 'folder', pid)); oscSaveExpanded(); }
     toast('✅ Ko\'chirildi', 'ok');
-    logActivity('org_folder_moved', { entityType: 'org_folder', entityId: id, entityTitle: f.name });
+    logActivity(isF ? 'org_folder_moved' : 'org_person_moved',
+      { entityType: isF ? 'org_folder' : 'org_person', entityId: id, entityTitle: nm });
     await loadOrgSchema();
   } catch (e) {
-    console.error('oscMoveFolder:', e);
+    console.error('oscMoveNode:', e);
     toast(translateErr(e.message || String(e)), 'err');
   }
 }
@@ -16671,14 +16713,18 @@ async function oscDeleteFolder(id) {
   //     endi ularni ham shu yerdan tozalash mumkin. `departments` jadvaliga
   //     bu amal TEGMAYDI — faqat sxemadagi papka o'chadi.)
 
-  // Nima yo'qolishini OLDINDAN aytamiz (ichkarisi CASCADE bilan ketadi).
-  const all = oscDescendants(id);
-  const subCount = all.length - 1;
-  const peopleCount = oscPeople.filter(function (p) { return all.indexOf(p.folder_id) !== -1; }).length;
+  // Nima yo'qolishini OLDINDAN aytamiz.
+  // ⚠️ Ichki PAPKALAR CASCADE bilan o'chadi; XODIMLAR o'chmaydi — ular
+  //    ildizga ko'chadi (ON DELETE SET NULL).
+  const t = oscTree();
+  const node = t.byKey[oscKey('folder', id)];
+  const keys = node ? oscSubtreeKeys(t, node) : new Set();
+  let subF = 0, subP = 0;
+  keys.forEach(function (k) { if (k === oscKey('folder', id)) return; if (k.charAt(0) === 'f') subF++; else subP++; });
 
   let msg = '"' + f.name + '" o\'chiriladi.';
-  if (subCount) msg += ' Ichidagi ' + subCount + ' ta papka ham o\'chadi.';
-  if (peopleCount) msg += ' ' + peopleCount + ' ta xodim papkasiz qoladi (xodimlar o\'chmaydi).';
+  if (subF) msg += ' Ichidagi ' + subF + ' ta papka ham o\'chadi.';
+  if (subP) msg += ' ' + subP + ' ta xodim sxemada qoladi, lekin ildizga ko\'chadi (o\'chmaydi).';
   const ok = await uiConfirm('Papkani o\'chirish', msg, { danger: true, okText: 'O\'chirish' });
   if (!ok) return;
 
@@ -16719,35 +16765,43 @@ let _oscChartBuilt = false;
 let _oscFitted = false;   // chart shu workspace uchun sig'dirildimi
 let _oscFitWs = null;     // qaysi workspace uchun sig'dirilgan
 
-// PAPKA DARAXTI = ORG CHART. Papka tuguni bolalari: ichki papkalar + shu
-// papkadagi hodimlar (hodimlar TEKIS — bir papkadagilar teng, o'zaro
-// bo'ysunish yo'q). Alohida manager mantiqi YO'Q — bo'ysunish papka
-// joylashuvidan kelib chiqadi, ya'ni chart va papka ko'rinishi bir xil
-// daraxtni ko'rsatadi.
+// DARAXT = ORG CHART. Chart AYNI `oscTree()` dan o'qiydi — papka
+// ko'rinishining vertikal transpozitsiyasi.
+//
+// 🔴 VIZUAL BIRLASHTIRISH: papkada ATIGI BITTA hodim bo'lsa, papka va hodim
+//    ikki alohida daraja bo'lib emas, BITTA kartochka bo'lib chiziladi:
+//        "CEO · Feruzbek Nazarov"
+//    Bolalar: papkaning qolgan bolalari + o'sha hodimning bolalari —
+//    hammasi birlashgan kartochkadan ulanadi.
+//    Papkada 2+ hodim bo'lsa — eskicha: papka tuguni + ichida hodimlar.
+//
+// ⚠️ Bu FAQAT CHIZISH: DB ham, oscTree() ham o'zgarmaydi (papka va hodim
+//    alohida qatorlar bo'lib qoladi). Shu sababli tahrirlash tugmalari
+//    ikkovini ham alohida boshqaradi.
 function oscChartRoots() {
-  const t = oscChildMap();
-  const byFolder = oscPeopleByFolder();
-  const seenF = new Set();
+  const t = oscTree();
+  const seen = new Set();
 
-  function personNode(p) {
-    return { type: 'person', key: 'p:' + p.id, row: p, children: [] };
+  function build(n) {
+    const k = oscKey(n.type, n.id);
+    if (seen.has(k)) { console.error('oscChartRoots: daraxtda sikl —', k); return null; }
+    seen.add(k);
+
+    // Birlashtirish sharti: PAPKA + ichida bevosita ATIGI BITTA hodim
+    if (n.type === 'folder') {
+      const people = n.children.filter(function (c) { return c.type === 'person'; });
+      if (people.length === 1) {
+        const only = people[0];
+        seen.add(oscKey('person', only.id));
+        const rest = n.children.filter(function (c) { return c !== only; });
+        const kids = rest.concat(only.children).map(build).filter(Boolean);
+        return { type: 'merged', key: k, row: n.row, person: only.row, children: kids };
+      }
+    }
+    return { type: n.type, key: k, row: n.row, children: n.children.map(build).filter(Boolean) };
   }
 
-  function folderNode(f) {
-    if (seenF.has(f.id)) { console.error('oscChartRoots: papka daraxtida sikl —', f.id); return null; }
-    seenF.add(f.id);
-    const kids = (t.kids[f.id] || []).map(folderNode).filter(Boolean);
-    const pnodes = (byFolder[f.id] || []).map(personNode);
-    return { type: 'folder', key: 'f:' + f.id, row: f, children: kids.concat(pnodes) };
-  }
-
-  const roots = (t.kids.root || []).map(folderNode).filter(Boolean);
-
-  // Papkasiz xodimlar ham chizilsin (jimgina yo'qolmasin) — ular alohida
-  // ildiz, hech kimga bo'ysunmaydi.
-  (byFolder.root || []).forEach(function (p) { roots.push(personNode(p)); });
-
-  return roots;
+  return t.roots.map(build).filter(Boolean);
 }
 
 // Koordinatalarni hisoblaydi va {nodes, edges, w, h} qaytaradi.
@@ -16822,19 +16876,38 @@ function oscNodeHtml(n) {
   const st = 'left:' + n.x + 'px;top:' + n.y + 'px;width:' + OSC_NW + 'px;height:' + OSC_NH + 'px;';
   const canEdit = oscCanEdit();
 
+  // 🔴 BIRLASHGAN kartochka: papka nomi ustida, hodim pastida — bir kartada.
+  //    Tahrir tugmalari ikkovini ham boshqaradi (DB'da ular alohida).
+  if (n.type === 'merged') {
+    const f = n.row, p = n.person;
+    const name = oscPersonName(p.user_id);
+    const acts = canEdit ? oscCardActs([
+      { icon: 'userPlus', title: 'Ostiga xodim qo\'shish', run: 'oscAddPerson(\'p\',\'' + p.id + '\')' },
+      { icon: 'plus',     title: 'Ostiga papka qo\'shish',  run: 'oscNewFolder(\'p\',\'' + p.id + '\')' },
+      { icon: 'pencil',   title: 'Papka nomini o\'zgartirish', run: 'oscRenameFolder(\'' + f.id + '\')' }
+    ]) : '';
+    return '<div class="osc-card merged" style="' + st + '" onclick="oscCardOpen(\'' + escapeHtml(p.user_id) + '\')" title="' + escapeHtml(f.name + ' · ' + name) + '">' +
+      '<span class="osc-card-av">' + avatarHtml(name, 'sm', null, p.user_id) + '</span>' +
+      '<span class="osc-card-txt">' +
+        '<span class="osc-card-nm">' + escapeHtml(f.name || '') + '</span>' +
+        '<span class="osc-card-sub">' + escapeHtml(name) + '</span>' +
+      '</span>' + acts +
+    '</div>';
+  }
+
   if (n.type === 'folder') {
     const f = n.row;
-    const nPeople = oscPeople.filter(function (p) { return p.folder_id === f.id; }).length;
+    const nP = n.children.length;
     const acts = canEdit ? oscCardActs([
-      { icon: 'userPlus', title: 'Xodim qo\'shish',       run: 'oscAddPerson(\'' + f.id + '\')' },
-      { icon: 'plus',     title: 'Ichiga papka qo\'shish', run: 'oscNewFolder(\'' + f.id + '\')' },
-      { icon: 'pencil',   title: 'Nomini o\'zgartirish',   run: 'oscRenameFolder(\'' + f.id + '\')' }
+      { icon: 'userPlus', title: 'Ostiga xodim qo\'shish', run: 'oscAddPerson(\'f\',\'' + f.id + '\')' },
+      { icon: 'plus',     title: 'Ostiga papka qo\'shish',  run: 'oscNewFolder(\'f\',\'' + f.id + '\')' },
+      { icon: 'pencil',   title: 'Nomini o\'zgartirish',    run: 'oscRenameFolder(\'' + f.id + '\')' }
     ]) : '';
     return '<div class="osc-card folder" style="' + st + '">' +
       '<span class="osc-card-ic">' + icon('folder', 18) + '</span>' +
       '<span class="osc-card-txt">' +
         '<span class="osc-card-nm">' + escapeHtml(f.name || '') + '</span>' +
-        '<span class="osc-card-sub">Papka' + (nPeople ? ' · ' + nPeople + ' xodim' : '') + '</span>' +
+        '<span class="osc-card-sub">Papka' + (nP ? ' · ' + nP + ' ta ichida' : '') + '</span>' +
       '</span>' + acts +
     '</div>';
   }
@@ -16843,8 +16916,9 @@ function oscNodeHtml(n) {
   const name = oscPersonName(p.user_id);
   const title = oscPersonTitle(p);
   const acts = canEdit ? oscCardActs([
-    { icon: 'folder',  title: 'Boshqa papkaga ko\'chirish', run: 'oscMovePerson(\'' + p.id + '\')' },
-    { icon: 'trash',   title: 'Sxemadan olib tashlash',     run: 'oscRemovePerson(\'' + p.id + '\')', danger: true }
+    { icon: 'userPlus', title: 'Ostiga xodim qo\'shish', run: 'oscAddPerson(\'p\',\'' + p.id + '\')' },
+    { icon: 'plus',     title: 'Ostiga papka qo\'shish',  run: 'oscNewFolder(\'p\',\'' + p.id + '\')' },
+    { icon: 'trash',    title: 'Sxemadan olib tashlash',  run: 'oscRemovePerson(\'' + p.id + '\')', danger: true }
   ]) : '';
   return '<div class="osc-card person" style="' + st + '" onclick="oscCardOpen(\'' + escapeHtml(p.user_id) + '\')" title="' + escapeHtml(name) + '">' +
     '<span class="osc-card-av">' + avatarHtml(name, 'sm', null, p.user_id) + '</span>' +
@@ -16878,8 +16952,8 @@ function oscRenderChart() {
       (oscCanEdit()
         ? 'Shu yerdan boshlashingiz mumkin — qo\'shilgani papka ko\'rinishida ham chiqadi.' +
           '<div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">' +
-            '<button class="btn sm" onclick="oscNewFolder(null)">' + icon('plus', 14) + ' Papka</button>' +
-            '<button class="btn sm secondary" onclick="oscAddPerson(null)">' + icon('userPlus', 14) + ' Xodim</button>' +
+            '<button class="btn sm" onclick="oscNewFolder(\'\',\'\')">' + icon('plus', 14) + ' Papka</button>' +
+            '<button class="btn sm secondary" onclick="oscAddPerson(\'\',\'\')">' + icon('userPlus', 14) + ' Xodim</button>' +
           '</div>'
         : 'Boshqaruvchi hali tuzilmani qurmagan.') + '</div>';
     _oscChartBuilt = false;
@@ -16914,8 +16988,8 @@ function oscRenderChart() {
       // Chartdan ham qo'shish mumkin — papka ko'rinishi bilan bir xil funksiya.
       (oscCanEdit()
         ? '<span class="osc-bar-sep"></span>' +
-          '<button class="btn secondary sm" onclick="oscAddPerson(null)">' + icon('userPlus', 14) + ' Xodim</button>' +
-          '<button class="btn sm" onclick="oscNewFolder(null)">' + icon('plus', 14) + ' Papka</button>'
+          '<button class="btn secondary sm" onclick="oscAddPerson(\'\',\'\')">' + icon('userPlus', 14) + ' Xodim</button>' +
+          '<button class="btn sm" onclick="oscNewFolder(\'\',\'\')">' + icon('plus', 14) + ' Papka</button>'
         : '') +
       '<span class="osc-hint">Bo\'sh joyni ushlab surish mumkin</span>' +
     '</div>' +
@@ -17001,24 +17075,33 @@ function oscBindPan() {
 }
 
 // ── Hodim amallari ──────────────────────────────────────────────────────────
-// Papka tanlash uchun tekis ro'yxat (ichma-ichligi "— " bilan ko'rsatiladi).
-function oscFolderOptions(includeRoot, bannedIds) {
-  const t = oscChildMap();
-  const banned = bannedIds || new Set();
-  const opts = includeRoot ? [{ value: '', label: '— Papkasiz —' }] : [];
+// Ota tanlash uchun tekis ro'yxat: papkalar VA hodimlar (ichma-ichlik "— ").
+// bannedKeys — o'zi va avlodi (sikl).
+function oscNodeOptions(tree, bannedKeys, rootLabel) {
+  const t = tree || oscTree();
+  const banned = bannedKeys || new Set();
+  const opts = [{ value: '', label: rootLabel || '— Ildiz (eng yuqori daraja) —' }];
   const seen = new Set();
-  (function walk(key, prefix) {
-    (t.kids[key] || []).forEach(function (c) {
-      if (seen.has(c.id)) return;   // sikl himoyasi
-      seen.add(c.id);
-      if (!banned.has(c.id)) opts.push({ value: c.id, label: prefix + c.name });
-      walk(c.id, prefix + '— ');
+  (function walk(nodes, prefix) {
+    nodes.forEach(function (n) {
+      const k = oscKey(n.type, n.id);
+      if (seen.has(k)) return;     // sikl himoyasi
+      seen.add(k);
+      if (!banned.has(k)) {
+        opts.push({
+          value: (n.type === 'folder' ? 'f' : 'p') + ':' + n.id,
+          label: prefix + oscNodeName(n),
+          sub: n.type === 'folder' ? 'Papka' : (oscPersonTitle(n.row) || 'Xodim'),
+          uid: n.type === 'person' ? n.row.user_id : null
+        });
+      }
+      walk(n.children, prefix + '— ');
     });
-  })('root', '');
+  })(t.roots, '');
   return opts;
 }
 
-async function oscAddPerson(folderId) {
+async function oscAddPerson(parentKind, parentId) {
   if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
 
   // Sxemada bor odam qayta qo'shilmaydi (DB'da ham unique ws+user).
@@ -17028,37 +17111,43 @@ async function oscAddPerson(folderId) {
     toast('Jamoadagi hamma xodim allaqachon sxemada', 'err');
     return;
   }
-  // KO'P tanlash: bitta papkaga bir necha xodimni bir yo'la qo'shish tabiiy.
+  // KO'P tanlash: bitta joyga bir necha xodimni bir yo'la qo'shish tabiiy.
   const people = ssMemberItems(free);
+  const cur = parentId ? ((parentKind === 'p' ? 'p' : 'f') + ':' + parentId) : '';
+  const pname = oscParentLabel(parentKind, parentId);
 
-  const f = folderId ? oscFolders.find(function (x) { return x.id === folderId; }) : null;
-  const vals = await uiForm(f ? ('"' + f.name + '" ga xodim') : 'Sxemaga xodim qo\'shish', [
+  const vals = await uiForm(pname ? ('"' + pname + '" ostiga xodim') : 'Sxemaga xodim qo\'shish', [
     { id: 'uids', label: 'Xodimlar', type: 'msearch', value: [], items: people, placeholder: 'Ism, lavozim, telefon…' },
-    { id: 'folder', label: 'Papka', type: 'search', value: folderId || '', options: oscFolderOptions(true, null), placeholder: 'Papkani qidiring…' },
+    { id: 'parent', label: 'Qayerda tursin?', type: 'search', value: cur, items: oscNodeOptions(null, null, '— Ildiz (papkasiz) —'),
+      placeholder: 'Papka yoki xodimni qidiring…' },
     { id: 'title', label: 'Lavozim (ixtiyoriy)', type: 'text', placeholder: 'Bo\'sh qoldirilsa HR ma\'lumotidan olinadi', hint: 'Faqat bitta xodim tanlanganda qo\'llanadi.' }
   ], { okText: 'Qo\'shish' });
   if (!vals) return;
   const uids = vals.uids || [];
   if (!uids.length) { toast('Kamida bitta xodimni tanlang', 'err'); return; }
 
+  const pick = vals.parent || '';
+  const pk = pick ? pick.slice(0, 1) : '';
+  const pid = pick ? pick.slice(2) : null;
+
   try {
     // ⚠️ Lavozim maydoni faqat BITTA xodim tanlanganda ma'noli — ko'p
     //    tanlanganda hammasiga bir xil lavozim yozib qo'ymaymiz.
     const title = (uids.length === 1 ? (vals.title || '').trim() : '') || null;
+    const patch = oscPersonParentPatch(pk, pid);
     const rows = uids.map(function (u, i) {
-      return {
+      return Object.assign({
         workspace_id: currentWs.id,
         user_id: u,
-        folder_id: vals.folder || null,
         title: title,
         sort_order: oscPeople.length + i,
         created_by: me.id
-      };
+      }, patch);
     });
     const { data, error } = await sb.from('org_people').insert(rows).select();
     if (error) throw error;
     if (!data || data.length !== rows.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
-    if (vals.folder) { oscLoadExpanded().add(vals.folder); oscSaveExpanded(); }
+    if (pid) { oscLoadExpanded().add(oscKey(pk === 'p' ? 'person' : 'folder', pid)); oscSaveExpanded(); }
     toast('✅ ' + data.length + ' xodim qo\'shildi', 'ok');
     logActivity('org_person_added', { entityType: 'org_person', entityId: data[0].id, entityTitle: oscPersonName(uids[0]), details: uids.length + ' ta' });
     await loadOrgSchema();
@@ -17072,44 +17161,22 @@ async function oscAddPerson(folderId) {
 //    tanlanmaydi. Bo'ysunish papka joylashuvidan hisoblanadi
 //    (oscDerivedManagers) — xodimni ko'chirish uchun oscMovePerson().
 
-async function oscMovePerson(personId) {
-  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
-  const p = oscPersonById(personId);
-  if (!p) { toast('Xodim topilmadi', 'err'); return; }
-
-  const vals = await uiForm(oscPersonName(p.user_id) + ' — papkasi', [
-    { id: 'folder', label: 'Qaysi papkada tursin?', type: 'search', value: p.folder_id || '', options: oscFolderOptions(true, null), placeholder: 'Papkani qidiring…' },
-    { id: 'title', label: 'Lavozim (ixtiyoriy)', type: 'text', value: p.title || '', placeholder: 'Bo\'sh qoldirilsa HR ma\'lumotidan olinadi' }
-  ], { okText: 'Saqlash' });
-  if (!vals) return;
-
-  const newFolder = vals.folder || null;
-  const newTitle = (vals.title || '').trim() || null;
-  if (newFolder === (p.folder_id || null) && newTitle === (p.title || null)) return;
-
-  try {
-    const { data, error } = await sb.from('org_people')
-      .update({ folder_id: newFolder, title: newTitle }).eq('id', personId).select();
-    if (error) throw error;
-    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
-    if (newFolder) { oscLoadExpanded().add(newFolder); oscSaveExpanded(); }
-    toast('✅ Saqlandi', 'ok');
-    await loadOrgSchema();
-  } catch (e) {
-    console.error('oscMovePerson:', e);
-    toast(translateErr(e.message || String(e)), 'err');
-  }
-}
+// Eski nom — endi umumiy oscMoveNode ga yo'naltiriladi (papka ham, hodim
+// ham bir xil oqim bilan ko'chadi).
+function oscMovePerson(personId) { return oscMoveNode('p', personId); }
 
 async function oscRemovePerson(personId) {
   if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
   const p = oscPersonById(personId);
   if (!p) { toast('Xodim topilmadi', 'err'); return; }
 
-  // Bo'ysunish papka joylashuvidan kelib chiqadi — "qo'l ostidagilar
-  // rahbarsiz qoladi" degan holat endi yo'q: pastdagi papkalardagi hodimlar
-  // avtomat ravishda undan yuqoridagi keyingi odamli papkaga bog'lanadi.
+  // Ostidagi tugunlar O'CHMAYDI — ular ildizga ko'chadi (ON DELETE SET NULL),
+  // ya'ni butun shox yo'qolib ketmaydi.
+  const _t = oscTree();
+  const _n = _t.byKey[oscKey('person', personId)];
+  const under = _n ? (oscSubtreeKeys(_t, _n).size - 1) : 0;
   let msg = oscPersonName(p.user_id) + ' tashkiliy sxemadan olib tashlanadi.';
+  if (under) msg += ' Uning ostidagi ' + under + ' ta tugun ildizga ko\'chadi (o\'chmaydi).';
   msg += ' ⚠️ Xodim jamoadan CHIQARILMAYDI va vazifalariga tegilmaydi — faqat sxemadan chiqadi.';
 
   const ok = await uiConfirm('Sxemadan olib tashlash', msg, { danger: true, okText: 'Olib tashlash' });
