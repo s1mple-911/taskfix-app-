@@ -798,10 +798,19 @@
   .intg-logo { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 20px; }
   .intg-logo.tg { background: #229ED9; color: #fff; }
   .intg-logo.n8n { background: #EA4B71; color: #fff; }
+  /* HR — ichki modul. Ilovaning iliq sarg'ish urg'usi bilan, tashqi
+     brendlardan (Telegram ko'k, n8n pushti) ataylab farq qiladi. */
+  .intg-logo.hr { background: linear-gradient(145deg, #1C1F24 0%, #3A3F47 100%); color: #FEF3C7; }
+  .intg-logo.hr .ic-svg { display: block; }
   .intg-logo.gdrive { background: #F4F3EF; color: #5F6368; }
   .intg-logo.soon { background: #F4F3EF; color: var(--muted); }
   .intg-name { font-weight: 600; font-size: 14.5px; color: var(--ink); margin-bottom: 2px; }
   .intg-desc { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+  /* ── Org Schema (osc*) ── */
+  .osc-sub { font-size: 13.5px; color: var(--muted); line-height: 1.55; max-width: 720px; }
+  .osc-count { font-size: 12px; font-weight: 600; color: var(--muted); background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+  .osc-warn { margin-bottom: 14px; padding: 11px 14px; border: 1px solid #F5C2C7; background: #FDF2F2; color: #B42318; border-radius: 10px; font-size: 13px; line-height: 1.55; }
+
   .intg-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; }
   .intg-status.on { background: var(--accent-soft); color: var(--accent-ink); }
   .intg-status.off { background: #F0EFEA; color: var(--muted); }
@@ -1578,7 +1587,11 @@
       </div>
       <div class="view-tabs" style="margin:6px 0 16px;">
         <button class="view-tab active" data-teamtab="hodimlar" onclick="teamSetTab('hodimlar')">👥 Hodimlar</button>
-        <button class="view-tab" data-teamtab="tashkilot" onclick="teamSetTab('tashkilot')">🏢 Tashkilot</button>
+        <!-- ⚠️ VAQTINCHA YASHIRILDI (2026-08-06): eski "Jamoa ichidagi tashkilot"
+             (oc* / org_containers). O'rniga HR Service → Org Schema.
+             O'CHIRILMADI — kod ham, ma'lumot ham joyida. Qaytarish: shu
+             qatordagi style="display:none" ni olib tashlang. -->
+        <button class="view-tab" data-teamtab="tashkilot" onclick="teamSetTab('tashkilot')" style="display:none">🏢 Tashkilot</button>
       </div>
       <div id="teamPaneHodimlar">
         <div class="tbl-toolbar" style="flex-wrap:wrap;">
@@ -1855,6 +1868,25 @@
           <!-- Icons rendered by JS -->
         </div>
       </div>
+    </section>
+
+    <!-- Org Schema (HR Service) — papka daraxti + org chart, bitta manba -->
+    <section id="page-orgschema" style="display:none">
+      <div class="row-head" style="margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+          <h2 class="h2" style="margin:0">Org Schema</h2>
+          <span id="oscCount" class="osc-count"></span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;" id="oscActions"></div>
+      </div>
+      <div class="osc-sub">Tashkilot tuzilmasi: papkalar va xodimlarning bo'ysunishi. Ikkala ko'rinish bir xil ma'lumotni ko'rsatadi.</div>
+      <div class="view-tabs" style="margin:12px 0 16px;">
+        <button class="view-tab active" data-osctab="folders" onclick="oscSetView('folders')">Papka ko'rinishi</button>
+        <button class="view-tab" data-osctab="chart" onclick="oscSetView('chart')">Org chart</button>
+      </div>
+      <div id="oscWarn" class="osc-warn" style="display:none"></div>
+      <div id="oscPaneFolders"></div>
+      <div id="oscPaneChart" style="display:none"></div>
     </section>
 
     <!-- Profile -->
@@ -4726,6 +4758,103 @@ function emailAllowed(type) {
   return emailSettings[key] !== false;
 }
 
+// ============ HR SERVICE (hrsv*) ============
+// "Qo'shimcha service" sahifasidagi HR Service kartasi shu holatni boshqaradi.
+// Yoqilsa — chap menyuda "HR" bo'limi va uning ichida "Org Schema" chiqadi.
+//
+// ⚠️ `integrations` jadvaliga QO'SHILMADI: u yerda tool ustunida CHECK
+//    bo'lishi mumkin va uni o'zgartirish MAVJUD Telegram/n8n integratsiyasiga
+//    xavf tug'diradi. HR — tashqi xizmat emas, ichki modul → o'z jadvali
+//    (public.hr_settings, TASKFIX_HR.sql).
+//
+// ⚠️ SQL ishga tushirilmagan bo'lsa ilova YIQILMAYDI: _hrsvMissing=true
+//    bo'ladi, HR o'chiq deb hisoblanadi (yangi modul jimgina yoqilmasin) va
+//    karta buni ochiq aytadi.
+let hrsvSettings = null;      // {is_enabled, updated_at} — null = hali o'qilmagan
+let _hrsvMissing = false;     // true = hr_settings jadvali yo'q (SQL run qilinmagan)
+let _hrsvErr = null;          // oxirgi o'qish xatosi (kartada ko'rsatiladi)
+
+function hrsvTableMissing(err) {
+  if (!err) return false;
+  const c = String(err.code || '');
+  const m = String(err.message || '').toLowerCase();
+  if (c === '42P01' || c === 'PGRST205') return true;
+  return m.indexOf('hr_settings') !== -1 &&
+         (m.indexOf('does not exist') !== -1 || m.indexOf('schema cache') !== -1);
+}
+
+// loadCurrentContext 1-to'lqinida chaqiriladi. HECH QACHON throw qilmaydi —
+// ilova ochilishi HR moduliga bog'liq emas.
+async function loadHrSvcSettings() {
+  _hrsvMissing = false; _hrsvErr = null; hrsvSettings = null;
+  if (!currentWs || currentWs.kind !== 'organization') return;
+  try {
+    const { data, error } = await sb.from('hr_settings')
+      .select('is_enabled, enabled_at, updated_at')
+      .eq('workspace_id', currentWs.id).maybeSingle();
+    if (error) throw error;
+    // Qator yo'q = hali yoqilmagan (jadval default'i bilan bir xil).
+    hrsvSettings = data || { is_enabled: false, enabled_at: null, updated_at: null };
+  } catch (e) {
+    hrsvSettings = null;
+    if (hrsvTableMissing(e)) {
+      _hrsvMissing = true;
+      console.warn('hr_settings jadvali yo\'q — TASKFIX_HR.sql ishga tushirilmagan. HR Service o\'chiq.');
+    } else {
+      _hrsvErr = e;
+      console.error('loadHrSvcSettings:', e);
+    }
+  }
+}
+
+// HR Service yoqilganmi? O'qib bo'lmagan bo'lsa — YO'Q.
+// (Email sozlamasidan farqli: u yerda "o'qiy olmadik" eski xatti-harakatni
+//  saqlash uchun "yoniq" edi. Bu yerda modul YANGI — o'qiy olmasak uni
+//  jimgina yoqib yubormaymiz, aks holda ishlamaydigan menyu chiqadi.)
+function hrsvEnabled() {
+  return !!(hrsvSettings && hrsvSettings.is_enabled);
+}
+
+// Yoqish/o'chirish. ⚠️ .select() bilan — RLS jimgina to'ssa "Saqlandi"
+// yolg'on chiqmasin.
+async function hrsvSetEnabled(on) {
+  if (!currentWs || currentWs.kind !== 'organization') return;
+  if (!isOwnerLike()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  const row = {
+    workspace_id: currentWs.id,
+    is_enabled: !!on,
+    enabled_at: on ? new Date().toISOString() : null,
+    updated_at: new Date().toISOString(),
+    updated_by: me.id
+  };
+  try {
+    const { data, error } = await sb.from('hr_settings')
+      .upsert(row, { onConflict: 'workspace_id' }).select();
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    hrsvSettings = data[0];
+    toast(on ? '✅ HR Service yoqildi' : 'HR Service o\'chirildi', 'ok');
+    // logActivity o'z xatosini ichida yutadi (fon yozuvi) — reject qilmaydi.
+    logActivity(on ? 'hr_service_enabled' : 'hr_service_disabled', { entityType: 'workspace', entityId: currentWs.id, entityTitle: currentWs.name });
+    renderSidebar();
+    renderIntegrations();
+    // O'chirilsa va hozir Org Schema ochiq bo'lsa — bosh sahifaga
+    if (!on && currentPage === 'orgschema') goPage('dashboard');
+  } catch (e) {
+    console.error('hrsvSetEnabled:', e);
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+// Karta tugmasi. TASKFIX_HR.sql ishga tushirilmagan bo'lsa — aniq aytamiz.
+function hrsvToggle(on) {
+  if (_hrsvMissing) {
+    toast('TASKFIX_HR.sql hali ishga tushirilmagan — avval uni Supabase SQL Editor\'da bajaring', 'err');
+    return;
+  }
+  hrsvSetEnabled(on);
+}
+
 async function notifyN8n(event, payload) {
   if (currentWs.kind !== 'organization') return;
   // n8n integratsiyasi yoqilganmi?
@@ -4917,7 +5046,7 @@ async function loadCurrentContext() {
   // (oxirida) o'qilardi — hech kimga bog'liq emas edi, shu yerga ko'chirildi.
   const [
     myMemberR, myDeptsR, deptsR, wsMembersR,
-    intgsR, branchesR, subR, _kanbanR, myTgR, _emailSetR
+    intgsR, branchesR, subR, _kanbanR, myTgR, _emailSetR, _hrSvcR
   ] = await Promise.all([
     sb.from('workspace_members').select('role').eq('workspace_id', wsId).eq('user_id', me.id).maybeSingle(),
     isOrg ? sb.from('department_members').select('department_id, role, departments!inner(workspace_id)').eq('user_id', me.id).eq('departments.workspace_id', wsId) : Promise.resolve({ data: [] }),
@@ -4931,6 +5060,9 @@ async function loadCurrentContext() {
     // Email bildirishnoma sozlamasi — emailNotify() shuni tekshiradi.
     // O'zi throw qilmaydi; xato bo'lsa "hammasi yoniq" (eski xatti-harakat).
     loadEmailSettings(),
+    // HR Service yoqilganmi? Chap menyu shunga qarab chiziladi, shuning uchun
+    // 1-to'lqinda. O'zi throw qilmaydi; o'qilmasa "o'chiq" deb hisoblanadi.
+    loadHrSvcSettings(),
   ]);
 
   // "Mening vazifalarim" uchun — mening Telegram identitetlarim.
@@ -5260,7 +5392,17 @@ const ICON_PATHS = {
   orgchart:  '<rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/>',
   badge:     '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/>',
   plus:      '<path d="M5 12h14"/><path d="M12 5v14"/>',
-  chevron:   '<path d="m9 18 6-6-6-6"/>'
+  chevron:   '<path d="m9 18 6-6-6-6"/>',
+  // HR Service — Lucide "contact-round" (xodim kartochkasi). Odam + ramka:
+  // HR ni "odamlar" (users) dan ajratib turadi, kadrlar hujjatiga ishora.
+  hr:        '<path d="M16 18a4 4 0 0 0-8 0"/><circle cx="12" cy="11" r="3"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/>',
+  // Org Schema — Lucide "network" (bitta tugun, ikkiga tarmoqlanadi)
+  network:   '<rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/>',
+  // Papka ochiq (daraxtda yoyilgan holat)
+  folderOpen: '<path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>',
+  trash:     '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/>',
+  pencil:    '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>',
+  userPlus:  '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/>'
 };
 
 // Ikonka SVG matni. Noma'lum nom — bo'sh (ilova yiqilmasin, joy ham egallamasin).
@@ -5445,6 +5587,26 @@ function renderSidebar() {
       html += '<button class="side-link ' + (currentPage === 'branches' ? 'active' : '') + '" onclick="goPage(\'branches\')">' + sideIcon('building') + ' Filiallar</button>';
       // Lavozimlar — vaqtincha yashirilgan (kerak bo'lsa qaytaramiz)
       // html += '<button class="side-link ' + (currentPage === 'positions' ? 'active' : '') + '" onclick="goPage(\'positions\')">' + sideIcon('badge') + ' Lavozimlar</button>';
+    }
+    // HR section — Telegram bilan BIR XIL naqsh: faqat HR Service yoqilgan
+    // bo'lsa ko'rinadi, yig'iladigan guruh + ichida subsection'lar.
+    //
+    // ⚠️ canManage SHART EMAS: tashkiliy sxemani har a'zo KO'RA oladi
+    // (RLS ham shunday: select = is_ws_member). O'zgartirish tugmalari
+    // sahifaning o'zida isOwnerLike() bilan yopiladi.
+    if (hrsvEnabled()) {
+      const inHrSection = ['orgschema'].includes(currentPage);
+      // Default — YOPIQ (Telegram naqshi). Foydalanuvchi ochsa localStorage'da qoladi.
+      const hrExpanded = window._hrSbOpen === undefined
+        ? (localStorage.getItem('sb_hr_v1') === 'open')
+        : !!window._hrSbOpen;
+      html += '<button class="side-link side-group ' + (inHrSection ? 'has-active' : '') + '" onclick="toggleHrSidebar()">' +
+        '' + sideIcon('hr') + ' HR' +
+        '<span style="margin-left:auto;font-size:10px;color:var(--muted);">' + (hrExpanded ? '▼' : '▶') + '</span>' +
+      '</button>';
+      if (hrExpanded) {
+        html += '<button class="side-link side-sub ' + (currentPage === 'orgschema' ? 'active' : '') + '" onclick="goPage(\'orgschema\')">Org Schema</button>';
+      }
     }
   }
   if (isOwnerLike()) {
@@ -5725,6 +5887,17 @@ function toggleTgSidebar() {
   renderSidebar();
 }
 
+// HR bo'limini yig'ish/ochish (Telegram bilan bir xil naqsh).
+// ⚠️ Inline handler chaqiradi → top-level funksiya bo'lishi SHART.
+function toggleHrSidebar() {
+  const cur = window._hrSbOpen === undefined
+    ? (localStorage.getItem('sb_hr_v1') === 'open')
+    : window._hrSbOpen;
+  window._hrSbOpen = !cur;
+  try { localStorage.setItem('sb_hr_v1', window._hrSbOpen ? 'open' : 'closed'); } catch (e) { console.error('toggleHrSidebar:', e); }
+  renderSidebar();
+}
+
 function goPage(p) {
   pfStart('page:' + p);   // perf o'lchov oynasi (perf=1 bo'lsa; aks holda no-op)
   // Rol himoyasi: oddiy a'zo faqat ruxsat etilgan sahifalarga kira oladi
@@ -5732,11 +5905,15 @@ function goPage(p) {
   if (managerOnlyPages.includes(p) && !isOwnerLike()) {
     p = 'dashboard';
   }
+  // Org Schema — faqat HR Service yoqilganda. ⚠️ managerOnlyPages'da EMAS:
+  // sxemani har a'zo ko'ra oladi (RLS ham shunday), o'zgartirish esa
+  // sahifa ichida isOwnerLike() bilan yopilgan.
+  if (p === 'orgschema' && !hrsvEnabled()) p = 'dashboard';
   currentPage = p;
   if (p !== 'department') currentDeptId = null;
   if (p !== 'employee') _empDtlUid = null;
   renderSidebar();
-  ['dashboard','planner','tasks','departments','department','team','employee','projects','project','integrations','tgusers','branches','positions','settings','logs','stats','botsettings','botcommands','profile'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
+  ['dashboard','planner','tasks','departments','department','team','employee','projects','project','integrations','tgusers','branches','positions','settings','logs','stats','botsettings','botcommands','profile','orgschema'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
   if (p === 'planner') plnSetTab(plnTab);
   if (p === 'tasks') {
     const titles = { mine: 'Mening vazifalarim', assigned: 'Men topshirganlar', all: 'Barcha vazifalar' };
@@ -5759,6 +5936,7 @@ function goPage(p) {
   if (p === 'botsettings') loadBotSettings();
   if (p === 'botcommands') loadBotCommands();
   if (p === 'orgchart') loadOrgChart();
+  if (p === 'orgschema') loadOrgSchema();
   if (p === 'profile') loadProfilePage();
   // Hash-routing: oddiy sahifa URL'ini yangilaymiz. Parametrli sahifalar
   // (employee/project/department) o'z hashini o'zlari yozadi (uid/id bilan).
@@ -5782,7 +5960,7 @@ function rtRouteFromHash() {
   if (seg0 === 'team' && parts[1] === 'employee' && parts[2]) { openEmployee(decodeURIComponent(parts[2])); return; }
   if (seg0 === 'projects' && parts[1]) { openProject(decodeURIComponent(parts[1])); return; }
   if (seg0 === 'department' && parts[1]) { goDept(decodeURIComponent(parts[1])); return; }
-  const known = ['dashboard','planner','tasks','departments','team','projects','integrations','tgusers','branches','positions','settings','logs','stats','botsettings','botcommands','profile','orgchart'];
+  const known = ['dashboard','planner','tasks','departments','team','projects','integrations','tgusers','branches','positions','settings','logs','stats','botsettings','botcommands','profile','orgchart','orgschema'];
   if (known.indexOf(seg0) !== -1) { goPage(seg0); return; }
   goPage('dashboard');   // noma'lum hash — jimgina bosh sahifaga
 }
@@ -5988,7 +6166,7 @@ function goDept(deptId) {
   currentPage = 'department';
   currentDeptView = 'kanban';
   renderSidebar();
-  ['dashboard','tasks','departments','department','team','integrations','tgusers','branches','positions','settings','stats','botsettings','botcommands','orgchart'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === 'department' ? 'block' : 'none'); });
+  ['dashboard','tasks','departments','department','team','integrations','tgusers','branches','positions','settings','stats','botsettings','botcommands','orgchart','orgschema'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === 'department' ? 'block' : 'none'); });
   renderDeptHeader();
   empFilterRenderBar();
   setDeptView('kanban');
@@ -15087,25 +15265,81 @@ async function loadIntegrations() {
     $('intgGrid').innerHTML = '<div class="empty"><strong>Faqat boshqaruvchi ko\'radi</strong>Qo\'shimcha service\'ni faqat workspace egasi yoki administratori sozlaydi.</div>';
     return;
   }
-  const { data, error } = await sb.from('integrations_safe').select('*').eq('workspace_id', currentWs.id);
-  if (error) { toast(translateErr(error.message), 'err'); return; }
+  // HR holati alohida jadvalda (hr_settings) — sahifa ochilganda yangilaymiz,
+  // shunda "Qayta urinish" tugmasi ham haqiqatan qayta o'qiydi.
+  const [{ data, error }] = await Promise.all([
+    sb.from('integrations_safe').select('*').eq('workspace_id', currentWs.id),
+    loadHrSvcSettings(),
+  ]);
+  if (error) { toast(translateErr(error.message), 'err'); renderIntegrations(); return; }
   integrationsCache = data || [];
   renderIntegrations();
+  renderSidebar();   // HR yoqilgan/o'chirilgan bo'lsa chap menyu ham yangilansin
 }
 
 const TOOL_META = {
   telegram: { name: 'Telegram', desc: 'Vazifa, taklif va eslatmalarni botingiz orqali yetkazing.', logo: '✈', cls: 'tg', available: true },
+  // HR — tashqi integratsiya emas, ICHKI modul. Holati integrations'da emas,
+  // public.hr_settings da (hrsv* bloki).
+  hr:       { name: 'HR Service', desc: 'Tashkiliy sxema: papka daraxti va xodimlarning bo\'ysunish tuzilmasi.', logo: '', cls: 'hr', available: true, internal: true },
   n8n:      { name: 'n8n',      desc: 'Vazifa hodisalarini sizning n8n instance\'ingizga webhook orqali yuborish.', logo: 'n', cls: 'n8n', available: true },
   gdrive:   { name: 'Google Drive', desc: 'Vazifa fayllarini Drive\'ga saqlash (tez orada).', logo: 'D', cls: 'gdrive', available: false },
 };
 
+// HR kartasining holati + tugmasi. integrations jadvalidan EMAS — hrsv* dan.
+function intgHrParts() {
+  // SQL ishga tushirilmagan: yolg'on "yoqilgan" ko'rsatmaymiz, aniq aytamiz.
+  if (_hrsvMissing) {
+    return {
+      status: '<span class="intg-status err">●  Sozlanmagan</span>' +
+              '<div style="margin-top:6px;font-size:12px;color:var(--muted);line-height:1.5;">' +
+              'Supabase SQL Editor\'da <code style="background:#F0EFEA;padding:1px 5px;border-radius:4px;">TASKFIX_HR.sql</code> ni bajaring.</div>',
+      action: '<button class="btn sm secondary" disabled title="Avval TASKFIX_HR.sql ni ishga tushiring">Yoqish</button>'
+    };
+  }
+  if (_hrsvErr) {
+    return {
+      status: '<span class="intg-status err">●  O\'qilmadi</span>',
+      action: '<button class="btn sm secondary" onclick="loadIntegrations()">Qayta urinish</button>'
+    };
+  }
+  if (hrsvEnabled()) {
+    return {
+      status: '<span class="intg-status on">●  Yoqilgan</span>',
+      action: '<button class="btn secondary sm" onclick="goPage(\'orgschema\')">Org Schema</button>' +
+              '<button class="btn sm" style="background: transparent; color: var(--danger); border: 1px solid var(--danger-soft);" onclick="hrsvToggle(false)">O\'chirish</button>'
+    };
+  }
+  return {
+    status: '<span class="intg-status off">○  Yoqilmagan</span>',
+    action: '<button class="btn sm" onclick="hrsvToggle(true)">Yoqish</button>'
+  };
+}
+
 function renderIntegrations() {
   const grid = $('intgGrid');
-  const tools = ['telegram','n8n','gdrive'];
+  if (!grid) return;
+  // HR — Telegram YONIDA (ikkinchi karta).
+  const tools = ['telegram','hr','n8n','gdrive'];
   grid.innerHTML = tools.map(tool => {
     const meta = TOOL_META[tool];
     const intg = integrationsCache.find(i => i.tool === tool);
     let statusHtml, action;
+    if (meta.internal && tool === 'hr') {
+      const p = intgHrParts();
+      statusHtml = p.status; action = p.action;
+      return '<div class="intg-card">' +
+        '<div class="intg-head">' +
+          '<div class="intg-logo ' + meta.cls + '">' + icon('hr', 21) + '</div>' +
+          '<div style="flex:1; min-width:0;">' +
+            '<div class="intg-name">' + meta.name + '</div>' +
+            '<div class="intg-desc">' + meta.desc + '</div>' +
+            '<div style="margin-top:8px;">' + statusHtml + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="intg-foot">' + action + '</div>' +
+      '</div>';
+    }
     if (intg && intg.is_enabled && intg.status === 'active') {
       let info = '';
       if (tool === 'telegram' && intg.bot_username) info = ' <span style="font-size:12px; color: var(--muted); margin-left:6px;">@' + escapeHtml(intg.bot_username) + '</span>';
@@ -15445,6 +15679,53 @@ async function tgNotifyTaskEdit(task, field, oldValue, newValue) {
   } catch (e) { console.error('tgNotifyTaskEdit:', e); }
 }
 
+// ============ ORG SCHEMA (osc*) — HR Service ============
+// Ikki ko'rinish, BITTA manba (org_folders + org_people, TASKFIX_HR.sql):
+//   • "Papka ko'rinishi" — daraxt ro'yxati (papka ichida papka + xodimlar)
+//   • "Org chart"        — o'sha daraxtning vizual sxemasi
+// Joylashuv avtomatik hisoblanadi (node_x/node_y saqlanmaydi) — shuning uchun
+// ikki ko'rinish hech qachon bir-biridan ajralib qolmaydi.
+//
+// ⚠️ ESKI "Tashkilot tuzilmasi" (oc* / org_containers) BU YERGA ALOQADOR EMAS.
+//    U kod ham, ma'lumoti ham joyida — faqat Jamoa sahifasidagi tabi
+//    vaqtincha yashirilgan.
+//
+// ⚠️ Inline handler chaqiradigan hamma narsa top-level (init() ichida EMAS).
+let oscView = 'folders';        // 'folders' | 'chart'
+
+function oscSetView(v) {
+  oscView = (v === 'chart') ? 'chart' : 'folders';
+  document.querySelectorAll('#page-orgschema [data-osctab]').forEach(function (b) {
+    b.classList.toggle('active', b.dataset.osctab === oscView);
+  });
+  const pf = $('oscPaneFolders'), pc = $('oscPaneChart');
+  if (pf) pf.style.display = (oscView === 'folders') ? 'block' : 'none';
+  if (pc) pc.style.display = (oscView === 'chart') ? 'block' : 'none';
+  try { localStorage.setItem('osc_view', oscView); } catch (e) { console.error('oscSetView:', e); }
+}
+
+// Sahifa ochilganda. Hozircha faqat karkas — daraxt keyingi qadamlarda.
+async function loadOrgSchema() {
+  if (!currentWs || currentWs.kind !== 'organization') return;
+  const warn = $('oscWarn');
+  if (warn) {
+    if (_hrsvMissing) {
+      warn.style.display = 'block';
+      warn.innerHTML = '<b>TASKFIX_HR.sql ishga tushirilmagan.</b> Org Schema ma\'lumotlari saqlanmaydi.';
+    } else {
+      warn.style.display = 'none';
+      warn.innerHTML = '';
+    }
+  }
+  let stored = null;
+  try { stored = localStorage.getItem('osc_view'); } catch (e) { console.error('loadOrgSchema:', e); }
+  oscSetView(stored === 'chart' ? 'chart' : 'folders');
+
+  const ph = '<div class="empty"><strong>Tuzilma hali qurilmagan</strong>Papkalar va xodimlar keyingi qadamda qo\'shiladi.</div>';
+  const pf = $('oscPaneFolders'); if (pf) pf.innerHTML = ph;
+  const pc = $('oscPaneChart');   if (pc) pc.innerHTML = ph;
+}
+
 // ============ 🔍 UNIVERSAL QIDIRUV (gs*) — topbar + ⌘K ============
 // Bitta maydon butun TaskFix bo'ylab qidiradi: xodimlar (ism/familiya, email,
 // telefon), vazifalar (nom, tavsif), loyihalar, bo'limlar, filiallar,
@@ -15687,7 +15968,10 @@ function gsPushPages(b, q) {
     { label: 'Loyihalar', icon: '📁', page: 'projects', org: true },
     { label: 'Jamoa', icon: '👥', page: 'team' },
     { label: 'Statistika', icon: '📊', page: 'stats', mgr: true },
-    { label: 'Tashkilot tuzilmasi', icon: '⛓', page: 'orgchart', mgr: true, org: true },
+    // ⚠️ Eski "Tashkilot tuzilmasi" (orgchart) qidiruvdan ham vaqtincha
+    // olib qo'yildi — o'rniga HR Service → Org Schema. Kod o'chirilmadi.
+    // { label: 'Tashkilot tuzilmasi', icon: '⛓', page: 'orgchart', mgr: true, org: true },
+    { label: 'Org Schema', icon: '🗂', page: 'orgschema', org: true, hr: true },
     { label: 'Filiallar', icon: '🏪', page: 'branches', mgr: true, org: true },
     { label: 'Lavozimlar', icon: '🎖', page: 'positions', mgr: true, org: true },
     { label: 'Qo\'shimcha service', icon: '🔌', page: 'integrations', mgr: true, org: true },
@@ -15697,6 +15981,7 @@ function gsPushPages(b, q) {
   all.forEach(function (p) {
     if (p.mgr && !isOwnerLike()) return;
     if (p.org && !gsIsOrg()) return;
+    if (p.hr && !hrsvEnabled()) return;   // HR Service o'chiq — sahifa yo'q
     if (q && !gsTextMatch(p.label, q)) return;
     b.page.push({
       id: 'page:' + p.page, rank: 0, sortKey: gsNorm(p.label), icon: p.icon,
