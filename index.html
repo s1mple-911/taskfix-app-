@@ -811,6 +811,41 @@
   .osc-count { font-size: 12px; font-weight: 600; color: var(--muted); background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
   .osc-warn { margin-bottom: 14px; padding: 11px 14px; border: 1px solid #F5C2C7; background: #FDF2F2; color: #B42318; border-radius: 10px; font-size: 13px; line-height: 1.55; }
 
+  /* Papka daraxti. Chuqurlik ichma-ich .osc-kids bilan beriladi — indentatsiya
+     va yo'naltiruvchi chiziq bitta joyda, hisob-kitobsiz. */
+  .osc-tree { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 8px; box-shadow: var(--shadow); }
+  .osc-kids { margin-left: 15px; padding-left: 12px; border-left: 1px solid var(--line-soft); }
+
+  .osc-row { display: flex; align-items: center; gap: 8px; padding: 7px 8px 7px 4px; border-radius: 9px; min-height: 36px; transition: background .13s ease; }
+  .osc-row:hover { background: var(--surface-2); }
+
+  /* Yoyish uchburchagi. Bolasi yo'q qatorda ham JOY egallaydi — nomlar
+     bir vertikalda tursin (tekislik buzilmasin). */
+  .osc-tw { width: 22px; height: 22px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 0; background: transparent; color: var(--subtle); cursor: pointer; border-radius: 6px; padding: 0; transition: transform .16s ease, color .13s ease, background .13s ease; }
+  .osc-tw:hover { color: var(--ink); background: rgba(28,31,36,.06); }
+  .osc-tw.open { transform: rotate(90deg); }
+  .osc-tw.empty { cursor: default; }
+  .osc-tw svg { display: block; }
+
+  .osc-fic { flex-shrink: 0; display: flex; align-items: center; color: var(--muted); }
+  .osc-row.dept .osc-fic { color: var(--accent-ink); }
+  .osc-nm { font-size: 13.5px; font-weight: 500; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .osc-chip { flex-shrink: 0; font-size: 10.5px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; color: var(--accent-ink); background: var(--accent); border-radius: 5px; padding: 2px 6px; }
+  .osc-cnt { flex-shrink: 0; font-size: 11px; font-weight: 600; color: var(--subtle); background: var(--surface-2); border-radius: 999px; padding: 1px 7px; }
+
+  /* Amallar — sukut bo'yicha ko'rinmaydi, qator ustiga kelganda chiqadi.
+     Klaviatura bilan yurganda ham chiqishi kerak (:focus-within). */
+  .osc-acts { margin-left: auto; display: flex; gap: 2px; opacity: 0; transition: opacity .13s ease; }
+  .osc-row:hover .osc-acts, .osc-row:focus-within .osc-acts { opacity: 1; }
+  .osc-act { width: 27px; height: 27px; display: flex; align-items: center; justify-content: center; border: 0; background: transparent; color: var(--muted); border-radius: 7px; cursor: pointer; padding: 0; transition: background .12s ease, color .12s ease; }
+  .osc-act:hover { background: rgba(28,31,36,.08); color: var(--ink); }
+  .osc-act.danger:hover { background: var(--danger-soft); color: var(--danger); }
+  .osc-act svg { display: block; }
+  .osc-act:focus-visible, .osc-tw:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 1px; }
+
+  /* Barmoq bilan boshqariladigan ekranda hover yo'q — amallar doim ko'rinsin */
+  @media (hover: none) { .osc-acts { opacity: 1; } }
+
   .intg-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; }
   .intg-status.on { background: var(--accent-soft); color: var(--accent-ink); }
   .intg-status.off { background: #F0EFEA; color: var(--muted); }
@@ -15704,26 +15739,420 @@ function oscSetView(v) {
   try { localStorage.setItem('osc_view', oscView); } catch (e) { console.error('oscSetView:', e); }
 }
 
-// Sahifa ochilganda. Hozircha faqat karkas — daraxt keyingi qadamlarda.
+// ── Ma'lumot ────────────────────────────────────────────────────────────────
+let oscFolders = [];          // org_folders qatorlari
+let oscPeople  = [];          // org_people qatorlari (5-qadamda to'ladi)
+let oscExpanded = null;       // Set(folderId) — yoyilgan papkalar
+let _oscWs = null;            // yuklangan workspace (poyga himoyasi)
+let _oscMissing = false;      // TASKFIX_HR.sql ishga tushirilmagan
+let _oscErr = null;           // oxirgi yuklash xatosi
+let _oscLoading = false;
+
+function oscCanEdit() { return isOwnerLike(); }
+
+function oscTableMissing(err) {
+  if (!err) return false;
+  const c = String(err.code || '');
+  const m = String(err.message || '').toLowerCase();
+  if (c === '42P01' || c === 'PGRST205' || c === 'PGRST202') return true;   // 202 = RPC topilmadi
+  return (m.indexOf('org_folders') !== -1 || m.indexOf('org_people') !== -1 || m.indexOf('org_sync_departments') !== -1) &&
+         (m.indexOf('does not exist') !== -1 || m.indexOf('schema cache') !== -1 || m.indexOf('could not find') !== -1);
+}
+
+// Yoyilgan papkalar — workspace bo'yicha eslab qolinadi.
+function oscExpKey() { return 'osc_exp_' + (currentWs ? currentWs.id : '0'); }
+function oscLoadExpanded() {
+  if (oscExpanded) return oscExpanded;
+  oscExpanded = new Set();
+  try {
+    const raw = localStorage.getItem(oscExpKey());
+    if (raw) JSON.parse(raw).forEach(function (id) { oscExpanded.add(id); });
+  } catch (e) { console.error('oscLoadExpanded:', e); }
+  return oscExpanded;
+}
+function oscSaveExpanded() {
+  try { localStorage.setItem(oscExpKey(), JSON.stringify(Array.from(oscLoadExpanded()))); }
+  catch (e) { console.error('oscSaveExpanded:', e); }
+}
+
+// ── Daraxt tuzilishi ────────────────────────────────────────────────────────
+// parent_id → [bola papkalar]. Yetim qolgan (otasi ko'rinmaydigan) papkalar
+// JIMGINA YO'QOLMASIN — ular ildizga chiqariladi.
+function oscChildMap() {
+  const byId = {}, kids = { root: [] };
+  oscFolders.forEach(function (f) { byId[f.id] = f; });
+  oscFolders.forEach(function (f) {
+    const key = (f.parent_id && byId[f.parent_id]) ? f.parent_id : 'root';
+    (kids[key] = kids[key] || []).push(f);
+  });
+  Object.keys(kids).forEach(function (k) {
+    kids[k].sort(function (a, b) {
+      const d = (a.sort_order || 0) - (b.sort_order || 0);
+      return d !== 0 ? d : String(a.name || '').localeCompare(String(b.name || ''), 'uz');
+    });
+  });
+  return { byId: byId, kids: kids };
+}
+
+// Papka va uning butun avlodi (o'zi ham kiradi) — ko'chirish/o'chirishda kerak.
+// ⚠️ `seen` — sikl himoyasi. Server sikl yaratishga yo'l qo'ymaydi, lekin
+//    ma'lumot boshqa yo'l bilan buzilsa (qo'lda SQL, eski qator) bu funksiya
+//    rekursiyada osilib ilovani YIQITMASLIGI kerak.
+function oscDescendants(id) {
+  const t = oscChildMap();
+  const out = [], seen = new Set();
+  (function walk(fid) {
+    if (seen.has(fid)) { console.error('oscDescendants: papka daraxtida sikl —', fid); return; }
+    seen.add(fid);
+    out.push(fid);
+    (t.kids[fid] || []).forEach(function (c) { walk(c.id); });
+  })(id);
+  return out;
+}
+
+// ── Yuklash ─────────────────────────────────────────────────────────────────
+async function oscLoad() {
+  const ws = currentWs.id;
+  _oscWs = ws; _oscErr = null; _oscMissing = false; _oscLoading = true;
+  try {
+    // 1) Mavjud bo'limlarni daraxtga tortamiz (papkasi yo'qlariga ildizda
+    //    papka yaratadi). SECURITY DEFINER RPC — oddiy a'zo ham chaqira oladi.
+    //    ⚠️ Xatosi yuklashni TO'XTATMAYDI: papkalar baribir o'qiladi, faqat
+    //    yangi bo'lim daraxtda ko'rinmasligi mumkin — buni ochiq aytamiz.
+    const syncRes = await sb.rpc('org_sync_departments', { p_workspace_id: ws });
+    if (syncRes.error) {
+      if (oscTableMissing(syncRes.error)) { _oscMissing = true; }
+      else { _oscErr = syncRes.error; console.error('org_sync_departments:', syncRes.error); }
+    }
+
+    // 2) Papkalar + hodimlar (parallel)
+    const [fRes, pRes] = await Promise.all([
+      sb.from('org_folders').select('*').eq('workspace_id', ws),
+      sb.from('org_people').select('*').eq('workspace_id', ws),
+    ]);
+    if (fRes.error) throw fRes.error;
+    if (pRes.error) throw pRes.error;
+
+    // Workspace almashgan bo'lsa — eski natijani yozmaymiz
+    if (_oscWs !== ws || !currentWs || currentWs.id !== ws) return false;
+
+    oscFolders = fRes.data || [];
+    oscPeople  = pRes.data || [];
+    return true;
+  } catch (e) {
+    if (oscTableMissing(e)) {
+      _oscMissing = true;
+      console.warn('org_folders/org_people topilmadi — TASKFIX_HR.sql ishga tushirilmagan.');
+    } else {
+      _oscErr = e;
+      console.error('oscLoad:', e);
+    }
+    oscFolders = []; oscPeople = [];
+    return false;
+  } finally {
+    _oscLoading = false;
+  }
+}
+
+// ── Chizish ─────────────────────────────────────────────────────────────────
+function oscRenderActions() {
+  const box = $('oscActions'); if (!box) return;
+  if (!oscCanEdit()) { box.innerHTML = ''; return; }
+  box.innerHTML =
+    '<button class="btn secondary sm" onclick="oscExpandAll(true)">Hammasini yoyish</button>' +
+    '<button class="btn secondary sm" onclick="oscExpandAll(false)">Yig\'ish</button>' +
+    '<button class="btn sm" onclick="oscNewFolder(null)">' + icon('plus', 14) + ' Papka</button>';
+}
+
+function oscRenderCount() {
+  const el = $('oscCount'); if (!el) return;
+  if (_oscMissing) { el.textContent = ''; return; }
+  el.textContent = oscFolders.length + ' papka';
+}
+
+// ⚠️ Daraxt (`t`) chaqiruvchida BIR MARTA hisoblanadi va pastga uzatiladi —
+// har qator uchun qayta qurilsa katta sxemada O(n²) bo'lardi.
+// ⚠️ `seen` — sikl himoyasi (oscDescendants dagi bilan bir xil sabab):
+//    buzilgan ma'lumot butun sahifani yiqitmasin.
+function oscFolderRowHtml(f, t, seen) {
+  seen = seen || new Set();
+  if (seen.has(f.id)) { console.error('oscFolderRowHtml: papka daraxtida sikl —', f.id); return ''; }
+  seen.add(f.id);
+  const kids = t.kids[f.id] || [];
+  const exp = oscLoadExpanded().has(f.id);
+  const isDept = f.kind === 'department';
+  const canEdit = oscCanEdit();
+
+  let html = '<div class="osc-node">';
+  html += '<div class="osc-row' + (isDept ? ' dept' : '') + '">';
+
+  // Yoyish tugmasi — bolasi bo'lmasa bo'sh joy (tekislik buzilmasin)
+  html += kids.length
+    ? '<button class="osc-tw' + (exp ? ' open' : '') + '" onclick="oscToggle(\'' + f.id + '\')" title="' + (exp ? 'Yig\'ish' : 'Yoyish') + '" aria-label="Yoyish">' + icon('chevron', 14) + '</button>'
+    : '<span class="osc-tw empty"></span>';
+
+  html += '<span class="osc-fic">' + icon(exp && kids.length ? 'folderOpen' : 'folder', 17) + '</span>';
+  html += '<span class="osc-nm">' + escapeHtml(f.name || '') + '</span>';
+  if (isDept) html += '<span class="osc-chip">Bo\'lim</span>';
+  if (kids.length) html += '<span class="osc-cnt">' + kids.length + '</span>';
+
+  if (canEdit) {
+    html += '<span class="osc-acts">' +
+      '<button class="osc-act" title="Ichiga papka qo\'shish" onclick="oscNewFolder(\'' + f.id + '\')">' + icon('plus', 14) + '</button>' +
+      '<button class="osc-act" title="Nomini o\'zgartirish" onclick="oscRenameFolder(\'' + f.id + '\')">' + icon('pencil', 14) + '</button>' +
+      '<button class="osc-act" title="Boshqa papkaga ko\'chirish" onclick="oscMoveFolder(\'' + f.id + '\')">' + icon('network', 14) + '</button>' +
+      (isDept
+        ? ''   // bo'lim papkasi o'chirilmaydi — bo'limning o'zi "Bo'limlar ro'yxati" dan o'chiriladi
+        : '<button class="osc-act danger" title="O\'chirish" onclick="oscDeleteFolder(\'' + f.id + '\')">' + icon('trash', 14) + '</button>') +
+    '</span>';
+  }
+  html += '</div>';
+
+  if (exp && kids.length) {
+    html += '<div class="osc-kids">';
+    kids.forEach(function (c) { html += oscFolderRowHtml(c, t, seen); });
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function oscRenderFolders() {
+  const pane = $('oscPaneFolders'); if (!pane) return;
+
+  if (_oscMissing) {
+    pane.innerHTML = '<div class="empty"><strong>Sxema jadvallari topilmadi</strong>' +
+      'Supabase SQL Editor\'da <code style="background:#F0EFEA;padding:1px 5px;border-radius:4px;">TASKFIX_HR.sql</code> ni bajaring, so\'ng sahifani yangilang.</div>';
+    return;
+  }
+  if (_oscErr) {
+    pane.innerHTML = '<div class="empty"><strong>Yuklab bo\'lmadi</strong>' +
+      escapeHtml(translateErr(_oscErr.message || String(_oscErr))) +
+      '<div style="margin-top:12px;"><button class="btn sm secondary" onclick="loadOrgSchema()">Qayta urinish</button></div></div>';
+    return;
+  }
+
+  const t = oscChildMap();
+  const roots = t.kids.root || [];
+  if (!roots.length) {
+    pane.innerHTML = '<div class="empty"><strong>Sxema hali bo\'sh</strong>' +
+      (oscCanEdit()
+        ? 'Yuqoridagi <b>+ Papka</b> bilan boshlang. Mavjud bo\'limlar avtomatik qo\'shiladi.'
+        : 'Boshqaruvchi hali tuzilmani qurmagan.') + '</div>';
+    return;
+  }
+
+  const seen = new Set();
+  let html = '<div class="osc-tree">';
+  roots.forEach(function (f) { html += oscFolderRowHtml(f, t, seen); });
+  html += '</div>';
+  pane.innerHTML = html;
+}
+
+// ── Amallar ─────────────────────────────────────────────────────────────────
+function oscToggle(id) {
+  const set = oscLoadExpanded();
+  if (set.has(id)) set.delete(id); else set.add(id);
+  oscSaveExpanded();
+  oscRenderFolders();
+}
+
+function oscExpandAll(open) {
+  const set = oscLoadExpanded();
+  set.clear();
+  if (open) oscFolders.forEach(function (f) { set.add(f.id); });
+  oscSaveExpanded();
+  oscRenderFolders();
+}
+
+async function oscNewFolder(parentId) {
+  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  const parent = parentId ? oscFolders.find(function (f) { return f.id === parentId; }) : null;
+  const vals = await uiForm(parent ? ('"' + parent.name + '" ichiga papka') : 'Yangi papka', [
+    { id: 'name', label: 'Papka nomi', type: 'text', placeholder: 'Masalan: Sotuv bo\'limi' }
+  ], { okText: 'Yaratish' });
+  if (!vals) return;
+  const name = (vals.name || '').trim();
+  if (!name) { toast('Nom kiriting', 'err'); return; }
+
+  try {
+    const { data, error } = await sb.from('org_folders').insert({
+      workspace_id: currentWs.id,
+      parent_id: parentId || null,
+      name: name,
+      kind: 'folder',
+      sort_order: oscFolders.length,
+      created_by: me.id
+    }).select();
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    // Ota papka ochiq bo'lsin, yangi papka ko'rinsin
+    if (parentId) { oscLoadExpanded().add(parentId); oscSaveExpanded(); }
+    toast('✅ Papka yaratildi', 'ok');
+    logActivity('org_folder_created', { entityType: 'org_folder', entityId: data[0].id, entityTitle: name });
+    await loadOrgSchema();
+  } catch (e) {
+    console.error('oscNewFolder:', e);
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+async function oscRenameFolder(id) {
+  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  const f = oscFolders.find(function (x) { return x.id === id; });
+  if (!f) { toast('Papka topilmadi', 'err'); return; }
+  const isDept = f.kind === 'department';
+
+  const vals = await uiForm('Nomini o\'zgartirish', [
+    { id: 'name', label: 'Papka nomi', type: 'text', value: f.name || '',
+      hint: isDept ? 'Bu bo\'lim papkasi — nom "Bo\'limlar ro\'yxati" da ham o\'zgaradi.' : '' }
+  ], { okText: 'Saqlash' });
+  if (!vals) return;
+  const name = (vals.name || '').trim();
+  if (!name) { toast('Nom kiriting', 'err'); return; }
+  if (name === f.name) return;
+
+  try {
+    // Bo'lim papkasi bo'lsa — MANBANI (departments) o'zgartiramiz. Papka nomi
+    // server trigger'i (org_dept_rename_sync) bilan o'zi ergashadi; aks holda
+    // ikkovi bir-biridan ajralib qolardi.
+    if (isDept && f.department_id) {
+      const { data, error } = await sb.from('departments').update({ name: name }).eq('id', f.department_id).select();
+      if (error) throw error;
+      if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+      const d = departments.find(function (x) { return x.id === f.department_id; });
+      if (d) d.name = name;
+      renderSidebar();
+    } else {
+      const { data, error } = await sb.from('org_folders').update({ name: name }).eq('id', id).select();
+      if (error) throw error;
+      if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    }
+    toast('✅ Saqlandi', 'ok');
+    logActivity('org_folder_renamed', { entityType: 'org_folder', entityId: id, entityTitle: name });
+    await loadOrgSchema();
+  } catch (e) {
+    console.error('oscRenameFolder:', e);
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+async function oscMoveFolder(id) {
+  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  const f = oscFolders.find(function (x) { return x.id === id; });
+  if (!f) { toast('Papka topilmadi', 'err'); return; }
+
+  // O'zini va butun avlodini tanlab bo'lmaydi (sikl). Server ham to'sadi,
+  // lekin ro'yxatda ko'rsatmaslik — foydalanuvchiga tushunarliroq.
+  const banned = new Set(oscDescendants(id));
+  const t = oscChildMap();
+  const opts = [{ value: '', label: '— Ildiz (eng yuqori daraja) —' }];
+  (function walk(key, prefix) {
+    (t.kids[key] || []).forEach(function (c) {
+      if (!banned.has(c.id)) opts.push({ value: c.id, label: prefix + c.name });
+      walk(c.id, prefix + '— ');
+    });
+  })('root', '');
+
+  if (opts.length === 1) { toast('Ko\'chirish uchun boshqa papka yo\'q', 'err'); return; }
+
+  const vals = await uiForm('"' + f.name + '" ni ko\'chirish', [
+    { id: 'parent', label: 'Qaysi papka ichiga?', type: 'select', value: f.parent_id || '', options: opts,
+      hint: 'O\'zining ichiga yoki o\'z bolasining ichiga ko\'chirib bo\'lmaydi.' }
+  ], { okText: 'Ko\'chirish' });
+  if (!vals) return;
+  const newParent = vals.parent || null;
+  if ((newParent || null) === (f.parent_id || null)) return;
+
+  try {
+    const { data, error } = await sb.from('org_folders').update({ parent_id: newParent }).eq('id', id).select();
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    if (newParent) { oscLoadExpanded().add(newParent); oscSaveExpanded(); }
+    toast('✅ Ko\'chirildi', 'ok');
+    logActivity('org_folder_moved', { entityType: 'org_folder', entityId: id, entityTitle: f.name });
+    await loadOrgSchema();
+  } catch (e) {
+    console.error('oscMoveFolder:', e);
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+async function oscDeleteFolder(id) {
+  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  const f = oscFolders.find(function (x) { return x.id === id; });
+  if (!f) { toast('Papka topilmadi', 'err'); return; }
+  if (f.kind === 'department') {
+    toast('Bo\'lim papkasi bu yerdan o\'chirilmaydi — "Bo\'limlar ro\'yxati" dan o\'chiring', 'err');
+    return;
+  }
+
+  // Nima yo'qolishini OLDINDAN aytamiz (ichkarisi CASCADE bilan ketadi).
+  const all = oscDescendants(id);
+  const subCount = all.length - 1;
+  const deptInside = oscFolders.filter(function (x) { return all.indexOf(x.id) !== -1 && x.kind === 'department'; });
+  if (deptInside.length) {
+    toast('Ichida bo\'lim papkasi bor (' + deptInside[0].name + ') — avval uni tashqariga ko\'chiring', 'err');
+    return;
+  }
+  const peopleCount = oscPeople.filter(function (p) { return all.indexOf(p.folder_id) !== -1; }).length;
+
+  let msg = '"' + f.name + '" o\'chiriladi.';
+  if (subCount) msg += ' Ichidagi ' + subCount + ' ta papka ham o\'chadi.';
+  if (peopleCount) msg += ' ' + peopleCount + ' ta xodim papkasiz qoladi (xodimlar o\'chmaydi).';
+  const ok = await uiConfirm('Papkani o\'chirish', msg, { danger: true, okText: 'O\'chirish' });
+  if (!ok) return;
+
+  try {
+    // ⚠️ .select() — RLS jimgina to'ssa "O'chirildi" yolg'on chiqmasin.
+    const { data, error } = await sb.from('org_folders').delete().eq('id', id).select();
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('O\'chirilmadi — ruxsat yo\'q (RLS)');
+    toast('O\'chirildi', 'ok');
+    logActivity('org_folder_deleted', { entityType: 'org_folder', entityId: id, entityTitle: f.name });
+    await loadOrgSchema();
+  } catch (e) {
+    console.error('oscDeleteFolder:', e);
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+// ── Sahifa ochilganda ───────────────────────────────────────────────────────
 async function loadOrgSchema() {
   if (!currentWs || currentWs.kind !== 'organization') return;
+
+  let stored = null;
+  try { stored = localStorage.getItem('osc_view'); } catch (e) { console.error('loadOrgSchema:', e); }
+  oscSetView(stored === 'chart' ? 'chart' : 'folders');
+
+  const pane = $('oscPaneFolders');
+  if (pane && !oscFolders.length) pane.innerHTML = '<div class="empty"><strong>Yuklanmoqda…</strong></div>';
+
+  await oscLoad();
+
+  // Yuklash paytida boshqa sahifaga o'tib ketgan bo'lsa — chizmaymiz
+  if (currentPage !== 'orgschema') return;
+
   const warn = $('oscWarn');
   if (warn) {
-    if (_hrsvMissing) {
+    if (_hrsvMissing || _oscMissing) {
       warn.style.display = 'block';
-      warn.innerHTML = '<b>TASKFIX_HR.sql ishga tushirilmagan.</b> Org Schema ma\'lumotlari saqlanmaydi.';
+      warn.innerHTML = '<b>TASKFIX_HR.sql ishga tushirilmagan.</b> Sxema saqlanmaydi — avval SQL faylni Supabase SQL Editor\'da bajaring.';
+    } else if (_oscErr) {
+      warn.style.display = 'block';
+      warn.innerHTML = '<b>Ogohlantirish:</b> ' + escapeHtml(translateErr(_oscErr.message || String(_oscErr)));
     } else {
       warn.style.display = 'none';
       warn.innerHTML = '';
     }
   }
-  let stored = null;
-  try { stored = localStorage.getItem('osc_view'); } catch (e) { console.error('loadOrgSchema:', e); }
-  oscSetView(stored === 'chart' ? 'chart' : 'folders');
 
-  const ph = '<div class="empty"><strong>Tuzilma hali qurilmagan</strong>Papkalar va xodimlar keyingi qadamda qo\'shiladi.</div>';
-  const pf = $('oscPaneFolders'); if (pf) pf.innerHTML = ph;
-  const pc = $('oscPaneChart');   if (pc) pc.innerHTML = ph;
+  oscRenderActions();
+  oscRenderCount();
+  oscRenderFolders();
+
+  const pc = $('oscPaneChart');
+  if (pc) pc.innerHTML = '<div class="empty"><strong>Org chart keyingi qadamda</strong>Papka ko\'rinishi allaqachon ishlaydi.</div>';
 }
 
 // ============ 🔍 UNIVERSAL QIDIRUV (gs*) — topbar + ⌘K ============
