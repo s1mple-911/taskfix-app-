@@ -1689,15 +1689,18 @@
           <button class="btn" id="inviteBtn" onclick="openInvite()" style="display:none">+ Xodim taklif qilish</button>
         </div>
       </div>
+      <!-- ⚠️ VAQTINCHA YASHIRILDI (2026-08-06): tepadagi tab qatori butunlay.
+           Tarkibi: "👥 Hodimlar" va "🏢 Tashkilot" (eski oc* / org_containers).
+           Tashkilot HR Service → Org Schema ga ko'chdi, shundan keyin bitta
+           tab qolib ma'nosiz bo'ldi — butun qator olib qo'yildi.
+           O'CHIRILMADI: teamSetTab() va org chart kodi ham, DB ma'lumoti ham
+           joyida. Qaytarish uchun shu izohni ochish yetarli.
       <div class="view-tabs" style="margin:6px 0 16px;">
         <button class="view-tab active" data-teamtab="hodimlar" onclick="teamSetTab('hodimlar')">👥 Hodimlar</button>
-        <!-- ⚠️ VAQTINCHA YASHIRILDI (2026-08-06): eski "Jamoa ichidagi tashkilot"
-             (oc* / org_containers). O'rniga HR Service → Org Schema.
-             O'CHIRILMADI — kod ham, ma'lumot ham joyida. Qaytarish: shu
-             qatordagi style="display:none" ni olib tashlang. -->
-        <button class="view-tab" data-teamtab="tashkilot" onclick="teamSetTab('tashkilot')" style="display:none">🏢 Tashkilot</button>
+        <button class="view-tab" data-teamtab="tashkilot" onclick="teamSetTab('tashkilot')">🏢 Tashkilot</button>
       </div>
-      <div id="teamPaneHodimlar">
+      -->
+      <div id="teamPaneHodimlar" style="margin-top:16px;">
         <div class="tbl-toolbar" style="flex-wrap:wrap;">
           <input type="text" class="search-input" id="teamSearch" placeholder="🔍 Ism, familiya, telefon yoki email..." oninput="teamOnFilterChange()" style="max-width:280px;" />
           <select class="team-flt" id="teamFltBranch" onchange="teamOnFilterChange()"></select>
@@ -12096,6 +12099,9 @@ async function teamSetMemberPos(uid, pos) {
 
 // ---- Sub-tab: Hodimlar / Tashkilot ----
 let _teamTab = 'hodimlar';
+// ⚠️ Tab qatori HTML'da izohga olingan (2026-08-06) — 'tashkilot' shoxiga
+//    hozir HECH KIM kirmaydi. Funksiya saqlanmoqda: goPage('team') uni
+//    'hodimlar' bilan chaqiradi va qaytarish oson bo'lsin.
 function teamSetTab(tab) {
   _teamTab = tab;
   document.querySelectorAll('#page-team [data-teamtab]').forEach(b => b.classList.toggle('active', b.dataset.teamtab === tab));
@@ -12108,7 +12114,8 @@ function teamSetTab(tab) {
       oc.style.display = 'block';
       $('teamPaneTashkilot').appendChild(oc);
     }
-    try { loadOrgChart(); } catch (e) {}
+    // Bo'sh catch taqiqlanadi (qoida 6) — hech bo'lmasa console'ga.
+    try { loadOrgChart(); } catch (e) { console.error('teamSetTab → loadOrgChart:', e); }
   }
 }
 
@@ -15840,8 +15847,8 @@ function oscTableMissing(err) {
   if (!err) return false;
   const c = String(err.code || '');
   const m = String(err.message || '').toLowerCase();
-  if (c === '42P01' || c === 'PGRST205' || c === 'PGRST202') return true;   // 202 = RPC topilmadi
-  return (m.indexOf('org_folders') !== -1 || m.indexOf('org_people') !== -1 || m.indexOf('org_sync_departments') !== -1) &&
+  if (c === '42P01' || c === 'PGRST205') return true;
+  return (m.indexOf('org_folders') !== -1 || m.indexOf('org_people') !== -1) &&
          (m.indexOf('does not exist') !== -1 || m.indexOf('schema cache') !== -1 || m.indexOf('could not find') !== -1);
 }
 
@@ -15901,17 +15908,13 @@ async function oscLoad() {
   const ws = currentWs.id;
   _oscWs = ws; _oscErr = null; _oscMissing = false; _oscLoading = true;
   try {
-    // 1) Mavjud bo'limlarni daraxtga tortamiz (papkasi yo'qlariga ildizda
-    //    papka yaratadi). SECURITY DEFINER RPC — oddiy a'zo ham chaqira oladi.
-    //    ⚠️ Xatosi yuklashni TO'XTATMAYDI: papkalar baribir o'qiladi, faqat
-    //    yangi bo'lim daraxtda ko'rinmasligi mumkin — buni ochiq aytamiz.
-    const syncRes = await sb.rpc('org_sync_departments', { p_workspace_id: ws });
-    if (syncRes.error) {
-      if (oscTableMissing(syncRes.error)) { _oscMissing = true; }
-      else { _oscErr = syncRes.error; console.error('org_sync_departments:', syncRes.error); }
-    }
-
-    // 2) Papkalar + hodimlar (parallel)
+    // ⚠️ AVTOMATIK BO'LIM SINXRONIZATSIYASI OLIB TASHLANDI (2026-08-06).
+    //    Avval bu yerda org_sync_departments() RPC chaqirilib, TaskFix'dagi
+    //    eski `departments` qatorlari daraxtga papka bo'lib tortilardi.
+    //    Endi Org Schema BO'SH boshlanadi — papkalarni foydalanuvchi noldan
+    //    o'zi yaratadi. `departments` jadvaliga bu yerdan umuman tegilmaydi.
+    //
+    //    Papkalar + hodimlar (parallel)
     const [fRes, pRes] = await Promise.all([
       sb.from('org_folders').select('*').eq('workspace_id', ws),
       sb.from('org_people').select('*').eq('workspace_id', ws),
@@ -16137,7 +16140,7 @@ function oscRenderFolders() {
   if (!roots.length && !loose.length) {
     pane.innerHTML = '<div class="empty"><strong>Sxema hali bo\'sh</strong>' +
       (oscCanEdit()
-        ? 'Yuqoridagi <b>+ Papka</b> bilan boshlang. Mavjud bo\'limlar avtomatik qo\'shiladi.'
+        ? 'Yuqoridagi <b>+ Papka</b> bilan boshlang — tuzilmani noldan o\'zingiz qurasiz.'
         : 'Boshqaruvchi hali tuzilmani qurmagan.') + '</div>';
     return;
   }
@@ -16208,11 +16211,9 @@ async function oscRenameFolder(id) {
   if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
   const f = oscFolders.find(function (x) { return x.id === id; });
   if (!f) { toast('Papka topilmadi', 'err'); return; }
-  const isDept = f.kind === 'department';
 
   const vals = await uiForm('Nomini o\'zgartirish', [
-    { id: 'name', label: 'Papka nomi', type: 'text', value: f.name || '',
-      hint: isDept ? 'Bu bo\'lim papkasi — nom "Bo\'limlar ro\'yxati" da ham o\'zgaradi.' : '' }
+    { id: 'name', label: 'Papka nomi', type: 'text', value: f.name || '' }
   ], { okText: 'Saqlash' });
   if (!vals) return;
   const name = (vals.name || '').trim();
@@ -16220,21 +16221,14 @@ async function oscRenameFolder(id) {
   if (name === f.name) return;
 
   try {
-    // Bo'lim papkasi bo'lsa — MANBANI (departments) o'zgartiramiz. Papka nomi
-    // server trigger'i (org_dept_rename_sync) bilan o'zi ergashadi; aks holda
-    // ikkovi bir-biridan ajralib qolardi.
-    if (isDept && f.department_id) {
-      const { data, error } = await sb.from('departments').update({ name: name }).eq('id', f.department_id).select();
-      if (error) throw error;
-      if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
-      const d = departments.find(function (x) { return x.id === f.department_id; });
-      if (d) d.name = name;
-      renderSidebar();
-    } else {
-      const { data, error } = await sb.from('org_folders').update({ name: name }).eq('id', id).select();
-      if (error) throw error;
-      if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
-    }
+    // ⚠️ Avval kind='department' papka nomi `departments` jadvalida
+    //    o'zgartirilardi (manba o'sha edi, server trigger'i papkaga
+    //    ergashardi). Avtomatik sync olib tashlangach (2026-08-06) Org Schema
+    //    papkalari `departments` bilan bog'liq emas — nom faqat shu yerda,
+    //    org_folders da o'zgaradi. TaskFix bo'limlariga TEGILMAYDI.
+    const { data, error } = await sb.from('org_folders').update({ name: name }).eq('id', id).select();
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
     toast('✅ Saqlandi', 'ok');
     logActivity('org_folder_renamed', { entityType: 'org_folder', entityId: id, entityTitle: name });
     await loadOrgSchema();
@@ -16289,19 +16283,17 @@ async function oscDeleteFolder(id) {
   if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
   const f = oscFolders.find(function (x) { return x.id === id; });
   if (!f) { toast('Papka topilmadi', 'err'); return; }
-  if (f.kind === 'department') {
-    toast('Bo\'lim papkasi bu yerdan o\'chirilmaydi — "Bo\'limlar ro\'yxati" dan o\'chiring', 'err');
-    return;
-  }
+
+  // ⚠️ Avval kind='department' papkani o'chirish TAQIQLANGAN edi — chunki
+  //    keyingi avtomatik sync uni qaytarardi. Sync olib tashlangach (2026-08-06)
+  //    bunday cheklovga hojat yo'q: HAR QANDAY papka o'chiriladi.
+  //    (Eski versiyada avtomatik yaratilgan bo'lim papkalari qolgan bo'lsa,
+  //     endi ularni ham shu yerdan tozalash mumkin. `departments` jadvaliga
+  //     bu amal TEGMAYDI — faqat sxemadagi papka o'chadi.)
 
   // Nima yo'qolishini OLDINDAN aytamiz (ichkarisi CASCADE bilan ketadi).
   const all = oscDescendants(id);
   const subCount = all.length - 1;
-  const deptInside = oscFolders.filter(function (x) { return all.indexOf(x.id) !== -1 && x.kind === 'department'; });
-  if (deptInside.length) {
-    toast('Ichida bo\'lim papkasi bor (' + deptInside[0].name + ') — avval uni tashqariga ko\'chiring', 'err');
-    return;
-  }
   const peopleCount = oscPeople.filter(function (p) { return all.indexOf(p.folder_id) !== -1; }).length;
 
   let msg = '"' + f.name + '" o\'chiriladi.';

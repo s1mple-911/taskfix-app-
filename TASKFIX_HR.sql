@@ -14,8 +14,9 @@
 --   1) hr_settings   — HR Service har workspace uchun yoqilgan/o'chirilgan.
 --                      DEFAULT: O'CHIQ (admin "Qo'shimcha service" dan yoqadi).
 --   2) org_folders   — papka DARAXTI. Papka ichida papka (parent_id).
---                      Mavjud `departments` bu daraxtga papka bo'lib kiradi
---                      (kind='department' + department_id).
+--                      ⚠️ Papkalarni foydalanuvchi NOLDAN o'zi yaratadi.
+--                      TaskFix'dagi mavjud `departments` AVTOMAT tortilmaydi
+--                      (2026-08-06 qarori — pastda 5-bo'limga qarang).
 --   3) org_people    — hodim daraxti. Hodim bitta papkada turadi (folder_id)
 --                      va o'zidan TEPADAGI hodimga bo'ysunadi (manager_id).
 --
@@ -47,13 +48,14 @@ BEGIN
     RAISE EXCEPTION 'public.departments topilmadi — noto''g''ri baza?';
   END IF;
 
-  -- ⚠️ Bu skript `departments` dan FAQAT shu 4 ustunni o'qiydi. Boshqasiga
-  --    (masalan sort_order) tayanish 42703 beradi — shuning uchun mavjudligi
-  --    OLDINDAN tekshiriladi, keyinroq funksiya ichida yiqilmasin.
-  IF (SELECT count(*) FROM information_schema.columns
-       WHERE table_schema = 'public' AND table_name = 'departments'
-         AND column_name IN ('id','workspace_id','name','created_at')) <> 4 THEN
-    RAISE EXCEPTION 'departments da kutilgan ustunlar yo''q (id, workspace_id, name, created_at)';
+  -- ⚠️ `departments` dan endi HECH NARSA o'qilmaydi (avtomatik sync olib
+  --    tashlandi). Jadval faqat FK maqsadi uchun kerak:
+  --    org_folders.department_id → departments(id). Shuning uchun `id`
+  --    ustunining borligi yetarli.
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                  WHERE table_schema = 'public' AND table_name = 'departments'
+                    AND column_name = 'id') THEN
+    RAISE EXCEPTION 'departments.id topilmadi — noto''g''ri baza?';
   END IF;
   IF NOT EXISTS (
     SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
@@ -97,10 +99,15 @@ COMMENT ON TABLE public.hr_settings IS
 -- ════════════════════════════════════════════════════════════════════════════
 -- 2) org_folders — papka daraxti
 -- ════════════════════════════════════════════════════════════════════════════
--- kind='folder'      → oddiy papka (foydalanuvchi yaratadi)
--- kind='department'  → mavjud `departments` qatorining daraxtdagi aksi.
---                      Nomi departments.name dan o'qiladi (bu yerda ham
---                      nusxa saqlanadi — bo'lim o'chsa CASCADE bilan ketadi).
+-- kind='folder'      → oddiy papka. HOZIR FAQAT SHU ISHLATILADI —
+--                      papkalarni foydalanuvchi noldan o'zi yaratadi.
+-- kind='department'  → TaskFix `departments` qatoriga bog'langan papka.
+--                      ⚠️ Hech kim bunday qator YARATMAYDI (avtomatik sync
+--                      2026-08-06 da olib tashlandi). Ustunlar saqlanmoqda:
+--                      (1) skriptning avvalgi versiyasi yaratgan qatorlar
+--                          hamon to'g'ri o'qilsin/o'chirilsin;
+--                      (2) kelajakda papkani bo'limga QO'LDA bog'lash
+--                          kerak bo'lsa, sxemani qayta o'zgartirmaslik uchun.
 CREATE TABLE IF NOT EXISTS public.org_folders (
   id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   workspace_id   uuid NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
@@ -152,7 +159,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS org_folders_dept_uniq
 CREATE INDEX IF NOT EXISTS org_folders_ws_parent_idx ON public.org_folders (workspace_id, parent_id, sort_order);
 
 COMMENT ON TABLE public.org_folders IS
-  'Org Schema papka daraxti. kind=department bo''lsa — mavjud departments qatorining daraxtdagi aksi (nomi shu yerdan ko''chiriladi).';
+  'Org Schema papka daraxti. Papkalar foydalanuvchi tomonidan noldan yaratiladi — TaskFix departments AVTOMAT tortilmaydi. kind=department + department_id ixtiyoriy bog''lanish uchun qoldirilgan, hozir hech kim to''ldirmaydi.';
 
 
 -- ════════════════════════════════════════════════════════════════════════════
@@ -303,93 +310,43 @@ CREATE TRIGGER org_people_guard_trg
 
 
 -- ════════════════════════════════════════════════════════════════════════════
--- 5) Bo'lim nomi o'zgarsa — papka nomi ham o'zgarsin
+-- 5) `departments` bilan AVTOMATIK BOG'LANISH — OLIB TASHLANDI (2026-08-06)
 -- ════════════════════════════════════════════════════════════════════════════
--- "Bo'limlar ro'yxati" da nom tahrirlansa, Org Schema'dagi aks eskirmasin.
--- SECURITY DEFINER: aks holda RLS tufayli sinxronlash JIMGINA ishlamay
--- qolishi mumkin (trigger chaqiruvchi rolida ishlaydi). Yozuv qat'iy
--- cheklangan: faqat shu bo'limga bog'langan papka nomi.
-CREATE OR REPLACE FUNCTION public.org_dept_rename_sync()
-RETURNS trigger
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-  IF NEW.name IS DISTINCT FROM OLD.name THEN
-    UPDATE public.org_folders SET name = NEW.name
-     WHERE department_id = NEW.id AND name IS DISTINCT FROM NEW.name;
-  END IF;
-  RETURN NEW;
-END $$;
-
-DROP TRIGGER IF EXISTS org_dept_rename_sync_trg ON public.departments;
-CREATE TRIGGER org_dept_rename_sync_trg
-  AFTER UPDATE OF name ON public.departments
-  FOR EACH ROW EXECUTE FUNCTION public.org_dept_rename_sync();
-
-
--- ════════════════════════════════════════════════════════════════════════════
--- 6) org_sync_departments() — mavjud bo'limlarni daraxtga tortadi
--- ════════════════════════════════════════════════════════════════════════════
--- Ilova Org Schema'ni ochganda shuni chaqiradi. Papkasi yo'q har bo'lim
--- uchun ildizda papka yaratadi. Mavjudlariga TEGMAYDI (ko'chirilgan bo'lsa
--- joyida qoladi). Yaratilgan qatorlar sonini qaytaradi.
+-- Avval bu yerda ikkita narsa bor edi:
+--   (a) org_sync_departments(ws) — TaskFix'dagi mavjud bo'limlarni Org Schema
+--       daraxtiga avtomat papka qilib tortadigan RPC;
+--   (b) org_dept_rename_sync — `departments` dagi nom o'zgarsa papka nomini
+--       ergashtiradigan trigger.
 --
--- SECURITY DEFINER — chunki oddiy a'zo ham sxemani KO'RA olishi kerak,
--- lekin unga org_folders'ga INSERT ruxsati yo'q. Ichkarida a'zolik
--- QAT'IY tekshiriladi (is_ws_member) — begona workspace'ga tegib bo'lmaydi.
-CREATE OR REPLACE FUNCTION public.org_sync_departments(p_workspace_id uuid)
-RETURNS integer
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE v_added integer := 0;
-BEGIN
-  IF p_workspace_id IS NULL THEN
-    RAISE EXCEPTION 'workspace_id kerak';
-  END IF;
-  IF NOT public.is_ws_member(p_workspace_id, auth.uid()) THEN
-    RAISE EXCEPTION 'Ruxsat yo''q';
-  END IF;
+-- QAROR: Org Schema BO'SH boshlanadi — papkalarni foydalanuvchi noldan o'zi
+-- yaratadi. Shu sababli ikkalasi ham kerak emas va OLIB TASHLANDI.
+--
+-- ⚠️ NATIJA: bu skript endi mavjud `public.departments` jadvaliga UMUMAN
+--    tegmaydi — na yozadi, na trigger osadi. Faqat FK (org_folders.department_id)
+--    havolasi qoladi, u ham hech kim to'ldirmaydigan ixtiyoriy ustun.
+--
+-- Quyidagi DROP'lar — skriptning AVVALGI versiyasi allaqachon ishga
+-- tushirilgan bo'lsa tozalash uchun. Bo'lmasa jimgina o'tadi.
+DROP TRIGGER  IF EXISTS org_dept_rename_sync_trg ON public.departments;
+DROP FUNCTION IF EXISTS public.org_dept_rename_sync();
+DROP FUNCTION IF EXISTS public.org_sync_departments(uuid);
 
-  -- ⚠️ `departments` da FAQAT 6 ustun bor: id, workspace_id, name,
-  --    description, created_by, created_at. `sort_order`/`ordering` YO'Q —
-  --    o'qishga urinilsa 42703 bilan yiqilardi.
-  --
-  --    Tartib `created_at` dan hosil qilinadi (row_number) — ilova bo'limlarni
-  --    aynan shu tartibda yuklaydi (`.order('created_at')`), demak Org Schema
-  --    va chap menyu bir xil ketma-ketlikda ko'rinadi.
-  --
-  --    row_number NOT EXISTS filtridan OLDIN hisoblanadi (ichki SELECT'da) —
-  --    shunda keyinroq qo'shilgan bo'lim mavjudlarining tartibini surmaydi.
-  INSERT INTO public.org_folders (workspace_id, parent_id, name, kind, department_id, sort_order)
-  SELECT s.workspace_id, NULL, s.name, 'department', s.id, s.ord
-    FROM (
-      SELECT d.workspace_id, d.name, d.id,
-             (row_number() OVER (ORDER BY d.created_at, d.id))::int AS ord
-        FROM public.departments d
-       WHERE d.workspace_id = p_workspace_id
-    ) s
-   WHERE NOT EXISTS (
-     SELECT 1 FROM public.org_folders f
-      WHERE f.workspace_id = s.workspace_id AND f.department_id = s.id
-   );
-
-  GET DIAGNOSTICS v_added = ROW_COUNT;
-  RETURN v_added;
-END $$;
-
-REVOKE ALL ON FUNCTION public.org_sync_departments(uuid) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.org_sync_departments(uuid) TO authenticated;
-
-COMMENT ON FUNCTION public.org_sync_departments(uuid) IS
-  'Papkasi yo''q bo''limlar uchun org_folders qatorini ildizda yaratadi. Mavjud papkalarga tegmaydi. Faqat workspace a''zosi chaqira oladi.';
+-- ⚠️ Avvalgi versiya AVTOMAT yaratgan bo'lim papkalari (kind='department')
+--    bu yerda O'CHIRILMAYDI — ular sizning ma'lumotingiz bo'lishi mumkin
+--    (ichiga xodim qo'shgan bo'lishingiz mumkin). Kerak bo'lmasa ilovaning
+--    o'zidan o'chiring: Org Schema → papka → 🗑. Endi bo'lim papkasini
+--    o'chirishga ruxsat bor (avval sync uni qaytarardi, shuning uchun
+--    taqiqlangandi).
+--
+-- Hammasini bir yo'la tozalamoqchi bo'lsangiz — QO'LDA, ongli ravishda:
+--   DELETE FROM public.org_folders
+--    WHERE kind = 'department'
+--      AND workspace_id = '<sizning-workspace-id>';
+--   (Ichidagi papkalar CASCADE bilan ketadi, xodimlar papkasiz qoladi.)
 
 
 -- ════════════════════════════════════════════════════════════════════════════
--- 7) RLS
+-- 6) RLS
 -- ════════════════════════════════════════════════════════════════════════════
 -- KO'RISH  — workspace'ning har qanday a'zosi (sxema hamma uchun ochiq).
 -- YOZISH   — faqat owner/admin (is_ws_manager).
@@ -454,12 +411,12 @@ CREATE POLICY "org_people_delete" ON public.org_people FOR DELETE TO authenticat
 
 
 -- ════════════════════════════════════════════════════════════════════════════
--- 8) TEKSHIRUV — jimgina o'tmasin
+-- 7) TEKSHIRUV — jimgina o'tmasin
 -- ════════════════════════════════════════════════════════════════════════════
 DO $$
 DECLARE v_cnt int; t text;
 BEGIN
-  -- 8.1 Jadvallar bor va RLS yoqilgan
+  -- 7.1 Jadvallar bor va RLS yoqilgan
   FOREACH t IN ARRAY ARRAY['hr_settings','org_folders','org_people'] LOOP
     IF NOT EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
                     WHERE n.nspname = 'public' AND c.relname = t) THEN
@@ -470,7 +427,7 @@ BEGIN
     IF v_cnt = 0 THEN RAISE EXCEPTION '% da RLS yoqilmadi', t; END IF;
   END LOOP;
 
-  -- 8.2 Policy soni
+  -- 7.2 Policy soni
   SELECT count(*) INTO v_cnt FROM pg_policies WHERE schemaname='public' AND tablename='hr_settings';
   IF v_cnt < 3 THEN RAISE EXCEPTION 'hr_settings policy''lari to''liq emas (% ta, 3 kutilgan)', v_cnt; END IF;
   SELECT count(*) INTO v_cnt FROM pg_policies WHERE schemaname='public' AND tablename='org_folders';
@@ -478,29 +435,47 @@ BEGIN
   SELECT count(*) INTO v_cnt FROM pg_policies WHERE schemaname='public' AND tablename='org_people';
   IF v_cnt < 4 THEN RAISE EXCEPTION 'org_people policy''lari to''liq emas (% ta, 4 kutilgan)', v_cnt; END IF;
 
-  -- 8.3 Triggerlar
-  FOREACH t IN ARRAY ARRAY['org_folders_guard_trg','org_people_guard_trg','org_dept_rename_sync_trg'] LOOP
+  -- 7.3 Triggerlar (faqat sikl qo'riqchilari — departments'da trigger YO'Q)
+  FOREACH t IN ARRAY ARRAY['org_folders_guard_trg','org_people_guard_trg'] LOOP
     IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = t AND NOT tgisinternal) THEN
       RAISE EXCEPTION '% trigger''i yaratilmadi', t;
     END IF;
   END LOOP;
 
-  -- 8.4 RPC
-  IF NOT EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
-                  WHERE n.nspname='public' AND p.proname='org_sync_departments') THEN
-    RAISE EXCEPTION 'org_sync_departments() yaratilmadi';
+  -- 7.4 Avtomatik bog'lanish HAQIQATAN yo'qmi? (teskari tekshiruv)
+  -- Skriptning avvalgi versiyasi ishga tushirilgan bo'lsa, yuqoridagi DROP'lar
+  -- ularni tozalagan bo'lishi SHART — aks holda bo'limlar yana avtomat
+  -- tortilib, "bo'sh boshlansin" talabi jimgina buzilardi.
+  IF EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+              WHERE n.nspname='public' AND p.proname='org_sync_departments') THEN
+    RAISE EXCEPTION 'org_sync_departments() hali ham bor — o''chirilmadi!';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'org_dept_rename_sync_trg' AND NOT tgisinternal) THEN
+    RAISE EXCEPTION 'org_dept_rename_sync_trg hali ham bor — o''chirilmadi!';
   END IF;
 
-  -- 8.5 ESKI TIZIM BUTUNMI? (bu fayl hech nimani buzmaganiga ishonch)
+  -- 7.5 ESKI TIZIM BUTUNMI? (bu fayl hech nimani buzmaganiga ishonch)
   FOREACH t IN ARRAY ARRAY['tasks','projects','departments','workspace_members'] LOOP
     IF NOT EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
                     WHERE n.nspname = 'public' AND c.relname = t) THEN
       RAISE EXCEPTION 'Eski jadval % yo''qolgan — TO''XTANG!', t;
     END IF;
   END LOOP;
+
+  -- 7.5b `departments` ga TEGILMAGANINI tasdiqlaymiz: bu skript o'rnatgan
+  -- hech qanday trigger u yerda qolmasligi kerak.
+  IF EXISTS (
+    SELECT 1 FROM pg_trigger tg
+      JOIN pg_class c ON c.oid = tg.tgrelid
+      JOIN pg_namespace n ON n.oid = c.relnamespace
+     WHERE n.nspname = 'public' AND c.relname = 'departments'
+       AND NOT tg.tgisinternal AND tg.tgname LIKE 'org_%'
+  ) THEN
+    RAISE EXCEPTION 'departments da org_* trigger qolib ketdi';
+  END IF;
 END $$;
 
--- ── 8.6 Sikl triggeri HAQIQATAN ishlaydimi? ────────────────────────────────
+-- ── 7.6 Sikl triggeri HAQIQATAN ishlaydimi? ────────────────────────────────
 -- Tirik ma'lumot ustida sinaymiz, lekin test qatorlari SAQLANMAYDI:
 -- ichki subtranzaksiya ataylab RAISE bilan qaytariladi.
 DO $$
@@ -540,9 +515,9 @@ COMMIT;
 -- KEYIN NIMA BO'LADI
 --   • HR Service DEFAULT O'CHIQ. Admin: "Qo'shimcha service" → HR Service →
 --     "Yoqish". Shundan keyin chap menyuda "HR → Org Schema" paydo bo'ladi.
---   • Org Schema birinchi ochilganda org_sync_departments() chaqiriladi va
---     mavjud bo'limlar ildizda papka bo'lib turadi. Keyin ularni bemalol
---     ko'chirish/ichiga papka qo'shish mumkin.
+--   • Org Schema birinchi ochilganda BO'SH bo'ladi. Papkalarni "+ Papka"
+--     bilan o'zingiz yaratasiz, xodimlarni "+ Xodim" bilan qo'shasiz.
+--     TaskFix'dagi mavjud bo'limlar bu yerga AVTOMAT tortilmaydi.
 --   • Eski "Jamoa → 🏢 Tashkilot" ko'rinishi (org_containers) ilovada
 --     yashirilgan, lekin MA'LUMOTI JOYIDA — hech narsa o'chirilmadi.
 --
@@ -550,8 +525,6 @@ COMMIT;
 --   DROP TABLE IF EXISTS public.org_people  CASCADE;
 --   DROP TABLE IF EXISTS public.org_folders CASCADE;
 --   DROP TABLE IF EXISTS public.hr_settings CASCADE;
---   DROP FUNCTION IF EXISTS public.org_sync_departments(uuid);
---   DROP FUNCTION IF EXISTS public.org_dept_rename_sync() CASCADE;
 --   DROP FUNCTION IF EXISTS public.org_folders_guard() CASCADE;
 --   DROP FUNCTION IF EXISTS public.org_people_guard()  CASCADE;
 --   DROP FUNCTION IF EXISTS public.org_touch() CASCADE;
