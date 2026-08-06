@@ -854,6 +854,42 @@
 
   .osc-loose-h { margin: 20px 0 8px; font-size: 11.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 8px; }
 
+  /* ── Org chart ── */
+  .osc-chart-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .osc-zoom { font-size: 12px; font-weight: 600; color: var(--muted); min-width: 44px; text-align: center; font-variant-numeric: tabular-nums; }
+  .osc-hint { font-size: 12px; color: var(--subtle); margin-left: auto; }
+
+  .osc-viewport { border: 1px solid var(--line); border-radius: 14px; background:
+      radial-gradient(circle at 1px 1px, rgba(28,31,36,.07) 1px, transparent 0) 0 0 / 22px 22px, var(--surface);
+    overflow: auto; height: calc(100vh - 300px); min-height: 420px; position: relative; cursor: grab; }
+  .osc-viewport.panning { cursor: grabbing; }
+  .osc-stage { position: relative; transform-origin: 0 0; transition: transform .16s cubic-bezier(.32,.72,0,1); }
+
+  .osc-lines { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+  .osc-lines path { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-linecap: round; }
+
+  .osc-card { position: absolute; display: flex; align-items: center; gap: 10px; padding: 0 13px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 13px;
+    box-shadow: 0 1px 2px rgba(28,31,36,.05); box-sizing: border-box;
+    transition: transform .16s cubic-bezier(.32,.72,0,1), box-shadow .16s ease, border-color .16s ease; }
+  .osc-card.person { cursor: pointer; }
+  .osc-card.person:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(28,31,36,.13); border-color: var(--line-strong); }
+  /* Papka tuguni — "idish" ekani ko'rinib tursin: iliqroq fon, ustki urg'u */
+  .osc-card.folder { background: var(--surface-2); border-color: var(--line-soft); }
+  .osc-card.folder.dept { background: var(--accent-soft); border-color: var(--accent); }
+  .osc-card.folder.dept .osc-card-ic { color: var(--accent-ink); }
+  .osc-card-ic { flex-shrink: 0; display: flex; color: var(--muted); }
+  .osc-card-av { flex-shrink: 0; display: flex; }
+  .osc-card-av .avatar.sm { width: 34px; height: 34px; font-size: 12px; }
+  .osc-card-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .osc-card-nm { font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .osc-card-sub { font-size: 11.5px; color: var(--muted); line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Harakatni kamaytirish so'ralgan bo'lsa — animatsiyasiz */
+  @media (prefers-reduced-motion: reduce) {
+    .osc-stage, .osc-card, .osc-row, .osc-tw, .osc-acts, .osc-act { transition: none; }
+  }
+
   /* Barmoq bilan boshqariladigan ekranda hover yo'q — amallar doim ko'rinsin */
   @media (hover: none) { .osc-acts { opacity: 1; } }
 
@@ -1160,6 +1196,9 @@
     .tbl-wrap { max-height: calc(100vh - 210px); }
     .pln-cal { max-height: calc(100vh - 160px); }
     .pln-side-list { max-height: calc(100vh - 190px); }
+    /* Org chart: min-height 420px past ekranda butun sahifani scrollga
+       majburlardi — kanban/jadval bilan bir xil yechim. */
+    .osc-viewport { height: calc(100vh - 250px); min-height: 300px; }
   }
 </style>
 </head>
@@ -15748,6 +15787,13 @@ function oscSetView(v) {
   if (pf) pf.style.display = (oscView === 'folders') ? 'block' : 'none';
   if (pc) pc.style.display = (oscView === 'chart') ? 'block' : 'none';
   try { localStorage.setItem('osc_view', oscView); } catch (e) { console.error('oscSetView:', e); }
+
+  // Chartga BIRINCHI marta o'tilganda o'zi sig'sin. Keyingi o'tishlarda
+  // foydalanuvchining zoom'i saqlanadi (har safar tiklash bezovta qilardi).
+  if (oscView === 'chart' && _oscChartBuilt && !_oscFitted) {
+    _oscFitted = true;
+    requestAnimationFrame(function () { oscZoomFit(); });
+  }
 }
 
 // ── Ma'lumot ────────────────────────────────────────────────────────────────
@@ -16249,6 +16295,270 @@ async function oscDeleteFolder(id) {
   }
 }
 
+// ══════════════════════════════════════════════════════════════════════════
+// ORG CHART — ikkinchi ko'rinish
+// ══════════════════════════════════════════════════════════════════════════
+// ⚠️ AYNAN SHU ma'lumot (oscFolders + oscPeople) chiziladi — papka
+//    ko'rinishining vertikal transpozitsiyasi. Joylashuv HAR SAFAR qaytadan
+//    hisoblanadi va SAQLANMAYDI (node_x/node_y ustunlari yo'q) — shu sababli
+//    ikki ko'rinish hech qachon bir-biridan ajralib qololmaydi.
+//
+// Joylashuv: klassik "barglar qat'iy joy egallaydi, ota bolalari ustida
+// markazlashadi" algoritmi. Ustma-ust tushish mumkin emas, chunki har barg
+// o'z ustunini oladi va ota faqat markazga suriladi.
+const OSC_NW = 196;     // tugun kengligi
+const OSC_NH = 66;      // tugun balandligi
+const OSC_HGAP = 20;    // yonma-yon tugunlar orasi
+const OSC_VGAP = 46;    // qatlamlar orasi
+const OSC_PAD = 32;     // sahna chekkasi
+const OSC_R = 12;       // bog'lovchi chiziq burchagi radiusi
+
+let oscZoom = 1;
+let _oscChartBuilt = false;
+let _oscFitted = false;   // chart birinchi marta sig'dirildimi
+
+// Papka daraxti + hodim daraxti → BITTA daraxt.
+// Papka tuguni bolalari: ichki papkalar, so'ng shu papkadagi "ildiz" hodimlar.
+function oscChartRoots() {
+  const t = oscChildMap();
+  const pm = oscPeopleMap();
+  const seenF = new Set(), seenP = new Set();
+
+  function personNode(p, folderId) {
+    if (seenP.has(p.id)) { console.error('oscChartRoots: bo\'ysunishda sikl —', p.id); return null; }
+    seenP.add(p.id);
+    // Boshqa papkadagi qo'l osti bu yerda emas, O'Z papkasida chiziladi —
+    // aks holda bir odam ikki joyda paydo bo'lardi.
+    const subs = (pm.kids[p.id] || []).filter(function (c) { return (c.folder_id || null) === (folderId || null); });
+    return { type: 'person', key: 'p:' + p.id, row: p,
+             children: subs.map(function (c) { return personNode(c, folderId); }).filter(Boolean) };
+  }
+
+  function folderNode(f) {
+    if (seenF.has(f.id)) { console.error('oscChartRoots: papka daraxtida sikl —', f.id); return null; }
+    seenF.add(f.id);
+    const kids = (t.kids[f.id] || []).map(folderNode).filter(Boolean);
+    const mine = oscPeople.filter(function (p) { return p.folder_id === f.id; });
+    const mineIds = new Set(mine.map(function (p) { return p.id; }));
+    const proots = mine.filter(function (p) { return !p.manager_id || !mineIds.has(p.manager_id); });
+    const pnodes = proots.map(function (p) { return personNode(p, f.id); }).filter(Boolean);
+    return { type: 'folder', key: 'f:' + f.id, row: f, children: kids.concat(pnodes) };
+  }
+
+  const roots = (t.kids.root || []).map(folderNode).filter(Boolean);
+
+  // Papkasiz xodimlar ham chizilsin (jimgina yo'qolmasin)
+  const loose = oscPeople.filter(function (p) { return !p.folder_id; });
+  const looseIds = new Set(loose.map(function (p) { return p.id; }));
+  loose.filter(function (p) { return !p.manager_id || !looseIds.has(p.manager_id); })
+       .forEach(function (p) { const n = personNode(p, null); if (n) roots.push(n); });
+
+  return roots;
+}
+
+// Koordinatalarni hisoblaydi va {nodes, edges, w, h} qaytaradi.
+function oscLayout(roots) {
+  const nodes = [], edges = [];
+  let cursorX = 0;
+
+  function place(n, depth) {
+    n.y = depth * (OSC_NH + OSC_VGAP);
+    if (!n.children.length) {
+      n.x = cursorX;
+      cursorX += OSC_NW + OSC_HGAP;
+    } else {
+      n.children.forEach(function (c) { place(c, depth + 1); });
+      const a = n.children[0], b = n.children[n.children.length - 1];
+      n.x = (a.x + b.x) / 2;
+    }
+    nodes.push(n);
+    n.children.forEach(function (c) { edges.push({ from: n, to: c }); });
+  }
+
+  roots.forEach(function (r) { place(r, 0); cursorX += OSC_HGAP * 2; });
+
+  if (!nodes.length) return { nodes: nodes, edges: edges, w: 0, h: 0 };
+
+  let minX = Infinity, maxX = -Infinity, maxY = 0;
+  nodes.forEach(function (n) {
+    if (n.x < minX) minX = n.x;
+    if (n.x > maxX) maxX = n.x;
+    if (n.y > maxY) maxY = n.y;
+  });
+  const dx = OSC_PAD - minX;
+  nodes.forEach(function (n) { n.x += dx; n.y += OSC_PAD; });
+
+  return {
+    nodes: nodes, edges: edges,
+    w: (maxX - minX) + OSC_NW + OSC_PAD * 2,
+    h: maxY + OSC_NH + OSC_PAD * 2
+  };
+}
+
+// Ota pastidan bola tepasiga — yumaloq burchakli "tirsak".
+// To'g'ri tik tushsa oddiy chiziq (ortiqcha egrilik chiroyli emas).
+function oscElbow(x1, y1, x2, y2) {
+  if (Math.abs(x2 - x1) < 0.6) return 'M' + x1 + ' ' + y1 + ' L' + x2 + ' ' + y2;
+  const midY = y1 + (y2 - y1) / 2;
+  const dir = x2 > x1 ? 1 : -1;
+  const r = Math.min(OSC_R, Math.abs(x2 - x1) / 2, (y2 - y1) / 2);
+  return 'M' + x1 + ' ' + y1 +
+         ' L' + x1 + ' ' + (midY - r) +
+         ' Q' + x1 + ' ' + midY + ' ' + (x1 + dir * r) + ' ' + midY +
+         ' L' + (x2 - dir * r) + ' ' + midY +
+         ' Q' + x2 + ' ' + midY + ' ' + x2 + ' ' + (midY + r) +
+         ' L' + x2 + ' ' + y2;
+}
+
+function oscNodeHtml(n) {
+  const st = 'left:' + n.x + 'px;top:' + n.y + 'px;width:' + OSC_NW + 'px;height:' + OSC_NH + 'px;';
+  if (n.type === 'folder') {
+    const f = n.row;
+    const isDept = f.kind === 'department';
+    const nPeople = oscPeople.filter(function (p) { return p.folder_id === f.id; }).length;
+    return '<div class="osc-card folder' + (isDept ? ' dept' : '') + '" style="' + st + '">' +
+      '<span class="osc-card-ic">' + icon('folder', 18) + '</span>' +
+      '<span class="osc-card-txt">' +
+        '<span class="osc-card-nm">' + escapeHtml(f.name || '') + '</span>' +
+        '<span class="osc-card-sub">' + (isDept ? 'Bo\'lim' : 'Papka') + (nPeople ? ' · ' + nPeople + ' xodim' : '') + '</span>' +
+      '</span>' +
+    '</div>';
+  }
+  const p = n.row;
+  const name = oscPersonName(p.user_id);
+  const title = oscPersonTitle(p);
+  return '<div class="osc-card person" style="' + st + '" onclick="oscCardOpen(\'' + escapeHtml(p.user_id) + '\')" title="' + escapeHtml(name) + '">' +
+    '<span class="osc-card-av">' + avatarHtml(name, 'sm', null, p.user_id) + '</span>' +
+    '<span class="osc-card-txt">' +
+      '<span class="osc-card-nm">' + escapeHtml(name) + '</span>' +
+      '<span class="osc-card-sub">' + escapeHtml(title || '—') + '</span>' +
+    '</span>' +
+  '</div>';
+}
+
+// Kartaga bosilganda hodim sahifasi. Ruxsati yo'q bo'lsa openEmployee
+// o'zi xabar beradi — bu yerda jimgina yutmaymiz.
+function oscCardOpen(uid) {
+  if (!uid) return;
+  openEmployee(uid);
+}
+
+function oscRenderChart() {
+  const pane = $('oscPaneChart'); if (!pane) return;
+
+  if (_oscMissing || _oscErr) {
+    pane.innerHTML = '<div class="empty"><strong>Chizib bo\'lmadi</strong>' +
+      (_oscMissing ? 'TASKFIX_HR.sql ishga tushirilmagan.' : escapeHtml(translateErr(_oscErr.message || String(_oscErr)))) + '</div>';
+    _oscChartBuilt = false;
+    return;
+  }
+
+  const lay = oscLayout(oscChartRoots());
+  if (!lay.nodes.length) {
+    pane.innerHTML = '<div class="empty"><strong>Chizish uchun ma\'lumot yo\'q</strong>' +
+      'Avval "Papka ko\'rinishi" da papka va xodim qo\'shing.</div>';
+    _oscChartBuilt = false;
+    return;
+  }
+
+  let svg = '<svg class="osc-lines" width="' + lay.w + '" height="' + lay.h + '" viewBox="0 0 ' + lay.w + ' ' + lay.h + '">';
+  lay.edges.forEach(function (e) {
+    svg += '<path d="' + oscElbow(
+      e.from.x + OSC_NW / 2, e.from.y + OSC_NH,
+      e.to.x + OSC_NW / 2,   e.to.y
+    ) + '" />';
+  });
+  svg += '</svg>';
+
+  let cards = '';
+  lay.nodes.forEach(function (n) { cards += oscNodeHtml(n); });
+
+  pane.innerHTML =
+    '<div class="osc-chart-bar">' +
+      '<button class="btn secondary sm" onclick="oscZoomBy(-0.15)" title="Kichraytirish">−</button>' +
+      '<span class="osc-zoom" id="oscZoomLbl">100%</span>' +
+      '<button class="btn secondary sm" onclick="oscZoomBy(0.15)" title="Kattalashtirish">+</button>' +
+      '<button class="btn secondary sm" onclick="oscZoomFit()">Sig\'dirish</button>' +
+      '<button class="btn secondary sm" onclick="oscZoomSet(1)">100%</button>' +
+      '<span class="osc-hint">Bo\'sh joyni ushlab surish mumkin</span>' +
+    '</div>' +
+    '<div class="osc-viewport" id="oscViewport">' +
+      '<div class="osc-stage" id="oscStage" style="width:' + lay.w + 'px;height:' + lay.h + 'px;">' +
+        svg + cards +
+      '</div>' +
+    '</div>';
+
+  _oscChartBuilt = true;
+  _oscFitted = false;   // yangi sxema — keyingi ochilishda qayta sig'dirilsin
+  oscBindPan();
+  oscApplyZoom();
+}
+
+// ── Zoom / pan ──────────────────────────────────────────────────────────────
+function oscApplyZoom() {
+  const stage = $('oscStage'); if (!stage) return;
+  stage.style.transform = 'scale(' + oscZoom + ')';
+  const lbl = $('oscZoomLbl');
+  if (lbl) lbl.textContent = Math.round(oscZoom * 100) + '%';
+}
+function oscZoomSet(z) {
+  oscZoom = Math.max(0.25, Math.min(2, z));
+  oscApplyZoom();
+}
+function oscZoomBy(d) { oscZoomSet(oscZoom + d); }
+function oscZoomFit() {
+  const vp = $('oscViewport'), stage = $('oscStage');
+  if (!vp || !stage) return;
+  const w = parseFloat(stage.style.width) || 0;
+  const h = parseFloat(stage.style.height) || 0;
+  if (!w || !h) return;
+  // Panel yashirin bo'lsa o'lchov 0 bo'ladi — bunda zoom'ni buzmaymiz.
+  if (!vp.clientWidth || !vp.clientHeight) return;
+  // Butun sxema ko'rinsin, lekin 100% dan kattalashtirmaymiz (kichik
+  // tashkilotda kartalar cho'zilib ketmasin).
+  oscZoomSet(Math.min(1, (vp.clientWidth - 16) / w, (vp.clientHeight - 16) / h));
+  vp.scrollLeft = 0; vp.scrollTop = 0;
+}
+
+// Bo'sh joydan ushlab surish. ⚠️ Karta ustidan boshlanmasin — aks holda
+// kartaga bosish "surish" deb qabul qilinardi.
+//
+// ⚠️ window listener'lari BIR MARTA qo'shiladi (_oscPanBound). oscRenderChart
+//    har yuklashda chaqiriladi — har safar yangi listener qo'shilsa ular
+//    to'planib ketardi (klassik sizib chiqish).
+let _oscPanBound = false;
+const _oscPan = { on: false, sx: 0, sy: 0, sl: 0, st: 0 };
+
+function oscBindPan() {
+  const vp = $('oscViewport'); if (!vp) return;
+
+  // Viewport har chizishda YANGI element — mousedown har safar unga bog'lanadi
+  // (eski element bilan birga o'z listener'i ham yo'qoladi).
+  vp.addEventListener('mousedown', function (e) {
+    if (e.button !== 0) return;
+    if (e.target.closest && e.target.closest('.osc-card')) return;
+    _oscPan.on = true;
+    _oscPan.sx = e.clientX; _oscPan.sy = e.clientY;
+    _oscPan.sl = vp.scrollLeft; _oscPan.st = vp.scrollTop;
+    vp.classList.add('panning');
+    e.preventDefault();   // matn belgilanib ketmasin
+  });
+
+  if (_oscPanBound) return;
+  _oscPanBound = true;
+  window.addEventListener('mousemove', function (e) {
+    if (!_oscPan.on) return;
+    const v = $('oscViewport'); if (!v) { _oscPan.on = false; return; }
+    v.scrollLeft = _oscPan.sl - (e.clientX - _oscPan.sx);
+    v.scrollTop  = _oscPan.st - (e.clientY - _oscPan.sy);
+  });
+  window.addEventListener('mouseup', function () {
+    if (!_oscPan.on) return;
+    _oscPan.on = false;
+    const v = $('oscViewport'); if (v) v.classList.remove('panning');
+  });
+}
+
 // ── Hodim amallari ──────────────────────────────────────────────────────────
 // Papka tanlash uchun tekis ro'yxat (ichma-ichligi "— " bilan ko'rsatiladi).
 function oscFolderOptions(includeRoot, bannedIds) {
@@ -16444,9 +16754,15 @@ async function loadOrgSchema() {
   oscRenderActions();
   oscRenderCount();
   oscRenderFolders();
+  oscRenderChart();
 
-  const pc = $('oscPaneChart');
-  if (pc) pc.innerHTML = '<div class="empty"><strong>Org chart keyingi qadamda</strong>Papka ko\'rinishi allaqachon ishlaydi.</div>';
+  // Org chart ochiq bo'lsa — birinchi ko'rsatishda o'zi sig'sin.
+  // ⚠️ requestAnimationFrame: viewport hali o'lchamga ega bo'lmasa
+  //    (display:none dan endi chiqqan) oscZoomFit 0 ga bo'lardi.
+  if (oscView === 'chart') {
+    _oscFitted = true;
+    requestAnimationFrame(function () { oscZoomFit(); });
+  }
 }
 
 // ============ 🔍 UNIVERSAL QIDIRUV (gs*) — topbar + ⌘K ============
