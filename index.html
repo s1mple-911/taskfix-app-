@@ -778,7 +778,7 @@
   .notif-actions { display: flex; gap: 6px; }
   .notif-actions .btn { padding: 5px 10px; font-size: 12px; }
 
-  .toast { position: fixed; bottom: 24px; right: 24px; left: auto; transform: none; display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-radius: 12px; font-size: 13.5px; font-weight: 500; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--success); box-shadow: var(--shadow-lg); z-index: 200; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; min-width: 260px; max-width: 380px; color: var(--ink); }
+  .toast { position: fixed; bottom: 24px; right: 24px; left: auto; transform: none; display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-radius: 12px; font-size: 13.5px; font-weight: 500; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--success); box-shadow: var(--shadow-lg); z-index: 9500; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; min-width: 260px; max-width: 380px; color: var(--ink); }
   .toast.show { opacity: 1; animation: tzToast .24s ease; pointer-events: auto; }
   .toast.ok { border-left-color: var(--success); }
   .toast.err { border-left-color: var(--danger); color: var(--ink); }
@@ -822,12 +822,24 @@
   .ss-caret { flex-shrink: 0; display: flex; color: var(--subtle); transform: rotate(90deg); transition: transform .16s cubic-bezier(.32,.72,0,1); }
   .ss-trig[aria-expanded="true"] .ss-caret { transform: rotate(-90deg); }
 
-  /* Panel — <body> farzandi, modal (z-index 100) USTIDA turishi shart */
-  .ss-panel { position: fixed; z-index: 200; display: none; flex-direction: column; overflow: hidden;
+  /* Panel — <body> ning bevosita farzandi, `position:fixed`.
+     ⚠️ z-index QATLAM XARITASI (chalkashmasin):
+          200  .toast        900… yo'q
+          400  qidiruv modali
+          8000 .tsk-chip
+          9000 .ui-modal-bd  ← uiForm/uiConfirm oynasi (backdrop-filter bilan)
+          9100 .ss-panel     ← SHU: modal USTIDA turishi SHART
+          9400 perf paneli (pf*)
+     Avval 200 edi — panel modal ORTIDA qolib, ko'rinmasdi yoki
+     yarim kesilgandek tuyulardi. Bu shu bug'ning asosiy sababi. */
+  .ss-panel { position: fixed; z-index: 9100; display: none; flex-direction: column; overflow: hidden;
     background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow-lg);
     animation: ssIn .16s cubic-bezier(.32,.72,0,1); }
   .ss-panel.show { display: flex; }
-  @keyframes ssIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
+  /* Tepaga ochilganda animatsiya ham teskari yo'nalishda bo'lsin */
+  .ss-panel.up { animation-name: ssInUp; }
+  @keyframes ssIn   { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
+  @keyframes ssInUp { from { opacity: 0; transform: translateY(5px); }  to { opacity: 1; transform: none; } }
 
   .ss-search { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-bottom: 1px solid var(--line-soft); flex-shrink: 0; color: var(--subtle); }
   .ss-search input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font-family: inherit; font-size: 13.5px; color: var(--ink); padding: 0; }
@@ -3127,21 +3139,50 @@ function ssEnsurePanel() {
   return p;
 }
 
+// Panelni tugma yoniga qo'yamiz.
+// ⚠️ Uch narsani kafolatlaydi:
+//   1) pastda joy yetmasa — YUQORIGA ochiladi (flip);
+//   2) ikkala tomonda ham joy kam bo'lsa — kattarog'i tanlanadi va panel
+//      o'sha joyga SIG'DIRILADI (ichida scroll bo'ladi, tashqariga chiqmaydi);
+//   3) chap/o'ng chekkadan chiqib ketmaydi.
+// ⚠️ Balandlik OCHILGANDA bir marta hisoblanadi (hamma variant soniga qarab).
+//    Qidiruv paytida qayta hisoblansa panel "sakrab" turardi.
+const SS_MAX_H = 360, SS_GAP = 6, SS_EDGE = 8, SS_ROW_H = 35;
+
 function ssPosition() {
   const p = document.getElementById('ssPanel');
   const t = document.getElementById('sstrig_' + _ssOpenId);
   if (!p || !t) return;
   const r = t.getBoundingClientRect();
+  const reg = _ssReg[_ssOpenId];
+
+  // Kerakli balandlik: qidiruv qatori + variantlar + (multi bo'lsa) pastki panel
+  const n = reg ? Math.max(1, reg.items.length) : 1;
+  const need = Math.min(SS_MAX_H, 46 + (reg && reg.multi ? 41 : 0) + n * SS_ROW_H + 10);
+
+  const below = window.innerHeight - r.bottom - SS_GAP - SS_EDGE;
+  const above = r.top - SS_GAP - SS_EDGE;
+
+  let up;
+  if (below >= need) up = false;          // pastda bemalol sig'adi
+  else if (above >= need) up = true;      // tepada sig'adi → flip
+  else up = above > below;                // ikkalasi ham kam — kattarog'i
+
+  const avail = Math.max(0, up ? above : below);
+  const h = Math.min(need, avail);
+
   const w = Math.max(r.width, 240);
-  const maxH = 320;
-  // Pastda joy bo'lmasa — tepaga ochamiz (modal ichida ham to'g'ri tursin)
-  const below = window.innerHeight - r.bottom - 12;
-  const above = r.top - 12;
-  const up = below < 200 && above > below;
   p.style.width = w + 'px';
-  p.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
-  if (up) { p.style.top = 'auto'; p.style.bottom = (window.innerHeight - r.top + 6) + 'px'; p.style.maxHeight = Math.min(maxH, above) + 'px'; }
-  else    { p.style.bottom = 'auto'; p.style.top = (r.bottom + 6) + 'px'; p.style.maxHeight = Math.min(maxH, below) + 'px'; }
+  p.style.left = Math.max(SS_EDGE, Math.min(r.left, window.innerWidth - w - SS_EDGE)) + 'px';
+  p.style.maxHeight = h + 'px';
+  if (up) {
+    p.style.top = 'auto';
+    p.style.bottom = (window.innerHeight - r.top + SS_GAP) + 'px';
+  } else {
+    p.style.bottom = 'auto';
+    p.style.top = (r.bottom + SS_GAP) + 'px';
+  }
+  p.classList.toggle('up', up);
 }
 
 function ssToggle(id) {
@@ -3153,6 +3194,10 @@ function ssOpen(id) {
   if (!_ssReg[id]) return;
   _ssOpenId = id; _ssHi = 0;
   const p = ssEnsurePanel();
+  // ⚠️ Panelni <body> OXIRIGA ko'chiramiz: uiModalRoot keyinroq qo'shilgan
+  //    bo'lsa ham (teng z-index holatida DOM tartibi hal qiladi) panel
+  //    tepada qoladi. z-index allaqachon yuqori — bu qo'shimcha himoya.
+  if (p.parentNode !== document.body || p.nextSibling) document.body.appendChild(p);
   const inp = document.getElementById('ssSearch');
   if (inp) inp.value = '';
   p.classList.add('show');
@@ -3290,6 +3335,10 @@ function ssBindGlobal() {
     ssClose();
   }, true);
   window.addEventListener('resize', function () { if (_ssOpenId) ssPosition(); });
+  // ⚠️ Modal tanasi yoki sahifa scroll bo'lsa panel tugmadan ajralib
+  //    qolmasin. capture:true — ichki scroll konteynerlari ham tutiladi
+  //    (scroll hodisasi ko'pikka chiqmaydi).
+  window.addEventListener('scroll', function () { if (_ssOpenId) ssPosition(); }, true);
 }
 
 // Xodim tanlash uchun umumiy variant ro'yxati: avatar + lavozim + telefon/email
