@@ -1634,8 +1634,8 @@
 
     <!-- Integrations -->
     <section id="page-integrations" style="display:none">
-      <div class="row-head"><h2 class="h2" style="margin:0">Integratsiyalar</h2></div>
-      <div style="margin-bottom: 18px; font-size: 13.5px; color: var(--muted); line-height: 1.5;">Tashqi xizmatlarni ulang — bildirishnoma, ish jarayonlarini avtomatlashtirish va boshqalar.</div>
+      <div class="row-head"><h2 class="h2" style="margin:0">Qo'shimcha service</h2></div>
+      <div style="margin-bottom: 18px; font-size: 13.5px; color: var(--muted); line-height: 1.5;">Qo'shimcha xizmatlarni yoqing — bildirishnoma, HR, ish jarayonlarini avtomatlashtirish va boshqalar.</div>
       <div id="intgGrid" class="intg-grid"></div>
     </section>
 
@@ -5421,7 +5421,7 @@ function renderSidebar() {
       html += '<button class="side-link ' + (currentPage === 'logs' ? 'active' : '') + '" onclick="goPage(\'logs\')">' + sideIcon('logs') + ' Loglar</button>';
     }
     if (canManage) {
-      html += '<button class="side-link ' + (currentPage === 'integrations' ? 'active' : '') + '" onclick="goPage(\'integrations\')">' + sideIcon('zap') + ' Integratsiyalar</button>';
+      html += '<button class="side-link ' + (currentPage === 'integrations' ? 'active' : '') + '" onclick="goPage(\'integrations\')">' + sideIcon('zap') + ' Qo\'shimcha service</button>';
     }
     if (canManage) {
       // Telegram section — faqat bot ulangan bo'lsa ko'rinadi
@@ -9259,7 +9259,7 @@ async function loadBotSettings() {
   if (!intg || !intg.is_enabled) {
     $('bsBotInfo').innerHTML =
       '<strong style="color:var(--danger);">⚠ Bot ulanmagan.</strong><br>' +
-      '<span style="color:var(--muted);">Avval "Integratsiyalar" sahifasidan Telegram botingizni ulang.</span>';
+      '<span style="color:var(--muted);">Avval "Qo\'shimcha service" sahifasidan Telegram botingizni ulang.</span>';
     document.querySelectorAll('#page-botsettings .settings-section').forEach(s => s.style.display = 'none');
     return;
   }
@@ -9341,9 +9341,9 @@ async function resetBotWebhook() {
   // bot_token integration config ichida — service_role kerak. Frontend'dan
   // to'g'ridan o'qib bo'lmaydi. Buning o'rniga maxsus Edge Function chaqirishimiz kerak,
   // yoki tg-verify Edge Function bizning siri (config.bot_token)dan o'qib qayta setWebhook qiladi.
-  // Hozircha: foydalanuvchi qo'lda qayta sozlashi mumkin (Integratsiyalar sahifasidan).
+  // Hozircha: foydalanuvchi qo'lda qayta sozlashi mumkin (Qo'shimcha service sahifasidan).
   showMsg($('bsWebhookMsg'),
-    'ℹ Webhook\'ni qayta o\'rnatish uchun: "Integratsiyalar" sahifasidan Telegram botini o\'chirib, qaytadan ulang. ' +
+    'ℹ Webhook\'ni qayta o\'rnatish uchun: "Qo\'shimcha service" sahifasidan Telegram botini o\'chirib, qaytadan ulang. ' +
     'Yoki @BotFather\'da /revoke qilib yangi token oling va ulang.',
     'ok');
 }
@@ -14737,7 +14737,7 @@ async function loadTgUsers() {
   if (!intg || !intg.is_enabled) {
     $('tgUsersList').innerHTML = '';
     $('tgUsersEmpty').style.display = 'block';
-    $('tgUsersEmpty').innerHTML = '<strong>Telegram bot yoqilmagan</strong>Avval Integratsiyalar bo\'limidan botni yoqing.';
+    $('tgUsersEmpty').innerHTML = '<strong>Telegram bot yoqilmagan</strong>Avval "Qo\'shimcha service" bo\'limidan botni yoqing.';
     return;
   }
   const { data, error } = await sb.from('tg_bot_users').select('*').eq('integration_id', intg.id).order('created_at', { ascending: false });
@@ -15084,7 +15084,7 @@ async function loadIntegrations() {
   if (!currentWs || currentWs.kind !== 'organization') return;
   const canManage = isOwnerLike();
   if (!canManage) {
-    $('intgGrid').innerHTML = '<div class="empty"><strong>Faqat boshqaruvchi ko\'radi</strong>Integratsiyalarni faqat workspace egasi yoki administratori sozlaydi.</div>';
+    $('intgGrid').innerHTML = '<div class="empty"><strong>Faqat boshqaruvchi ko\'radi</strong>Qo\'shimcha service\'ni faqat workspace egasi yoki administratori sozlaydi.</div>';
     return;
   }
   const { data, error } = await sb.from('integrations_safe').select('*').eq('workspace_id', currentWs.id);
@@ -15182,7 +15182,7 @@ async function saveN8nFromModal() {
 }
 
 async function disableIntegration(id) {
-  if (!confirm('Integratsiyani o\'chirib qo\'yasizmi? Sozlama saqlanadi, lekin xabarlar yuborilmaydi.')) return;
+  if (!confirm('Service\'ni o\'chirib qo\'yasizmi? Sozlama saqlanadi, lekin xabarlar yuborilmaydi.')) return;
   try {
     const { error } = await sb.from('integrations').update({ is_enabled: false }).eq('id', id);
     if (error) throw error;
@@ -15690,7 +15690,7 @@ function gsPushPages(b, q) {
     { label: 'Tashkilot tuzilmasi', icon: '⛓', page: 'orgchart', mgr: true, org: true },
     { label: 'Filiallar', icon: '🏪', page: 'branches', mgr: true, org: true },
     { label: 'Lavozimlar', icon: '🎖', page: 'positions', mgr: true, org: true },
-    { label: 'Integratsiyalar', icon: '🔌', page: 'integrations', mgr: true, org: true },
+    { label: 'Qo\'shimcha service', icon: '🔌', page: 'integrations', mgr: true, org: true },
     { label: 'Sozlamalar', icon: '⚙', page: 'settings', mgr: true },
     { label: 'Mening profilim', icon: '👤', page: 'profile' },
   ];
