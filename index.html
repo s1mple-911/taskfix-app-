@@ -5444,7 +5444,7 @@ async function bootstrap() {
       || (me.email ? me.email.split('@')[0] : '') || 'Foydalanuvchi';
     try {
       const { data: ins, error: insErr } = await sb.from('profiles')
-        .insert({ id: me.id, full_name: fullName }).select().maybeSingle();
+        .insert({ id: me.id, full_name: fullName, email: me.email || null }).select().maybeSingle();
       if (insErr && insErr.code !== '23505') throw insErr;
       prof = ins || null;
       if (!prof) {
@@ -5464,6 +5464,12 @@ async function bootstrap() {
     const patch = {};
     if (!myProfile.full_name && (md.full_name || md.first_name)) patch.full_name = md.full_name || md.first_name;
     if (!myProfile.phone && md.phone) patch.phone = md.phone;
+    // ⚠️ EMAIL ZAXIRASI: ilova email'ni FAQAT profiles.email dan o'qiydi, lekin
+    // eski userlarda u auth.users dan ko'chmagan (NULL) → UI'da bo'sh ko'rinardi.
+    // Server tomonda TASKFIX_EMAIL_SYNC.sql buni hal qiladi; bu yer esa
+    // SQL ishga tushmagan bo'lsa ham har foydalanuvchi kirganda O'Z qatorini
+    // davolaydi. Mavjud (masalan "connect" bilan almashtirilgan) email BOSILMAYDI.
+    if (!myProfile.email && me.email) patch.email = me.email;
     if (Object.keys(patch).length) {
       patch.id = me.id;
       const { data: up } = await sb.from('profiles').upsert(patch, { onConflict: 'id' }).select().maybeSingle();
@@ -5627,6 +5633,10 @@ async function loadCurrentContext() {
 
   const profMap = {};
   (profsR.data || []).forEach(p => { profMap[p.id] = p; });
+  // O'z qatorimda email bo'sh bo'lsa — auth'dagisini ko'rsatamiz (zaxira, yuqoridagi
+  // profil patch'i bilan bir xil sabab). Boshqa a'zoniki mijozdan olinmaydi —
+  // auth.users faqat serverda ochiq → TASKFIX_EMAIL_SYNC.sql hal qiladi.
+  if (me && profMap[me.id] && !profMap[me.id].email && me.email) profMap[me.id].email = me.email;
   wsMembers = wm.map(x => Object.assign({}, x, { profile: profMap[x.user_id] || {} }));
   tgUsersCache = tgBusR.data || [];
 

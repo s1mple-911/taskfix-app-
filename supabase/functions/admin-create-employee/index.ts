@@ -170,7 +170,9 @@ Deno.serve(async (req: Request) => {
 
     // ---- 5) Profil (best-effort — trigger allaqachon yaratishi mumkin) ----
     try {
-      const patch: Record<string, unknown> = { id: userId };
+      // ⚠️ email ATAYLAB yoziladi: ilova email'ni FAQAT profiles.email dan
+      // o'qiydi, auth.users dan emas (TASKFIX_EMAIL_SYNC.sql bilan bir xil sabab).
+      const patch: Record<string, unknown> = { id: userId, email };
       if (fullName) patch.full_name = fullName;
       if (phone) patch.phone = phone;
       if (Object.keys(patch).length > 1) {
