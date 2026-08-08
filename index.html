@@ -278,6 +278,41 @@
     font-family:inherit; transition:all .12s; }
   .nmz-reg:hover { border-color:var(--line-strong); color:var(--ink); }
 
+  /* Jonli panel — kalendar ustida, bir qator (tor ekranda o'raladi) */
+  .nmz-panel { background:var(--nmz-soft); border:1px solid #CFE0D4; border-radius:12px; padding:9px 13px; margin-bottom:12px; }
+  .nmz-line { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .nmz-reg-lbl { font-size:12.5px; font-weight:600; color:var(--nmz-ink); white-space:nowrap; }
+  .nmz-chips { display:flex; align-items:center; gap:6px; flex-wrap:wrap; flex:1; min-width:0; }
+  .nmz-chip { display:inline-flex; align-items:baseline; gap:5px; padding:3px 9px; border-radius:999px;
+    background:var(--surface); border:1px solid #D8E5DC; font-size:12px; color:var(--nmz-ink);
+    font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .nmz-chip b { font-weight:600; font-size:11px; color:var(--muted); }
+  .nmz-chip.now { background:var(--nmz); border-color:var(--nmz); color:#fff; }
+  .nmz-chip.now b { color:rgba(255,255,255,.8); }
+  .nmz-chip.next { border-color:var(--nmz); box-shadow:0 0 0 2px rgba(78,122,91,.14); font-weight:600; }
+  .nmz-cd { font-size:12.5px; font-weight:600; color:var(--nmz-ink); font-variant-numeric:tabular-nums; white-space:nowrap; margin-left:auto; }
+  .nmz-msg { font-size:12.5px; color:var(--muted); }
+  .nmz-retry { border:1px solid #CFE0D4; background:var(--surface); color:var(--nmz-ink); font-family:inherit;
+    font-size:12px; padding:3px 10px; border-radius:999px; cursor:pointer; }
+  .nmz-retry:hover { background:var(--nmz-soft); }
+  .nmz-src { margin-top:5px; font-size:11px; color:var(--muted); }
+
+  /* Kalendar bloklari — vazifa bloklaridan ATAYLAB boshqacha: pastel fon,
+     chap chekkada urg'u, soyasiz. ⚠️ pointer-events:none — planner'ning
+     surish/yaratish mexanikasi buzilmasin. */
+  .nmz-blk { position:absolute; left:2px; right:2px; z-index:1; pointer-events:none; overflow:hidden;
+    background:var(--nmz-soft); border:1px solid #CFE0D4; border-left:3px solid var(--nmz);
+    border-radius:6px; padding:2px 6px; display:flex; align-items:baseline; gap:6px;
+    font-size:10.5px; color:var(--nmz-ink); }
+  .nmz-blk .nb-nm { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .nmz-blk .nb-tm { opacity:.75; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  /* Jadval boshlanishidan oldingi namoz (bomdod) — 30 daqiqalik blok bo'lib
+     ko'rinmasin, ustunning tepasida ingichka eslatma bo'lsin. */
+  .nmz-early { position:absolute; left:2px; right:2px; height:17px; z-index:1; pointer-events:none;
+    display:flex; align-items:center; gap:4px; padding:0 6px; border-radius:5px;
+    background:var(--surface); border:1px dashed #CFE0D4; color:var(--nmz-ink);
+    font-size:10px; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; }
+
   /* ==== Xodim filtri (barcha ko'rinishlar uchun umumiy) ==== */
   .emp-filter-bar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0 0 14px; }
   .emp-filter-wrap { position:relative; }
@@ -1492,6 +1527,7 @@
         <button type="button" class="done-toggle" data-done-toggle onclick="toggleHideCompleted(!window.hideCompleted)"><span class="dt-dot"></span> Bajarilganlarni yashirish</button>
       </div>
       <div id="plnCalPane">
+        <div id="nmzPanel" class="nmz-panel" style="display:none"></div>
         <div class="pln-layout">
           <div class="pln-side">
             <div class="pln-side-head">Bajarishim kerak</div>
@@ -6482,6 +6518,8 @@ function toggleHrSidebar() {
 
 function goPage(p) {
   pfStart('page:' + p);   // perf o'lchov oynasi (perf=1 bo'lsa; aks holda no-op)
+  // ☾ Namoz countdown'i faqat planner'da sanaydi (boshqa sahifada to'xtaydi)
+  if (p !== 'planner') { try { nmzTickStop(); } catch (e) { console.error('goPage → nmzTickStop:', e); } }
   // Rol himoyasi: oddiy a'zo faqat ruxsat etilgan sahifalarga kira oladi
   const managerOnlyPages = ['stats', 'orgchart', 'integrations', 'tgusers', 'branches', 'positions', 'settings', 'logs', 'botsettings', 'botcommands'];
   if (managerOnlyPages.includes(p) && !isOwnerLike()) {
@@ -11262,6 +11300,8 @@ function plnSetTab(tab) {
   // ☾ Namoz boshqaruvi — faqat jadval ko'rinishida (kanban tabida ma'nosiz)
   const nmzCtl = $('nmzCtl');
   if (nmzCtl) { nmzCtl.style.display = isSchedule ? 'flex' : 'none'; if (isSchedule) nmzRenderCtl(); }
+  // Countdown faqat jadval ko'rinishida sanaydi (fon'da ishlab yotmasin)
+  if (isSchedule) nmzTickStart(); else nmzTickStop();
   $('plnCalPane').style.display = isSchedule ? 'block' : 'none';
   $('plnKanbanPane').style.display = isSchedule ? 'none' : 'block';
   $('plnWeekNav').style.display = isSchedule ? 'flex' : 'none';
@@ -11327,6 +11367,10 @@ function renderPlanner() {
         '<span class="pb-time">' + sh + ' – ' + eh + '</span>' +
         '<span class="pb-resize" onmousedown="plnBlockMouseDown(event,' + t.id + ',\'resize\')"></span></div>';
     });
+    // ☾ Namoz bloklari — vazifa bloklaridan KEYIN qo'shiladi, lekin
+    //    `pointer-events:none` va pastroq z-index bilan (planner mexanikasi
+    //    va vazifa bloklarining o'qilishi buzilmaydi).
+    html += nmzDayBlocksHtml(ds);
     html += '</div>';
   });
   html += '</div>';
@@ -11334,6 +11378,15 @@ function renderPlanner() {
 
   // Chap panel: rejalashtirilmagan vazifalarim
   renderPlnUnscheduled();
+
+  // ☾ Namoz: ko'rinayotgan hafta uchun vaqtlar (fon — chizishni kutmaydi)
+  if (nmzEnabled && nmzRegion && !_nmzMissing) {
+    nmzRenderPanel();
+    nmzEnsureDays(days).catch(function (e) { console.error('renderPlanner → nmzEnsureDays:', e); });
+  } else {
+    const np = $('nmzPanel');
+    if (np) { np.style.display = 'none'; np.innerHTML = ''; }
+  }
 }
 
 function plnTaskColor(t) {
@@ -11902,6 +11955,9 @@ function nmzAfterChange() {
   }
   try { if (currentPage === 'planner' && plnTab === 'schedule') renderPlanner(); }
   catch (e) { console.error('nmzAfterChange → renderPlanner:', e); }
+  // Toggle o'chirilsa countdown ham to'xtaydi (fon'da sanab yotmasin)
+  if (nmzEnabled && currentPage === 'planner' && plnTab === 'schedule') nmzTickStart();
+  else nmzTickStop();
 }
 
 // ── Ma'lumot qatlami: xotira → DB kesh → API ────────────────────────────────
@@ -12142,6 +12198,205 @@ async function nmzEnsureDays(days) {
 
 // Bir kunning vaqtlari (xotiradan). Yo'q bo'lsa null.
 function nmzDay(dateStr) { return _nmzDays[dateStr] || null; }
+
+// ── Vaqt: viloyat mintaqasi bo'yicha ────────────────────────────────────────
+// ⚠️ Qurilma soati boshqa mintaqada turgan bo'lsa ham (safar, noto'g'ri
+//    sozlama) countdown TO'G'RI ishlashi kerak — shuning uchun "hozir"
+//    Asia/Tashkent bo'yicha o'qiladi. O'zbekistonda yagona mintaqa (UTC+5),
+//    yozgi vaqt yo'q, shuning uchun 14 viloyatga ham shu to'g'ri keladi.
+const NMZ_TZ = 'Asia/Tashkent';
+const NMZ_DUR = 30;      // har namoz bloki — 30 daqiqa
+
+function nmzTodayStr() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: NMZ_TZ }); }
+  catch (e) { console.error('nmzTodayStr:', e); return plnDateStr(new Date()); }
+}
+function nmzNowMin() {
+  try {
+    const s = new Date().toLocaleTimeString('en-GB', { timeZone: NMZ_TZ, hour12: false });
+    const m = /^(\d{2}):(\d{2}):(\d{2})/.exec(s);
+    if (m) return parseInt(m[1], 10) * 60 + parseInt(m[2], 10) + parseInt(m[3], 10) / 60;
+  } catch (e) { console.error('nmzNowMin:', e); }
+  const d = new Date();
+  return d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60;
+}
+
+// ── Planner bloklari ────────────────────────────────────────────────────────
+// 🔴 FAQAT CHIZISH: `pointer-events:none` → namoz bloki ustidan ham vazifa
+//    yaratish/sudrash ishlayveradi (eski planner mexanikasi buzilmaydi).
+//    localStorage'dagi `planner_*` jadvaliga hech narsa yozilmaydi.
+//
+// ⚠️ Setka PLN_H_START (07:00) dan boshlanadi, bomdod esa ko'pincha undan
+//    oldin (03:47). Bunday vaqt KESILIB YO'QOLMAYDI: ustunning eng tepasiga
+//    ingichka "erta" chipi bo'lib chiqadi (30 daqiqalik blok bo'lib
+//    ko'rinmaydi — bo'lmagan joyda turgandek tuyulmasin).
+function nmzDayBlocksHtml(ds) {
+  if (!nmzEnabled || !nmzRegion || _nmzMissing) return '';
+  const day = nmzDay(ds);
+  if (!day) return '';
+
+  const gridStart = PLN_H_START * 60, gridEnd = (PLN_H_END + 1) * 60;
+  let out = '', earlyN = 0;
+
+  NMZ_KEYS.forEach(function (k) {
+    const min = nmzToMin(day[k]);
+    if (min === null) return;
+    const label = NMZ_LABELS[k];
+
+    if (min < gridStart) {
+      const top = earlyN * 19;
+      earlyN++;
+      out += '<div class="nmz-early" style="top:' + top + 'px;" title="' +
+        escapeHtml(label + ' ' + day[k] + ' — jadval boshlanishidan oldin') + '">' +
+        '☾ ' + escapeHtml(label) + ' ' + escapeHtml(day[k]) + '</div>';
+      return;
+    }
+    if (min >= gridEnd) return;   // setkadan keyin (O'zbekistonda bo'lmaydi — himoya)
+
+    const dur = Math.min(NMZ_DUR, gridEnd - min);
+    const top = ((min - gridStart) / 60) * PLN_HPX;
+    const height = Math.max(16, (dur / 60) * PLN_HPX);
+    const endLbl = plnMinLabel(min + NMZ_DUR);
+    out += '<div class="nmz-blk" style="top:' + top + 'px;height:' + height + 'px;" title="' +
+      escapeHtml(label + ' · ' + day[k] + '–' + endLbl) + '">' +
+      '<span class="nb-nm">' + escapeHtml(label) + '</span>' +
+      '<span class="nb-tm">' + escapeHtml(day[k]) + '</span>' +
+    '</div>';
+  });
+  return out;
+}
+
+// ── Jonli panel (bugungi vaqtlar + countdown) ───────────────────────────────
+// Keyingi namoz: bugungi o'tmaganlaridan birinchisi; hammasi o'tgan bo'lsa —
+// ERTANGI bomdod (kun oxirida panel "keyingisi yo'q" deb qolmasin).
+function nmzNext(nowMin, today, tomorrow) {
+  for (let i = 0; i < NMZ_KEYS.length; i++) {
+    const k = NMZ_KEYS[i], v = nmzToMin(today && today[k]);
+    if (v !== null && v > nowMin) return { key: k, at: v, left: v - nowMin, tomorrow: false };
+  }
+  const f = nmzToMin(tomorrow && tomorrow.fajr);
+  if (f === null) return null;
+  return { key: 'fajr', at: f, left: (24 * 60 - nowMin) + f, tomorrow: true };
+}
+
+// Joriy namoz — oxirgi o'tgani (chipda ajratiladi)
+function nmzCurrentKey(nowMin, today) {
+  let cur = null;
+  NMZ_KEYS.forEach(function (k) {
+    const v = nmzToMin(today && today[k]);
+    if (v !== null && v <= nowMin) cur = k;
+  });
+  return cur;
+}
+
+function nmzLeftLabel(mins) {
+  const total = Math.max(0, Math.round(mins * 60));   // soniya
+  const h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60), s = total % 60;
+  return (h ? (h + ':' + nmzPad(m)) : String(m)) + ':' + nmzPad(s);
+}
+
+function nmzRenderPanel() {
+  const el = $('nmzPanel');
+  if (!el) return;
+  if (!nmzEnabled || !nmzRegion || _nmzMissing) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.style.display = 'block';
+
+  const ds = nmzTodayStr();
+  const day = nmzDay(ds);
+
+  if (!day) {
+    // Sabab JIMGINA yashirilmaydi: yuklanmoqdami yoki xatomi — ochiq yoziladi.
+    const key = nmzMonthKey(parseInt(ds.slice(0, 4), 10), parseInt(ds.slice(5, 7), 10));
+    const st = _nmzMonth[key];
+    el.innerHTML = '<div class="nmz-line"><span class="nmz-reg-lbl">' + escapeHtml(nmzRegionLabel(nmzRegion)) + '</span>' +
+      '<span class="nmz-msg">' +
+        (st === 'loading' ? 'Namoz vaqtlari yuklanmoqda…'
+          : (_nmzErr ? ('Vaqtlar olinmadi: ' + escapeHtml(translateErr(_nmzErr.message || String(_nmzErr))))
+                     : 'Namoz vaqtlari topilmadi')) +
+      '</span>' +
+      (st === 'loading' ? '' : '<button class="nmz-retry" onclick="nmzReload()">Qayta urinish</button>') +
+      '</div>';
+    return;
+  }
+
+  const nowMin = nmzNowMin();
+  const curKey = nmzCurrentKey(nowMin, day);
+  const tomorrow = nmzDay(nmzShiftDay(ds, 1));
+  const nx = nmzNext(nowMin, day, tomorrow);
+
+  let chips = '';
+  NMZ_KEYS.forEach(function (k) {
+    const cls = 'nmz-chip' + (k === curKey ? ' now' : '') + (nx && !nx.tomorrow && nx.key === k ? ' next' : '');
+    chips += '<span class="' + cls + '"><b>' + escapeHtml(NMZ_LABELS[k]) + '</b>' + escapeHtml(day[k]) + '</span>';
+  });
+
+  const src = day.source && day.source !== 'kesh' ? day.source : '';
+  el.innerHTML =
+    '<div class="nmz-line">' +
+      '<span class="nmz-reg-lbl">☾ ' + escapeHtml(nmzRegionLabel(nmzRegion)) + '</span>' +
+      '<span class="nmz-chips">' + chips + '</span>' +
+      (nx ? '<span class="nmz-cd" id="nmzCd">' + escapeHtml(nmzCdText(nx)) + '</span>' : '') +
+    '</div>' +
+    (src ? '<div class="nmz-src">Manba: ' + escapeHtml(src) +
+            (src.indexOf('aladhan') === 0 ? ' (zaxira — rasmiy jadvaldan 1–3 daqiqa farq qilishi mumkin)' : '') +
+           '</div>' : '');
+}
+
+function nmzCdText(nx) {
+  return (nx.tomorrow ? 'Ertangi ' : '') + NMZ_LABELS[nx.key] + 'gacha ' + nmzLeftLabel(nx.left);
+}
+
+// 'YYYY-MM-DD' + n kun
+function nmzShiftDay(ds, n) {
+  const p = ds.split('-');
+  const d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+  d.setDate(d.getDate() + n);
+  return plnDateStr(d);
+}
+
+// ── Soniyalik yangilanish ───────────────────────────────────────────────────
+// ⚠️ Interval BITTA (`_nmzTick`) va planner ko'rinmasa TO'XTAYDI — fon'da
+//    sanab yotmasin (sizib chiqish).
+let _nmzTick = 0;
+let _nmzLastNextKey = '';
+
+function nmzTickStart() {
+  nmzTickStop();
+  if (!nmzEnabled || !nmzRegion || _nmzMissing) return;
+  nmzRenderPanel();
+  _nmzTick = setInterval(nmzTickUpdate, 1000);
+}
+function nmzTickStop() {
+  if (_nmzTick) { clearInterval(_nmzTick); _nmzTick = 0; }
+}
+function nmzTickUpdate() {
+  if (currentPage !== 'planner' || plnTab !== 'schedule' || !nmzEnabled) { nmzTickStop(); return; }
+  const cd = $('nmzCd');
+  if (!cd) { nmzRenderPanel(); return; }
+  const ds = nmzTodayStr();
+  const day = nmzDay(ds);
+  if (!day) { nmzRenderPanel(); return; }
+  const nx = nmzNext(nmzNowMin(), day, nmzDay(nmzShiftDay(ds, 1)));
+  if (!nx) { nmzRenderPanel(); return; }
+  // Namoz vaqti kirdi (keyingisi almashdi) — chiplarni ham qayta bo'yaymiz
+  const k = (nx.tomorrow ? 'T:' : '') + nx.key;
+  if (k !== _nmzLastNextKey) { _nmzLastNextKey = k; nmzRenderPanel(); return; }
+  cd.textContent = nmzCdText(nx);
+}
+
+// Panel'dagi "Qayta urinish" — oy holatini tozalab qaytadan so'raydi.
+async function nmzReload() {
+  if (!nmzEnabled || !nmzRegion) return;
+  const ds = nmzTodayStr();
+  const y = parseInt(ds.slice(0, 4), 10), m = parseInt(ds.slice(5, 7), 10);
+  delete _nmzMonth[nmzMonthKey(y, m)];
+  _nmzErr = null;
+  nmzRenderPanel();
+  const ok = await nmzEnsureMonth(y, m);
+  nmzRenderPanel();
+  if (ok) { try { renderPlanner(); } catch (e) { console.error('nmzReload → renderPlanner:', e); } }
+  else toast(translateErr((_nmzErr && (_nmzErr.message || String(_nmzErr))) || 'Vaqtlar olinmadi'), 'err');
+}
 
 // ============ DEPARTMENTS LIST ============
 async function renderDeptsList() {
