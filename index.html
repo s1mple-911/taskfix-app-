@@ -11890,13 +11890,258 @@ async function nmzAskRegion(firstTime) {
   }
 }
 
-// Sozlama o'zgargandan keyingi yagona nuqta (keyingi qadamlarda vaqt yuklash
-// va planner'ni qayta chizish shu yerga qo'shiladi).
+// Sozlama o'zgargandan keyingi yagona nuqta.
 function nmzAfterChange() {
   nmzRenderCtl();
+  // Viloyat almashsa eski viloyat vaqtlari qolib ketmasin
+  _nmzDays = {};
+  _nmzMonth = {};
+  if (nmzEnabled && nmzRegion) {
+    const t = new Date();
+    nmzEnsureMonth(t.getFullYear(), t.getMonth() + 1);
+  }
   try { if (currentPage === 'planner' && plnTab === 'schedule') renderPlanner(); }
   catch (e) { console.error('nmzAfterChange → renderPlanner:', e); }
 }
+
+// ── Ma'lumot qatlami: xotira → DB kesh → API ────────────────────────────────
+// 🔴 UCH BOSQICH, shu tartibda:
+//   1) `_nmzDays` — shu sessiya xotirasi (so'rovsiz);
+//   2) `namoz_times` — DB kesh (bir odam olib kelsa, qolganlarga API kerak emas);
+//   3) API — oylik (BITTA so'rov 30–31 kunga), keyin DB'ga upsert.
+//
+// ⚠️ Kesh hammaga yozish ochiq (TASKFIX_NAMOZ.sql izohiga qarang), shuning
+//    uchun keshdan kelgan har qator `nmzValidTimes()` dan o'tkaziladi.
+const NMZ_KEYS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+const NMZ_LABELS = { fajr: 'Bomdod', dhuhr: 'Peshin', asr: 'Asr', maghrib: 'Shom', isha: 'Xufton' };
+const NMZ_FETCH_MS = 9000;    // bitta so'rov uchun chegara
+
+let _nmzDays = {};    // 'YYYY-MM-DD' → { fajr, dhuhr, asr, maghrib, isha, sunrise, source }
+let _nmzMonth = {};   // 'region|YYYY-MM' → 'loading' | 'ok' | 'err'
+let _nmzErr = null;   // oxirgi xato (panelda ochiq ko'rsatiladi)
+
+function nmzPad(n) { return String(n).padStart(2, '0'); }
+function nmzMonthKey(y, m) { return nmzRegion + '|' + y + '-' + nmzPad(m); }
+function nmzDayStr(y, m, d) { return y + '-' + nmzPad(m) + '-' + nmzPad(d); }
+
+// 'HH:MM' → daqiqa. Noto'g'ri bo'lsa null (jimgina 0 ga aylanmasin).
+function nmzToMin(s) {
+  const m = /^([01][0-9]|2[0-3]):([0-5][0-9])$/.exec(String(s || '').trim());
+  return m ? (parseInt(m[1], 10) * 60 + parseInt(m[2], 10)) : null;
+}
+
+// Format + tartib. DB CHECK'lari birinchi to'siq, bu — ikkinchisi (kesh
+// buzilgan yoki API kutilmagan javob qaytargan holat).
+function nmzValidTimes(o) {
+  if (!o) return false;
+  let prev = -1;
+  for (let i = 0; i < NMZ_KEYS.length; i++) {
+    const v = nmzToMin(o[NMZ_KEYS[i]]);
+    if (v === null || v <= prev) return false;
+    prev = v;
+  }
+  return true;
+}
+
+// Tarmoq so'rovi — chegaralangan vaqt bilan (osilib qolmasin).
+async function nmzFetchJson(url, ms) {
+  const ctl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  const tid = setTimeout(function () { if (ctl) ctl.abort(); }, ms || NMZ_FETCH_MS);
+  try {
+    const r = await fetch(url, ctl ? { signal: ctl.signal } : undefined);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } finally {
+    clearTimeout(tid);
+  }
+}
+
+// Sana matnini 'YYYY-MM-DD' ga keltiradi. ISO, DD-MM-YYYY va DD.MM.YYYY.
+function nmzNormDate(s) {
+  const t = String(s || '').trim();
+  let m = /^(\d{4})-(\d{2})-(\d{2})/.exec(t);
+  if (m) return m[1] + '-' + m[2] + '-' + m[3];
+  m = /^(\d{2})[.\-\/](\d{2})[.\-\/](\d{4})/.exec(t);
+  if (m) return m[3] + '-' + m[2] + '-' + m[1];
+  return null;
+}
+
+// '03:47 (+05)' → '03:47'
+function nmzNormTime(s) {
+  const m = /(\d{1,2}):(\d{2})/.exec(String(s || ''));
+  return m ? (nmzPad(parseInt(m[1], 10)) + ':' + m[2]) : '';
+}
+
+// ── 1-manba: islomapi.uz (O'zbekiston musulmonlari idorasi, hanafiy) ────────
+// ⚠️ 2026-08-08 holatiga: server 502 qaytarmoqda, shuning uchun javob shakli
+//    JONLI TEKSHIRILMAGAN — kod hujjatlashgan shaklga tayanadi va mos
+//    kelmasa THROW qiladi (zaxira manbaga o'tadi, jimgina bo'sh qolmaydi).
+// ⚠️ Agar server tuzalib CORS bermasa — SHU URL n8n webhook'iga almashtiriladi
+//    (boshqa joyni o'zgartirish shart emas).
+async function nmzFetchIslom(y, m) {
+  const reg = nmzRegionById(nmzRegion);
+  if (!reg) throw new Error('Viloyat tanlanmagan');
+  const url = 'https://islomapi.uz/api/monthly?region=' + encodeURIComponent(reg.api) + '&month=' + m;
+  const j = await nmzFetchJson(url);
+  if (!Array.isArray(j) || !j.length) throw new Error('islomapi: kutilmagan javob');
+
+  const out = {};
+  j.forEach(function (row) {
+    const t = row && (row.times || row.vaqtlar);
+    const ds = nmzNormDate(row && row.date);
+    if (!t || !ds) return;
+    // Oy mos kelmasa (API boshqa yilni qaytarsa) — e'tiborsiz
+    if (ds.slice(0, 7) !== y + '-' + nmzPad(m)) return;
+    const o = {
+      fajr:    nmzNormTime(t.tong_saharlik || t.bomdod || t.fajr),
+      sunrise: nmzNormTime(t.quyosh || t.sunrise),
+      dhuhr:   nmzNormTime(t.peshin || t.dhuhr),
+      asr:     nmzNormTime(t.asr),
+      maghrib: nmzNormTime(t.shom_iftor || t.shom || t.maghrib),
+      isha:    nmzNormTime(t.hufton || t.xufton || t.isha),
+      source:  'islomapi.uz'
+    };
+    if (nmzValidTimes(o)) out[ds] = o;
+  });
+  if (!Object.keys(out).length) throw new Error('islomapi: vaqtlar o\'qilmadi');
+  return out;
+}
+
+// ── 2-manba (zaxira): api.aladhan.com ───────────────────────────────────────
+// CORS ochiq (`access-control-allow-origin: *`, 2026-08-08 da tekshirilgan),
+// oylik kalendar bitta so'rovda. method=3 (MWL), school=1 (HANAFIY asr).
+// ⚠️ Rasmiy O'zbekiston jadvalidan 1–3 daqiqa farq qilishi mumkin — shuning
+//    uchun UI manbani ochiq yozadi.
+async function nmzFetchAladhan(y, m) {
+  const reg = nmzRegionById(nmzRegion);
+  if (!reg) throw new Error('Viloyat tanlanmagan');
+  const url = 'https://api.aladhan.com/v1/calendar?latitude=' + reg.lat + '&longitude=' + reg.lon +
+              '&method=3&school=1&month=' + m + '&year=' + y;
+  const j = await nmzFetchJson(url);
+  const arr = j && j.data;
+  if (!Array.isArray(arr) || !arr.length) throw new Error('aladhan: kutilmagan javob');
+
+  const out = {};
+  arr.forEach(function (row) {
+    const t = row && row.timings;
+    const ds = nmzNormDate(row && row.date && row.date.gregorian && row.date.gregorian.date);
+    if (!t || !ds || ds.slice(0, 7) !== y + '-' + nmzPad(m)) return;
+    const o = {
+      fajr:    nmzNormTime(t.Fajr),
+      sunrise: nmzNormTime(t.Sunrise),
+      dhuhr:   nmzNormTime(t.Dhuhr),
+      asr:     nmzNormTime(t.Asr),
+      maghrib: nmzNormTime(t.Maghrib),
+      isha:    nmzNormTime(t.Isha),
+      source:  'aladhan.com'
+    };
+    if (nmzValidTimes(o)) out[ds] = o;
+  });
+  if (!Object.keys(out).length) throw new Error('aladhan: vaqtlar o\'qilmadi');
+  return out;
+}
+
+// Oylik ma'lumotni ta'minlaydi. Bir oy uchun bir marta ishlaydi (holat
+// `_nmzMonth` da), qayta chaqirilsa darrov qaytadi.
+async function nmzEnsureMonth(y, m) {
+  if (!nmzEnabled || !nmzRegion || _nmzMissing) return false;
+  const key = nmzMonthKey(y, m);
+  if (_nmzMonth[key] === 'ok' || _nmzMonth[key] === 'loading') return _nmzMonth[key] === 'ok';
+  _nmzMonth[key] = 'loading';
+
+  const last = new Date(y, m, 0).getDate();
+  const from = nmzDayStr(y, m, 1), to = nmzDayStr(y, m, last);
+
+  // 2) DB kesh
+  let have = 0;
+  try {
+    const { data, error } = await sb.from('namoz_times').select('*')
+      .eq('region', nmzRegion).gte('date', from).lte('date', to);
+    if (error) throw error;
+    (data || []).forEach(function (r) {
+      const ds = nmzNormDate(r.date);
+      if (!ds || !nmzValidTimes(r)) {
+        if (ds) console.warn('namoz: keshdagi qator tekshiruvdan o\'tmadi —', ds);
+        return;
+      }
+      _nmzDays[ds] = { fajr: r.fajr, sunrise: r.sunrise, dhuhr: r.dhuhr, asr: r.asr,
+                       maghrib: r.maghrib, isha: r.isha, source: r.source || 'kesh' };
+      have++;
+    });
+  } catch (e) {
+    // Kesh o'qilmasa ham API bor — bu halokat emas.
+    console.error('nmzEnsureMonth (kesh):', e);
+  }
+  if (have >= last) { _nmzMonth[key] = 'ok'; _nmzErr = null; return true; }
+
+  // 3) API: avval rasmiy manba, keyin zaxira
+  let got = null, err1 = null;
+  try {
+    got = await nmzFetchIslom(y, m);
+  } catch (e) {
+    err1 = e;
+    console.warn('namoz: islomapi ishlamadi —', e && e.message, '→ zaxira manbaga o\'tamiz');
+    try {
+      got = await nmzFetchAladhan(y, m);
+    } catch (e2) {
+      console.error('nmzEnsureMonth (API):', e2);
+      _nmzMonth[key] = 'err';
+      _nmzErr = e2;
+      return false;
+    }
+  }
+
+  Object.keys(got).forEach(function (ds) { _nmzDays[ds] = got[ds]; });
+  _nmzMonth[key] = 'ok';
+  _nmzErr = null;
+  if (err1) console.info('namoz: zaxira manba ishlatildi (aladhan.com).');
+
+  nmzCacheSave(got);      // fon — kutilmaydi
+  return true;
+}
+
+// DB keshiga yozish — BEST-EFFORT. Foydalanuvchi kutayotgan natija vaqtlar
+// (ular allaqachon ekranda), kesh esa faqat tezlik. Shuning uchun xato
+// toast qilinmaydi, lekin JIMGINA ham yutilmaydi (console.error).
+async function nmzCacheSave(days) {
+  try {
+    const rows = Object.keys(days).map(function (ds) {
+      const o = days[ds];
+      return { region: nmzRegion, date: ds, fajr: o.fajr, sunrise: o.sunrise || null,
+               dhuhr: o.dhuhr, asr: o.asr, maghrib: o.maghrib, isha: o.isha,
+               source: o.source || 'unknown' };
+    });
+    if (!rows.length) return;
+    const { error } = await sb.from('namoz_times').upsert(rows, { onConflict: 'region,date' });
+    if (error) throw error;
+  } catch (e) {
+    console.error('nmzCacheSave (kesh yozilmadi, vaqtlar baribir ko\'rsatiladi):', e);
+  }
+}
+
+// Ko'rsatilayotgan hafta uchun kerakli oy(lar)ni ta'minlaydi (hafta ikki oyga
+// tushishi mumkin), keyin planner'ni qayta chizadi.
+async function nmzEnsureDays(days) {
+  if (!nmzEnabled || !nmzRegion || _nmzMissing) return;
+  const months = {};
+  days.forEach(function (d) { months[d.getFullYear() + '-' + (d.getMonth() + 1)] = d; });
+  const keys = Object.keys(months);
+  let changed = false;
+  for (let i = 0; i < keys.length; i++) {
+    const d = months[keys[i]];
+    const key = nmzMonthKey(d.getFullYear(), d.getMonth() + 1);
+    if (_nmzMonth[key] === 'ok') continue;
+    const ok = await nmzEnsureMonth(d.getFullYear(), d.getMonth() + 1);
+    changed = changed || ok;
+  }
+  if (changed) {
+    try { if (currentPage === 'planner' && plnTab === 'schedule') renderPlanner(); }
+    catch (e) { console.error('nmzEnsureDays → renderPlanner:', e); }
+  }
+}
+
+// Bir kunning vaqtlari (xotiradan). Yo'q bo'lsa null.
+function nmzDay(dateStr) { return _nmzDays[dateStr] || null; }
 
 // ============ DEPARTMENTS LIST ============
 async function renderDeptsList() {
