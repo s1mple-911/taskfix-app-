@@ -29,6 +29,8 @@
     --warn: #F59E0B; --warn-soft: #FEF3C7;
     --danger: #EF4444; --danger-soft: #FEE2E2;
     --info: #0EA5E9; --info-soft: #DBEAFE;
+    /* Namoz (nmz*) — vazifa ranglaridan ajralib tursin: bosiq zaytun-yashil */
+    --nmz: #4E7A5B; --nmz-ink: #2F4A38; --nmz-soft: #E8F0EA;
     /* Layout */
     --radius: 14px;
     --shadow: 0 1px 2px rgba(28,31,36,.05), 0 4px 16px rgba(28,31,36,.04);
@@ -262,6 +264,20 @@
   .done-toggle.active { background:var(--accent); border-color:var(--accent-ink); color:var(--accent-ink); }
   .done-toggle.active .dt-dot { background:var(--accent-ink); border-color:var(--accent-ink); }
   .done-toggle.active .dt-dot::after { content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:10px; color:var(--accent); font-weight:700; }
+  /* ==== ☾ Namoz vaqtlari (nmz*) ==== */
+  .nmz-toggle { display:inline-flex; align-items:center; gap:7px; padding:6px 13px; border:1px solid var(--line); border-radius:999px;
+    background:var(--surface); font-size:12.5px; font-weight:500; color:var(--muted); cursor:pointer; white-space:nowrap;
+    font-family:inherit; transition:all .12s; }
+  .nmz-toggle:hover { border-color:var(--line-strong); color:var(--ink); }
+  .nmz-toggle .nmz-moon { font-size:13px; line-height:1; opacity:.75; transition:opacity .12s; }
+  .nmz-toggle.active { background:var(--nmz-soft); border-color:var(--nmz); color:var(--nmz-ink); font-weight:600; }
+  .nmz-toggle.active .nmz-moon { opacity:1; }
+  .nmz-toggle:focus-visible, .nmz-reg:focus-visible { outline:2px solid var(--accent-ink); outline-offset:1px; }
+  .nmz-reg { display:inline-flex; align-items:center; padding:5px 11px; border:1px solid var(--line); border-radius:999px;
+    background:var(--surface); font-size:12px; font-weight:500; color:var(--muted); cursor:pointer; white-space:nowrap;
+    font-family:inherit; transition:all .12s; }
+  .nmz-reg:hover { border-color:var(--line-strong); color:var(--ink); }
+
   /* ==== Xodim filtri (barcha ko'rinishlar uchun umumiy) ==== */
   .emp-filter-bar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0 0 14px; }
   .emp-filter-wrap { position:relative; }
@@ -1456,6 +1472,10 @@
     <section id="page-planner" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap;">
         <h2 class="h2" style="margin:0" id="plnPageTitle">Rejalashtirgich</h2>
+        <div id="nmzCtl" style="display:none;align-items:center;gap:8px;margin-left:auto;">
+          <button type="button" class="nmz-toggle" id="nmzToggle" aria-pressed="false" onclick="nmzToggleClick()"><span class="nmz-moon">☾</span> Musulmon</button>
+          <button type="button" class="nmz-reg" id="nmzRegBtn" style="display:none" onclick="nmzAskRegion()">—</button>
+        </div>
         <div id="plnWeekNav" style="display:flex;align-items:center;gap:8px;">
           <button class="btn sm secondary" onclick="plnNav(-1)">‹</button>
           <span id="plnWeekLbl" style="font-weight:600;font-size:14px;min-width:180px;text-align:center;">—</span>
@@ -5490,6 +5510,9 @@ async function bootstrap() {
       if (up) myProfile = up;
     }
   } catch (e) { /* sokin — profil baribir ishlaydi */ }
+
+  // ☾ Namoz sozlamasi profildan o'qiladi (hech qachon throw qilmaydi)
+  loadNamozSettings();
 
   // Taklif havolasi orqali kelgan bo'lsa — qabul qilamiz (workspace'ga qo'shilish + vazifaga biriktirish)
   let _inviteTaskId = null, _inviteWsId = null;
@@ -11236,6 +11259,9 @@ function plnSetTab(tab) {
   document.querySelectorAll('.done-toggle').forEach(b => b.classList.toggle('active', !!window.hideCompleted));
   document.querySelectorAll('#page-planner [data-plntab]').forEach(b => b.classList.toggle('active', b.dataset.plntab === tab));
   const isSchedule = tab === 'schedule';
+  // ☾ Namoz boshqaruvi — faqat jadval ko'rinishida (kanban tabida ma'nosiz)
+  const nmzCtl = $('nmzCtl');
+  if (nmzCtl) { nmzCtl.style.display = isSchedule ? 'flex' : 'none'; if (isSchedule) nmzRenderCtl(); }
   $('plnCalPane').style.display = isSchedule ? 'block' : 'none';
   $('plnKanbanPane').style.display = isSchedule ? 'none' : 'block';
   $('plnWeekNav').style.display = isSchedule ? 'flex' : 'none';
@@ -11648,6 +11674,228 @@ function renderTasksCalendar() {
   }).join('');
 
   grid.innerHTML = headers + cellsHtml;
+}
+
+// ============ ☾ NAMOZ VAQTLARI (nmz*) — Planner ============
+// Sozlama SHAXSIY (profiles.namoz_enabled / namoz_region), workspace'ga
+// bog'liq emas: bir odam bir necha workspace'da bo'lsa ham namoz vaqti bir xil.
+//
+// ⚠️ ESKI PLANNER BUZILMAYDI: bu modul `plnGetSchedule()` ga HECH NARSA
+//    yozmaydi, faqat chizish qatlami qo'shadi. Toggle o'chiq bo'lsa — na
+//    so'rov, na blok, na interval (kod umuman ishlamaydi).
+//
+// ⚠️ TASKFIX_NAMOZ.sql ishga tushmagan bo'lsa `_nmzMissing = true` bo'ladi va
+//    modul o'chiq turadi — ilova YIQILMAYDI, toggle sababni ochiq aytadi.
+//    Aniqlash: `profiles.select('*')` ustunlarni qaytaradi, shuning uchun
+//    kalitning YO'QLIGI = ustun yo'q (false qiymatdan farqi shunda).
+
+// 12 viloyat + Qoraqalpog'iston + Toshkent shahri. `api` — islomapi.uz nomi,
+// lat/lon — zaxira (aladhan) va joylashuvdan taxmin qilish uchun.
+const NMZ_REGIONS = [
+  { value: 'toshkent',        label: 'Toshkent shahri',      api: 'Toshkent',   lat: 41.3111, lon: 69.2797 },
+  { value: 'toshkent_v',      label: 'Toshkent viloyati',    api: 'Nurafshon',  lat: 41.0167, lon: 69.3500, sub: 'Nurafshon' },
+  { value: 'andijon',         label: 'Andijon',              api: 'Andijon',    lat: 40.7821, lon: 72.3442 },
+  { value: 'buxoro',          label: 'Buxoro',               api: 'Buxoro',     lat: 39.7747, lon: 64.4286 },
+  { value: 'fargona',         label: 'Farg\'ona',            api: 'Farg\'ona',  lat: 40.3864, lon: 71.7864 },
+  { value: 'jizzax',          label: 'Jizzax',               api: 'Jizzax',     lat: 40.1158, lon: 67.8422 },
+  { value: 'namangan',        label: 'Namangan',             api: 'Namangan',   lat: 40.9983, lon: 71.6726 },
+  { value: 'navoiy',          label: 'Navoiy',               api: 'Navoiy',     lat: 40.1033, lon: 65.3688 },
+  { value: 'qashqadaryo',     label: 'Qashqadaryo',          api: 'Qarshi',     lat: 38.8606, lon: 65.7891, sub: 'Qarshi' },
+  { value: 'samarqand',       label: 'Samarqand',            api: 'Samarqand',  lat: 39.6542, lon: 66.9597 },
+  { value: 'sirdaryo',        label: 'Sirdaryo',             api: 'Guliston',   lat: 40.4897, lon: 68.7842, sub: 'Guliston' },
+  { value: 'surxondaryo',     label: 'Surxondaryo',          api: 'Termiz',     lat: 37.2242, lon: 67.2783, sub: 'Termiz' },
+  { value: 'xorazm',          label: 'Xorazm',               api: 'Urganch',    lat: 41.5500, lon: 60.6333, sub: 'Urganch' },
+  { value: 'qoraqalpogiston', label: 'Qoraqalpog\'iston',    api: 'Nukus',      lat: 42.4531, lon: 59.6103, sub: 'Nukus' },
+];
+
+let nmzEnabled = false;
+let nmzRegion = null;
+let _nmzMissing = false;    // TASKFIX_NAMOZ.sql ishga tushirilmagan
+let _nmzBusy = false;       // ikki marta bosilmasin
+
+function nmzRegionById(v) { return NMZ_REGIONS.find(function (r) { return r.value === v; }) || null; }
+function nmzRegionLabel(v) { const r = nmzRegionById(v); return r ? r.label : ''; }
+
+// Profil yuklangandan keyin (bootstrap) chaqiriladi. HECH QACHON throw qilmaydi.
+function loadNamozSettings() {
+  try {
+    _nmzMissing = !(myProfile && Object.prototype.hasOwnProperty.call(myProfile, 'namoz_enabled'));
+    if (_nmzMissing) {
+      nmzEnabled = false; nmzRegion = null;
+      console.warn('namoz: profiles.namoz_enabled ustuni yo\'q — TASKFIX_NAMOZ.sql ishga tushirilmagan.');
+      return;
+    }
+    nmzEnabled = !!myProfile.namoz_enabled;
+    nmzRegion = myProfile.namoz_region || null;
+    // Ustun bor, lekin viloyat yo'q — yoqilgan holat mumkin emas (himoya).
+    if (nmzEnabled && !nmzRegion) nmzEnabled = false;
+  } catch (e) {
+    console.error('loadNamozSettings:', e);
+    nmzEnabled = false; nmzRegion = null;
+  }
+}
+
+// ── Toggle ──────────────────────────────────────────────────────────────────
+function nmzRenderCtl() {
+  const btn = $('nmzToggle');
+  if (btn) {
+    btn.classList.toggle('active', !!nmzEnabled);
+    btn.setAttribute('aria-pressed', nmzEnabled ? 'true' : 'false');
+    btn.title = _nmzMissing
+      ? 'TASKFIX_NAMOZ.sql ishga tushirilmagan'
+      : (nmzEnabled ? 'Namoz vaqtlari rejada ko\'rsatilmoqda' : 'Namoz vaqtlarini rejaga qo\'shish');
+  }
+  const reg = $('nmzRegBtn');
+  if (reg) {
+    reg.style.display = (nmzEnabled && nmzRegion) ? 'inline-flex' : 'none';
+    reg.textContent = nmzRegionLabel(nmzRegion);
+    reg.title = 'Viloyatni o\'zgartirish';
+  }
+}
+
+async function nmzToggleClick() {
+  if (_nmzBusy) return;
+  if (_nmzMissing) {
+    toast('Namoz moduli sozlanmagan — TASKFIX_NAMOZ.sql ishga tushirilmagan', 'err');
+    return;
+  }
+  if (nmzEnabled) { await nmzSetEnabled(false); return; }
+
+  // Yoqishda viloyat SHART: bo'lmasa avval so'raymiz (joylashuvdan taxmin).
+  if (!nmzRegion) {
+    const picked = await nmzAskRegion(true);
+    if (!picked) return;                 // foydalanuvchi bekor qildi — yoqilmaydi
+  }
+  await nmzSetEnabled(true);
+}
+
+// 🔴 `.select()` SHART — RLS/xato jimgina o'tsa "yoqildi" degan yolg'on
+//    holat qolib ketmasin (6-qoida). Xatoda holat ORQAGA qaytariladi.
+async function nmzSetEnabled(on) {
+  const prev = nmzEnabled;
+  _nmzBusy = true;
+  nmzEnabled = on;
+  nmzRenderCtl();
+  try {
+    const { data, error } = await sb.from('profiles')
+      .update({ namoz_enabled: on }).eq('id', me.id).select('id, namoz_enabled');
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    if (myProfile) myProfile.namoz_enabled = on;
+    toast(on ? '☾ Namoz vaqtlari yoqildi' : 'Namoz vaqtlari o\'chirildi', 'ok');
+    nmzAfterChange();
+  } catch (e) {
+    console.error('nmzSetEnabled:', e);
+    nmzEnabled = prev;
+    nmzRenderCtl();
+    toast(translateErr(e.message || String(e)), 'err');
+  } finally {
+    _nmzBusy = false;
+  }
+}
+
+// ── Viloyat ─────────────────────────────────────────────────────────────────
+// Joylashuvdan taxmin: BIR MARTA (faqat viloyat hali tanlanmaganda) so'raladi.
+// Rad etilsa/xato bo'lsa — jimgina taxminsiz davom etadi (bloklovchi emas).
+function nmzGuessRegion() {
+  return new Promise(function (resolve) {
+    if (!navigator.geolocation) { resolve(null); return; }
+    let done = false;
+    const finish = function (v) { if (!done) { done = true; resolve(v); } };
+    // Brauzer o'z oynasini ko'rsatadi; javob kelmasa 8 soniyada davom etamiz.
+    setTimeout(function () { finish(null); }, 8000);
+    navigator.geolocation.getCurrentPosition(
+      function (pos) {
+        try {
+          finish(nmzNearestRegion(pos.coords.latitude, pos.coords.longitude));
+        } catch (e) { console.error('nmzGuessRegion:', e); finish(null); }
+      },
+      function (err) {
+        // Rad etish — xato emas, oddiy holat (faqat log).
+        console.warn('nmzGuessRegion: joylashuv olinmadi —', err && err.message);
+        finish(null);
+      },
+      { enableHighAccuracy: false, timeout: 7000, maximumAge: 600000 }
+    );
+  });
+}
+
+// Eng yaqin viloyat markazi (haversine — km).
+function nmzNearestRegion(lat, lon) {
+  const R = 6371, rad = Math.PI / 180;
+  let best = null, bestD = Infinity;
+  NMZ_REGIONS.forEach(function (r) {
+    const dLat = (r.lat - lat) * rad, dLon = (r.lon - lon) * rad;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat * rad) * Math.cos(r.lat * rad) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const d = 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
+    if (d < bestD) { bestD = d; best = r; }
+  });
+  return best ? { value: best.value, km: Math.round(bestD) } : null;
+}
+
+// Viloyat tanlash oynasi. `firstTime` — birinchi yoqish (joylashuv so'raladi).
+// Qaytadi: tanlangan slug yoki null (bekor).
+async function nmzAskRegion(firstTime) {
+  if (_nmzMissing) { toast('Namoz moduli sozlanmagan — TASKFIX_NAMOZ.sql ishga tushirilmagan', 'err'); return null; }
+
+  let guess = null;
+  if (firstTime && !nmzRegion) {
+    toast('Joylashuv so\'ralmoqda — viloyatni taxmin qilamiz', 'ok');
+    guess = await nmzGuessRegion();
+  }
+
+  const items = NMZ_REGIONS.map(function (r) {
+    return {
+      value: r.value,
+      label: r.label,
+      sub: (guess && guess.value === r.value) ? ('Taxmin · ~' + guess.km + ' km') : (r.sub || ''),
+      search: r.api + ' ' + (r.sub || '')
+    };
+  });
+
+  const hint = guess
+    ? 'Joylashuvingizga eng yaqin viloyat tanlab qo\'yildi — to\'g\'ri bo\'lmasa o\'zgartiring.'
+    : 'Namoz vaqtlari shu viloyat bo\'yicha hisoblanadi.';
+
+  const vals = await uiForm('☾ Viloyatingiz', [
+    { id: 'region', type: 'search', label: 'Viloyat', items: items,
+      value: (guess && guess.value) || nmzRegion || 'toshkent',
+      placeholder: 'Viloyatni qidiring…', hint: hint }
+  ], { okText: 'Saqlash' });
+  if (!vals) return null;
+
+  const pick = vals.region || '';
+  if (!nmzRegionById(pick)) { toast('Viloyat tanlanmadi', 'err'); return null; }
+  if (pick === nmzRegion) return pick;
+
+  const prev = nmzRegion;
+  try {
+    const { data, error } = await sb.from('profiles')
+      .update({ namoz_region: pick }).eq('id', me.id).select('id, namoz_region');
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    nmzRegion = pick;
+    if (myProfile) myProfile.namoz_region = pick;
+    nmzRenderCtl();
+    toast('✅ Viloyat: ' + nmzRegionLabel(pick), 'ok');
+    nmzAfterChange();
+    return pick;
+  } catch (e) {
+    console.error('nmzAskRegion:', e);
+    nmzRegion = prev;
+    nmzRenderCtl();
+    toast(translateErr(e.message || String(e)), 'err');
+    return null;
+  }
+}
+
+// Sozlama o'zgargandan keyingi yagona nuqta (keyingi qadamlarda vaqt yuklash
+// va planner'ni qayta chizish shu yerga qo'shiladi).
+function nmzAfterChange() {
+  nmzRenderCtl();
+  try { if (currentPage === 'planner' && plnTab === 'schedule') renderPlanner(); }
+  catch (e) { console.error('nmzAfterChange → renderPlanner:', e); }
 }
 
 // ============ DEPARTMENTS LIST ============
