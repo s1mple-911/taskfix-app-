@@ -5949,6 +5949,8 @@ const ICON_PATHS = {
   userPlus:  '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/>',
   // ss* (qidiruvli tanlash) uchun
   search:    '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  // Org chart — "avto joylashuvga qaytarish" (Lucide rotate-ccw)
+  undo:      '<path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 3-7.7L3 8"/>',
   check:     '<path d="M20 6 9 17l-5-5"/>'
 };
 
@@ -17039,6 +17041,14 @@ function oscElbow(x1, y1, x2, y2) {
 //
 // ⚠️ Inline handler ichida arrow function YO'Q (qoida 5). Karta bosilishi
 //    (hodim sahifasi) tugmalarga o'tib ketmasin — event.stopPropagation().
+// "Avto joyiga qaytarish" — FAQAT qo'lda surilgan kartada ko'rinadi.
+// (oscLayout har chizishda n.manual ni belgilaydi.)
+function oscResetAct(n, kind, id) {
+  if (!n || !n.manual) return [];
+  return [{ icon: 'undo', title: 'Avtomatik joyiga qaytarish',
+            run: 'oscResetNode(\'' + kind + '\',\'' + id + '\')' }];
+}
+
 function oscCardActs(items) {
   return '<span class="osc-card-acts">' + items.map(function (it) {
     return '<button class="osc-cact' + (it.danger ? ' danger' : '') + '" title="' + escapeHtml(it.title) +
@@ -17061,7 +17071,7 @@ function oscNodeHtml(n) {
       { icon: 'userPlus', title: 'Ostiga xodim qo\'shish', run: 'oscAddPerson(\'p\',\'' + p.id + '\')' },
       { icon: 'plus',     title: 'Ostiga papka qo\'shish',  run: 'oscNewFolder(\'p\',\'' + p.id + '\')' },
       { icon: 'pencil',   title: 'Papka nomini o\'zgartirish', run: 'oscRenameFolder(\'' + f.id + '\')' }
-    ]) : '';
+    ].concat(oscResetAct(n, 'f', f.id))) : '';
     const mSeats = oscSeatCount(p.user_id);
     return '<div class="osc-card merged" style="' + st + '"' + dk + ' onclick="oscCardOpen(\'' + escapeHtml(p.user_id) + '\')" title="' + escapeHtml(f.name + ' · ' + name) + '">' +
       '<span class="osc-card-av">' + avatarHtml(name, 'sm', null, p.user_id) + '</span>' +
@@ -17081,7 +17091,7 @@ function oscNodeHtml(n) {
       { icon: 'userPlus', title: 'Ostiga xodim qo\'shish', run: 'oscAddPerson(\'f\',\'' + f.id + '\')' },
       { icon: 'plus',     title: 'Ostiga papka qo\'shish',  run: 'oscNewFolder(\'f\',\'' + f.id + '\')' },
       { icon: 'pencil',   title: 'Nomini o\'zgartirish',    run: 'oscRenameFolder(\'' + f.id + '\')' }
-    ]) : '';
+    ].concat(oscResetAct(n, 'f', f.id))) : '';
     return '<div class="osc-card folder" style="' + st + '"' + dk + '>' +
       '<span class="osc-card-ic">' + icon('folder', 18) + '</span>' +
       '<span class="osc-card-txt">' +
@@ -17098,7 +17108,7 @@ function oscNodeHtml(n) {
     { icon: 'userPlus', title: 'Ostiga xodim qo\'shish', run: 'oscAddPerson(\'p\',\'' + p.id + '\')' },
     { icon: 'plus',     title: 'Ostiga papka qo\'shish',  run: 'oscNewFolder(\'p\',\'' + p.id + '\')' },
     { icon: 'trash',    title: 'Sxemadan olib tashlash',  run: 'oscRemovePerson(\'' + p.id + '\')', danger: true }
-  ]) : '';
+  ].concat(oscResetAct(n, 'p', p.id))) : '';
   const seats = oscSeatCount(p.user_id);
   return '<div class="osc-card person" style="' + st + '"' + dk + ' onclick="oscCardOpen(\'' + escapeHtml(p.user_id) + '\')" title="' + escapeHtml(name) + '">' +
     '<span class="osc-card-av">' + avatarHtml(name, 'sm', null, p.user_id) + '</span>' +
@@ -17173,13 +17183,21 @@ function oscRenderChart() {
       '<button class="btn secondary sm" onclick="oscZoomBy(0.15)" title="Kattalashtirish">+</button>' +
       '<button class="btn secondary sm" onclick="oscZoomFit()">Sig\'dirish</button>' +
       '<button class="btn secondary sm" onclick="oscZoomSet(1)">100%</button>' +
+      // Qo'lda surilgan karta bo'lsagina — hammasini avtomatga qaytarish
+      (oscCanEdit() && oscManualCount()
+        ? '<button class="btn secondary sm" onclick="oscResetLayout()" title="Qo\'lda surilgan kartalarni avtomatik joyiga qaytarish">' +
+            icon('undo', 14) + ' Avto joylashuv</button>'
+        : '') +
       // Chartdan ham qo'shish mumkin — papka ko'rinishi bilan bir xil funksiya.
       (oscCanEdit()
         ? '<span class="osc-bar-sep"></span>' +
           '<button class="btn secondary sm" onclick="oscAddPerson(\'\',\'\')">' + icon('userPlus', 14) + ' Xodim</button>' +
           '<button class="btn sm" onclick="oscNewFolder(\'\',\'\')">' + icon('plus', 14) + ' Papka</button>'
         : '') +
-      '<span class="osc-hint">G\'ildirak yoki pinch — masshtab · bo\'sh joyni ushlab surish</span>' +
+      '<span class="osc-hint">' +
+        (oscCanEdit() ? 'Kartani surib joylashtiring · g\'ildirak yoki pinch — masshtab'
+                      : 'G\'ildirak yoki pinch — masshtab · bo\'sh joyni ushlab surish') +
+      '</span>' +
     '</div>' +
     '<div class="osc-viewport" id="oscViewport">' +
       '<div class="osc-canvas" id="oscCanvas" style="width:' + lay.w + 'px;height:' + lay.h + 'px;">' +
@@ -17295,6 +17313,7 @@ const _oscPan = { on: false, sx: 0, sy: 0, sl: 0, st: 0 };
 const _oscDrag = { on: false, node: null, moved: false, sx: 0, sy: 0, minX: 0, minY: 0, items: [] };
 let _oscDragEndAt = 0;    // oxirgi surish tugagan vaqt (klik bilan chalkashmasin)
 let _oscEdgeRaf = 0;
+let _oscPosMissing = false;   // node_x/node_y ustunlari yo'q (TASKFIX_ORGCHART.sql)
 
 // Chiziqlarni qayta chizish — surish paytida kadr bo'yicha (rAF), ya'ni
 // mousemove qanchalik tez kelmasin, kadrga bitta chizish.
@@ -17365,13 +17384,132 @@ function oscDragEnd() {
   oscNodeMoved(n);
 }
 
-// Surib bo'lingandan keyin: yangi joyni tugun qatoriga yozamiz va qayta
-// chizamiz (sahna o'lchami ham yangilanadi).
+// Surib bo'lingandan keyin: yangi joyni tugun qatoriga yozamiz, qayta
+// chizamiz (sahna o'lchami ham yangilanadi) va DB'ga saqlaymiz.
 function oscNodeMoved(n) {
   const r = n && n.row; if (!r) return;
+  const prev = { x: oscNum(r.node_x), y: oscNum(r.node_y) };
   r.node_x = Math.round(n.x);
   r.node_y = Math.round(n.y);
   oscRenderChart();
+  // Ustunlar yo'q (SQL ishga tushmagan) — surish sessiya ichida ishlaydi,
+  // lekin har safar so'rov yuborib xato ko'rsatishning ma'nosi yo'q.
+  if (_oscPosMissing) return;
+  oscSaveNodePos(n.type === 'person' ? 'p' : 'f', r, prev);
+}
+
+function oscNum(v) { return (v === null || v === undefined) ? null : Number(v); }
+
+// node_x/node_y ustunlari yo'qmi? PostgREST ikki xil javob beradi: 42703
+// (postgres) yoki PGRST204 ("schema cache'da ustun topilmadi").
+function oscPosColMissing(err) {
+  const code = (err && err.code) || '';
+  const msg = String((err && (err.message || err.details)) || '');
+  if (code === '42703' || code === 'PGRST204') return true;
+  return /node_x|node_y/i.test(msg) && /column|ustun|schema cache/i.test(msg);
+}
+
+// 🔴 Joyni saqlash. `.select()` SHART — RLS jimgina to'ssa "saqlandi" degan
+//    yolg'on holat qolib ketmasin (6-qoida). Xato bo'lsa karta ESKI joyiga
+//    qaytariladi: ekranda saqlanmagan joy turib qolmasin.
+async function oscSaveNodePos(kind, row, prev) {
+  const tbl = kind === 'p' ? 'org_people' : 'org_folders';
+  try {
+    const { data, error } = await sb.from(tbl)
+      .update({ node_x: row.node_x, node_y: row.node_y })
+      .eq('id', row.id).select('id');
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+  } catch (e) {
+    if (oscPosColMissing(e)) {
+      // Ustun yo'q — joy sessiya ichida qoladi (qaytarmaymiz), lekin
+      // foydalanuvchi saqlanmasligini BILIB tursin. Bir marta aytamiz.
+      console.warn('oscSaveNodePos: node_x/node_y ustuni yo\'q — TASKFIX_ORGCHART.sql ishga tushirilmagan.');
+      if (!_oscPosMissing) {
+        _oscPosMissing = true;
+        toast('Joylashuv saqlanmaydi — TASKFIX_ORGCHART.sql ishga tushirilmagan', 'err');
+        oscRenderChart();   // "Avto joylashuv" tugmasi holati yangilansin
+      }
+      return;
+    }
+    console.error('oscSaveNodePos:', e);
+    row.node_x = prev.x; row.node_y = prev.y;
+    oscRenderChart();
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+// Qo'lda surilganlar soni (tugma ko'rsatish/yashirish uchun)
+function oscManualCount() {
+  let n = 0;
+  const has = function (r) { return r.node_x !== null && r.node_x !== undefined; };
+  oscPeople.forEach(function (p) { if (has(p)) n++; });
+  oscFolders.forEach(function (f) { if (has(f)) n++; });
+  return n;
+}
+
+// Bitta tugunni avtomatik joyiga qaytarish (kartadagi ↺).
+async function oscResetNode(kind, id) {
+  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  const row = kind === 'p' ? oscPersonById(id) : oscFolderById(id);
+  if (!row) { toast('Tugun topilmadi', 'err'); return; }
+  const prev = { x: oscNum(row.node_x), y: oscNum(row.node_y) };
+  row.node_x = null; row.node_y = null;
+  oscRenderChart();
+  if (_oscPosMissing) return;
+  try {
+    const { data, error } = await sb.from(kind === 'p' ? 'org_people' : 'org_folders')
+      .update({ node_x: null, node_y: null }).eq('id', id).select('id');
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    toast('✅ Avtomatik joyiga qaytarildi', 'ok');
+  } catch (e) {
+    console.error('oscResetNode:', e);
+    row.node_x = prev.x; row.node_y = prev.y;
+    oscRenderChart();
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+// Hammasini avtomatik joylashuvga qaytarish (paneldagi tugma).
+// ⚠️ Mahalliy kesh MUVAFFAQIYATDAN KEYIN tozalanadi — server rad etsa
+//    ekranda "qaytarilgandek" ko'rinib qolmasin.
+async function oscResetLayout() {
+  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  const cnt = oscManualCount();
+  if (!cnt) { toast('Qo\'lda surilgan karta yo\'q', 'err'); return; }
+  const ok = await uiConfirm('Avto joylashuv',
+    cnt + ' ta qo\'lda surilgan karta avtomatik joyiga qaytariladi. Sxemaning o\'zi (kim kimga bo\'ysunadi) o\'zgarmaydi.',
+    { okText: 'Qaytarish' });
+  if (!ok) return;
+
+  const clearLocal = function () {
+    oscPeople.forEach(function (p) { p.node_x = null; p.node_y = null; });
+    oscFolders.forEach(function (f) { f.node_x = null; f.node_y = null; });
+    oscRenderChart();
+  };
+
+  if (_oscPosMissing) { clearLocal(); return; }
+
+  try {
+    const ws = currentWs.id;
+    const [pR, fR] = await Promise.all([
+      sb.from('org_people').update({ node_x: null, node_y: null })
+        .eq('workspace_id', ws).not('node_x', 'is', null).select('id'),
+      sb.from('org_folders').update({ node_x: null, node_y: null })
+        .eq('workspace_id', ws).not('node_x', 'is', null).select('id'),
+    ]);
+    if (pR.error) throw pR.error;
+    if (fR.error) throw fR.error;
+    const n = (pR.data || []).length + (fR.data || []).length;
+    if (!n) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    clearLocal();
+    toast('✅ ' + n + ' ta karta avtomatik joyiga qaytarildi', 'ok');
+    logActivity('org_layout_reset', { entityType: 'org_chart', entityId: ws, entityTitle: n + ' ta tugun' });
+  } catch (e) {
+    console.error('oscResetLayout:', e);
+    toast(translateErr(e.message || String(e)), 'err');
+  }
 }
 
 function oscBindPan() {
