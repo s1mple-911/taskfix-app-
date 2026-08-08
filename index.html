@@ -953,6 +953,12 @@
     transition: transform .16s cubic-bezier(.32,.72,0,1), box-shadow .16s ease, border-color .16s ease; }
   .osc-card.person { cursor: pointer; }
   .osc-card.person:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(28,31,36,.13); border-color: var(--line-strong); }
+  /* Surish (drag): surilayotgan karta "ko'tariladi", qolganlari joyida turadi.
+     ⚠️ transition o'chadi — aks holda karta kursor ortidan sudralib kelardi. */
+  .osc-stage.dragging .osc-card { transition: none; cursor: grabbing; }
+  .osc-stage.dragging .osc-card:hover { transform: none; }
+  .osc-card.dragging { z-index: 4; transform: none !important;
+    box-shadow: 0 14px 34px rgba(28,31,36,.20); border-color: var(--line-strong); }
   /* Hodim qatori papkadan "yengilroq" — ierarxiya ko'z bilan o'qilsin */
   .osc-row.person .osc-nm { font-weight: 400; }
   /* Papka tuguni — "idish" ekani ko'rinib tursin: iliqroq fon, ustki urg'u */
@@ -16873,6 +16879,7 @@ const OSC_ZMAX = 2.5;   // eng katta masshtab
 
 let oscZoom = 1;
 let _oscNatW = 0, _oscNatH = 0;   // sahnaning masshtabsiz o'lchami
+let _oscLay = null;               // oxirgi chizilgan layout (drag shundan o'qiydi)
 let _oscChartBuilt = false;
 let _oscFitted = false;   // chart shu workspace uchun sig'dirildimi
 let _oscFitWs = null;     // qaysi workspace uchun sig'dirilgan
@@ -16916,43 +16923,98 @@ function oscChartRoots() {
   return t.roots.map(build).filter(Boolean);
 }
 
-// Koordinatalarni hisoblaydi va {nodes, edges, w, h} qaytaradi.
+// Tugunning QO'LDA surilgan joyi. NULL/bo'sh = avtomatik joylashuv.
+// ⚠️ Joy tugunning O'Z qatorida saqlanadi: hodim → org_people, papka →
+//    org_folders. Birlashgan kartochka (papka·hodim) PAPKA qatorida — tugun
+//    kaliti ham papkaniki; keyin birlashish buzilsa papka o'z joyida qoladi,
+//    hodim avtoga qaytadi.
+function oscManualPos(n) {
+  const r = n && n.row;
+  if (!r || r.node_x === null || r.node_x === undefined
+        || r.node_y === null || r.node_y === undefined) return null;
+  const x = Number(r.node_x), y = Number(r.node_y);
+  if (!isFinite(x) || !isFinite(y)) return null;
+  return { x: x, y: y };
+}
+
+// Koordinatalarni hisoblaydi va {nodes, edges, byKey, w, h} qaytaradi.
+//
+// 🔴 IKKI QATLAM (2026-08-08):
+//   1) AVTO — avvalgi algoritm o'zgarmadi: barglar qat'iy ustun egallaydi,
+//      ota bolalari ustida markazlashadi (ax/ay).
+//   2) QO'LDA — surilgan tugun aynan o'z (node_x, node_y) siga qo'yiladi,
+//      uning AVLODI esa ota qancha siljigan bo'lsa shuncha siljiydi (o'zi
+//      avto bo'lib qolaveradi — keyin yangi bola qo'shilsa to'g'ri joyga
+//      tushadi). Qolgani avvalgidek avto.
+//
+// ⚠️ Qo'lda surilgan tugunning avtomatik O'RNI BO'SH QOLADI — ataylab:
+//    bitta kartani surganda qolgan sxema "sakramasin".
 function oscLayout(roots) {
-  const nodes = [], edges = [];
+  const nodes = [], edges = [], byKey = {};
   let cursorX = 0;
 
   function place(n, depth) {
-    n.y = depth * (OSC_NH + OSC_VGAP);
+    n.ay = depth * (OSC_NH + OSC_VGAP);
     if (!n.children.length) {
-      n.x = cursorX;
+      n.ax = cursorX;
       cursorX += OSC_NW + OSC_HGAP;
     } else {
       n.children.forEach(function (c) { place(c, depth + 1); });
       const a = n.children[0], b = n.children[n.children.length - 1];
-      n.x = (a.x + b.x) / 2;
+      n.ax = (a.ax + b.ax) / 2;
     }
     nodes.push(n);
+    byKey[n.key] = n;
     n.children.forEach(function (c) { edges.push({ from: n, to: c }); });
   }
 
   roots.forEach(function (r) { place(r, 0); cursorX += OSC_HGAP * 2; });
 
-  if (!nodes.length) return { nodes: nodes, edges: edges, w: 0, h: 0 };
+  if (!nodes.length) return { nodes: nodes, edges: edges, byKey: byKey, w: 0, h: 0 };
 
-  let minX = Infinity, maxX = -Infinity, maxY = 0;
+  // Avto koordinatalarni chekkaga tekislaymiz (qo'lda qiymatlar SHU fazoda
+  // saqlanadi — shuning uchun surish AVVAL emas, keyin qo'llanadi).
+  let minAx = Infinity;
+  nodes.forEach(function (n) { if (n.ax < minAx) minAx = n.ax; });
+  const shift = OSC_PAD - minAx;
+  nodes.forEach(function (n) { n.ax += shift; n.ay += OSC_PAD; });
+
+  function applyManual(n, dx, dy) {
+    const m = oscManualPos(n);
+    let ndx = dx, ndy = dy;
+    n.manual = !!m;
+    if (m) { ndx = m.x - n.ax; ndy = m.y - n.ay; }
+    // Manfiy joyga tushib qolmasin — u yerga scroll qilib bo'lmaydi.
+    n.x = Math.max(0, n.ax + ndx);
+    n.y = Math.max(0, n.ay + ndy);
+    n.children.forEach(function (c) { applyManual(c, ndx, ndy); });
+  }
+  roots.forEach(function (r) { applyManual(r, 0, 0); });
+
+  let maxX = 0, maxY = 0;
   nodes.forEach(function (n) {
-    if (n.x < minX) minX = n.x;
     if (n.x > maxX) maxX = n.x;
     if (n.y > maxY) maxY = n.y;
   });
-  const dx = OSC_PAD - minX;
-  nodes.forEach(function (n) { n.x += dx; n.y += OSC_PAD; });
 
   return {
-    nodes: nodes, edges: edges,
-    w: (maxX - minX) + OSC_NW + OSC_PAD * 2,
-    h: maxY + OSC_NH + OSC_PAD * 2
+    nodes: nodes, edges: edges, byKey: byKey,
+    w: maxX + OSC_NW + OSC_PAD,
+    h: maxY + OSC_NH + OSC_PAD
   };
+}
+
+// Barcha bog'lovchi chiziqlar (SVG path'lari) — layoutdagi JORIY koordinatalardan.
+// Surish paytida ham shu funksiya chaqiriladi (chiziqlar kartaga ergashsin).
+function oscEdgesPath(lay) {
+  let d = '';
+  lay.edges.forEach(function (e) {
+    d += '<path d="' + oscElbow(
+      e.from.x + OSC_NW / 2, e.from.y + OSC_NH,
+      e.to.x + OSC_NW / 2,   e.to.y
+    ) + '" />';
+  });
+  return d;
 }
 
 // Ota pastidan bola tepasiga — yumaloq burchakli "tirsak".
@@ -16987,6 +17049,8 @@ function oscCardActs(items) {
 function oscNodeHtml(n) {
   const st = 'left:' + n.x + 'px;top:' + n.y + 'px;width:' + OSC_NW + 'px;height:' + OSC_NH + 'px;';
   const canEdit = oscCanEdit();
+  // data-k — drag uchun tugun kaliti (DOM ↔ layout bog'lanishi)
+  const dk = ' data-k="' + escapeHtml(n.key) + '"';
 
   // 🔴 BIRLASHGAN kartochka: papka nomi ustida, hodim pastida — bir kartada.
   //    Tahrir tugmalari ikkovini ham boshqaradi (DB'da ular alohida).
@@ -16999,7 +17063,7 @@ function oscNodeHtml(n) {
       { icon: 'pencil',   title: 'Papka nomini o\'zgartirish', run: 'oscRenameFolder(\'' + f.id + '\')' }
     ]) : '';
     const mSeats = oscSeatCount(p.user_id);
-    return '<div class="osc-card merged" style="' + st + '" onclick="oscCardOpen(\'' + escapeHtml(p.user_id) + '\')" title="' + escapeHtml(f.name + ' · ' + name) + '">' +
+    return '<div class="osc-card merged" style="' + st + '"' + dk + ' onclick="oscCardOpen(\'' + escapeHtml(p.user_id) + '\')" title="' + escapeHtml(f.name + ' · ' + name) + '">' +
       '<span class="osc-card-av">' + avatarHtml(name, 'sm', null, p.user_id) + '</span>' +
       '<span class="osc-card-txt">' +
         '<span class="osc-card-nm">' + escapeHtml(f.name || '') + '</span>' +
@@ -17018,7 +17082,7 @@ function oscNodeHtml(n) {
       { icon: 'plus',     title: 'Ostiga papka qo\'shish',  run: 'oscNewFolder(\'f\',\'' + f.id + '\')' },
       { icon: 'pencil',   title: 'Nomini o\'zgartirish',    run: 'oscRenameFolder(\'' + f.id + '\')' }
     ]) : '';
-    return '<div class="osc-card folder" style="' + st + '">' +
+    return '<div class="osc-card folder" style="' + st + '"' + dk + '>' +
       '<span class="osc-card-ic">' + icon('folder', 18) + '</span>' +
       '<span class="osc-card-txt">' +
         '<span class="osc-card-nm">' + escapeHtml(f.name || '') + '</span>' +
@@ -17036,7 +17100,7 @@ function oscNodeHtml(n) {
     { icon: 'trash',    title: 'Sxemadan olib tashlash',  run: 'oscRemovePerson(\'' + p.id + '\')', danger: true }
   ]) : '';
   const seats = oscSeatCount(p.user_id);
-  return '<div class="osc-card person" style="' + st + '" onclick="oscCardOpen(\'' + escapeHtml(p.user_id) + '\')" title="' + escapeHtml(name) + '">' +
+  return '<div class="osc-card person" style="' + st + '"' + dk + ' onclick="oscCardOpen(\'' + escapeHtml(p.user_id) + '\')" title="' + escapeHtml(name) + '">' +
     '<span class="osc-card-av">' + avatarHtml(name, 'sm', null, p.user_id) + '</span>' +
     '<span class="osc-card-txt">' +
       '<span class="osc-card-nm">' + escapeHtml(name) + '</span>' +
@@ -17051,8 +17115,14 @@ function oscNodeHtml(n) {
 
 // Kartaga bosilganda hodim sahifasi. Ruxsati yo'q bo'lsa openEmployee
 // o'zi xabar beradi — bu yerda jimgina yutmaymiz.
+//
+// ⚠️ Surishdan (drag) keyin keladigan `click` ni yutamiz: aks holda kartani
+//    surib qo'yib yuborish hodim sahifasini ochib yuborardi. Bayroq emas,
+//    VAQT tekshiriladi — surish oxirida chart qaytadan chiziladi va click
+//    boshqa elementga tushishi mumkin.
 function oscCardOpen(uid) {
   if (!uid) return;
+  if (Date.now() - _oscDragEndAt < 300) return;
   openEmployee(uid);
 }
 
@@ -17086,14 +17156,12 @@ function oscRenderChart() {
   const keepL = oldVp ? oldVp.scrollLeft : 0;
   const keepT = oldVp ? oldVp.scrollTop  : 0;
 
-  let svg = '<svg class="osc-lines" width="' + lay.w + '" height="' + lay.h + '" viewBox="0 0 ' + lay.w + ' ' + lay.h + '">';
-  lay.edges.forEach(function (e) {
-    svg += '<path d="' + oscElbow(
-      e.from.x + OSC_NW / 2, e.from.y + OSC_NH,
-      e.to.x + OSC_NW / 2,   e.to.y
-    ) + '" />';
-  });
-  svg += '</svg>';
+  // ⚠️ _oscLay — surish (drag) uchun: DOM'dagi karta `data-k` orqali shu
+  //    layout tugunini topadi, chiziqlar ham shundan qayta chiziladi.
+  _oscLay = lay;
+
+  const svg = '<svg class="osc-lines" id="oscLines" width="' + lay.w + '" height="' + lay.h +
+    '" viewBox="0 0 ' + lay.w + ' ' + lay.h + '">' + oscEdgesPath(lay) + '</svg>';
 
   let cards = '';
   lay.nodes.forEach(function (n) { cards += oscNodeHtml(n); });
@@ -17219,6 +17287,93 @@ function oscWheel(e) {
 let _oscPanBound = false;
 const _oscPan = { on: false, sx: 0, sy: 0, sl: 0, st: 0 };
 
+// ── Kartani qo'lda surish (drag) ────────────────────────────────────────────
+// 🔴 Kartani ushlab surganda OSTIDAGILAR HAM birga siljiydi — aks holda
+//    rahbarni surganda chiziqlar cho'zilib, sxema o'qilmay qolardi. Lekin
+//    "qo'lda" deb FAQAT surilgan tugun belgilanadi (`oscNodeMoved`): avlodi
+//    avto bo'lib qolaveradi va otasi bilan birga siljiydi (oscLayout).
+const _oscDrag = { on: false, node: null, moved: false, sx: 0, sy: 0, minX: 0, minY: 0, items: [] };
+let _oscDragEndAt = 0;    // oxirgi surish tugagan vaqt (klik bilan chalkashmasin)
+let _oscEdgeRaf = 0;
+
+// Chiziqlarni qayta chizish — surish paytida kadr bo'yicha (rAF), ya'ni
+// mousemove qanchalik tez kelmasin, kadrga bitta chizish.
+function oscEdgesRepaint() {
+  if (_oscEdgeRaf) return;
+  _oscEdgeRaf = requestAnimationFrame(function () {
+    _oscEdgeRaf = 0;
+    const svg = $('oscLines');
+    if (svg && _oscLay) svg.innerHTML = oscEdgesPath(_oscLay);
+  });
+}
+
+// Surishni boshlash. Karta topilmasa (layout eskirgan) — false, pan ishlaydi.
+function oscDragStart(e, card) {
+  if (!_oscLay || !_oscLay.byKey) return false;
+  const n = _oscLay.byKey[card.getAttribute('data-k') || ''];
+  if (!n) return false;
+
+  const items = [];
+  const seen = new Set();
+  (function walk(x) {
+    if (seen.has(x.key)) { console.error('oscDragStart: sikl —', x.key); return; }
+    seen.add(x.key);
+    items.push({
+      n: x, x0: x.x, y0: x.y,
+      el: document.querySelector('.osc-card[data-k="' + x.key + '"]')
+    });
+    x.children.forEach(walk);
+  })(n);
+
+  _oscDrag.on = true; _oscDrag.node = n; _oscDrag.moved = false;
+  _oscDrag.sx = e.clientX; _oscDrag.sy = e.clientY;
+  _oscDrag.items = items;
+  // Butun to'plam 0 dan chapga/tepaga chiqmasin
+  _oscDrag.minX = items.reduce(function (m, it) { return Math.min(m, it.x0); }, Infinity);
+  _oscDrag.minY = items.reduce(function (m, it) { return Math.min(m, it.y0); }, Infinity);
+  card.classList.add('dragging');
+  return true;
+}
+
+function oscDragMove(e) {
+  const dxp = e.clientX - _oscDrag.sx, dyp = e.clientY - _oscDrag.sy;
+  // 3px dan kam siljish — bu bosish (klik), surish emas.
+  if (!_oscDrag.moved) {
+    if (Math.abs(dxp) + Math.abs(dyp) < 3) return;
+    _oscDrag.moved = true;
+    const st = $('oscStage'); if (st) st.classList.add('dragging');
+  }
+  // Ekran pikseli → sahna pikseli (masshtabni hisobga olamiz)
+  let dx = dxp / oscZoom, dy = dyp / oscZoom;
+  dx = Math.max(dx, -_oscDrag.minX);
+  dy = Math.max(dy, -_oscDrag.minY);
+  _oscDrag.items.forEach(function (it) {
+    it.n.x = it.x0 + dx; it.n.y = it.y0 + dy;
+    if (it.el) { it.el.style.left = it.n.x + 'px'; it.el.style.top = it.n.y + 'px'; }
+  });
+  oscEdgesRepaint();
+}
+
+function oscDragEnd() {
+  const n = _oscDrag.node, moved = _oscDrag.moved;
+  _oscDrag.on = false; _oscDrag.node = null; _oscDrag.items = [];
+  const st = $('oscStage'); if (st) st.classList.remove('dragging');
+  const card = document.querySelector('.osc-card.dragging');
+  if (card) card.classList.remove('dragging');
+  if (!moved || !n) return;
+  _oscDragEndAt = Date.now();
+  oscNodeMoved(n);
+}
+
+// Surib bo'lingandan keyin: yangi joyni tugun qatoriga yozamiz va qayta
+// chizamiz (sahna o'lchami ham yangilanadi).
+function oscNodeMoved(n) {
+  const r = n && n.row; if (!r) return;
+  r.node_x = Math.round(n.x);
+  r.node_y = Math.round(n.y);
+  oscRenderChart();
+}
+
 function oscBindPan() {
   const vp = $('oscViewport'); if (!vp) return;
 
@@ -17231,7 +17386,15 @@ function oscBindPan() {
   // (eski element bilan birga o'z listener'i ham yo'qoladi).
   vp.addEventListener('mousedown', function (e) {
     if (e.button !== 0) return;
-    if (e.target.closest && e.target.closest('.osc-card')) return;
+    const card = e.target.closest ? e.target.closest('.osc-card') : null;
+    if (card) {
+      // Amal tugmalari (+ xodim / + papka / o'chirish) ustidan surish boshlanmasin
+      if (e.target.closest('.osc-cact')) return;
+      // Faqat o'zgartira oladigan foydalanuvchi suradi; qolganlar uchun
+      // karta ustidan pan ham boshlanmaydi (avvalgi xatti-harakat).
+      if (oscCanEdit() && oscDragStart(e, card)) { e.preventDefault(); }
+      return;
+    }
     _oscPan.on = true;
     _oscPan.sx = e.clientX; _oscPan.sy = e.clientY;
     _oscPan.sl = vp.scrollLeft; _oscPan.st = vp.scrollTop;
@@ -17242,12 +17405,14 @@ function oscBindPan() {
   if (_oscPanBound) return;
   _oscPanBound = true;
   window.addEventListener('mousemove', function (e) {
+    if (_oscDrag.on) { oscDragMove(e); return; }
     if (!_oscPan.on) return;
     const v = $('oscViewport'); if (!v) { _oscPan.on = false; return; }
     v.scrollLeft = _oscPan.sl - (e.clientX - _oscPan.sx);
     v.scrollTop  = _oscPan.st - (e.clientY - _oscPan.sy);
   });
   window.addEventListener('mouseup', function () {
+    if (_oscDrag.on) { oscDragEnd(); return; }
     if (!_oscPan.on) return;
     _oscPan.on = false;
     const v = $('oscViewport'); if (v) v.classList.remove('panning');
