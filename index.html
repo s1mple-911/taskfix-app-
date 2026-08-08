@@ -934,7 +934,15 @@
       radial-gradient(circle at 1px 1px, rgba(28,31,36,.07) 1px, transparent 0) 0 0 / 22px 22px, var(--surface);
     overflow: auto; height: calc(100vh - 300px); min-height: 420px; position: relative; cursor: grab; }
   .osc-viewport.panning { cursor: grabbing; }
-  .osc-stage { position: relative; transform-origin: 0 0; transition: transform .16s cubic-bezier(.32,.72,0,1); }
+  /* ⚠️ Sahna `transform: scale()` bilan kattalashadi, LEKIN transform element
+     o'lchamini o'zgartirmaydi → 100% dan kattalashtirilganda o'ng/past chekkaga
+     scroll qilib bo'lmasdi. Shuning uchun sahna `.osc-canvas` ichida turadi va
+     canvas o'lchami JS'da `natural × zoom` qilib qo'yiladi. */
+  .osc-canvas { position: relative; }
+  .osc-stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; transition: transform .16s cubic-bezier(.32,.72,0,1); }
+  /* G'ildirak/pinch bilan zoom qilinayotganda animatsiya kerak emas — qadamlar
+     ketma-ket keladi, transition ularni "sudrab" ergashardi. */
+  .osc-stage.instant { transition: none; }
 
   .osc-lines { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
   .osc-lines path { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-linecap: round; }
@@ -16860,7 +16868,11 @@ const OSC_VGAP = 46;    // qatlamlar orasi
 const OSC_PAD = 32;     // sahna chekkasi
 const OSC_R = 12;       // bog'lovchi chiziq burchagi radiusi
 
+const OSC_ZMIN = 0.3;   // eng kichik masshtab
+const OSC_ZMAX = 2.5;   // eng katta masshtab
+
 let oscZoom = 1;
+let _oscNatW = 0, _oscNatH = 0;   // sahnaning masshtabsiz o'lchami
 let _oscChartBuilt = false;
 let _oscFitted = false;   // chart shu workspace uchun sig'dirildimi
 let _oscFitWs = null;     // qaysi workspace uchun sig'dirilgan
@@ -17099,14 +17111,18 @@ function oscRenderChart() {
           '<button class="btn secondary sm" onclick="oscAddPerson(\'\',\'\')">' + icon('userPlus', 14) + ' Xodim</button>' +
           '<button class="btn sm" onclick="oscNewFolder(\'\',\'\')">' + icon('plus', 14) + ' Papka</button>'
         : '') +
-      '<span class="osc-hint">Bo\'sh joyni ushlab surish mumkin</span>' +
+      '<span class="osc-hint">G\'ildirak yoki pinch — masshtab · bo\'sh joyni ushlab surish</span>' +
     '</div>' +
     '<div class="osc-viewport" id="oscViewport">' +
-      '<div class="osc-stage" id="oscStage" style="width:' + lay.w + 'px;height:' + lay.h + 'px;">' +
-        svg + cards +
+      '<div class="osc-canvas" id="oscCanvas" style="width:' + lay.w + 'px;height:' + lay.h + 'px;">' +
+        '<div class="osc-stage" id="oscStage" style="width:' + lay.w + 'px;height:' + lay.h + 'px;">' +
+          svg + cards +
+        '</div>' +
       '</div>' +
     '</div>';
 
+  // Zoom hisob-kitobi uchun sahnaning MASSHTABSIZ o'lchami
+  _oscNatW = lay.w; _oscNatH = lay.h;
   _oscChartBuilt = true;
   oscBindPan();
   oscApplyZoom();
@@ -17118,29 +17134,80 @@ function oscRenderChart() {
 }
 
 // ── Zoom / pan ──────────────────────────────────────────────────────────────
+// 🔴 ZOOM FAQAT CHARTGA TEGADI, SAHIFAGA EMAS (2026-08-08 tuzatildi).
+//    Avval chartda `wheel` umuman ushlanmasdi: trackpad'dagi pinch brauzerga
+//    `ctrl+wheel` bo'lib boradi va `preventDefault()` bo'lmagach BRAUZER BUTUN
+//    SAHIFANI kattalashtirardi ("zoom sahifani kattalashtiryapti" — aynan shu).
+//    Endi viewport wheel'ni o'zi oladi: sahifa zoom'i bo'lmaydi, chart zoom'i
+//    bo'ladi. Sahifaning boshqa qismida brauzer zoom'i avvalgidek ishlaydi.
 function oscApplyZoom() {
   const stage = $('oscStage'); if (!stage) return;
   stage.style.transform = 'scale(' + oscZoom + ')';
+  // ⚠️ Canvas — scroll maydoni. Transform layout o'lchamini o'zgartirmagani
+  //    uchun busiz 100% dan kattalashtirilganda sahnaning o'ng/past qismiga
+  //    scroll qilib bo'lmasdi.
+  const cv = $('oscCanvas');
+  if (cv && _oscNatW && _oscNatH) {
+    cv.style.width  = Math.round(_oscNatW * oscZoom) + 'px';
+    cv.style.height = Math.round(_oscNatH * oscZoom) + 'px';
+  }
   const lbl = $('oscZoomLbl');
   if (lbl) lbl.textContent = Math.round(oscZoom * 100) + '%';
 }
-function oscZoomSet(z) {
-  oscZoom = Math.max(0.25, Math.min(2, z));
+
+// ax/ay — viewport'ga nisbatan langar nuqta (px). Berilmasa markaz olinadi.
+// Langar: masshtab o'zgarganda kursor tagidagi nuqta JOYIDA qoladi.
+function oscZoomSet(z, ax, ay, instant) {
+  const nz = Math.max(OSC_ZMIN, Math.min(OSC_ZMAX, z));
+  const vp = $('oscViewport'), stage = $('oscStage');
+  const old = oscZoom;
+  if (Math.abs(nz - old) < 0.0004) return;
+  if (stage) stage.classList.toggle('instant', !!instant);
+  if (!vp) { oscZoom = nz; oscApplyZoom(); return; }
+
+  const px = (ax === undefined || ax === null) ? vp.clientWidth / 2 : ax;
+  const py = (ay === undefined || ay === null) ? vp.clientHeight / 2 : ay;
+  // Langar nuqtaning MASSHTABSIZ (sahna) koordinatasi
+  const sx = (vp.scrollLeft + px) / old;
+  const sy = (vp.scrollTop + py) / old;
+
+  oscZoom = nz;
   oscApplyZoom();
+  vp.scrollLeft = sx * nz - px;
+  vp.scrollTop  = sy * nz - py;
 }
 function oscZoomBy(d) { oscZoomSet(oscZoom + d); }
 function oscZoomFit() {
   const vp = $('oscViewport'), stage = $('oscStage');
   if (!vp || !stage) return;
-  const w = parseFloat(stage.style.width) || 0;
-  const h = parseFloat(stage.style.height) || 0;
+  const w = _oscNatW || parseFloat(stage.style.width) || 0;
+  const h = _oscNatH || parseFloat(stage.style.height) || 0;
   if (!w || !h) return;
   // Panel yashirin bo'lsa o'lchov 0 bo'ladi — bunda zoom'ni buzmaymiz.
   if (!vp.clientWidth || !vp.clientHeight) return;
   // Butun sxema ko'rinsin, lekin 100% dan kattalashtirmaymiz (kichik
   // tashkilotda kartalar cho'zilib ketmasin).
-  oscZoomSet(Math.min(1, (vp.clientWidth - 16) / w, (vp.clientHeight - 16) / h));
+  oscZoom = Math.max(OSC_ZMIN, Math.min(1, (vp.clientWidth - 16) / w, (vp.clientHeight - 16) / h));
+  if (stage) stage.classList.remove('instant');
+  oscApplyZoom();
   vp.scrollLeft = 0; vp.scrollTop = 0;
+}
+
+// G'ildirak/pinch. ⚠️ `passive:false` SHART — aks holda preventDefault()
+//    e'tiborsiz qoladi va brauzer sahifani zoom qiladi.
+function oscWheel(e) {
+  const vp = $('oscViewport'); if (!vp) return;
+  // shift+g'ildirak — gorizontal scroll, brauzerga qoldiramiz.
+  if (e.shiftKey && !e.ctrlKey && !e.metaKey) return;
+  e.preventDefault();
+  // deltaMode: 0=px, 1=qator, 2=sahifa. Sichqonchalar 1-rejimda ham keladi.
+  let dy = e.deltaY;
+  if (e.deltaMode === 1) dy *= 16;
+  else if (e.deltaMode === 2) dy *= (vp.clientHeight || 400);
+  // Pinch (ctrlKey) nozikroq: barmoq harakati kichik, delta katta bo'ladi.
+  const f = (e.ctrlKey || e.metaKey) ? 0.009 : 0.0022;
+  const rc = vp.getBoundingClientRect();
+  oscZoomSet(oscZoom * Math.exp(-dy * f), e.clientX - rc.left, e.clientY - rc.top, true);
 }
 
 // Bo'sh joydan ushlab surish. ⚠️ Karta ustidan boshlanmasin — aks holda
@@ -17154,6 +17221,11 @@ const _oscPan = { on: false, sx: 0, sy: 0, sl: 0, st: 0 };
 
 function oscBindPan() {
   const vp = $('oscViewport'); if (!vp) return;
+
+  // G'ildirak/pinch — faqat shu viewport ustida. Viewport har chizishda yangi
+  // element, shuning uchun listener ham har safar yangisiga bog'lanadi
+  // (eskisi element bilan birga yo'qoladi — to'planib qolmaydi).
+  vp.addEventListener('wheel', oscWheel, { passive: false });
 
   // Viewport har chizishda YANGI element — mousedown har safar unga bog'lanadi
   // (eski element bilan birga o'z listener'i ham yo'qoladi).
