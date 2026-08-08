@@ -50,7 +50,7 @@ almashtiriladi (bitta qator) — qolgan kod o'zgarmaydi.
   e'tiborsiz qoldiriladi va API'dan qayta olinadi.
 
 ### 2. Toggle + viloyat tanlash
-- Planner sarlavhasida `☾ Musulmon` toggle (`nmzToggle`).
+- Planner sarlavhasida `☾ Muslim` toggle (`nmzToggle`).
 - Birinchi yoqilganda: `navigator.geolocation` (bir marta) → eng yaqin viloyat
   **taxmin** qilinadi (haversine) → foydalanuvchi tasdiqlaydi yoki o'zgartiradi
   (`uiForm` + **`search`** maydoni — 7-qoida: har tanlash qidiruvli).
@@ -91,3 +91,39 @@ almashtiriladi (bitta qator) — qolgan kod o'zgarmaydi.
   ishlamaydi: so'rov ham, blok ham, interval ham yo'q.
 - SQL ishga tushmagan bo'lsa (`_nmzMissing`) — toggle "sozlanmagan" deb aytadi,
   planner avvalgidek ishlayveradi.
+
+
+---
+
+## Tuzatishlar · 2026-08-09
+
+1. **"Bajarilganlarni yashirish" — kalendar ko'rinishidan olindi.** Planner'ning
+   "Mening jadvalim" (setka) tabida bu tugma ma'nosiz edi (u yerda vazifa
+   ro'yxati emas, vaqt bloklari). Endi `plnSetTab` uni faqat setka tabida
+   yashiradi; qolgan tablar va boshqa sahifalar (jadval/list) o'zgarmadi,
+   `hideCompleted` holatiga ham tegilmadi.
+
+2. **Blok = namoz vaqti + 10 daqiqa, 25 daqiqa davom etadi.**
+   `NMZ_LAG = 10`, `NMZ_DUR = 25` (avval: vaqtning o'zidan 30 daqiqa).
+   Peshin 12:07 → blok **12:17–12:42**. Blokda blok boshlanish vaqti yoziladi,
+   tooltip'da esa "Peshin 12:07 · blok 12:17–12:42" — namoz vaqti ham yo'qolmaydi.
+   "Erta" chipi ham blok boshlanishiga qarab hisoblanadi (bomdod 03:47+10).
+
+3. **Toggle nomi "Musulmon" → "Muslim"** (faqat matn).
+
+4. **Shahar aniqligi (viloyat markazi emas).** `profiles.namoz_lat/namoz_lon`
+   qo'shildi: geolokatsiya bergan **aniq koordinata** saqlanadi va aynan u
+   aladhan'ga yuboriladi → Qarshi'da Qarshi vaqti (Qashqadaryo markazi emas).
+   - Viloyat **qoladi**: ko'rsatish uchun va islomapi (faqat viloyat bilan
+     ishlaydi) uchun.
+   - **Manba tartibi endi aniqlikka qarab**: koordinata bor → avval aladhan
+     (shahar aniq), zaxira islomapi; koordinata yo'q → avval islomapi
+     (rasmiy), zaxira aladhan.
+   - **Kesh kaliti** `namoz_times` da `geo` ustuni bilan kengaydi
+     (PK `(region, geo, date)`): `''` = viloyat markazi, `'38.85,65.80'` =
+     aniq joylashuv (0.05° ≈ 5.5 km ≈ 12 soniya). Busiz Qarshi'dagi odamning
+     vaqti butun Qashqadaryoga tarqalib ketardi.
+   - Viloyat oynasida **"Aniq joylashuvim bo'yicha hisoblansin"** toggle'i:
+     o'chirilsa koordinata tozalanadi va viloyat markazi ishlatiladi.
+   - ⚠️ `TASKFIX_NAMOZ.sql` **qayta ishga tushirilishi kerak** (idempotent):
+     yangi ustunlar + `geo` + birlamchi kalitni ko'chirish shu faylda.

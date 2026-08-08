@@ -1508,7 +1508,7 @@
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap;">
         <h2 class="h2" style="margin:0" id="plnPageTitle">Rejalashtirgich</h2>
         <div id="nmzCtl" style="display:none;align-items:center;gap:8px;margin-left:auto;">
-          <button type="button" class="nmz-toggle" id="nmzToggle" aria-pressed="false" onclick="nmzToggleClick()"><span class="nmz-moon">☾</span> Musulmon</button>
+          <button type="button" class="nmz-toggle" id="nmzToggle" aria-pressed="false" onclick="nmzToggleClick()"><span class="nmz-moon">☾</span> Muslim</button>
           <button type="button" class="nmz-reg" id="nmzRegBtn" style="display:none" onclick="nmzAskRegion()">—</button>
         </div>
         <div id="plnWeekNav" style="display:flex;align-items:center;gap:8px;">
@@ -1524,7 +1524,7 @@
         <button class="view-tab" data-plntab="assigned" onclick="plnSetTab('assigned')">📤 Men topshirganlar</button>
         <button class="view-tab" data-plntab="all" onclick="plnSetTab('all')">✓ Barcha vazifalar</button>
         <div style="flex:1"></div>
-        <button type="button" class="done-toggle" data-done-toggle onclick="toggleHideCompleted(!window.hideCompleted)"><span class="dt-dot"></span> Bajarilganlarni yashirish</button>
+        <button type="button" class="done-toggle" id="plnDoneToggle" data-done-toggle onclick="toggleHideCompleted(!window.hideCompleted)"><span class="dt-dot"></span> Bajarilganlarni yashirish</button>
       </div>
       <div id="plnCalPane">
         <div id="nmzPanel" class="nmz-panel" style="display:none"></div>
@@ -11302,6 +11302,12 @@ function plnSetTab(tab) {
   if (nmzCtl) { nmzCtl.style.display = isSchedule ? 'flex' : 'none'; if (isSchedule) nmzRenderCtl(); }
   // Countdown faqat jadval ko'rinishida sanaydi (fon'da ishlab yotmasin)
   if (isSchedule) nmzTickStart(); else nmzTickStop();
+  // "Bajarilganlarni yashirish" — kalendar/setka ko'rinishida MA'NOSIZ
+  // (u yerda bajarilgan vazifa emas, VAQT bloklari ko'rsatiladi), shuning
+  // uchun faqat ro'yxat/kanban tablarida turadi. Holatning o'zi (hideCompleted)
+  // o'zgarmaydi — boshqa sahifalar avvalgidek ishlaydi.
+  const plnDt = $('plnDoneToggle');
+  if (plnDt) plnDt.style.display = isSchedule ? 'none' : 'inline-flex';
   $('plnCalPane').style.display = isSchedule ? 'block' : 'none';
   $('plnKanbanPane').style.display = isSchedule ? 'none' : 'block';
   $('plnWeekNav').style.display = isSchedule ? 'flex' : 'none';
@@ -11763,6 +11769,12 @@ const NMZ_REGIONS = [
 
 let nmzEnabled = false;
 let nmzRegion = null;
+// 🔴 ANIQ JOYLASHUV (2026-08-09): viloyat markazi 1–2 daqiqa xato berardi
+//    (Qarshi'dagi odam Qashqadaryo markazining vaqtini olardi). aladhan
+//    koordinata bilan ishlaydi — shuning uchun foydalanuvchining O'Z
+//    koordinatasi saqlanadi va aynan u yuboriladi. Viloyat esa QOLADI:
+//    ko'rsatish uchun va islomapi (faqat viloyat bilan ishlaydi) uchun.
+let nmzLat = null, nmzLon = null;
 let _nmzMissing = false;    // TASKFIX_NAMOZ.sql ishga tushirilmagan
 let _nmzBusy = false;       // ikki marta bosilmasin
 
@@ -11774,17 +11786,25 @@ function loadNamozSettings() {
   try {
     _nmzMissing = !(myProfile && Object.prototype.hasOwnProperty.call(myProfile, 'namoz_enabled'));
     if (_nmzMissing) {
-      nmzEnabled = false; nmzRegion = null;
+      nmzEnabled = false; nmzRegion = null; nmzLat = null; nmzLon = null;
       console.warn('namoz: profiles.namoz_enabled ustuni yo\'q — TASKFIX_NAMOZ.sql ishga tushirilmagan.');
       return;
     }
     nmzEnabled = !!myProfile.namoz_enabled;
     nmzRegion = myProfile.namoz_region || null;
+    // Koordinata ixtiyoriy: yo'q bo'lsa viloyat markazi ishlatiladi.
+    // ⚠️ Ikkovi ham bo'lishi shart (DB CHECK ham shunday) — yarmi kelsa tashlaymiz.
+    const la = Number(myProfile.namoz_lat), lo = Number(myProfile.namoz_lon);
+    const hasGeo = myProfile.namoz_lat !== null && myProfile.namoz_lat !== undefined
+                && myProfile.namoz_lon !== null && myProfile.namoz_lon !== undefined
+                && isFinite(la) && isFinite(lo);
+    nmzLat = hasGeo ? la : null;
+    nmzLon = hasGeo ? lo : null;
     // Ustun bor, lekin viloyat yo'q — yoqilgan holat mumkin emas (himoya).
     if (nmzEnabled && !nmzRegion) nmzEnabled = false;
   } catch (e) {
     console.error('loadNamozSettings:', e);
-    nmzEnabled = false; nmzRegion = null;
+    nmzEnabled = false; nmzRegion = null; nmzLat = null; nmzLon = null;
   }
 }
 
@@ -11801,8 +11821,10 @@ function nmzRenderCtl() {
   const reg = $('nmzRegBtn');
   if (reg) {
     reg.style.display = (nmzEnabled && nmzRegion) ? 'inline-flex' : 'none';
-    reg.textContent = nmzRegionLabel(nmzRegion);
-    reg.title = 'Viloyatni o\'zgartirish';
+    reg.textContent = nmzRegionLabel(nmzRegion) + (nmzHasGeo() ? ' · 📍' : '');
+    reg.title = nmzHasGeo()
+      ? 'Aniq joylashuv bo\'yicha hisoblanmoqda — o\'zgartirish uchun bosing'
+      : 'Viloyat markazi bo\'yicha hisoblanmoqda — o\'zgartirish uchun bosing';
   }
 }
 
@@ -11860,7 +11882,10 @@ function nmzGuessRegion() {
     navigator.geolocation.getCurrentPosition(
       function (pos) {
         try {
-          finish(nmzNearestRegion(pos.coords.latitude, pos.coords.longitude));
+          const la = pos.coords.latitude, lo = pos.coords.longitude;
+          const near = nmzNearestRegion(la, lo);
+          // Viloyat — ko'rsatish/zaxira uchun; lat/lon — ANIQ hisob uchun.
+          finish(near ? { value: near.value, km: near.km, lat: la, lon: lo } : null);
         } catch (e) { console.error('nmzGuessRegion:', e); finish(null); }
       },
       function (err) {
@@ -11909,34 +11934,59 @@ async function nmzAskRegion(firstTime) {
 
   const hint = guess
     ? 'Joylashuvingizga eng yaqin viloyat tanlab qo\'yildi — to\'g\'ri bo\'lmasa o\'zgartiring.'
-    : 'Namoz vaqtlari shu viloyat bo\'yicha hisoblanadi.';
+    : 'Viloyat ko\'rsatish uchun; aniq vaqt quyidagi joylashuvdan hisoblanadi.';
 
-  const vals = await uiForm('☾ Viloyatingiz', [
+  const vals = await uiForm('☾ Joylashuvingiz', [
     { id: 'region', type: 'search', label: 'Viloyat', items: items,
       value: (guess && guess.value) || nmzRegion || 'toshkent',
-      placeholder: 'Viloyatni qidiring…', hint: hint }
+      placeholder: 'Viloyatni qidiring…', hint: hint },
+    // 🔴 Shahar aniqligi: viloyat markazi 1–2 daqiqa xato beradi (Qarshi'da
+    //    turib Qashqadaryo markazining vaqti). Yoqilsa aniq koordinata
+    //    ishlatiladi (aladhan koordinata bilan ishlaydi).
+    { id: 'geo', type: 'toggle', label: 'Aniqlik',
+      toggleLabel: 'Aniq joylashuvim bo\'yicha hisoblansin (shahar aniqligi)',
+      value: !!(guess || nmzHasGeo()),
+      hint: 'O\'chirilsa viloyat markazi bo\'yicha hisoblanadi (1–2 daqiqa farq qilishi mumkin).' }
   ], { okText: 'Saqlash' });
   if (!vals) return null;
 
   const pick = vals.region || '';
   if (!nmzRegionById(pick)) { toast('Viloyat tanlanmadi', 'err'); return null; }
-  if (pick === nmzRegion) return pick;
 
-  const prev = nmzRegion;
+  // Koordinata: yoqilgan bo'lsa — yangi olingani, bo'lmasa avvalgisi;
+  // ikkalasi ham yo'q bo'lsa SHU YERDA so'raymiz (foydalanuvchi o'zi yoqdi).
+  let lat = null, lon = null;
+  if (vals.geo) {
+    if (guess && isFinite(guess.lat)) { lat = guess.lat; lon = guess.lon; }
+    else if (nmzHasGeo()) { lat = nmzLat; lon = nmzLon; }
+    else {
+      const g2 = await nmzGuessRegion();
+      if (g2 && isFinite(g2.lat)) { lat = g2.lat; lon = g2.lon; }
+      else toast('Joylashuv olinmadi — viloyat markazi bo\'yicha hisoblanadi', 'err');
+    }
+  }
+
+  const same = pick === nmzRegion
+    && ((lat === null && nmzLat === null) || (lat !== null && nmzLat !== null
+        && Math.abs(lat - nmzLat) < 1e-6 && Math.abs(lon - nmzLon) < 1e-6));
+  if (same) return pick;
+
+  const prevR = nmzRegion, prevLat = nmzLat, prevLon = nmzLon;
   try {
     const { data, error } = await sb.from('profiles')
-      .update({ namoz_region: pick }).eq('id', me.id).select('id, namoz_region');
+      .update({ namoz_region: pick, namoz_lat: lat, namoz_lon: lon })
+      .eq('id', me.id).select('id, namoz_region, namoz_lat, namoz_lon');
     if (error) throw error;
     if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
-    nmzRegion = pick;
-    if (myProfile) myProfile.namoz_region = pick;
+    nmzRegion = pick; nmzLat = lat; nmzLon = lon;
+    if (myProfile) { myProfile.namoz_region = pick; myProfile.namoz_lat = lat; myProfile.namoz_lon = lon; }
     nmzRenderCtl();
-    toast('✅ Viloyat: ' + nmzRegionLabel(pick), 'ok');
+    toast('✅ ' + nmzRegionLabel(pick) + (lat !== null ? ' · aniq joylashuv' : ''), 'ok');
     nmzAfterChange();
     return pick;
   } catch (e) {
     console.error('nmzAskRegion:', e);
-    nmzRegion = prev;
+    nmzRegion = prevR; nmzLat = prevLat; nmzLon = prevLon;
     nmzRenderCtl();
     toast(translateErr(e.message || String(e)), 'err');
     return null;
@@ -11977,7 +12027,20 @@ let _nmzMonth = {};   // 'region|YYYY-MM' → 'loading' | 'ok' | 'err'
 let _nmzErr = null;   // oxirgi xato (panelda ochiq ko'rsatiladi)
 
 function nmzPad(n) { return String(n).padStart(2, '0'); }
-function nmzMonthKey(y, m) { return nmzRegion + '|' + y + '-' + nmzPad(m); }
+
+// Kesh kaliti uchun koordinata: 0.05° ≈ 5.5 km ≈ 12 soniya farq — bir shahar
+// aholisi bitta keshni baham ko'radi, qo'shni shahar esa aralashmaydi.
+// '' = koordinata yo'q (viloyat markazi / islomapi).
+function nmzGeoKey() {
+  if (nmzLat === null || nmzLon === null) return '';
+  const r = function (v) { return (Math.round(v / 0.05) * 0.05).toFixed(2); };
+  return r(nmzLat) + ',' + r(nmzLon);
+}
+function nmzHasGeo() { return nmzGeoKey() !== ''; }
+
+// ⚠️ Oy kaliti geo'ni ham o'z ichiga oladi — koordinata o'zgarsa xotiradagi
+//    eski oy qayta ishlatilmaydi.
+function nmzMonthKey(y, m) { return nmzRegion + '|' + nmzGeoKey() + '|' + y + '-' + nmzPad(m); }
 function nmzDayStr(y, m, d) { return y + '-' + nmzPad(m) + '-' + nmzPad(d); }
 
 // 'HH:MM' → daqiqa. Noto'g'ri bo'lsa null (jimgina 0 ga aylanmasin).
@@ -12071,7 +12134,12 @@ async function nmzFetchIslom(y, m) {
 async function nmzFetchAladhan(y, m) {
   const reg = nmzRegionById(nmzRegion);
   if (!reg) throw new Error('Viloyat tanlanmagan');
-  const url = 'https://api.aladhan.com/v1/calendar?latitude=' + reg.lat + '&longitude=' + reg.lon +
+  // 🔴 Foydalanuvchining ANIQ koordinatasi bo'lsa — aynan u yuboriladi
+  //    (Qarshi'da Qarshi vaqti, Qashqadaryo markazi emas). Bo'lmasa —
+  //    viloyat markazi (avvalgi xatti-harakat).
+  const lat = nmzHasGeo() ? nmzLat : reg.lat;
+  const lon = nmzHasGeo() ? nmzLon : reg.lon;
+  const url = 'https://api.aladhan.com/v1/calendar?latitude=' + lat + '&longitude=' + lon +
               '&method=3&school=1&month=' + m + '&year=' + y;
   const j = await nmzFetchJson(url);
   const arr = j && j.data;
@@ -12089,7 +12157,7 @@ async function nmzFetchAladhan(y, m) {
       asr:     nmzNormTime(t.Asr),
       maghrib: nmzNormTime(t.Maghrib),
       isha:    nmzNormTime(t.Isha),
-      source:  'aladhan.com'
+      source:  'aladhan.com' + (nmzHasGeo() ? ' (aniq joylashuv)' : ' (viloyat markazi)')
     };
     if (nmzValidTimes(o)) out[ds] = o;
   });
@@ -12109,66 +12177,93 @@ async function nmzEnsureMonth(y, m) {
   const from = nmzDayStr(y, m, 1), to = nmzDayStr(y, m, last);
 
   // 2) DB kesh
+  // ⚠️ Ikki xil aniqlik bir jadvalda yotadi: `geo=''` — viloyat markazi
+  //    (islomapi), `geo='38.85,65.80'` — aniq joylashuv (aladhan). Ikkalasini
+  //    ham o'qiymiz, lekin AYNI geo'niki ustun (aniqrog'i tanlanadi).
+  const geo = nmzGeoKey();
   let have = 0;
   try {
-    const { data, error } = await sb.from('namoz_times').select('*')
+    const q = sb.from('namoz_times').select('*')
       .eq('region', nmzRegion).gte('date', from).lte('date', to);
+    const { data, error } = await (geo ? q.in('geo', ['', geo]) : q.eq('geo', ''));
     if (error) throw error;
+    const seen = {};
     (data || []).forEach(function (r) {
       const ds = nmzNormDate(r.date);
       if (!ds || !nmzValidTimes(r)) {
         if (ds) console.warn('namoz: keshdagi qator tekshiruvdan o\'tmadi —', ds);
         return;
       }
+      const exact = (r.geo || '') === geo;
+      // Aniq geo qatori kelsa — taxminiy (viloyat markazi) qatorini bosadi
+      if (seen[ds] && !exact) return;
+      if (!seen[ds]) have++;
+      seen[ds] = true;
       _nmzDays[ds] = { fajr: r.fajr, sunrise: r.sunrise, dhuhr: r.dhuhr, asr: r.asr,
                        maghrib: r.maghrib, isha: r.isha, source: r.source || 'kesh' };
-      have++;
     });
+    // Aniq joylashuv bor, lekin keshda faqat viloyat markazi qatori bo'lsa —
+    // to'liq deb hisoblamaymiz: API'dan aniqrog'ini olamiz.
+    if (geo) {
+      const exactN = (data || []).filter(function (r) { return (r.geo || '') === geo; }).length;
+      if (exactN < last) have = Math.min(have, exactN);
+    }
   } catch (e) {
     // Kesh o'qilmasa ham API bor — bu halokat emas.
     console.error('nmzEnsureMonth (kesh):', e);
   }
   if (have >= last) { _nmzMonth[key] = 'ok'; _nmzErr = null; return true; }
 
-  // 3) API: avval rasmiy manba, keyin zaxira
-  let got = null, err1 = null;
-  try {
-    got = await nmzFetchIslom(y, m);
-  } catch (e) {
-    err1 = e;
-    console.warn('namoz: islomapi ishlamadi —', e && e.message, '→ zaxira manbaga o\'tamiz');
+  // 3) API. 🔴 TARTIB ANIQLIKKA QARAB:
+  //    • aniq koordinata BOR  → avval aladhan (koordinata bilan ishlaydi →
+  //      shahar aniqligi), zaxira islomapi (faqat viloyat);
+  //    • koordinata YO'Q → avval islomapi (rasmiy, viloyat), zaxira aladhan.
+  const order = nmzHasGeo()
+    ? [{ fn: nmzFetchAladhan, nm: 'aladhan', geo: geo }, { fn: nmzFetchIslom, nm: 'islomapi', geo: '' }]
+    : [{ fn: nmzFetchIslom, nm: 'islomapi', geo: '' }, { fn: nmzFetchAladhan, nm: 'aladhan', geo: geo }];
+
+  let got = null, usedGeo = '', usedNm = '', fallback = false;
+  for (let i = 0; i < order.length; i++) {
     try {
-      got = await nmzFetchAladhan(y, m);
-    } catch (e2) {
-      console.error('nmzEnsureMonth (API):', e2);
-      _nmzMonth[key] = 'err';
-      _nmzErr = e2;
-      return false;
+      got = await order[i].fn(y, m);
+      usedGeo = order[i].geo; usedNm = order[i].nm; fallback = i > 0;
+      break;
+    } catch (e) {
+      if (i < order.length - 1) {
+        console.warn('namoz: ' + order[i].nm + ' ishlamadi —', e && e.message, '→ keyingi manbaga o\'tamiz');
+      } else {
+        console.error('nmzEnsureMonth (API):', e);
+        _nmzMonth[key] = 'err';
+        _nmzErr = e;
+        return false;
+      }
     }
   }
 
   Object.keys(got).forEach(function (ds) { _nmzDays[ds] = got[ds]; });
   _nmzMonth[key] = 'ok';
   _nmzErr = null;
-  if (err1) console.info('namoz: zaxira manba ishlatildi (aladhan.com).');
+  if (fallback) console.info('namoz: zaxira manba ishlatildi (' + usedNm + ').');
 
-  nmzCacheSave(got);      // fon — kutilmaydi
+  // ⚠️ Kesh kaliti MA'LUMOTNING o'ziga qarab yoziladi: islomapi natijasi
+  //    viloyat markaziniki (geo=''), aladhan natijasi esa aniq joylashuvniki.
+  nmzCacheSave(got, usedGeo);      // fon — kutilmaydi
   return true;
 }
 
 // DB keshiga yozish — BEST-EFFORT. Foydalanuvchi kutayotgan natija vaqtlar
 // (ular allaqachon ekranda), kesh esa faqat tezlik. Shuning uchun xato
 // toast qilinmaydi, lekin JIMGINA ham yutilmaydi (console.error).
-async function nmzCacheSave(days) {
+async function nmzCacheSave(days, geoKey) {
   try {
     const rows = Object.keys(days).map(function (ds) {
       const o = days[ds];
-      return { region: nmzRegion, date: ds, fajr: o.fajr, sunrise: o.sunrise || null,
+      return { region: nmzRegion, geo: geoKey || '', date: ds, fajr: o.fajr, sunrise: o.sunrise || null,
                dhuhr: o.dhuhr, asr: o.asr, maghrib: o.maghrib, isha: o.isha,
                source: o.source || 'unknown' };
     });
     if (!rows.length) return;
-    const { error } = await sb.from('namoz_times').upsert(rows, { onConflict: 'region,date' });
+    const { error } = await sb.from('namoz_times').upsert(rows, { onConflict: 'region,geo,date' });
     if (error) throw error;
   } catch (e) {
     console.error('nmzCacheSave (kesh yozilmadi, vaqtlar baribir ko\'rsatiladi):', e);
@@ -12205,7 +12300,11 @@ function nmzDay(dateStr) { return _nmzDays[dateStr] || null; }
 //    Asia/Tashkent bo'yicha o'qiladi. O'zbekistonda yagona mintaqa (UTC+5),
 //    yozgi vaqt yo'q, shuning uchun 14 viloyatga ham shu to'g'ri keladi.
 const NMZ_TZ = 'Asia/Tashkent';
-const NMZ_DUR = 30;      // har namoz bloki — 30 daqiqa
+// Blok namoz vaqtining O'ZIDAN emas, undan NMZ_LAG daqiqa KEYIN boshlanadi
+// (azon va tayyorgarlik uchun), keyin NMZ_DUR davom etadi.
+// Masalan peshin 12:07 → blok 12:17–12:42.
+const NMZ_LAG = 10;      // namoz vaqtidan keyingi kechikish (daqiqa)
+const NMZ_DUR = 25;      // blok davomiyligi (daqiqa)
 
 function nmzTodayStr() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: NMZ_TZ }); }
@@ -12242,25 +12341,28 @@ function nmzDayBlocksHtml(ds) {
     const min = nmzToMin(day[k]);
     if (min === null) return;
     const label = NMZ_LABELS[k];
+    // Blok namoz vaqtidan NMZ_LAG daqiqa keyin boshlanadi
+    const bStart = min + NMZ_LAG;
+    const bLbl = plnMinLabel(bStart) + '–' + plnMinLabel(bStart + NMZ_DUR);
+    const title = label + ' ' + day[k] + ' · blok ' + bLbl;
 
-    if (min < gridStart) {
+    if (bStart < gridStart) {
       const top = earlyN * 19;
       earlyN++;
       out += '<div class="nmz-early" style="top:' + top + 'px;" title="' +
-        escapeHtml(label + ' ' + day[k] + ' — jadval boshlanishidan oldin') + '">' +
+        escapeHtml(title + ' — jadval boshlanishidan oldin') + '">' +
         '☾ ' + escapeHtml(label) + ' ' + escapeHtml(day[k]) + '</div>';
       return;
     }
-    if (min >= gridEnd) return;   // setkadan keyin (O'zbekistonda bo'lmaydi — himoya)
+    if (bStart >= gridEnd) return;   // setkadan keyin (O'zbekistonda bo'lmaydi — himoya)
 
-    const dur = Math.min(NMZ_DUR, gridEnd - min);
-    const top = ((min - gridStart) / 60) * PLN_HPX;
+    const dur = Math.min(NMZ_DUR, gridEnd - bStart);
+    const top = ((bStart - gridStart) / 60) * PLN_HPX;
     const height = Math.max(16, (dur / 60) * PLN_HPX);
-    const endLbl = plnMinLabel(min + NMZ_DUR);
     out += '<div class="nmz-blk" style="top:' + top + 'px;height:' + height + 'px;" title="' +
-      escapeHtml(label + ' · ' + day[k] + '–' + endLbl) + '">' +
+      escapeHtml(title) + '">' +
       '<span class="nb-nm">' + escapeHtml(label) + '</span>' +
-      '<span class="nb-tm">' + escapeHtml(day[k]) + '</span>' +
+      '<span class="nb-tm">' + escapeHtml(plnMinLabel(bStart)) + '</span>' +
     '</div>';
   });
   return out;
