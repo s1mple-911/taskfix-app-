@@ -1439,6 +1439,25 @@
   .dft-btn:hover { background: #fff; border-color: rgba(245, 158, 11, .7); }
   .dft-btn.ghost { font-weight: 500; opacity: .8; }
 
+  /* ── ☾ Dam olish kuni ogohlantirishi (dof*) ──────────────────────────────
+     Kehribar = OGOHLANTIRISH, xato emas: deadline QOLADI, avtomat surilmaydi. */
+  .dof-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(245, 158, 11, .13);
+    border: 1px solid rgba(245, 158, 11, .40);
+    color: #92400e; border-radius: 6px;
+    padding: 1px 7px; font-size: 11.5px; font-weight: 600;
+    line-height: 1.55; white-space: nowrap; cursor: help;
+  }
+  .dof-chip::before { content: '☾'; font-weight: 400; opacity: .85; }
+  .dof-hint {
+    font-size: 11.5px; line-height: 1.4; margin-top: 6px;
+    padding: 6px 9px; border-radius: 7px;
+    background: rgba(245, 158, 11, .12);
+    border: 1px solid rgba(245, 158, 11, .38);
+    color: #92400e;
+  }
+
   /* ═══════════════════════════════════════════════════════════════════════
      KICHIK EKRANLI KOMPYUTER (1024 / 1280 / 1366)
      ═══════════════════════════════════════════════════════════════════════
@@ -3029,7 +3048,7 @@
         <div style="font-size:11.5px;color:var(--muted);margin-top:5px;">Tanlansa: bajaruvchi tugatgach vazifa "Qabul kutilyapti"ga o'tadi, qabul qiluvchi tasdiqlaydi.</div>
       </div>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-        <div class="field" style="margin-bottom:0"><label>Deadline</label><div style="display:flex;gap:8px;"><input id="cDeadlineDate" type="date" style="flex:1;" /><input id="cDeadlineTime" type="time" value="18:00" style="width:110px;" /></div>
+        <div class="field" style="margin-bottom:0"><label>Deadline</label><div style="display:flex;gap:8px;"><input id="cDeadlineDate" type="date" style="flex:1;" onchange="dofCreateHint()" /><input id="cDeadlineTime" type="time" value="18:00" style="width:110px;" /></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">
           <button type="button" class="dl-chip" onclick="setDeadlineRel(0)">Bugun</button>
           <button type="button" class="dl-chip" onclick="setDeadlineRel(1)">Ertaga</button>
@@ -3037,7 +3056,8 @@
           <button type="button" class="dl-chip" onclick="setDeadlineRel(3)">+3 kun</button>
           <button type="button" class="dl-chip" onclick="setDeadlineRel(7)">+1 hafta</button>
         </div>
-        <div id="cPlnHint" style="display:none;font-size:11.5px;color:var(--accent-ink);background:var(--accent);opacity:.9;padding:5px 9px;border-radius:7px;margin-top:6px;"></div></div>
+        <div id="cPlnHint" style="display:none;font-size:11.5px;color:var(--accent-ink);background:var(--accent);opacity:.9;padding:5px 9px;border-radius:7px;margin-top:6px;"></div>
+        <div id="dofHint" class="dof-hint" style="display:none;"></div></div>
       <div class="field" style="margin-top:12px;">
         <label>Takrorlanish (ixtiyoriy)</label>
         <select id="cRecur" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:var(--surface);color:var(--ink);">
@@ -3222,6 +3242,7 @@ function setDeadlineRel(days) {
   const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), dd = String(d.getDate()).padStart(2, '0');
   const dateEl = $('cDeadlineDate'); if (dateEl) dateEl.value = y + '-' + m + '-' + dd;
   const timeEl = $('cDeadlineTime'); if (timeEl && !timeEl.value) timeEl.value = '18:00';
+  dofCreateHint();   // dam olish kuni ogohlantirishi (chip bilan sana o'zgardi)
 }
 
 // ============ CHIROYLI MODAL TIZIMI (prompt/confirm o'rniga) ============
@@ -4482,6 +4503,7 @@ function prjTaskCardHtml(t, i, list, ft, curId, canEdit) {
              : (isDone || isCancel ? '' : '<span class="prj-meta-i" style="color:var(--danger);">👤 Biriktirilmagan</span>')) +
     (t.acceptor_id ? prjPersonHtml(t.acceptor_id, '🤝 Qabul: ') : '') +
     (t.deadline ? '<span class="prj-meta-i' + (over ? ' prj-over' : '') + '">⏰ ' + fmtDeadline(t.deadline) + (over ? ' (kechikdi)' : '') + '</span>' : '') +
+    dofBadge(t) +
     (t.recur_days ? '<span class="prj-meta-i" style="color:var(--accent-ink);">🔁 ' + t.recur_days + ' kun</span>' : '') +
     prjDoneByHtml(t);
 
@@ -5491,6 +5513,395 @@ function initials(s) { const p = String(s||'?').trim().split(/\s+/); return ((p[
 function isOverdue(t) { if (!t.deadline) return false; if (t.status !== 'new' && t.status !== 'in_progress') return false; return new Date(t.deadline).getTime() < Date.now(); }
 function fmtDeadline(s) { if (!s) return '—'; const d = new Date(s); const pad = n => String(n).padStart(2, '0'); return pad(d.getDate()) + '.' + pad(d.getMonth() + 1) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
 
+// ============ ☾ DAM OLISH KUNI OGOHLANTIRISHI (dof*) ============
+// Deadline bajaruvchining DAM OLISH kuniga tushsa — kichik ogohlantirish chipi.
+// 🔴 Muddat O'ZGARMAYDI (avtomat surilmaydi, hech narsa bloklanmaydi) — faqat belgi.
+//
+// IKKI QATLAM (A ustun turadi, A bilmasa B):
+//   A) `employee_schedule_days` — HAQIQAT MANBAI (41-migratsiya izohi).
+//      FAQAT ko'rinayotgan (uid, sana) juftliklari uchun nuqtali so'rov;
+//      butun jadval (Aros'da ~40k qator) HECH QACHON yuklanmaydi.
+//      ⚠️ Kun turi faqat `day_type` dan aniqlanadi — 'off' kunda ham
+//         start_time/end_time to'ldirilgan bo'lishi mumkin (manbada 4544 ta).
+//      ⚠️ 'off' bo'yicha filtrlamaymiz, `day_type` ni O'QIYMIZ: shunda "ish kuni"
+//         ham ANIQ javob bo'ladi (aks holda qator yo'qligi "ma'lumot yo'q" bilan
+//         "ish kuni" ni farqlab bo'lmasdi va B naqshi noto'g'ri gapirardi).
+//      ⚠️ RLS `emp_sched_days_select` = `user_id = auth.uid() OR is_ws_manager(...)`
+//         → oddiy a'zo faqat O'Z kunlarini ko'radi, boshqa hodim uchun natija
+//         BO'SH keladi (xato emas) → jimgina B qatlamiga tushadi.
+//   B) `employee_details` naqshi — NOL so'rov (loadHrData allaqachon keshlagan):
+//      weekly → weekend_days (0=Yakshanba…6=Shanba, Date.getDay() bilan bir xil),
+//      monthly → monthly_off_count/monthly_off_position (43-migratsiya),
+//      flexible / ma'lumot yo'q → null = NOMA'LUM, ogohlantirish YO'Q.
+//
+// Xato bo'lsa (jadval yo'q, RLS, tarmoq) — bir marta console.error, keyin jim:
+// ogohlantirish shunchaki ko'rsatilmaydi, ilova buzilmaydi (loadEmailSettings naqshi).
+// ⚠️ SO'ROV SHAKLI (test o'lchovidan keyin qayta yozildi — 2026-08-11).
+// Avvalgi `.in(user_id).in(date)` DEKART ko'paytmasi edi: 126 hodim × 200 sana
+// uchun atigi 500 juftlik kerak bo'lsa ham ~25 000 qator qaytarardi (jadvalda
+// ~40k bor). Undan battari — PostgREST `db-max-rows` (ko'p loyihada 1000)
+// javobni JIMGINA kesardi; kesilgan juftliklar "so'raldi, javob yo'q" bo'lib
+// qolib A qatlami ('on') yo'qolardi va B naqshi (weekend_days) g'alaba qilib
+// YOLG'ON chip berardi.
+// Endi: BYUDJETLI bloklar — har so'rovda `uid soni × sana soni <= DOF_BUDGET`.
+//   • Juftliklar hodim bo'yicha guruhlanadi, hodimlar birinchi sanasi bo'yicha
+//     saralanadi (vaqtda yaqinlari bir blokka tushsin → sanalar birlashmasi kam
+//     o'sadi) va byudjet to'lguncha bitta blokka yig'iladi.
+//   • ⚠️ `gte/lte` ORALIQ o'rniga aynan `.in('date', ...)`: tarqoq sanalarda
+//     oraliq oradagi BARCHA kunlarni tortadi (126 hodim × 6 oylik oraliq ≈ 46k
+//     qator) — ya'ni dekartdan ham battar. Aniq ro'yxat hech qachon oralilqdan
+//     ko'p emas, byudjet esa rektangl kattaligini o'zi cheklaydi.
+//   • Byudjet (800) ataylab keng tarqalgan PostgREST `db-max-rows` (1000) dan
+//     PAST — server chegarasi bizga hech qachon tegmaydi. Ustiga `.limit(1000)`
+//     va `data.length >= DOF_LIMIT` tekshiruvi: KESILGAN bo'lsa `_dofAsked`
+//     belgilanMAYDI (qayta so'raladi), byudjet ikki barobar kichrayadi va
+//     `console.warn` yoziladi. Jimgina kesilish YO'Q — ⚠️ LEKIN qorovul MIJOZ
+//     chegarasi (DOF_LIMIT) bilan solishtiradi, ya'ni bu da'vo server
+//     `db-max-rows >= DOF_LIMIT` bo'lganda to'g'ri (Supabase bulut sukutida
+//     chegara umuman yo'q). Server chegarasi undan PAST qilib sozlansa qorovul
+//     ishlamaydi — o'shanda `{ count: 'exact' }` ga o'tish kerak.
+//   • Bir "to'lqin"da eng ko'pi DOF_MAX_PAIRS juftlik / DOF_MAX_QUERIES so'rov;
+//     sig'magani avtomat keyingi turda (DOF_MAX_ROUNDS gacha) so'raladi.
+const DOF_TZ = 'Asia/Tashkent';
+const DOF_BUDGET = 800;         // bitta so'rovdagi katak (uid × sana) chegarasi
+const DOF_BUDGET_MIN = 60;      // kesilganda kichrayadi, shundan pastga tushmaydi
+const DOF_LIMIT = 1000;         // `.limit()`; data.length shunga yetsa "kesilgan"
+const DOF_UID_CHUNK = 60;       // bitta so'rovdagi hodim soni (URL uzunligi uchun)
+const DOF_MAX_DATES = 120;      // bitta so'rovdagi sana soni (URL uzunligi uchun)
+const DOF_MAX_PAIRS = 400;      // bitta to'lqinda yig'iladigan juftlik
+const DOF_MAX_QUERIES = 6;      // bitta to'lqindagi so'rov soni
+const DOF_MAX_ROUNDS = 5;       // qolgan juftliklar uchun avtomat davom etish chegarasi
+const DOF_DEBOUNCE = 80;        // render paytida yig'ilgan juftliklarni birlashtirish
+const DOF_TITLE = 'Bajaruvchining dam olish kuni — muddat o\'zgarmadi';
+const DOF_WD = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
+let _dofCache = {};       // 'uid|YYYY-MM-DD' -> true (dam) | false (ish)   — FAQAT A qatlami
+let _dofAsked = {};       // 'uid|YYYY-MM-DD' -> true  (ANIQ qamrab olindi; qator kelmasa ham qayta so'ralmaydi)
+let _dofQueue = {};       // yig'ilayotgan juftliklar (render paytida to'ladi)
+let _dofQueueN = 0;       // navbat uzunligi — Object.keys() render ichida O(n) edi
+let _dofPending = null;   // so'rov zanjiri — ustma-ust so'rov bo'lmasin
+let _dofFlushT = null;
+let _dofMissing = false;  // o'qib bo'lmadi — bir marta console.error
+let _dofDirty = false;    // yangi ma'lumot nishonni o'zgartiradi → bir marta qayta chizish
+let _dofRedrawing = false;
+let _dofBudget = DOF_BUDGET;   // kesilganda kichrayadi (moslashuvchan)
+let _dofTruncWarned = false;
+let _dofRounds = 0;       // ketma-ket avtomat turlar
+
+function dofKey(uid, iso) { return String(uid) + '|' + String(iso); }
+
+// Deadline (ISO, UTC) → TOSHKENT kuni.
+// ⚠️ Nega brauzer mintaqasi EMAS: `employee_schedule_days.date` — BIZNES kuni
+//    (Toshkent), deadline ham ilovada `+05:00` bilan QATTIQ yoziladi
+//    (createTask / updateField). Chet elda o'tirgan foydalanuvchining brauzer
+//    mintaqasi bo'yicha hisoblasak, chegara soatlarida boshqa kun chiqib
+//    yolg'on chip berardi. Naqsh: `nmzTodayStr`/`nmzNowMin` (Asia/Tashkent).
+// ⚠️ IZOH (bilib qilingan nomuvofiqlik): `fmtDeadline` ekranda BRAUZER
+//    mintaqasida ko'rsatadi. Chet eldagi foydalanuvchi uchun chip va ko'rinayotgan
+//    sana kamdan-kam hollarda boshqa kunni ko'rsatishi mumkin. To'g'risi —
+//    TOSHKENT kuni: dam olish kuni hodimning ish kuni, u O'zbekistonda ishlaydi.
+// ⚠️ toISOString().slice(0,10) ISHLATILMAYDI: Toshkent UTC'dan 5 soat OLDINDA,
+//    ya'ni mahalliy 00:00–04:59 oralig'idagi deadline UTC'da OLDINGI kunga tushardi.
+// ⚠️ Formatter MODUL DARAJASIDA keshlanadi — `toLocaleDateString(...)` har
+//    chaqiruvda yangi Intl formatter quradi (o'lchandi: 5000 vazifada 35→187ms,
+//    `refreshActiveView` esa qidiruvning har harfida ishlaydi).
+let _dofFmt = null;
+function dofDayIso(s) {
+  if (!s) return '';
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return '';
+  try {
+    if (!_dofFmt) _dofFmt = new Intl.DateTimeFormat('en-CA', { timeZone: DOF_TZ });
+    const iso = _dofFmt.format(d);
+    // `en-CA` qo'llab-quvvatlanmasa brauzer throw QILMAY '9/8/2026' qaytaradi —
+    // axlat ISO `.in('date',…)` ga tushmasin, zaxiraga o'tamiz.
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) throw new Error('kutilmagan format: ' + iso);
+    return iso;
+  } catch (e) { console.error('dofDayIso (Toshkent kuni):', e); return schIso(d); }
+}
+
+function dofParseIso(iso) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(iso || ''))) return null;
+  const d = new Date(iso + 'T00:00:00');
+  return isNaN(d.getTime()) ? null : d;
+}
+
+// ─── B QATLAMI: employee_details naqshi (so'rovsiz) ───
+function dofPatternOff(uid, iso) {
+  const det = (typeof empDetails !== 'undefined' && empDetails) ? empDetails[uid] : null;
+  if (!det) return null;
+  const dt = dofParseIso(iso);
+  if (!dt) return null;
+  const type = det.schedule_type || '';
+  if (type === 'weekly') {
+    const wd = det.weekend_days;
+    if (!Array.isArray(wd) || !wd.length) return null;   // naqsh yo'q → noma'lum
+    return wd.map(Number).indexOf(dt.getDay()) !== -1;
+  }
+  if (type === 'monthly') {
+    const cnt = Number(det.monthly_off_count || 0);
+    const pos = det.monthly_off_position;
+    // 43-migratsiya ishga tushmagan bo'lsa ustunlar yo'q → cnt=0/pos=undefined → noma'lum
+    if (!cnt || (pos !== 'start' && pos !== 'end')) return null;
+    const dim = new Date(dt.getFullYear(), dt.getMonth() + 1, 0).getDate();
+    const dom = dt.getDate();
+    return pos === 'start' ? (dom <= cnt) : (dom > dim - cnt);
+  }
+  return null;   // flexible yoki noma'lum rejim — naqsh yo'q, OGOHLANTIRISH YO'Q
+}
+
+// Sinxron javob: true (dam) | false (ish) | null (noma'lum)
+function dofIsOff(uid, iso) {
+  if (!uid || !iso) return null;
+  const k = dofKey(uid, iso);
+  if (Object.prototype.hasOwnProperty.call(_dofCache, k)) return _dofCache[k];
+  return dofPatternOff(uid, iso);
+}
+
+function dofHas(k) { return Object.prototype.hasOwnProperty.call(_dofCache, k); }
+
+// Juftliklarni BYUDJETLI bloklarga bo'ladi: [{uids:[...], dates:[...]}],
+// har blokda uids.length × dates.length <= _dofBudget.
+// Hodimlar birinchi sanasi bo'yicha saralanadi — vaqtda yaqinlari bir blokka
+// tushib, sanalar birlashmasi sekin o'ssin (ortiqcha katak kam bo'lsin).
+function dofBlocks(need) {
+  const byUid = {};
+  need.forEach(function (p) { (byUid[p.uid] = byUid[p.uid] || []).push(p.iso); });
+  const uids = Object.keys(byUid);
+  uids.forEach(function (u) { byUid[u] = Array.from(new Set(byUid[u])).sort(); });
+  uids.sort(function (a, b) { return byUid[a][0] < byUid[b][0] ? -1 : (byUid[a][0] > byUid[b][0] ? 1 : 0); });
+
+  const blocks = [];
+  let cur = null;
+  uids.forEach(function (u) {
+    const mine = byUid[u];
+    if (cur) {
+      const merged = new Set(cur.dates);
+      mine.forEach(function (d) { merged.add(d); });
+      if ((cur.uids.length + 1) * merged.size <= _dofBudget &&
+          cur.uids.length + 1 <= DOF_UID_CHUNK &&
+          merged.size <= DOF_MAX_DATES) {
+        cur.uids.push(u); cur.dates = merged; return;
+      }
+    }
+    // Yangi blok. Bitta hodimning sanalari o'zi sig'masa — bo'laklarga bo'linadi.
+    const cap = Math.max(1, Math.min(DOF_MAX_DATES, _dofBudget));
+    if (mine.length > cap) {
+      for (let i = 0; i < mine.length; i += cap) blocks.push({ uids: [u], dates: new Set(mine.slice(i, i + cap)) });
+      cur = null;
+      return;
+    }
+    cur = { uids: [u], dates: new Set(mine) };
+    blocks.push(cur);
+  });
+  return blocks.map(function (b) { return { uids: b.uids, dates: Array.from(b.dates).sort() }; });
+}
+
+// Hali javob olinmagan juftliklar (chegaraga ilinganlar) — keyingi turda so'raladi.
+function dofLeftover(needPairs) {
+  return needPairs.filter(function (p) {
+    const k = dofKey(p.uid, p.iso);
+    return !_dofAsked[k] && !dofHas(k);
+  });
+}
+
+// Nuqtali so'rov. pairs: [{uid, iso}]. Hech qachon throw QILMAYDI.
+// Qaytaradi: qamrab olinMAGAN juftliklar ro'yxati (dofFlush ularni davom ettiradi).
+async function dofPrefetch(pairs) {
+  if (!currentWs || _dofMissing || !Array.isArray(pairs) || !pairs.length) return [];
+  const need = [];
+  pairs.forEach(function (p) {
+    if (!p || !p.uid || !p.iso) return;
+    const k = dofKey(p.uid, p.iso);
+    if (_dofAsked[k] || dofHas(k)) return;
+    need.push(p);
+  });
+  if (!need.length) return [];
+  const blocks = dofBlocks(need);
+  const wsId = currentWs.id;
+  let qCount = 0;
+  for (let bi = 0; bi < blocks.length; bi++) {
+    if (qCount >= DOF_MAX_QUERIES) return dofLeftover(need);   // qolgani keyingi turda
+    qCount++;
+    const b = blocks[bi];
+    const { data, error } = await sb.from('employee_schedule_days')
+      .select('user_id, date, day_type')
+      .eq('workspace_id', wsId)
+      .in('user_id', b.uids)
+      .in('date', b.dates)
+      .limit(DOF_LIMIT);
+    if (error) {
+      // Jadval yo'q / RLS / tarmoq — bir marta yozamiz, keyin jim.
+      _dofMissing = true;
+      console.error('dam olish kunlari o\'qilmadi (ogohlantirish ko\'rsatilmaydi):', error.message || error);
+      return [];
+    }
+    // Javob kelguncha workspace almashgan bo'lishi mumkin (loadHrData naqshi)
+    if (!currentWs || currentWs.id !== wsId) return [];
+    const rows = data || [];
+    rows.forEach(function (r) {
+      const iso = String(r.date || '').slice(0, 10);
+      if (!iso) return;
+      const off = r.day_type === 'off';
+      const prev = dofIsOff(r.user_id, iso);   // eski javob (kesh yoki naqsh)
+      _dofCache[dofKey(r.user_id, iso)] = off;
+      if (prev !== off) _dofDirty = true;      // nishon o'zgardi → qayta chizamiz
+    });
+    if (rows.length >= DOF_LIMIT) {
+      // KESILGAN bo'lishi mumkin (server `db-max-rows` yoki `.limit`).
+      // Kelgan qatorlar to'g'ri — ular keshda qoladi; lekin "qator yo'q = ish kuni"
+      // xulosasini chiqarib bo'lmaydi → _dofAsked BELGILANMAYDI (qayta so'raladi),
+      // aks holda A qatlami yo'qolib B naqshi YOLG'ON chip berardi.
+      _dofBudget = Math.max(DOF_BUDGET_MIN, Math.floor(_dofBudget / 2));
+      if (!_dofTruncWarned) {
+        _dofTruncWarned = true;
+        console.warn('dam olish kunlari: javob chegaraga yetdi (' + rows.length + ' qator) — byudjet ' + _dofBudget + ' katakka kichraytirildi, qolgani qayta so\'raladi');
+      }
+      continue;
+    }
+    // To'liq javob: blokdagi HAR (uid, sana) katagi qamrab olindi → "qator yo'q"
+    // ANIQ ma'noga ega (A qatlami bilmaydi → B naqshi gapiradi).
+    b.uids.forEach(function (u) { b.dates.forEach(function (iso) { _dofAsked[dofKey(u, iso)] = true; }); });
+  }
+  return dofLeftover(need);
+}
+
+// Render paytida chaqiriladi: noma'lum juftlikni navbatga qo'yadi (bloklamaydi).
+// ⚠️ Navbat uzunligi HISOBLAGICHDAN o'qiladi — `Object.keys(_dofQueue).length`
+//    har kartochkada O(n) edi (5000 vazifada ~30ms render'ga qo'shilardi).
+function dofWant(uid, iso) {
+  if (!uid || !iso || _dofMissing || !currentWs) return;
+  const k = dofKey(uid, iso);
+  if (_dofAsked[k] || _dofQueue[k] || dofHas(k)) return;
+  if (_dofQueueN >= DOF_MAX_PAIRS) return;   // to'lqin chegarasi
+  _dofQueue[k] = { uid: uid, iso: iso };
+  _dofQueueN++;
+  if (_dofFlushT) return;
+  _dofFlushT = setTimeout(dofFlush, DOF_DEBOUNCE);
+}
+
+function dofFlush() {
+  _dofFlushT = null;
+  const keys = Object.keys(_dofQueue);
+  if (!keys.length) { _dofRounds = 0; return; }
+  const pairs = keys.map(function (k) { return _dofQueue[k]; });
+  _dofQueue = {}; _dofQueueN = 0;
+  _dofPending = (_dofPending || Promise.resolve())
+    .then(function () { return dofPrefetch(pairs); })
+    .then(function (left) {
+      if (_dofDirty) dofRedraw();
+      // Chegaraga ilingan (so'rov soni / kesilish) juftliklar — avtomat davom etamiz.
+      // DOF_MAX_ROUNDS dan keyin to'xtaymiz: keyingi chizishda yana urinib ko'riladi
+      // (jimgina cheksiz aylanish YO'Q).
+      if (!left || !left.length || _dofMissing) { _dofRounds = 0; return; }
+      if (_dofRounds >= DOF_MAX_ROUNDS) {
+        _dofRounds = 0;
+        console.warn('dam olish kunlari: juda ko\'p juftlik (' + left.length + ') — qolgani keyingi chizishda so\'raladi');
+        return;
+      }
+      _dofRounds++;
+      left.forEach(function (p) { dofWant(p.uid, p.iso); });
+    })
+    .catch(function (e) { console.error('dof yuklash:', e && (e.message || e)); });
+}
+
+// Ma'lumot kelgach jimgina qayta chizish (loadHrData naqshi).
+// Sikl bo'lmaydi: qayta chizishda barcha juftliklar allaqachon _dofAsked'da.
+function dofRedraw() {
+  _dofDirty = false;
+  if (_dofRedrawing) return;
+  _dofRedrawing = true;
+  try {
+    refreshActiveView();
+    if (currentDetailId) renderDetailBody();
+    dofCreateHint();
+  } catch (e) {
+    console.error('dof qayta chizish:', e && (e.message || e));
+  } finally {
+    _dofRedrawing = false;
+  }
+}
+
+function dofClear() {
+  _dofCache = {}; _dofAsked = {}; _dofQueue = {}; _dofQueueN = 0;
+  _dofMissing = false; _dofDirty = false;
+  _dofBudget = DOF_BUDGET; _dofTruncWarned = false; _dofRounds = 0;
+  if (_dofFlushT) { clearTimeout(_dofFlushT); _dofFlushT = null; }
+}
+
+function dofChipHtml() {
+  return '<span class="dof-chip" title="' + escapeHtml(DOF_TITLE) + '">dam olish kuni</span>';
+}
+
+// Vazifa obyektidan nishon (yoki bo'sh matn). Sinxron — render'ni bloklamaydi.
+function dofBadge(t) {
+  if (!t || !t.deadline || !t.assigned_to) return '';
+  if (t.status === 'completed' || t.status === 'cancelled') return '';   // tugagan ishda ogohlantirish shovqin
+  const iso = dofDayIso(t.deadline);
+  if (!iso) return '';
+  dofWant(t.assigned_to, iso);
+  return dofIsOff(t.assigned_to, iso) === true ? dofChipHtml() : '';
+}
+
+// ─── Vazifa YARATISH oynasidagi ogohlantirish (sana hali o'zgartirilishi mumkin) ───
+function dofName(uid) {
+  if (uid === me.id) return (myProfile && myProfile.full_name) || 'Siz';
+  const m = (wsMembers || []).find(function (x) { return x.user_id === uid; });
+  return (m && m.profile && m.profile.full_name) || 'A\'zo';
+}
+
+function dofDayLabel(iso) {
+  const d = dofParseIso(iso);
+  if (!d) return iso;
+  return String(d.getDate()).padStart(2, '0') + '.' + String(d.getMonth() + 1).padStart(2, '0') + ' (' + DOF_WD[d.getDay()] + ')';
+}
+
+// Yaratish oynasida tanlangan HAQIQIY user id'lar (msCountFinal mantig'i,
+// lekin faqat auth foydalanuvchilari — jadval user_id bo'yicha).
+function dofSelectedUids() {
+  const ids = {};
+  const sel = (typeof msSelected !== 'undefined' && msSelected) ? msSelected : [];
+  sel.forEach(function (s) {
+    if (!s) return;
+    if (s.type === 'me') ids[me.id] = 1;
+    else if (s.type === 'user') ids[s.id] = 1;
+    else if (s.type === 'branch' || s.type === 'position') {
+      (tgUsersCache || []).forEach(function (u) {
+        if (u.state !== 'completed' || !u.linked_user_id) return;
+        const hit = s.type === 'branch' ? (u.branch_id === s.id) : (u.position === s.id);
+        if (hit) ids[u.linked_user_id] = 1;
+      });
+    }
+  });
+  return Object.keys(ids);
+}
+
+function dofHintHide() {
+  const box = $('dofHint');
+  if (box) { box.style.display = 'none'; box.innerHTML = ''; }
+}
+
+function dofCreateHint() {
+  const box = $('dofHint');
+  if (!box) return;
+  const bd = $('createBd');
+  if (!bd || !bd.classList.contains('show')) { dofHintHide(); return; }
+  const dEl = $('cDeadlineDate');
+  const iso = dEl ? (dEl.value || '') : '';
+  if (!dofParseIso(iso)) { dofHintHide(); return; }
+  const uids = dofSelectedUids();
+  if (!uids.length) { dofHintHide(); return; }
+  const names = [];
+  uids.forEach(function (uid) {
+    dofWant(uid, iso);
+    if (dofIsOff(uid, iso) === true) names.push(dofName(uid));
+  });
+  if (!names.length) { dofHintHide(); return; }
+  box.innerHTML = '<b>' + escapeHtml(dofDayLabel(iso)) + '</b> — ' +
+    escapeHtml(names.join(', ')) + ' uchun dam olish kuni. ' +
+    'Muddat o\'zgartirilmaydi, xohlasangiz sanani almashtiring.';
+  box.style.display = 'block';
+}
+
 // ============ AUTH ============
 function setMode(m) {
   mode = m;
@@ -6455,6 +6866,8 @@ async function loadCurrentContext() {
   // Loyiha muddati bayroqlari ham — TASKFIX_LOYIHA.sql / TASKFIX_PROJECT.sql
   // sessiya davomida ishga tushirilsa, F5 siz tuzalsin.
   _prjLoyihaMissing = false; _prjLoyihaWarned = false; _prjFlowWarned = false;
+  // Dam olish kunlari keshi — boshqa workspace, boshqa jadval (va boshqa RLS ko'rinishi)
+  dofClear();
 
   const wsId = currentWs.id;
   const isOrg = currentWs.kind === 'organization';
@@ -8128,6 +8541,7 @@ function taskItemHtml(t, showDept) {
   const ov = isOverdue(t);
   const completed = t.status === 'completed';
   const dlText = t.deadline ? fmtDeadline(t.deadline) : '';
+  const dofB = dofBadge(t);   // deadline bajaruvchining dam olish kuniga tushdimi?
   const dept = showDept && t.department_id ? (departments.find(d=>d.id===t.department_id) || {}).name : '';
   // Assignee: auth user yoki TG-only
   let asgName = '';
@@ -8148,6 +8562,7 @@ function taskItemHtml(t, showDept) {
         (asgName ? '<span class="dot-sep"></span><span>👤 ' + escapeHtml(asgName) + '</span>' : '') +
         (((t.status === 'qabul_kutilyapti' || completed) && (t.bajardi_user_id || t.submitter_id)) ? '<span class="dot-sep"></span><span style="color:#059669;">' + escapeHtml('✓ ' + _nmShort(t.bajardi_user_id || t.submitter_id)) + '</span>' : '') +
         (dlText ? '<span class="dot-sep"></span><span class="' + (ov ? 'task-overdue' : '') + '">⏰ ' + dlText + '</span>' : '') +
+        (dofB ? '<span class="dot-sep"></span>' + dofB : '') +
         ((t.priority_level || 0) > 0 ? '<span class="dot-sep"></span><span>P' + t.priority_level + '</span>' : '') +
       '</div>' +
     '</div>' +
@@ -8168,6 +8583,7 @@ function openCreateForDept() { openCreateInternal(currentDeptId); }
 function openCreateInternal(forceDeptId) {
   $('cTitle').value=''; $('cDesc').value=''; $('cDeadlineDate').value=''; $('cDeadlineTime').value='18:00'; $('cPriority').value='0'; if ($('cRecur')) $('cRecur').value='';
   const _plnH = $('cPlnHint'); if (_plnH && !window._plnPendingSchedule) _plnH.style.display = 'none';
+  dofHintHide();   // dam olish ogohlantirishi — yangi oyna toza boshlanadi
   // Qabul qiluvchi dropdown (A→Z)
   const _acc = $('cAcceptor');
   if (_acc) {
@@ -8433,6 +8849,7 @@ function msUpdateSummary() {
     el.classList.add('has-selection');
   }
   plnUpdateHintVisibility();
+  dofCreateHint();   // bajaruvchi o'zgardi → dam olish kuni ogohlantirishini qayta hisoblash
 }
 
 // Reja vaqt yorlig'i — FAQAT o'zimga (yoki hech kimga) biriktirilganda ko'rinadi
@@ -8729,6 +9146,7 @@ function closeCreate() {
   window._cQuickStatus = null;
   window._plnPendingSchedule = null; // planner reja holatini tozalaymiz (leak oldini olish)
   const _plnH = $('cPlnHint'); if (_plnH) _plnH.style.display = 'none';
+  dofHintHide();
   const cBtn = $('cBtn');
   if (cBtn) { cBtn.disabled = false; cBtn.textContent = 'Yaratish'; }
 }
@@ -9467,6 +9885,9 @@ function renderDetailBody() {
   const deadlineHtml = _canDl
     ? '<input type="datetime-local" value="' + (t.deadline ? toInputDt(t.deadline) : '') + '" onchange="updateField(\'deadline\', this.value ? new Date(this.value + \'+05:00\').toISOString() : null)" style="padding:6px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; background: var(--surface); font-family:inherit;" />'
     : (t.deadline ? fmtDeadline(t.deadline) + (ov?' (o\'tgan)':'') : 'yo\'q');
+  // Dam olish kuni nishoni. ⚠️ Nishon BO'LMASA qator mutlaqo eski holida qoladi
+  // (display:flex ham qo'shilmaydi) — mavjud ko'rinishga tegmaslik uchun.
+  const _dofDl = dofBadge(t);
 
   // Priority (inline edit)
   const prioHtml = canEditTask
@@ -9562,7 +9983,7 @@ function renderDetailBody() {
     deptHtml +
     (asgLine ? '<div class="detail-row"><div class="lbl">Biriktirildi</div><div class="val">'+escapeHtml(asgLine)+'</div></div>' : '') +
     acceptorLine +
-    '<div class="detail-row"><div class="lbl">Deadline</div><div class="val '+(ov?'task-overdue':'')+'">'+deadlineHtml+'</div></div>' +
+    '<div class="detail-row"><div class="lbl">Deadline</div><div class="val '+(ov?'task-overdue':'')+'"'+(_dofDl?' style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"':'')+'>'+deadlineHtml+_dofDl+'</div></div>' +
     plnLine +
     '<div class="detail-row"><div class="lbl">Prioritet</div><div class="val">'+prioHtml+'</div></div>' +
     '<div class="detail-row"><div class="lbl">Yaratilgan</div><div class="val">'+new Date(t.created_at).toLocaleString('uz-UZ')+'</div></div>' +
@@ -12772,6 +13193,7 @@ function plnOpenCreate(dateStr, startMin, durMin) {
     const hint = $('cPlnHint');
     if (hint) { hint.style.display = 'block'; hint.textContent = "🗓 Rejaga qo'shiladi: " + dateStr + " " + plnMinLabel(startMin) + " - " + plnMinLabel(startMin + durMin); }
     plnUpdateHintVisibility();
+    dofCreateHint();   // sana dasturiy qo'yildi — onchange ishlamaydi
   }, 80);
 }
 
@@ -12940,6 +13362,7 @@ function renderTasksKanban(gridId) {
           (asgName ? '<span>' + escapeHtml(asgName) + '</span>' : '') +
           (((t.status === 'qabul_kutilyapti' || isDone) && (t.bajardi_user_id || t.submitter_id)) ? '<span style="color:#059669;">' + escapeHtml('✓ ' + _nmShort(t.bajardi_user_id || t.submitter_id)) + '</span>' : '') +
           (dl ? '<span class="' + (ov ? 'task-overdue' : '') + '">⏰ ' + dl + '</span>' : '') +
+          dofBadge(t) +
           ((t.priority_level||0) > 0 ? '<span>P' + t.priority_level + '</span>' : '') +
         '</div>' +
       '</div>';
@@ -14080,6 +14503,7 @@ function renderKanban() {
         '<div class="kan-card-meta">' +
           (asgName ? '<span>' + escapeHtml(asgName) + '</span>' : '') +
           (dl ? '<span class="' + (ov ? 'task-overdue' : '') + '">⏰ ' + dl + '</span>' : '') +
+          dofBadge(t) +
           ((t.priority_level||0) > 0 ? '<span>P' + t.priority_level + '</span>' : '') +
         '</div>' +
       '</div>';
