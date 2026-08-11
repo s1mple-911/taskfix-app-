@@ -296,6 +296,13 @@
     font-size:12px; padding:3px 10px; border-radius:999px; cursor:pointer; }
   .nmz-retry:hover { background:var(--nmz-soft); }
   .nmz-src { margin-top:5px; font-size:11px; color:var(--muted); }
+  /* Lentani yopish (×) — holat localStorage'da, bloklarga tegmaydi */
+  .nmz-x { flex:none; margin-left:auto; width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center;
+    background:none; border:none; border-radius:6px; color:var(--nmz-ink); opacity:.5; font-size:17px; line-height:1;
+    font-family:inherit; cursor:pointer; padding:0; transition:opacity .12s, background .12s; }
+  .nmz-x:hover { opacity:1; background:rgba(0,0,0,.06); }
+  .nmz-x:focus-visible { outline:2px solid var(--accent-ink); outline-offset:1px; opacity:1; }
+  .nmz-cd + .nmz-x { margin-left:8px; }   /* countdown allaqachon o'ngga surgan */
 
   /* Kalendar bloklari — vazifa bloklaridan ATAYLAB boshqacha: pastel fon,
      chap chekkada urg'u, soyasiz. ⚠️ pointer-events:none — planner'ning
@@ -1596,6 +1603,7 @@
         <div id="nmzCtl" style="display:none;align-items:center;gap:8px;margin-left:auto;">
           <button type="button" class="nmz-toggle" id="nmzToggle" aria-pressed="false" onclick="nmzToggleClick()"><span class="nmz-moon">☾</span> Muslim</button>
           <button type="button" class="nmz-reg" id="nmzRegBtn" style="display:none" onclick="nmzAskRegion()">—</button>
+          <button type="button" class="nmz-reg nmz-show" id="nmzShowBtn" style="display:none" onclick="nmzPanelSetHidden(false)" title="Namoz vaqtlari lentasini qaytarish">☾ Vaqtlar</button>
         </div>
         <div id="plnWeekNav" style="display:flex;align-items:center;gap:8px;">
           <button class="btn sm secondary" onclick="plnNav(-1)">‹</button>
@@ -12355,6 +12363,9 @@ function nmzRenderCtl() {
       ? 'Aniq joylashuv bo\'yicha hisoblanmoqda — o\'zgartirish uchun bosing'
       : 'Viloyat markazi bo\'yicha hisoblanmoqda — o\'zgartirish uchun bosing';
   }
+  // Lenta yopilgan bo'lsa — uni qaytarish tugmasi (modul yoniq turganda)
+  const show = $('nmzShowBtn');
+  if (show) show.style.display = (nmzEnabled && nmzRegion && !_nmzMissing && nmzPanelHidden()) ? 'inline-flex' : 'none';
 }
 
 async function nmzToggleClick() {
@@ -12926,11 +12937,30 @@ function nmzLeftLabel(mins) {
   return (h ? (h + ':' + nmzPad(m)) : String(m)) + ':' + nmzPad(s);
 }
 
+// Tepadagi jonli lenta yopilganmi (foydalanuvchi × bosgan).
+// ⚠️ FAQAT lenta yashiriladi — rejadagi namoz bloklari (nmzDayBlocksHtml)
+//    va modulning o'zi o'chmaydi. Holat brauzerda saqlanadi.
+function nmzPanelHidden() {
+  try { return localStorage.getItem('nmz_panel_hidden') === '1'; } catch (e) { return false; }
+}
+function nmzPanelSetHidden(hide) {
+  try { localStorage.setItem('nmz_panel_hidden', hide ? '1' : '0'); }
+  catch (e) { console.error('namoz lentasi holati saqlanmadi:', e); }
+  nmzRenderPanel();
+  nmzRenderCtl();
+  // Yopilganda sekundlik hisob keraksiz, ochilganda qayta yuriydi
+  if (hide) nmzTickStop();
+  else if (currentPage === 'planner' && plnTab === 'schedule') nmzTickStart();
+}
+
 function nmzRenderPanel() {
   const el = $('nmzPanel');
   if (!el) return;
   if (!nmzEnabled || !nmzRegion || _nmzMissing) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  if (nmzPanelHidden()) { el.style.display = 'none'; el.innerHTML = ''; return; }
   el.style.display = 'block';
+  // Har holatda (yuklanmoqda / xato / vaqtlar) yopish tugmasi bo'lsin
+  const xBtn = '<button type="button" class="nmz-x" onclick="nmzPanelSetHidden(true)" title="Lentani yopish (keyin ☾ Vaqtlar bilan qaytariladi)" aria-label="Yopish">×</button>';
 
   const ds = nmzTodayStr();
   const day = nmzDay(ds);
@@ -12946,6 +12976,7 @@ function nmzRenderPanel() {
                      : 'Namoz vaqtlari topilmadi')) +
       '</span>' +
       (st === 'loading' ? '' : '<button class="nmz-retry" onclick="nmzReload()">Qayta urinish</button>') +
+      xBtn +
       '</div>';
     return;
   }
@@ -12967,6 +12998,7 @@ function nmzRenderPanel() {
       '<span class="nmz-reg-lbl">☾ ' + escapeHtml(nmzRegionLabel(nmzRegion)) + '</span>' +
       '<span class="nmz-chips">' + chips + '</span>' +
       (nx ? '<span class="nmz-cd" id="nmzCd">' + escapeHtml(nmzCdText(nx)) + '</span>' : '') +
+      xBtn +
     '</div>' +
     (src ? '<div class="nmz-src">Manba: ' + escapeHtml(src) +
             (src.indexOf('aladhan') === 0 ? ' (zaxira — rasmiy jadvaldan 1–3 daqiqa farq qilishi mumkin)' : '') +
@@ -12995,6 +13027,7 @@ function nmzTickStart() {
   nmzTickStop();
   if (!nmzEnabled || !nmzRegion || _nmzMissing) return;
   nmzRenderPanel();
+  if (nmzPanelHidden()) return;   // lenta yopiq — sekundlik hisob keraksiz
   _nmzTick = setInterval(nmzTickUpdate, 1000);
 }
 function nmzTickStop() {
@@ -13002,6 +13035,9 @@ function nmzTickStop() {
 }
 function nmzTickUpdate() {
   if (currentPage !== 'planner' || plnTab !== 'schedule' || !nmzEnabled) { nmzTickStop(); return; }
+  // ⚠️ Lenta yopiq bo'lsa to'xtaymiz — aks holda `nmzCd` yo'qligi sababli
+  //    har soniyada nmzRenderPanel() chaqirilib turardi.
+  if (nmzPanelHidden()) { nmzTickStop(); return; }
   const cd = $('nmzCd');
   if (!cd) { nmzRenderPanel(); return; }
   const ds = nmzTodayStr();
