@@ -29,6 +29,8 @@
     --warn: #F59E0B; --warn-soft: #FEF3C7;
     --danger: #EF4444; --danger-soft: #FEE2E2;
     --info: #0EA5E9; --info-soft: #DBEAFE;
+    /* Namoz (nmz*) — vazifa ranglaridan ajralib tursin: bosiq zaytun-yashil */
+    --nmz: #4E7A5B; --nmz-ink: #2F4A38; --nmz-soft: #E8F0EA;
     /* Layout */
     --radius: 14px;
     --shadow: 0 1px 2px rgba(28,31,36,.05), 0 4px 16px rgba(28,31,36,.04);
@@ -262,6 +264,55 @@
   .done-toggle.active { background:var(--accent); border-color:var(--accent-ink); color:var(--accent-ink); }
   .done-toggle.active .dt-dot { background:var(--accent-ink); border-color:var(--accent-ink); }
   .done-toggle.active .dt-dot::after { content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:10px; color:var(--accent); font-weight:700; }
+  /* ==== ☾ Namoz vaqtlari (nmz*) ==== */
+  .nmz-toggle { display:inline-flex; align-items:center; gap:7px; padding:6px 13px; border:1px solid var(--line); border-radius:999px;
+    background:var(--surface); font-size:12.5px; font-weight:500; color:var(--muted); cursor:pointer; white-space:nowrap;
+    font-family:inherit; transition:all .12s; }
+  .nmz-toggle:hover { border-color:var(--line-strong); color:var(--ink); }
+  .nmz-toggle .nmz-moon { font-size:13px; line-height:1; opacity:.75; transition:opacity .12s; }
+  .nmz-toggle.active { background:var(--nmz-soft); border-color:var(--nmz); color:var(--nmz-ink); font-weight:600; }
+  .nmz-toggle.active .nmz-moon { opacity:1; }
+  .nmz-toggle:focus-visible, .nmz-reg:focus-visible { outline:2px solid var(--accent-ink); outline-offset:1px; }
+  .nmz-reg { display:inline-flex; align-items:center; padding:5px 11px; border:1px solid var(--line); border-radius:999px;
+    background:var(--surface); font-size:12px; font-weight:500; color:var(--muted); cursor:pointer; white-space:nowrap;
+    font-family:inherit; transition:all .12s; }
+  .nmz-reg:hover { border-color:var(--line-strong); color:var(--ink); }
+
+  /* Jonli panel — kalendar ustida, bir qator (tor ekranda o'raladi) */
+  .nmz-panel { background:var(--nmz-soft); border:1px solid #CFE0D4; border-radius:12px; padding:9px 13px; margin-bottom:12px; }
+  .nmz-line { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .nmz-reg-lbl { font-size:12.5px; font-weight:600; color:var(--nmz-ink); white-space:nowrap; }
+  .nmz-chips { display:flex; align-items:center; gap:6px; flex-wrap:wrap; flex:1; min-width:0; }
+  .nmz-chip { display:inline-flex; align-items:baseline; gap:5px; padding:3px 9px; border-radius:999px;
+    background:var(--surface); border:1px solid #D8E5DC; font-size:12px; color:var(--nmz-ink);
+    font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .nmz-chip b { font-weight:600; font-size:11px; color:var(--muted); }
+  .nmz-chip.now { background:var(--nmz); border-color:var(--nmz); color:#fff; }
+  .nmz-chip.now b { color:rgba(255,255,255,.8); }
+  .nmz-chip.next { border-color:var(--nmz); box-shadow:0 0 0 2px rgba(78,122,91,.14); font-weight:600; }
+  .nmz-cd { font-size:12.5px; font-weight:600; color:var(--nmz-ink); font-variant-numeric:tabular-nums; white-space:nowrap; margin-left:auto; }
+  .nmz-msg { font-size:12.5px; color:var(--muted); }
+  .nmz-retry { border:1px solid #CFE0D4; background:var(--surface); color:var(--nmz-ink); font-family:inherit;
+    font-size:12px; padding:3px 10px; border-radius:999px; cursor:pointer; }
+  .nmz-retry:hover { background:var(--nmz-soft); }
+  .nmz-src { margin-top:5px; font-size:11px; color:var(--muted); }
+
+  /* Kalendar bloklari — vazifa bloklaridan ATAYLAB boshqacha: pastel fon,
+     chap chekkada urg'u, soyasiz. ⚠️ pointer-events:none — planner'ning
+     surish/yaratish mexanikasi buzilmasin. */
+  .nmz-blk { position:absolute; left:2px; right:2px; z-index:1; pointer-events:none; overflow:hidden;
+    background:var(--nmz-soft); border:1px solid #CFE0D4; border-left:3px solid var(--nmz);
+    border-radius:6px; padding:2px 6px; display:flex; align-items:baseline; gap:6px;
+    font-size:10.5px; color:var(--nmz-ink); }
+  .nmz-blk .nb-nm { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .nmz-blk .nb-tm { opacity:.75; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  /* Jadval boshlanishidan oldingi namoz (bomdod) — 30 daqiqalik blok bo'lib
+     ko'rinmasin, ustunning tepasida ingichka eslatma bo'lsin. */
+  .nmz-early { position:absolute; left:2px; right:2px; height:17px; z-index:1; pointer-events:none;
+    display:flex; align-items:center; gap:4px; padding:0 6px; border-radius:5px;
+    background:var(--surface); border:1px dashed #CFE0D4; color:var(--nmz-ink);
+    font-size:10px; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; }
+
   /* ==== Xodim filtri (barcha ko'rinishlar uchun umumiy) ==== */
   .emp-filter-bar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0 0 14px; }
   .emp-filter-wrap { position:relative; }
@@ -831,7 +882,7 @@
   .notif-actions { display: flex; gap: 6px; }
   .notif-actions .btn { padding: 5px 10px; font-size: 12px; }
 
-  .toast { position: fixed; bottom: 24px; right: 24px; left: auto; transform: none; display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-radius: 12px; font-size: 13.5px; font-weight: 500; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--success); box-shadow: var(--shadow-lg); z-index: 200; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; min-width: 260px; max-width: 380px; color: var(--ink); }
+  .toast { position: fixed; bottom: 24px; right: 24px; left: auto; transform: none; display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-radius: 12px; font-size: 13.5px; font-weight: 500; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--success); box-shadow: var(--shadow-lg); z-index: 9500; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; min-width: 260px; max-width: 380px; color: var(--ink); }
   .toast.show { opacity: 1; animation: tzToast .24s ease; pointer-events: auto; }
   .toast.ok { border-left-color: var(--success); }
   .toast.err { border-left-color: var(--danger); color: var(--ink); }
@@ -851,10 +902,213 @@
   .intg-logo { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 20px; }
   .intg-logo.tg { background: #229ED9; color: #fff; }
   .intg-logo.n8n { background: #EA4B71; color: #fff; }
+  /* HR — ichki modul. Ilovaning iliq sarg'ish urg'usi bilan, tashqi
+     brendlardan (Telegram ko'k, n8n pushti) ataylab farq qiladi. */
+  .intg-logo.hr { background: linear-gradient(145deg, #1C1F24 0%, #3A3F47 100%); color: #FEF3C7; }
+  .intg-logo.hr .ic-svg { display: block; }
   .intg-logo.gdrive { background: #F4F3EF; color: #5F6368; }
   .intg-logo.soon { background: #F4F3EF; color: var(--muted); }
   .intg-name { font-weight: 600; font-size: 14.5px; color: var(--ink); margin-bottom: 2px; }
   .intg-desc { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+  /* ── Qidiruvli tanlash (ss*) — butun ilova uchun umumiy ── */
+  .ss-trig { width: 100%; display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 7px 10px 7px 12px;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--surface); font-family: inherit; font-size: 13.5px;
+    color: var(--ink); cursor: pointer; text-align: left; transition: border-color .13s ease, box-shadow .13s ease; }
+  .ss-trig:hover { border-color: var(--line-strong); }
+  .ss-trig[aria-expanded="true"] { border-color: var(--accent-ink); box-shadow: 0 0 0 3px var(--accent); }
+  .ss-trig:focus-visible { outline: none; border-color: var(--accent-ink); box-shadow: 0 0 0 3px var(--accent); }
+  .ss-trig-in { flex: 1; min-width: 0; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+  .ss-ph { color: var(--subtle); }
+  .ss-val { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ss-chip { font-size: 12px; font-weight: 500; background: var(--surface-2); border: 1px solid var(--line-soft);
+    border-radius: 6px; padding: 2px 7px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ss-chip.more { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  .ss-caret { flex-shrink: 0; display: flex; color: var(--subtle); transform: rotate(90deg); transition: transform .16s cubic-bezier(.32,.72,0,1); }
+  .ss-trig[aria-expanded="true"] .ss-caret { transform: rotate(-90deg); }
+
+  /* Panel — <body> ning bevosita farzandi, `position:fixed`.
+     ⚠️ z-index QATLAM XARITASI (chalkashmasin):
+          200  .toast        900… yo'q
+          400  qidiruv modali
+          8000 .tsk-chip
+          9000 .ui-modal-bd  ← uiForm/uiConfirm oynasi (backdrop-filter bilan)
+          9100 .ss-panel     ← SHU: modal USTIDA turishi SHART
+          9400 perf paneli (pf*)
+     Avval 200 edi — panel modal ORTIDA qolib, ko'rinmasdi yoki
+     yarim kesilgandek tuyulardi. Bu shu bug'ning asosiy sababi. */
+  .ss-panel { position: fixed; z-index: 9100; display: none; flex-direction: column; overflow: hidden;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow-lg);
+    animation: ssIn .16s cubic-bezier(.32,.72,0,1); }
+  .ss-panel.show { display: flex; }
+  /* Tepaga ochilganda animatsiya ham teskari yo'nalishda bo'lsin */
+  .ss-panel.up { animation-name: ssInUp; }
+  @keyframes ssIn   { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
+  @keyframes ssInUp { from { opacity: 0; transform: translateY(5px); }  to { opacity: 1; transform: none; } }
+
+  .ss-search { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-bottom: 1px solid var(--line-soft); flex-shrink: 0; color: var(--subtle); }
+  .ss-search input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font-family: inherit; font-size: 13.5px; color: var(--ink); padding: 0; }
+  .ss-search svg { flex-shrink: 0; }
+
+  .ss-list { overflow-y: auto; padding: 5px; flex: 1; min-height: 0; }
+  .ss-opt { display: flex; align-items: center; gap: 9px; padding: 7px 9px; border-radius: 8px; cursor: pointer; min-height: 34px; }
+  .ss-opt.hi { background: var(--surface-2); }
+  .ss-opt.on .ss-lbl { font-weight: 600; }
+  .ss-box { width: 17px; height: 17px; flex-shrink: 0; border: 1.5px solid var(--line-strong); border-radius: 5px;
+    display: flex; align-items: center; justify-content: center; color: #fff; transition: background .12s ease, border-color .12s ease; }
+  .ss-opt.on .ss-box { background: var(--ink); border-color: var(--ink); }
+  .ss-av { flex-shrink: 0; display: flex; }
+  .ss-av .avatar.sm { width: 24px; height: 24px; font-size: 10px; }
+  .ss-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .ss-lbl { font-size: 13.5px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ss-sub { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ss-tick { flex-shrink: 0; display: flex; color: var(--accent-ink); }
+  .ss-empty { padding: 22px 12px; text-align: center; font-size: 13px; color: var(--muted); }
+
+  .ss-foot { display: none; align-items: center; gap: 8px; padding: 8px 10px; border-top: 1px solid var(--line-soft); flex-shrink: 0; }
+  .ss-count { flex: 1; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .ss-fbtn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-family: inherit;
+    font-size: 12.5px; padding: 5px 11px; border-radius: 8px; cursor: pointer; transition: background .12s ease; }
+  .ss-fbtn:hover { background: var(--surface-2); }
+  .ss-fbtn.primary { background: var(--ink); border-color: var(--ink); color: #fff; font-weight: 600; }
+  .ss-fbtn.primary:hover { opacity: .88; }
+
+  @media (prefers-reduced-motion: reduce) { .ss-panel { animation: none; } .ss-caret { transition: none; } }
+
+  /* ── Org Schema (osc*) ── */
+  .osc-sub { font-size: 13.5px; color: var(--muted); line-height: 1.55; max-width: 720px; }
+  .osc-count { font-size: 12px; font-weight: 600; color: var(--muted); background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+  .osc-warn { margin-bottom: 14px; padding: 11px 14px; border: 1px solid #F5C2C7; background: #FDF2F2; color: #B42318; border-radius: 10px; font-size: 13px; line-height: 1.55; }
+
+  /* Papka daraxti. Chuqurlik ichma-ich .osc-kids bilan beriladi — indentatsiya
+     va yo'naltiruvchi chiziq bitta joyda, hisob-kitobsiz. */
+  .osc-tree { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 8px; box-shadow: var(--shadow); }
+  .osc-kids { margin-left: 15px; padding-left: 12px; border-left: 1px solid var(--line-soft); }
+
+  .osc-row { display: flex; align-items: center; gap: 8px; padding: 7px 8px 7px 4px; border-radius: 9px; min-height: 36px; transition: background .13s ease; }
+  .osc-row:hover { background: var(--surface-2); }
+  /* Butun qator bosiladi (faqat shu papka ochiladi/yopiladi) */
+  .osc-row.clickable { cursor: pointer; user-select: none; }
+  .osc-row.clickable:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: -2px; }
+
+  /* Yoyish uchburchagi. Bolasi yo'q qatorda ham JOY egallaydi — nomlar
+     bir vertikalda tursin (tekislik buzilmasin). */
+  .osc-tw { width: 22px; height: 22px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 0; background: transparent; color: var(--subtle); cursor: pointer; border-radius: 6px; padding: 0; transition: transform .16s ease, color .13s ease, background .13s ease; }
+  .osc-tw:hover { color: var(--ink); background: rgba(28,31,36,.06); }
+  .osc-tw.open { transform: rotate(90deg); }
+  .osc-tw.empty { cursor: default; }
+  .osc-tw svg { display: block; }
+
+  .osc-fic { flex-shrink: 0; display: flex; align-items: center; color: var(--muted); }
+  .osc-nm { font-size: 13.5px; font-weight: 500; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .osc-cnt { flex-shrink: 0; font-size: 11px; font-weight: 600; color: var(--subtle); background: var(--surface-2); border-radius: 999px; padding: 1px 7px; }
+
+  /* Amallar — sukut bo'yicha ko'rinmaydi, qator ustiga kelganda chiqadi.
+     Klaviatura bilan yurganda ham chiqishi kerak (:focus-within). */
+  .osc-acts { margin-left: auto; display: flex; gap: 2px; opacity: 0; transition: opacity .13s ease; }
+  .osc-row:hover .osc-acts, .osc-row:focus-within .osc-acts { opacity: 1; }
+  .osc-act { width: 27px; height: 27px; display: flex; align-items: center; justify-content: center; border: 0; background: transparent; color: var(--muted); border-radius: 7px; cursor: pointer; padding: 0; transition: background .12s ease, color .12s ease; }
+  .osc-act:hover { background: rgba(28,31,36,.08); color: var(--ink); }
+  .osc-act.danger:hover { background: var(--danger-soft); color: var(--danger); }
+  .osc-act svg { display: block; }
+  .osc-act:focus-visible, .osc-tw:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 1px; }
+
+  /* Xodim qatori — papkadan ko'ra "yengilroq" ko'rinadi (ierarxiya o'qilsin) */
+  .osc-row.person .osc-nm { font-weight: 400; }
+  .osc-av { flex-shrink: 0; display: flex; align-items: center; }
+  .osc-av .avatar.sm { width: 22px; height: 22px; font-size: 9px; }
+  .osc-pos { flex-shrink: 1; min-width: 0; font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .osc-pos::before { content: '·'; margin-right: 6px; color: var(--subtle); }
+  /* "N o'rin" — bir xodim bir necha joyda turganda */
+  .osc-seat { flex-shrink: 0; font-size: 11px; font-weight: 600; color: var(--info); background: var(--info-soft); border-radius: 5px; padding: 1px 7px; }
+  .osc-card-seat { position: absolute; top: 6px; right: 8px; min-width: 17px; height: 17px; padding: 0 5px;
+    display: flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 700;
+    color: var(--info); background: var(--info-soft); border-radius: 999px; }
+  .osc-card:hover .osc-card-seat { opacity: 0; transition: opacity .12s ease; }
+  .osc-mgr { flex-shrink: 0; font-size: 11.5px; color: var(--subtle); background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 6px; padding: 1px 7px; }
+  .osc-cnt.people { background: var(--accent-soft); color: var(--accent-ink); }
+
+  .osc-loose-h { margin: 20px 0 8px; font-size: 11.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+
+  /* ── Org chart ── */
+  .osc-chart-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .osc-zoom { font-size: 12px; font-weight: 600; color: var(--muted); min-width: 44px; text-align: center; font-variant-numeric: tabular-nums; }
+  .osc-hint { font-size: 12px; color: var(--subtle); margin-left: auto; }
+
+  .osc-viewport { border: 1px solid var(--line); border-radius: 14px; background:
+      radial-gradient(circle at 1px 1px, rgba(28,31,36,.07) 1px, transparent 0) 0 0 / 22px 22px, var(--surface);
+    overflow: auto; height: calc(100vh - 300px); min-height: 420px; position: relative; cursor: grab; }
+  .osc-viewport.panning { cursor: grabbing; }
+  /* ⚠️ Sahna `transform: scale()` bilan kattalashadi, LEKIN transform element
+     o'lchamini o'zgartirmaydi → 100% dan kattalashtirilganda o'ng/past chekkaga
+     scroll qilib bo'lmasdi. Shuning uchun sahna `.osc-canvas` ichida turadi va
+     canvas o'lchami JS'da `natural × zoom` qilib qo'yiladi. */
+  .osc-canvas { position: relative; }
+  .osc-stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; transition: transform .16s cubic-bezier(.32,.72,0,1); }
+  /* G'ildirak/pinch bilan zoom qilinayotganda animatsiya kerak emas — qadamlar
+     ketma-ket keladi, transition ularni "sudrab" ergashardi. */
+  .osc-stage.instant { transition: none; }
+
+  .osc-lines { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+  .osc-lines path { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-linecap: round; }
+
+  .osc-card { position: absolute; display: flex; align-items: center; gap: 10px; padding: 0 13px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 13px;
+    box-shadow: 0 1px 2px rgba(28,31,36,.05); box-sizing: border-box;
+    transition: transform .16s cubic-bezier(.32,.72,0,1), box-shadow .16s ease, border-color .16s ease; }
+  .osc-card.person { cursor: pointer; }
+  .osc-card.person:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(28,31,36,.13); border-color: var(--line-strong); }
+  /* Surish (drag): surilayotgan karta "ko'tariladi", qolganlari joyida turadi.
+     ⚠️ transition o'chadi — aks holda karta kursor ortidan sudralib kelardi. */
+  .osc-stage.dragging .osc-card { transition: none; cursor: grabbing; }
+  .osc-stage.dragging .osc-card:hover { transform: none; }
+  .osc-card.dragging { z-index: 4; transform: none !important;
+    box-shadow: 0 14px 34px rgba(28,31,36,.20); border-color: var(--line-strong); }
+  /* Hodim qatori papkadan "yengilroq" — ierarxiya ko'z bilan o'qilsin */
+  .osc-row.person .osc-nm { font-weight: 400; }
+  /* Papka tuguni — "idish" ekani ko'rinib tursin: iliqroq fon, ustki urg'u */
+  .osc-card.folder { background: var(--surface-2); border-color: var(--line-soft); }
+  /* Birlashgan kartochka (papka·hodim) — ikkalasining rolini bitta kartada
+     ko'rsatadi: tepada papka nomi (kuchli), pastda hodim ismi. Chap chekkada
+     nozik urg'u chizig'i "bu oddiy hodim emas, boshliq" ekanini bildiradi. */
+  .osc-card.merged { background: var(--surface); border-color: var(--line-strong); cursor: pointer; box-shadow: 0 1px 2px rgba(28,31,36,.06), 0 3px 10px rgba(28,31,36,.05); }
+  .osc-card.merged::before { content: ''; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; border-radius: 0 3px 3px 0; background: var(--accent-ink); }
+  .osc-card.merged:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(28,31,36,.14); }
+  .osc-card.merged .osc-card-nm { font-weight: 650; }
+  .osc-card.merged .osc-card-sub { color: var(--ink-soft); font-weight: 500; }
+  .osc-card-ic { flex-shrink: 0; display: flex; color: var(--muted); }
+  .osc-card-av { flex-shrink: 0; display: flex; }
+  .osc-card-av .avatar.sm { width: 34px; height: 34px; font-size: 12px; }
+  .osc-card-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .osc-card-nm { font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .osc-card-sub { font-size: 11.5px; color: var(--muted); line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Karta amallari — chetga "osilgan" tabletka, faqat hover'da. Chartdan ham
+     papka/xodim qo'shiladi, ya'ni ikki ko'rinish teng huquqli. */
+  .osc-card-acts { position: absolute; top: -13px; right: 8px; display: flex; gap: 1px; padding: 2px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 9px;
+    box-shadow: 0 3px 12px rgba(28,31,36,.14); opacity: 0; transform: translateY(3px);
+    transition: opacity .14s ease, transform .14s cubic-bezier(.32,.72,0,1); pointer-events: none; }
+  .osc-card:hover .osc-card-acts, .osc-card:focus-within .osc-card-acts { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .osc-cact { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+    border: 0; background: transparent; color: var(--muted); border-radius: 6px; cursor: pointer; padding: 0;
+    transition: background .12s ease, color .12s ease; }
+  .osc-cact:hover { background: rgba(28,31,36,.08); color: var(--ink); }
+  .osc-cact.danger:hover { background: var(--danger-soft); color: var(--danger); }
+  .osc-cact svg { display: block; }
+  .osc-cact:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 1px; }
+  .osc-bar-sep { width: 1px; height: 20px; background: var(--line-soft); margin: 0 2px; }
+
+  /* Barmoq bilan: hover yo'q — amallar doim ko'rinsin */
+  @media (hover: none) { .osc-card-acts { opacity: 1; transform: none; pointer-events: auto; } }
+
+  /* Harakatni kamaytirish so'ralgan bo'lsa — animatsiyasiz */
+  @media (prefers-reduced-motion: reduce) {
+    .osc-stage, .osc-card, .osc-row, .osc-tw, .osc-acts, .osc-act { transition: none; }
+  }
+
+  /* Barmoq bilan boshqariladigan ekranda hover yo'q — amallar doim ko'rinsin */
+  @media (hover: none) { .osc-acts { opacity: 1; } }
+
   .intg-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; }
   .intg-status.on { background: var(--accent-soft); color: var(--accent-ink); }
   .intg-status.off { background: #F0EFEA; color: var(--muted); }
@@ -1158,6 +1412,9 @@
     .tbl-wrap { max-height: calc(100vh - 210px); }
     .pln-cal { max-height: calc(100vh - 160px); }
     .pln-side-list { max-height: calc(100vh - 190px); }
+    /* Org chart: min-height 420px past ekranda butun sahifani scrollga
+       majburlardi — kanban/jadval bilan bir xil yechim. */
+    .osc-viewport { height: calc(100vh - 250px); min-height: 300px; }
   }
 </style>
 </head>
@@ -1303,6 +1560,10 @@
     <section id="page-planner" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap;">
         <h2 class="h2" style="margin:0" id="plnPageTitle">Rejalashtirgich</h2>
+        <div id="nmzCtl" style="display:none;align-items:center;gap:8px;margin-left:auto;">
+          <button type="button" class="nmz-toggle" id="nmzToggle" aria-pressed="false" onclick="nmzToggleClick()"><span class="nmz-moon">☾</span> Muslim</button>
+          <button type="button" class="nmz-reg" id="nmzRegBtn" style="display:none" onclick="nmzAskRegion()">—</button>
+        </div>
         <div id="plnWeekNav" style="display:flex;align-items:center;gap:8px;">
           <button class="btn sm secondary" onclick="plnNav(-1)">‹</button>
           <span id="plnWeekLbl" style="font-weight:600;font-size:14px;min-width:180px;text-align:center;">—</span>
@@ -1317,7 +1578,7 @@
         <button class="view-tab" data-plntab="assigned" onclick="plnTabClick('assigned')">📤 Men topshirganlar</button>
         <button class="view-tab" data-plntab="all" onclick="plnTabClick('all')">✓ Barcha vazifalar</button>
         <div style="flex:1"></div>
-        <button type="button" class="done-toggle" data-done-toggle onclick="toggleHideCompleted(!window.hideCompleted)"><span class="dt-dot"></span> Bajarilganlarni yashirish</button>
+        <button type="button" class="done-toggle" id="plnDoneToggle" data-done-toggle onclick="toggleHideCompleted(!window.hideCompleted)"><span class="dt-dot"></span> Bajarilganlarni yashirish</button>
       </div>
       <div class="plf-bar" id="plfBar">
         <span class="plf-lbl">Filtr</span>
@@ -1332,6 +1593,7 @@
         <span class="plf-count" id="plfCount"></span>
       </div>
       <div id="plnCalPane">
+        <div id="nmzPanel" class="nmz-panel" style="display:none"></div>
         <div class="pln-layout">
           <div class="pln-side">
             <div class="pln-side-head">Bajarishim kerak</div>
@@ -1643,11 +1905,18 @@
           <button class="btn" id="inviteBtn" onclick="openInvite()" style="display:none">+ Xodim taklif qilish</button>
         </div>
       </div>
+      <!-- ⚠️ VAQTINCHA YASHIRILDI (2026-08-06): tepadagi tab qatori butunlay.
+           Tarkibi: "👥 Hodimlar" va "🏢 Tashkilot" (eski oc* / org_containers).
+           Tashkilot HR Service → Org Schema ga ko'chdi, shundan keyin bitta
+           tab qolib ma'nosiz bo'ldi — butun qator olib qo'yildi.
+           O'CHIRILMADI: teamSetTab() va org chart kodi ham, DB ma'lumoti ham
+           joyida. Qaytarish uchun shu izohni ochish yetarli.
       <div class="view-tabs" style="margin:6px 0 16px;">
         <button class="view-tab active" data-teamtab="hodimlar" onclick="teamSetTab('hodimlar')">👥 Hodimlar</button>
         <button class="view-tab" data-teamtab="tashkilot" onclick="teamSetTab('tashkilot')">🏢 Tashkilot</button>
       </div>
-      <div id="teamPaneHodimlar">
+      -->
+      <div id="teamPaneHodimlar" style="margin-top:16px;">
         <div class="tbl-toolbar" style="flex-wrap:wrap;">
           <input type="text" class="search-input" id="teamSearch" placeholder="🔍 Ism, familiya, telefon yoki email..." oninput="teamOnFilterChange()" style="max-width:280px;" />
           <select class="team-flt" id="teamFltBranch" onchange="teamOnFilterChange()"></select>
@@ -1701,8 +1970,8 @@
 
     <!-- Integrations -->
     <section id="page-integrations" style="display:none">
-      <div class="row-head"><h2 class="h2" style="margin:0">Integratsiyalar</h2></div>
-      <div style="margin-bottom: 18px; font-size: 13.5px; color: var(--muted); line-height: 1.5;">Tashqi xizmatlarni ulang — bildirishnoma, ish jarayonlarini avtomatlashtirish va boshqalar.</div>
+      <div class="row-head"><h2 class="h2" style="margin:0">Qo'shimcha service</h2></div>
+      <div style="margin-bottom: 18px; font-size: 13.5px; color: var(--muted); line-height: 1.5;">Qo'shimcha xizmatlarni yoqing — bildirishnoma, HR, ish jarayonlarini avtomatlashtirish va boshqalar.</div>
       <div id="intgGrid" class="intg-grid"></div>
     </section>
 
@@ -1922,6 +2191,25 @@
           <!-- Icons rendered by JS -->
         </div>
       </div>
+    </section>
+
+    <!-- Org Schema (HR Service) — papka daraxti + org chart, bitta manba -->
+    <section id="page-orgschema" style="display:none">
+      <div class="row-head" style="margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+          <h2 class="h2" style="margin:0">Org Schema</h2>
+          <span id="oscCount" class="osc-count"></span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;" id="oscActions"></div>
+      </div>
+      <div class="osc-sub">Tashkilot tuzilmasi: papkalar va xodimlarning bo'ysunishi. Ikkala ko'rinish bir xil ma'lumotni ko'rsatadi.</div>
+      <div class="view-tabs" style="margin:12px 0 16px;">
+        <button class="view-tab active" data-osctab="folders" onclick="oscSetView('folders')">Papka ko'rinishi</button>
+        <button class="view-tab" data-osctab="chart" onclick="oscSetView('chart')">Org chart</button>
+      </div>
+      <div id="oscWarn" class="osc-warn" style="display:none"></div>
+      <div id="oscPaneFolders"></div>
+      <div id="oscPaneChart" style="display:none"></div>
     </section>
 
     <!-- Profile -->
@@ -2907,6 +3195,321 @@ function uiConfirm(title, message, opts) {
 
 // Chiroyli forma: uiForm(title, fields[], {okText}) → Promise<values|null>
 // field: {id, label, type: text|number|textarea|select|datetime|toggle, value, placeholder, options:[{value,label}], hint}
+// ============ SEARCHABLE SELECT (ss*) — UMUMIY TANLASH KOMPONENTI ============
+// 🔴 LOYIHA QOIDASI: ilovadagi HAR QANDAY tanlash joyi qidiruvli bo'lishi
+//    SHART. Yangi dropdown qo'shilsa — shu komponent ishlatiladi, xom
+//    <select> emas. Multiselect kontekstga qarab (`multi: true`).
+//
+// Ishlatish (uiForm ichida):
+//   { id:'uid', label:'Xodim', type:'search',  items:[{value,label,sub,uid,search}] }
+//   { id:'uid', label:'Xodim', type:'msearch', items:[...] }          // ko'p tanlash
+//   value: single uchun 'x', multi uchun ['x','y']
+//
+// ⚠️ Panel <body> ning bevosita farzandi + position:fixed — modal ichida
+//    `overflow:hidden` yoki `transform` uni kesib qo'ymasin (gs* dagi bilan
+//    bir xil sabab). z-index modal (100) dan YUQORI.
+// ⚠️ Bir vaqtda faqat BITTA panel ochiq — shuning uchun bitta element qayta
+//    ishlatiladi, har maydon uchun DOM ko'paytirilmaydi.
+// ⚠️ Inline handler chaqiradigan funksiyalar TOP-LEVEL (init ichida emas).
+const _ssReg = {};        // id → {opts, sel:Set, items}
+let _ssOpenId = null;     // hozir ochiq maydon
+let _ssHi = 0;            // klaviatura bilan belgilangan qator
+let _ssFiltered = [];     // joriy ko'rinayotgan variantlar
+
+function ssNorm(x) { return String(x == null ? '' : x).toLowerCase().replace(/[’'`]/g, '\''); }
+
+function ssRegister(id, o) {
+  const items = (o.items || []).map(function (it) {
+    return { value: String(it.value), label: String(it.label == null ? '' : it.label),
+             sub: it.sub || '', uid: it.uid || null, search: it.search || '' };
+  });
+  const sel = new Set();
+  if (o.multi) (Array.isArray(o.value) ? o.value : []).forEach(function (v) { sel.add(String(v)); });
+  else if (o.value != null && o.value !== '') sel.add(String(o.value));
+  _ssReg[id] = { multi: !!o.multi, items: items, sel: sel,
+                 placeholder: o.placeholder || 'Tanlang', empty: o.empty || 'Hech narsa topilmadi',
+                 noneLabel: o.noneLabel || null };
+}
+
+// Tanlangan qiymat: single → 'x' (yoki ''), multi → ['x','y']
+function ssValue(id) {
+  const r = _ssReg[id];
+  if (!r) return null;
+  const arr = Array.from(r.sel);
+  return r.multi ? arr : (arr[0] || '');
+}
+
+function ssTrigText(id) {
+  const r = _ssReg[id];
+  if (!r) return '';
+  const arr = Array.from(r.sel);
+  if (!arr.length) return '<span class="ss-ph">' + escapeHtml(r.placeholder) + '</span>';
+  if (!r.multi) {
+    const it = r.items.find(function (x) { return x.value === arr[0]; });
+    return '<span class="ss-val">' + escapeHtml(it ? it.label : (r.noneLabel || arr[0])) + '</span>';
+  }
+  // Multi: dastlabki 2 tasi chip bo'lib, qolgani "+N"
+  const shown = arr.slice(0, 2).map(function (v) {
+    const it = r.items.find(function (x) { return x.value === v; });
+    return '<span class="ss-chip">' + escapeHtml(it ? it.label : v) + '</span>';
+  }).join('');
+  const more = arr.length > 2 ? '<span class="ss-chip more">+' + (arr.length - 2) + '</span>' : '';
+  return shown + more;
+}
+
+function ssFieldHtml(id, o) {
+  ssRegister(id, o);
+  return '<button type="button" class="ss-trig" id="sstrig_' + escapeHtml(id) + '" onclick="ssToggle(\'' + escapeHtml(id) + '\')" ' +
+         'aria-haspopup="listbox" aria-expanded="false">' +
+           '<span class="ss-trig-in" id="sstxt_' + escapeHtml(id) + '">' + ssTrigText(id) + '</span>' +
+           '<span class="ss-caret">' + icon('chevron', 15) + '</span>' +
+         '</button>';
+}
+
+function ssEnsurePanel() {
+  let p = document.getElementById('ssPanel');
+  if (p) return p;
+  p = document.createElement('div');
+  p.id = 'ssPanel';
+  p.className = 'ss-panel';
+  p.innerHTML =
+    '<div class="ss-search">' + icon('search', 15) +
+      '<input type="text" id="ssSearch" placeholder="Qidirish…" autocomplete="off" oninput="ssPaint()" onkeydown="ssKey(event)">' +
+    '</div>' +
+    '<div class="ss-list" id="ssList" role="listbox"></div>' +
+    '<div class="ss-foot" id="ssFoot"></div>';
+  document.body.appendChild(p);
+  return p;
+}
+
+// Panelni tugma yoniga qo'yamiz.
+// ⚠️ Uch narsani kafolatlaydi:
+//   1) pastda joy yetmasa — YUQORIGA ochiladi (flip);
+//   2) ikkala tomonda ham joy kam bo'lsa — kattarog'i tanlanadi va panel
+//      o'sha joyga SIG'DIRILADI (ichida scroll bo'ladi, tashqariga chiqmaydi);
+//   3) chap/o'ng chekkadan chiqib ketmaydi.
+// ⚠️ Balandlik OCHILGANDA bir marta hisoblanadi (hamma variant soniga qarab).
+//    Qidiruv paytida qayta hisoblansa panel "sakrab" turardi.
+const SS_MAX_H = 360, SS_GAP = 6, SS_EDGE = 8, SS_ROW_H = 35;
+
+function ssPosition() {
+  const p = document.getElementById('ssPanel');
+  const t = document.getElementById('sstrig_' + _ssOpenId);
+  if (!p || !t) return;
+  const r = t.getBoundingClientRect();
+  const reg = _ssReg[_ssOpenId];
+
+  // Kerakli balandlik: qidiruv qatori + variantlar + (multi bo'lsa) pastki panel
+  const n = reg ? Math.max(1, reg.items.length) : 1;
+  const need = Math.min(SS_MAX_H, 46 + (reg && reg.multi ? 41 : 0) + n * SS_ROW_H + 10);
+
+  const below = window.innerHeight - r.bottom - SS_GAP - SS_EDGE;
+  const above = r.top - SS_GAP - SS_EDGE;
+
+  let up;
+  if (below >= need) up = false;          // pastda bemalol sig'adi
+  else if (above >= need) up = true;      // tepada sig'adi → flip
+  else up = above > below;                // ikkalasi ham kam — kattarog'i
+
+  const avail = Math.max(0, up ? above : below);
+  const h = Math.min(need, avail);
+
+  const w = Math.max(r.width, 240);
+  p.style.width = w + 'px';
+  p.style.left = Math.max(SS_EDGE, Math.min(r.left, window.innerWidth - w - SS_EDGE)) + 'px';
+  p.style.maxHeight = h + 'px';
+  if (up) {
+    p.style.top = 'auto';
+    p.style.bottom = (window.innerHeight - r.top + SS_GAP) + 'px';
+  } else {
+    p.style.bottom = 'auto';
+    p.style.top = (r.bottom + SS_GAP) + 'px';
+  }
+  p.classList.toggle('up', up);
+}
+
+function ssToggle(id) {
+  if (_ssOpenId === id) { ssClose(); return; }
+  ssOpen(id);
+}
+
+function ssOpen(id) {
+  if (!_ssReg[id]) return;
+  _ssOpenId = id; _ssHi = 0;
+  const p = ssEnsurePanel();
+  // ⚠️ Panelni <body> OXIRIGA ko'chiramiz: uiModalRoot keyinroq qo'shilgan
+  //    bo'lsa ham (teng z-index holatida DOM tartibi hal qiladi) panel
+  //    tepada qoladi. z-index allaqachon yuqori — bu qo'shimcha himoya.
+  if (p.parentNode !== document.body || p.nextSibling) document.body.appendChild(p);
+  const inp = document.getElementById('ssSearch');
+  if (inp) inp.value = '';
+  p.classList.add('show');
+  const t = document.getElementById('sstrig_' + id);
+  if (t) t.setAttribute('aria-expanded', 'true');
+  ssPosition();
+  ssPaint();
+  if (inp) setTimeout(function () { inp.focus(); }, 30);
+}
+
+function ssClose() {
+  const p = document.getElementById('ssPanel');
+  if (p) p.classList.remove('show');
+  if (_ssOpenId) {
+    const t = document.getElementById('sstrig_' + _ssOpenId);
+    if (t) t.setAttribute('aria-expanded', 'false');
+  }
+  _ssOpenId = null;
+}
+
+function ssPaint() {
+  const id = _ssOpenId; if (!id) return;
+  const r = _ssReg[id]; if (!r) return;
+  const inp = document.getElementById('ssSearch');
+  const q = ssNorm(inp ? inp.value : '').trim();
+  const qd = q.replace(/\D/g, '');   // raqamlar (telefon bo'yicha qidirish)
+
+  _ssFiltered = r.items.filter(function (it) {
+    if (!q) return true;
+    const hay = ssNorm(it.label + ' ' + it.sub + ' ' + it.search);
+    if (hay.indexOf(q) !== -1) return true;
+    if (qd.length >= 3) {
+      const hd = hay.replace(/\D/g, '');
+      if (hd && hd.indexOf(qd) !== -1) return true;
+    }
+    return false;
+  });
+  if (_ssHi >= _ssFiltered.length) _ssHi = Math.max(0, _ssFiltered.length - 1);
+
+  const list = document.getElementById('ssList');
+  if (!list) return;
+  if (!_ssFiltered.length) {
+    list.innerHTML = '<div class="ss-empty">' + escapeHtml(r.empty) + '</div>';
+  } else {
+    list.innerHTML = _ssFiltered.map(function (it, i) {
+      const on = r.sel.has(it.value);
+      return '<div class="ss-opt' + (on ? ' on' : '') + (i === _ssHi ? ' hi' : '') + '" role="option" aria-selected="' + (on ? 'true' : 'false') + '"' +
+             ' onclick="ssChoose(\'' + escapeHtml(it.value).replace(/"/g, '&quot;') + '\')" onmousemove="ssHover(' + i + ')">' +
+        (r.multi ? '<span class="ss-box">' + (on ? icon('check', 13) : '') + '</span>' : '') +
+        (it.uid ? '<span class="ss-av">' + avatarHtml(it.label, 'sm', null, it.uid) + '</span>' : '') +
+        '<span class="ss-txt"><span class="ss-lbl">' + escapeHtml(it.label) + '</span>' +
+          (it.sub ? '<span class="ss-sub">' + escapeHtml(it.sub) + '</span>' : '') + '</span>' +
+        (!r.multi && on ? '<span class="ss-tick">' + icon('check', 14) + '</span>' : '') +
+      '</div>';
+    }).join('');
+  }
+
+  const foot = document.getElementById('ssFoot');
+  if (foot) {
+    if (r.multi) {
+      foot.style.display = 'flex';
+      foot.innerHTML = '<span class="ss-count">' + r.sel.size + ' tanlandi</span>' +
+        '<button type="button" class="ss-fbtn" onclick="ssClearAll()">Tozalash</button>' +
+        '<button type="button" class="ss-fbtn primary" onclick="ssClose()">Tayyor</button>';
+    } else {
+      foot.style.display = 'none';
+      foot.innerHTML = '';
+    }
+  }
+}
+
+function ssHover(i) { if (_ssHi !== i) { _ssHi = i; ssPaintHi(); } }
+
+// Faqat belgilangan qatorni yangilaymiz (butun ro'yxatni qayta chizmaymiz —
+// sichqoncha ostida "sakrash" bo'lmasin).
+function ssPaintHi() {
+  const list = document.getElementById('ssList'); if (!list) return;
+  const rows = list.querySelectorAll('.ss-opt');
+  for (let i = 0; i < rows.length; i++) rows[i].classList.toggle('hi', i === _ssHi);
+  const el = rows[_ssHi];
+  if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
+}
+
+function ssChoose(value) {
+  const id = _ssOpenId; if (!id) return;
+  const r = _ssReg[id]; if (!r) return;
+  const v = String(value);
+  if (r.multi) {
+    if (r.sel.has(v)) r.sel.delete(v); else r.sel.add(v);
+  } else {
+    r.sel.clear();
+    if (v !== '') r.sel.add(v);
+  }
+  const txt = document.getElementById('sstxt_' + id);
+  if (txt) txt.innerHTML = ssTrigText(id);
+  if (r.multi) { ssPaint(); }
+  else { ssClose(); }
+}
+
+function ssClearAll() {
+  const id = _ssOpenId; if (!id) return;
+  const r = _ssReg[id]; if (!r) return;
+  r.sel.clear();
+  const txt = document.getElementById('sstxt_' + id);
+  if (txt) txt.innerHTML = ssTrigText(id);
+  ssPaint();
+}
+
+function ssKey(ev) {
+  if (!ev || !_ssOpenId) return;
+  const k = ev.key;
+  if (k === 'Escape') { ev.preventDefault(); ev.stopPropagation(); ssClose(); return; }
+  if (k === 'ArrowDown') { ev.preventDefault(); if (_ssHi < _ssFiltered.length - 1) { _ssHi++; ssPaintHi(); } return; }
+  if (k === 'ArrowUp')   { ev.preventDefault(); if (_ssHi > 0) { _ssHi--; ssPaintHi(); } return; }
+  if (k === 'Enter') {
+    ev.preventDefault(); ev.stopPropagation();   // uiForm'ning Enter→submit'i ishlamasin
+    const it = _ssFiltered[_ssHi];
+    if (it) ssChoose(it.value);
+    return;
+  }
+}
+
+// Tashqariga bosilsa yopiladi. ⚠️ Bir marta bog'lanadi (har ochilishda
+// qo'shilsa listener'lar to'planib ketardi).
+let _ssBound = false;
+function ssBindGlobal() {
+  if (_ssBound) return;
+  _ssBound = true;
+  document.addEventListener('mousedown', function (e) {
+    if (!_ssOpenId) return;
+    const p = document.getElementById('ssPanel');
+    const t = document.getElementById('sstrig_' + _ssOpenId);
+    if (p && p.contains(e.target)) return;
+    if (t && t.contains(e.target)) return;
+    ssClose();
+  }, true);
+  window.addEventListener('resize', function () { if (_ssOpenId) ssPosition(); });
+  // ⚠️ Modal tanasi yoki sahifa scroll bo'lsa panel tugmadan ajralib
+  //    qolmasin. capture:true — ichki scroll konteynerlari ham tutiladi
+  //    (scroll hodisasi ko'pikka chiqmaydi).
+  window.addEventListener('scroll', function () { if (_ssOpenId) ssPosition(); }, true);
+}
+
+// Xodim tanlash uchun umumiy variant ro'yxati: avatar + lavozim + telefon/email
+// bo'yicha qidiruv. Butun ilovada shu ishlatiladi — hodim tanlash hamma joyda
+// bir xil ko'rinsin va bir xil qidirsin.
+function ssMemberItems(list) {
+  return (list || []).map(function (m) {
+    const pr = m.profile || {};
+    const nm = (me && m.user_id === me.id)
+      ? ((myProfile && myProfile.full_name) || 'Siz')
+      : (pr.full_name || pr.email || 'A\'zo');
+    return {
+      value: m.user_id,
+      label: nm,
+      sub: memberPos(m.user_id) || pr.email || '',
+      uid: m.user_id,
+      search: (pr.phone || '') + ' ' + (pr.email || '')
+    };
+  }).sort(function (a, b) { return a.label.localeCompare(b.label, 'uz'); });
+}
+
+// Maydon yo'q qilinganda (modal yopilganda) ro'yxatdan tozalaymiz —
+// aks holda _ssReg vaqt o'tishi bilan o'sib ketardi.
+function ssForget(ids) {
+  (ids || []).forEach(function (id) { delete _ssReg[id]; });
+  if (_ssOpenId && ids && ids.indexOf(_ssOpenId) !== -1) ssClose();
+}
+
 function uiForm(title, fields, opts) {
   opts = opts || {};
   return new Promise(resolve => {
@@ -2917,6 +3520,14 @@ function uiForm(title, fields, opts) {
       let input = '';
       const base = 'id="uif_' + f.id + '" class="ui-input"';
       if (f.type === 'textarea') input = '<textarea ' + base + ' rows="3" placeholder="' + escapeHtml(f.placeholder || '') + '">' + escapeHtml(f.value || '') + '</textarea>';
+      // 🔴 Qidiruvli tanlash — ilovadagi barcha yangi dropdown'lar shu turda.
+      else if (f.type === 'search' || f.type === 'msearch') {
+        input = ssFieldHtml(f.id, {
+          items: f.items || (f.options || []).map(function (o) { return { value: o.value, label: o.label, sub: o.sub, uid: o.uid, search: o.search }; }),
+          value: f.value, multi: f.type === 'msearch',
+          placeholder: f.placeholder, empty: f.empty, noneLabel: f.noneLabel
+        });
+      }
       else if (f.type === 'select') input = '<select ' + base + '>' + (f.options || []).map(o => '<option value="' + escapeHtml(o.value) + '"' + (String(o.value) === String(f.value) ? ' selected' : '') + '>' + escapeHtml(o.label) + '</option>').join('') + '</select>';
       else if (f.type === 'toggle') input = '<label class="ui-toggle"><input type="checkbox" id="uif_' + f.id + '"' + (f.value ? ' checked' : '') + '><span class="ui-toggle-track"><span class="ui-toggle-dot"></span></span><span class="ui-toggle-lbl">' + escapeHtml(f.toggleLabel || '') + '</span></label>';
       else if (f.type === 'datetime') {
@@ -2950,6 +3561,8 @@ function uiForm(title, fields, opts) {
       '</div>';
     root.appendChild(bd);
     requestAnimationFrame(() => bd.classList.add('show'));
+    // ss* (qidiruvli tanlash) — tashqariga bosish/resize listener'lari
+    ssBindGlobal();
     // choice kartalari — tanlanganini belgilash (inline handler emas)
     bd.querySelectorAll('.ui-choice').forEach(function (box) {
       box.addEventListener('change', function () {
@@ -2960,7 +3573,10 @@ function uiForm(title, fields, opts) {
       });
     });
     const first = bd.querySelector('.ui-input'); if (first) setTimeout(() => first.focus(), 60);
-    const close = (val) => { bd.classList.remove('show'); setTimeout(() => bd.remove(), 180); resolve(val); };
+    // ⚠️ Modal yopilganda ss* maydonlari ro'yxatdan o'chiriladi va ochiq
+    //    panel yopiladi — aks holda panel "osilib" qolardi va _ssReg o'sardi.
+    const ssIds = fields.filter(f => f.type === 'search' || f.type === 'msearch').map(f => f.id);
+    const close = (val) => { ssForget(ssIds); bd.classList.remove('show'); setTimeout(() => bd.remove(), 180); resolve(val); };
     const submit = () => {
       const values = {};
       fields.forEach(f => {
@@ -2975,6 +3591,7 @@ function uiForm(title, fields, opts) {
           values[f.id] = sel ? sel.value : (f.value != null ? String(f.value) : '');
           return;
         }
+        if (f.type === 'search' || f.type === 'msearch') { values[f.id] = ssValue(f.id); return; }
         const el = document.getElementById('uif_' + f.id);
         if (!el) return;
         values[f.id] = f.type === 'toggle' ? el.checked : el.value;
@@ -3511,7 +4128,7 @@ async function prjRenameOrDelete() {
     { id: 'desc', label: 'Tavsif', type: 'textarea', value: p.description || '' },
     { id: 'type', label: 'Loyiha turi', type: 'choice', value: curType, options: prjTypeOptions(),
       hint: 'Tur — yangi bosqichlar uchun default. Mavjud bosqichlarga ham qo\'llashni alohida so\'raymiz.' },
-    { id: 'status', label: 'Holat', type: 'select', value: curStatus, options: [
+    { id: 'status', label: 'Holat', type: 'search', value: curStatus, options: [
       { value: 'active', label: '● Faol' },
       { value: 'paused', label: '⏸ To\'xtatilgan' },
       { value: 'done', label: '✓ Tugallandi' }
@@ -3680,13 +4297,13 @@ async function prjEditRecurrence() {
   if (!isOwnerLike()) { toast('Faqat administrator o\'zgartiradi', 'err'); return; }
   const WD = ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
   const v = await uiForm('Takrorlanish', [
-    { id: 'type', label: 'Takrorlanish turi', type: 'select', value: p.recurrence_type || 'none', options: [
+    { id: 'type', label: 'Takrorlanish turi', type: 'search', value: p.recurrence_type || 'none', options: [
       { value: 'none', label: 'Takrorlanmaydi' },
       { value: 'days', label: 'Har necha kunda' },
       { value: 'weekly', label: 'Har hafta (kun tanlash)' }
     ], hint: 'Muddat kelganda loyiha avtomatik qaytadan boshlanadi (barcha bosqichlar "Yangi" holatiga qaytadi).' },
     { id: 'days', label: 'Har necha kunda? (agar "har necha kunda" tanlansa)', type: 'number', value: p.recurrence_type === 'days' ? (p.recurrence_days || '') : '', placeholder: 'Masalan: 30' },
-    { id: 'weekday', label: 'Qaysi kun? (agar "har hafta" tanlansa)', type: 'select', value: p.recurrence_weekday != null ? p.recurrence_weekday : 1, options: WD.map((w, i) => ({ value: i, label: w })) }
+    { id: 'weekday', label: 'Qaysi kun? (agar "har hafta" tanlansa)', type: 'search', value: p.recurrence_weekday != null ? p.recurrence_weekday : 1, options: WD.map((w, i) => ({ value: i, label: w })) }
   ], { okText: 'Saqlash' });
   if (!v) return;
   let patch = { recurrence_type: v.type, recurrence_days: null, recurrence_weekday: null, last_reset_at: null };
@@ -3735,12 +4352,12 @@ async function prjAddTask() {
   if (!isOwnerLike()) { toast('Bosqichni faqat administrator qo\'shadi', 'err'); return; }
   const ft = prjFlowType(window._curProject);
   const seq = ft === 'sequential';
-  const memberOpts = [{ value: '', label: '— Biriktirilmagan —' }].concat(
-    (wsMembers || []).map(m => ({ value: m.user_id, label: memberNamePos(m.user_id, m.user_id === me.id ? (myProfile.full_name || 'Siz') : ((m.profile && m.profile.full_name) || 'A\'zo')) }))
-  );
+  // ⚠️ BITTA tanlash: tasks.assigned_to — bitta ustun. Ko'p bajaruvchi
+  //    kerak bo'lsa avval DB o'zgarishi kerak.
+  const memberOpts = [{ value: '', label: '— Biriktirilmagan —' }].concat(ssMemberItems(wsMembers));
   const v = await uiForm('Yangi bosqich (vazifa)', [
     { id: 'title', label: 'Vazifa nomi', type: 'text', placeholder: 'Nima qilinishi kerak?' },
-    { id: 'assignee', label: 'Kim bajaradi', type: 'select', value: '', options: memberOpts },
+    { id: 'assignee', label: 'Kim bajaradi', type: 'search', value: '', items: memberOpts, placeholder: 'Xodimni qidiring…' },
     { id: 'deadline', label: 'Deadline (ixtiyoriy)', type: 'datetime' },
     { id: 'dep', type: 'toggle', value: seq, toggleLabel: 'Oldingi bosqich tugagach ochilsin (ketma-ket)',
       hint: seq
@@ -3792,14 +4409,19 @@ async function prjInviteMember() {
   const candidates = (wsMembers || []).filter(m => !prjMembers.some(pm => pm.user_id === m.user_id));
   if (!candidates.length) { toast('Barcha a\'zolar allaqachon qo\'shilgan', 'ok'); return; }
   const v = await uiForm('A\'zo taklif qilish', [
-    { id: 'uid', label: 'Kimni taklif qilamiz?', type: 'select', value: candidates[0].user_id, options: candidates.map(m => ({ value: m.user_id, label: memberNamePos(m.user_id, (m.profile && m.profile.full_name) || 'A\'zo') })), hint: 'Taklif qilingan a\'zo loyihani to\'liq ko\'radi, lekin o\'zgartira olmaydi.' }
+    // KO'P tanlash: bir necha a'zoni bir yo'la qo'shish tabiiy (har biri
+    // uchun modalni qayta ochish shart emas).
+    { id: 'uids', label: 'Kimni taklif qilamiz?', type: 'msearch', value: [], items: ssMemberItems(candidates),
+      placeholder: 'Xodimlarni qidiring…', hint: 'Taklif qilingan a\'zo loyihani to\'liq ko\'radi, lekin o\'zgartira olmaydi.' }
   ], { okText: 'Taklif qilish' });
-  if (!v || !v.uid) return;
+  const uids = (v && v.uids) || [];
+  if (!uids.length) return;
   try {
-    const { error } = await sb.from('project_members').insert({ project_id: currentProjectId, user_id: v.uid });
+    const rows = uids.map(function (u) { return { project_id: currentProjectId, user_id: u }; });
+    const { error } = await sb.from('project_members').insert(rows);
     if (error) throw error;
-    prjMembers.push({ project_id: currentProjectId, user_id: v.uid });
-    toast('✅ Taklif qilindi', 'ok');
+    uids.forEach(function (u) { prjMembers.push({ project_id: currentProjectId, user_id: u }); });
+    toast('✅ ' + uids.length + ' a\'zo taklif qilindi', 'ok');
     renderProjectMembers();
   } catch (e) {
     console.error('prjInviteMember:', e);
@@ -4793,6 +5415,103 @@ function emailAllowed(type) {
   return emailSettings[key] !== false;
 }
 
+// ============ HR SERVICE (hrsv*) ============
+// "Qo'shimcha service" sahifasidagi HR Service kartasi shu holatni boshqaradi.
+// Yoqilsa — chap menyuda "HR" bo'limi va uning ichida "Org Schema" chiqadi.
+//
+// ⚠️ `integrations` jadvaliga QO'SHILMADI: u yerda tool ustunida CHECK
+//    bo'lishi mumkin va uni o'zgartirish MAVJUD Telegram/n8n integratsiyasiga
+//    xavf tug'diradi. HR — tashqi xizmat emas, ichki modul → o'z jadvali
+//    (public.hr_settings, TASKFIX_HR.sql).
+//
+// ⚠️ SQL ishga tushirilmagan bo'lsa ilova YIQILMAYDI: _hrsvMissing=true
+//    bo'ladi, HR o'chiq deb hisoblanadi (yangi modul jimgina yoqilmasin) va
+//    karta buni ochiq aytadi.
+let hrsvSettings = null;      // {is_enabled, updated_at} — null = hali o'qilmagan
+let _hrsvMissing = false;     // true = hr_settings jadvali yo'q (SQL run qilinmagan)
+let _hrsvErr = null;          // oxirgi o'qish xatosi (kartada ko'rsatiladi)
+
+function hrsvTableMissing(err) {
+  if (!err) return false;
+  const c = String(err.code || '');
+  const m = String(err.message || '').toLowerCase();
+  if (c === '42P01' || c === 'PGRST205') return true;
+  return m.indexOf('hr_settings') !== -1 &&
+         (m.indexOf('does not exist') !== -1 || m.indexOf('schema cache') !== -1);
+}
+
+// loadCurrentContext 1-to'lqinida chaqiriladi. HECH QACHON throw qilmaydi —
+// ilova ochilishi HR moduliga bog'liq emas.
+async function loadHrSvcSettings() {
+  _hrsvMissing = false; _hrsvErr = null; hrsvSettings = null;
+  if (!currentWs || currentWs.kind !== 'organization') return;
+  try {
+    const { data, error } = await sb.from('hr_settings')
+      .select('is_enabled, enabled_at, updated_at')
+      .eq('workspace_id', currentWs.id).maybeSingle();
+    if (error) throw error;
+    // Qator yo'q = hali yoqilmagan (jadval default'i bilan bir xil).
+    hrsvSettings = data || { is_enabled: false, enabled_at: null, updated_at: null };
+  } catch (e) {
+    hrsvSettings = null;
+    if (hrsvTableMissing(e)) {
+      _hrsvMissing = true;
+      console.warn('hr_settings jadvali yo\'q — TASKFIX_HR.sql ishga tushirilmagan. HR Service o\'chiq.');
+    } else {
+      _hrsvErr = e;
+      console.error('loadHrSvcSettings:', e);
+    }
+  }
+}
+
+// HR Service yoqilganmi? O'qib bo'lmagan bo'lsa — YO'Q.
+// (Email sozlamasidan farqli: u yerda "o'qiy olmadik" eski xatti-harakatni
+//  saqlash uchun "yoniq" edi. Bu yerda modul YANGI — o'qiy olmasak uni
+//  jimgina yoqib yubormaymiz, aks holda ishlamaydigan menyu chiqadi.)
+function hrsvEnabled() {
+  return !!(hrsvSettings && hrsvSettings.is_enabled);
+}
+
+// Yoqish/o'chirish. ⚠️ .select() bilan — RLS jimgina to'ssa "Saqlandi"
+// yolg'on chiqmasin.
+async function hrsvSetEnabled(on) {
+  if (!currentWs || currentWs.kind !== 'organization') return;
+  if (!isOwnerLike()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  const row = {
+    workspace_id: currentWs.id,
+    is_enabled: !!on,
+    enabled_at: on ? new Date().toISOString() : null,
+    updated_at: new Date().toISOString(),
+    updated_by: me.id
+  };
+  try {
+    const { data, error } = await sb.from('hr_settings')
+      .upsert(row, { onConflict: 'workspace_id' }).select();
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    hrsvSettings = data[0];
+    toast(on ? '✅ HR Service yoqildi' : 'HR Service o\'chirildi', 'ok');
+    // logActivity o'z xatosini ichida yutadi (fon yozuvi) — reject qilmaydi.
+    logActivity(on ? 'hr_service_enabled' : 'hr_service_disabled', { entityType: 'workspace', entityId: currentWs.id, entityTitle: currentWs.name });
+    renderSidebar();
+    renderIntegrations();
+    // O'chirilsa va hozir Org Schema ochiq bo'lsa — bosh sahifaga
+    if (!on && currentPage === 'orgschema') goPage('dashboard');
+  } catch (e) {
+    console.error('hrsvSetEnabled:', e);
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+// Karta tugmasi. TASKFIX_HR.sql ishga tushirilmagan bo'lsa — aniq aytamiz.
+function hrsvToggle(on) {
+  if (_hrsvMissing) {
+    toast('TASKFIX_HR.sql hali ishga tushirilmagan — avval uni Supabase SQL Editor\'da bajaring', 'err');
+    return;
+  }
+  hrsvSetEnabled(on);
+}
+
 async function notifyN8n(event, payload) {
   if (currentWs.kind !== 'organization') return;
   // n8n integratsiyasi yoqilganmi?
@@ -4862,7 +5581,7 @@ async function bootstrap() {
       || (me.email ? me.email.split('@')[0] : '') || 'Foydalanuvchi';
     try {
       const { data: ins, error: insErr } = await sb.from('profiles')
-        .insert({ id: me.id, full_name: fullName }).select().maybeSingle();
+        .insert({ id: me.id, full_name: fullName, email: me.email || null }).select().maybeSingle();
       if (insErr && insErr.code !== '23505') throw insErr;
       prof = ins || null;
       if (!prof) {
@@ -4882,12 +5601,21 @@ async function bootstrap() {
     const patch = {};
     if (!myProfile.full_name && (md.full_name || md.first_name)) patch.full_name = md.full_name || md.first_name;
     if (!myProfile.phone && md.phone) patch.phone = md.phone;
+    // ⚠️ EMAIL ZAXIRASI: ilova email'ni FAQAT profiles.email dan o'qiydi, lekin
+    // eski userlarda u auth.users dan ko'chmagan (NULL) → UI'da bo'sh ko'rinardi.
+    // Server tomonda TASKFIX_EMAIL_SYNC.sql buni hal qiladi; bu yer esa
+    // SQL ishga tushmagan bo'lsa ham har foydalanuvchi kirganda O'Z qatorini
+    // davolaydi. Mavjud (masalan "connect" bilan almashtirilgan) email BOSILMAYDI.
+    if (!myProfile.email && me.email) patch.email = me.email;
     if (Object.keys(patch).length) {
       patch.id = me.id;
       const { data: up } = await sb.from('profiles').upsert(patch, { onConflict: 'id' }).select().maybeSingle();
       if (up) myProfile = up;
     }
   } catch (e) { /* sokin — profil baribir ishlaydi */ }
+
+  // ☾ Namoz sozlamasi profildan o'qiladi (hech qachon throw qilmaydi)
+  loadNamozSettings();
 
   // Taklif havolasi orqali kelgan bo'lsa — qabul qilamiz (workspace'ga qo'shilish + vazifaga biriktirish)
   let _inviteTaskId = null, _inviteWsId = null;
@@ -4987,7 +5715,7 @@ async function loadCurrentContext() {
   // (oxirida) o'qilardi — hech kimga bog'liq emas edi, shu yerga ko'chirildi.
   const [
     myMemberR, myDeptsR, deptsR, wsMembersR,
-    intgsR, branchesR, subR, _kanbanR, myTgR, _emailSetR
+    intgsR, branchesR, subR, _kanbanR, myTgR, _emailSetR, _hrSvcR
   ] = await Promise.all([
     sb.from('workspace_members').select('role').eq('workspace_id', wsId).eq('user_id', me.id).maybeSingle(),
     isOrg ? sb.from('department_members').select('department_id, role, departments!inner(workspace_id)').eq('user_id', me.id).eq('departments.workspace_id', wsId) : Promise.resolve({ data: [] }),
@@ -5001,6 +5729,9 @@ async function loadCurrentContext() {
     // Email bildirishnoma sozlamasi — emailNotify() shuni tekshiradi.
     // O'zi throw qilmaydi; xato bo'lsa "hammasi yoniq" (eski xatti-harakat).
     loadEmailSettings(),
+    // HR Service yoqilganmi? Chap menyu shunga qarab chiziladi, shuning uchun
+    // 1-to'lqinda. O'zi throw qilmaydi; o'qilmasa "o'chiq" deb hisoblanadi.
+    loadHrSvcSettings(),
   ]);
 
   // "Mening vazifalarim" uchun — mening Telegram identitetlarim.
@@ -5045,6 +5776,10 @@ async function loadCurrentContext() {
 
   const profMap = {};
   (profsR.data || []).forEach(p => { profMap[p.id] = p; });
+  // O'z qatorimda email bo'sh bo'lsa — auth'dagisini ko'rsatamiz (zaxira, yuqoridagi
+  // profil patch'i bilan bir xil sabab). Boshqa a'zoniki mijozdan olinmaydi —
+  // auth.users faqat serverda ochiq → TASKFIX_EMAIL_SYNC.sql hal qiladi.
+  if (me && profMap[me.id] && !profMap[me.id].email && me.email) profMap[me.id].email = me.email;
   wsMembers = wm.map(x => Object.assign({}, x, { profile: profMap[x.user_id] || {} }));
   tgUsersCache = tgBusR.data || [];
 
@@ -5333,7 +6068,22 @@ const ICON_PATHS = {
   orgchart:  '<rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/>',
   badge:     '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/>',
   plus:      '<path d="M5 12h14"/><path d="M12 5v14"/>',
-  chevron:   '<path d="m9 18 6-6-6-6"/>'
+  chevron:   '<path d="m9 18 6-6-6-6"/>',
+  // HR Service — Lucide "contact-round" (xodim kartochkasi). Odam + ramka:
+  // HR ni "odamlar" (users) dan ajratib turadi, kadrlar hujjatiga ishora.
+  hr:        '<path d="M16 18a4 4 0 0 0-8 0"/><circle cx="12" cy="11" r="3"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4"/><path d="M16 2v4"/>',
+  // Org Schema — Lucide "network" (bitta tugun, ikkiga tarmoqlanadi)
+  network:   '<rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/>',
+  // Papka ochiq (daraxtda yoyilgan holat)
+  folderOpen: '<path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>',
+  trash:     '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/>',
+  pencil:    '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>',
+  userPlus:  '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/>',
+  // ss* (qidiruvli tanlash) uchun
+  search:    '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  // Org chart — "avto joylashuvga qaytarish" (Lucide rotate-ccw)
+  undo:      '<path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 3-7.7L3 8"/>',
+  check:     '<path d="M20 6 9 17l-5-5"/>'
 };
 
 // Ikonka SVG matni. Noma'lum nom — bo'sh (ilova yiqilmasin, joy ham egallamasin).
@@ -5494,7 +6244,7 @@ function renderSidebar() {
       html += '<button class="side-link ' + (currentPage === 'logs' ? 'active' : '') + '" onclick="goPage(\'logs\')">' + sideIcon('logs') + ' Loglar</button>';
     }
     if (canManage) {
-      html += '<button class="side-link ' + (currentPage === 'integrations' ? 'active' : '') + '" onclick="goPage(\'integrations\')">' + sideIcon('zap') + ' Integratsiyalar</button>';
+      html += '<button class="side-link ' + (currentPage === 'integrations' ? 'active' : '') + '" onclick="goPage(\'integrations\')">' + sideIcon('zap') + ' Qo\'shimcha service</button>';
     }
     if (canManage) {
       // Telegram section — faqat bot ulangan bo'lsa ko'rinadi
@@ -5518,6 +6268,26 @@ function renderSidebar() {
       html += '<button class="side-link ' + (currentPage === 'branches' ? 'active' : '') + '" onclick="goPage(\'branches\')">' + sideIcon('building') + ' Filiallar</button>';
       // Lavozimlar — vaqtincha yashirilgan (kerak bo'lsa qaytaramiz)
       // html += '<button class="side-link ' + (currentPage === 'positions' ? 'active' : '') + '" onclick="goPage(\'positions\')">' + sideIcon('badge') + ' Lavozimlar</button>';
+    }
+    // HR section — Telegram bilan BIR XIL naqsh: faqat HR Service yoqilgan
+    // bo'lsa ko'rinadi, yig'iladigan guruh + ichida subsection'lar.
+    //
+    // ⚠️ canManage SHART EMAS: tashkiliy sxemani har a'zo KO'RA oladi
+    // (RLS ham shunday: select = is_ws_member). O'zgartirish tugmalari
+    // sahifaning o'zida isOwnerLike() bilan yopiladi.
+    if (hrsvEnabled()) {
+      const inHrSection = ['orgschema'].includes(currentPage);
+      // Default — YOPIQ (Telegram naqshi). Foydalanuvchi ochsa localStorage'da qoladi.
+      const hrExpanded = window._hrSbOpen === undefined
+        ? (localStorage.getItem('sb_hr_v1') === 'open')
+        : !!window._hrSbOpen;
+      html += '<button class="side-link side-group ' + (inHrSection ? 'has-active' : '') + '" onclick="toggleHrSidebar()">' +
+        '' + sideIcon('hr') + ' HR' +
+        '<span style="margin-left:auto;font-size:10px;color:var(--muted);">' + (hrExpanded ? '▼' : '▶') + '</span>' +
+      '</button>';
+      if (hrExpanded) {
+        html += '<button class="side-link side-sub ' + (currentPage === 'orgschema' ? 'active' : '') + '" onclick="goPage(\'orgschema\')">Org Schema</button>';
+      }
     }
   }
   if (isOwnerLike()) {
@@ -5665,8 +6435,11 @@ async function onbFinish() {
     if (e1) throw e1;
 
     // 2. Birinchi bo'lim (workspace yaratildi — buni jimgina yutmaymiz, lekin bloklamaymiz)
+    // ⚠️ `departments` da sort_order YO'Q (id, workspace_id, name, description,
+    //    created_by, created_at) — yozishga urinish 42703 berardi va yangi
+    //    kompaniyaning BIRINCHI bo'limi yaratilmasdan qolardi.
     const { error: e2 } = await sb.from('departments').insert({
-      workspace_id: ws.id, name: onbData.deptName, sort_order: 1
+      workspace_id: ws.id, name: onbData.deptName, created_by: me.id
     });
     if (e2) { console.error('Onboarding: birinchi bo\'lim yaratilmadi:', e2); toast('⚠ Birinchi bo\'lim yaratilmadi: ' + translateErr(e2.message || String(e2)), 'err'); }
 
@@ -5770,7 +6543,14 @@ async function onbBoardCreate() {
     if (e2 && e2.code !== '23505') throw e2;
 
     // 3) Birinchi bo'lim (best-effort — asosiy oqimni bloklamaydi)
-    try { await sb.from('departments').insert({ workspace_id: ws.id, name: 'Umumiy', sort_order: 1 }); } catch (e) { /* sokin */ }
+    // ⚠️ Ikki xato tuzatildi: (a) `sort_order` ustuni YO'Q edi → insert 42703
+    //    bilan rad etilardi; (b) supabase-js throw QILMAYDI, ya'ni try/catch
+    //    hech qachon ishlamas edi va rad etish JIMGINA yo'qolardi — natijada
+    //    yangi kompaniya "Umumiy" bo'limisiz qolardi va hech kim bilmasdi.
+    const { error: e3 } = await sb.from('departments').insert({
+      workspace_id: ws.id, name: 'Umumiy', created_by: me.id
+    });
+    if (e3) console.error('createOrgQuick: "Umumiy" bo\'limi yaratilmadi:', e3);
 
     // 4) Ilovaga o'tish
     await loadWorkspaces();
@@ -5798,18 +6578,35 @@ function toggleTgSidebar() {
   renderSidebar();
 }
 
+// HR bo'limini yig'ish/ochish (Telegram bilan bir xil naqsh).
+// ⚠️ Inline handler chaqiradi → top-level funksiya bo'lishi SHART.
+function toggleHrSidebar() {
+  const cur = window._hrSbOpen === undefined
+    ? (localStorage.getItem('sb_hr_v1') === 'open')
+    : window._hrSbOpen;
+  window._hrSbOpen = !cur;
+  try { localStorage.setItem('sb_hr_v1', window._hrSbOpen ? 'open' : 'closed'); } catch (e) { console.error('toggleHrSidebar:', e); }
+  renderSidebar();
+}
+
 function goPage(p) {
   pfStart('page:' + p);   // perf o'lchov oynasi (perf=1 bo'lsa; aks holda no-op)
+  // ☾ Namoz countdown'i faqat planner'da sanaydi (boshqa sahifada to'xtaydi)
+  if (p !== 'planner') { try { nmzTickStop(); } catch (e) { console.error('goPage → nmzTickStop:', e); } }
   // Rol himoyasi: oddiy a'zo faqat ruxsat etilgan sahifalarga kira oladi
   const managerOnlyPages = ['stats', 'orgchart', 'integrations', 'tgusers', 'branches', 'positions', 'settings', 'logs', 'botsettings', 'botcommands'];
   if (managerOnlyPages.includes(p) && !isOwnerLike()) {
     p = 'dashboard';
   }
+  // Org Schema — faqat HR Service yoqilganda. ⚠️ managerOnlyPages'da EMAS:
+  // sxemani har a'zo ko'ra oladi (RLS ham shunday), o'zgartirish esa
+  // sahifa ichida isOwnerLike() bilan yopilgan.
+  if (p === 'orgschema' && !hrsvEnabled()) p = 'dashboard';
   currentPage = p;
   if (p !== 'department') currentDeptId = null;
   if (p !== 'employee') _empDtlUid = null;
   renderSidebar();
-  ['dashboard','planner','tasks','departments','department','team','employee','projects','project','integrations','tgusers','branches','positions','settings','logs','stats','botsettings','botcommands','profile'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
+  ['dashboard','planner','tasks','departments','department','team','employee','projects','project','integrations','tgusers','branches','positions','settings','logs','stats','botsettings','botcommands','profile','orgschema'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
   if (p === 'planner') plnSetTab(plnTab);
   if (p === 'tasks') {
     const titles = { mine: 'Mening vazifalarim', assigned: 'Men topshirganlar', all: 'Barcha vazifalar' };
@@ -5832,6 +6629,7 @@ function goPage(p) {
   if (p === 'botsettings') loadBotSettings();
   if (p === 'botcommands') loadBotCommands();
   if (p === 'orgchart') loadOrgChart();
+  if (p === 'orgschema') loadOrgSchema();
   if (p === 'profile') loadProfilePage();
   // Hash-routing: oddiy sahifa URL'ini yangilaymiz. Parametrli sahifalar
   // (employee/project/department) o'z hashini o'zlari yozadi (uid/id bilan).
@@ -5855,7 +6653,7 @@ function rtRouteFromHash() {
   if (seg0 === 'team' && parts[1] === 'employee' && parts[2]) { openEmployee(decodeURIComponent(parts[2])); return; }
   if (seg0 === 'projects' && parts[1]) { openProject(decodeURIComponent(parts[1])); return; }
   if (seg0 === 'department' && parts[1]) { goDept(decodeURIComponent(parts[1])); return; }
-  const known = ['dashboard','planner','tasks','departments','team','projects','integrations','tgusers','branches','positions','settings','logs','stats','botsettings','botcommands','profile','orgchart'];
+  const known = ['dashboard','planner','tasks','departments','team','projects','integrations','tgusers','branches','positions','settings','logs','stats','botsettings','botcommands','profile','orgchart','orgschema'];
   if (known.indexOf(seg0) !== -1) { goPage(seg0); return; }
   goPage('dashboard');   // noma'lum hash — jimgina bosh sahifaga
 }
@@ -6061,7 +6859,7 @@ function goDept(deptId) {
   currentPage = 'department';
   currentDeptView = 'kanban';
   renderSidebar();
-  ['dashboard','tasks','departments','department','team','integrations','tgusers','branches','positions','settings','stats','botsettings','botcommands','orgchart'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === 'department' ? 'block' : 'none'); });
+  ['dashboard','tasks','departments','department','team','integrations','tgusers','branches','positions','settings','stats','botsettings','botcommands','orgchart','orgschema'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === 'department' ? 'block' : 'none'); });
   renderDeptHeader();
   empFilterRenderBar();
   setDeptView('kanban');
@@ -9536,7 +10334,7 @@ async function loadBotSettings() {
   if (!intg || !intg.is_enabled) {
     $('bsBotInfo').innerHTML =
       '<strong style="color:var(--danger);">⚠ Bot ulanmagan.</strong><br>' +
-      '<span style="color:var(--muted);">Avval "Integratsiyalar" sahifasidan Telegram botingizni ulang.</span>';
+      '<span style="color:var(--muted);">Avval "Qo\'shimcha service" sahifasidan Telegram botingizni ulang.</span>';
     document.querySelectorAll('#page-botsettings .settings-section').forEach(s => s.style.display = 'none');
     return;
   }
@@ -9618,9 +10416,9 @@ async function resetBotWebhook() {
   // bot_token integration config ichida — service_role kerak. Frontend'dan
   // to'g'ridan o'qib bo'lmaydi. Buning o'rniga maxsus Edge Function chaqirishimiz kerak,
   // yoki tg-verify Edge Function bizning siri (config.bot_token)dan o'qib qayta setWebhook qiladi.
-  // Hozircha: foydalanuvchi qo'lda qayta sozlashi mumkin (Integratsiyalar sahifasidan).
+  // Hozircha: foydalanuvchi qo'lda qayta sozlashi mumkin (Qo'shimcha service sahifasidan).
   showMsg($('bsWebhookMsg'),
-    'ℹ Webhook\'ni qayta o\'rnatish uchun: "Integratsiyalar" sahifasidan Telegram botini o\'chirib, qaytadan ulang. ' +
+    'ℹ Webhook\'ni qayta o\'rnatish uchun: "Qo\'shimcha service" sahifasidan Telegram botini o\'chirib, qaytadan ulang. ' +
     'Yoki @BotFather\'da /revoke qilib yangi token oling va ulang.',
     'ok');
 }
@@ -10951,6 +11749,17 @@ function plnSetTab(tab) {
   document.querySelectorAll('.done-toggle').forEach(b => b.classList.toggle('active', !!window.hideCompleted));
   document.querySelectorAll('#page-planner [data-plntab]').forEach(b => b.classList.toggle('active', b.dataset.plntab === tab));
   const isSchedule = tab === 'schedule';
+  // ☾ Namoz boshqaruvi — faqat jadval ko'rinishida (kanban tabida ma'nosiz)
+  const nmzCtl = $('nmzCtl');
+  if (nmzCtl) { nmzCtl.style.display = isSchedule ? 'flex' : 'none'; if (isSchedule) nmzRenderCtl(); }
+  // Countdown faqat jadval ko'rinishida sanaydi (fon'da ishlab yotmasin)
+  if (isSchedule) nmzTickStart(); else nmzTickStop();
+  // "Bajarilganlarni yashirish" — kalendar/setka ko'rinishida MA'NOSIZ
+  // (u yerda bajarilgan vazifa emas, VAQT bloklari ko'rsatiladi), shuning
+  // uchun faqat ro'yxat/kanban tablarida turadi. Holatning o'zi (hideCompleted)
+  // o'zgarmaydi — boshqa sahifalar avvalgidek ishlaydi.
+  const plnDt = $('plnDoneToggle');
+  if (plnDt) plnDt.style.display = isSchedule ? 'none' : 'inline-flex';
   $('plnCalPane').style.display = isSchedule ? 'block' : 'none';
   $('plnKanbanPane').style.display = isSchedule ? 'none' : 'block';
   $('plnWeekNav').style.display = isSchedule ? 'flex' : 'none';
@@ -11020,6 +11829,10 @@ function renderPlanner() {
         '<span class="pb-time">' + sh + ' – ' + eh + '</span>' +
         '<span class="pb-resize" onmousedown="plnBlockMouseDown(event,' + t.id + ',\'resize\')"></span></div>';
     });
+    // ☾ Namoz bloklari — vazifa bloklaridan KEYIN qo'shiladi, lekin
+    //    `pointer-events:none` va pastroq z-index bilan (planner mexanikasi
+    //    va vazifa bloklarining o'qilishi buzilmaydi).
+    html += nmzDayBlocksHtml(ds);
     html += '</div>';
   });
   html += '</div>';
@@ -11036,6 +11849,15 @@ function renderPlanner() {
 
   // Chap panel: rejalashtirilmagan vazifalarim
   renderPlnUnscheduled();
+
+  // ☾ Namoz: ko'rinayotgan hafta uchun vaqtlar (fon — chizishni kutmaydi)
+  if (nmzEnabled && nmzRegion && !_nmzMissing) {
+    nmzRenderPanel();
+    nmzEnsureDays(days).catch(function (e) { console.error('renderPlanner → nmzEnsureDays:', e); });
+  } else {
+    const np = $('nmzPanel');
+    if (np) { np.style.display = 'none'; np.innerHTML = ''; }
+  }
 }
 
 function plnTaskColor(t) {
@@ -11376,6 +12198,771 @@ function renderTasksCalendar() {
   }).join('');
 
   grid.innerHTML = headers + cellsHtml;
+}
+
+// ============ ☾ NAMOZ VAQTLARI (nmz*) — Planner ============
+// Sozlama SHAXSIY (profiles.namoz_enabled / namoz_region), workspace'ga
+// bog'liq emas: bir odam bir necha workspace'da bo'lsa ham namoz vaqti bir xil.
+//
+// ⚠️ ESKI PLANNER BUZILMAYDI: bu modul `plnGetSchedule()` ga HECH NARSA
+//    yozmaydi, faqat chizish qatlami qo'shadi. Toggle o'chiq bo'lsa — na
+//    so'rov, na blok, na interval (kod umuman ishlamaydi).
+//
+// ⚠️ TASKFIX_NAMOZ.sql ishga tushmagan bo'lsa `_nmzMissing = true` bo'ladi va
+//    modul o'chiq turadi — ilova YIQILMAYDI, toggle sababni ochiq aytadi.
+//    Aniqlash: `profiles.select('*')` ustunlarni qaytaradi, shuning uchun
+//    kalitning YO'QLIGI = ustun yo'q (false qiymatdan farqi shunda).
+
+// 12 viloyat + Qoraqalpog'iston + Toshkent shahri. `api` — islomapi.uz nomi,
+// lat/lon — zaxira (aladhan) va joylashuvdan taxmin qilish uchun.
+const NMZ_REGIONS = [
+  { value: 'toshkent',        label: 'Toshkent shahri',      api: 'Toshkent',   lat: 41.3111, lon: 69.2797 },
+  { value: 'toshkent_v',      label: 'Toshkent viloyati',    api: 'Nurafshon',  lat: 41.0167, lon: 69.3500, sub: 'Nurafshon' },
+  { value: 'andijon',         label: 'Andijon',              api: 'Andijon',    lat: 40.7821, lon: 72.3442 },
+  { value: 'buxoro',          label: 'Buxoro',               api: 'Buxoro',     lat: 39.7747, lon: 64.4286 },
+  { value: 'fargona',         label: 'Farg\'ona',            api: 'Farg\'ona',  lat: 40.3864, lon: 71.7864 },
+  { value: 'jizzax',          label: 'Jizzax',               api: 'Jizzax',     lat: 40.1158, lon: 67.8422 },
+  { value: 'namangan',        label: 'Namangan',             api: 'Namangan',   lat: 40.9983, lon: 71.6726 },
+  { value: 'navoiy',          label: 'Navoiy',               api: 'Navoiy',     lat: 40.1033, lon: 65.3688 },
+  { value: 'qashqadaryo',     label: 'Qashqadaryo',          api: 'Qarshi',     lat: 38.8606, lon: 65.7891, sub: 'Qarshi' },
+  { value: 'samarqand',       label: 'Samarqand',            api: 'Samarqand',  lat: 39.6542, lon: 66.9597 },
+  { value: 'sirdaryo',        label: 'Sirdaryo',             api: 'Guliston',   lat: 40.4897, lon: 68.7842, sub: 'Guliston' },
+  { value: 'surxondaryo',     label: 'Surxondaryo',          api: 'Termiz',     lat: 37.2242, lon: 67.2783, sub: 'Termiz' },
+  { value: 'xorazm',          label: 'Xorazm',               api: 'Urganch',    lat: 41.5500, lon: 60.6333, sub: 'Urganch' },
+  { value: 'qoraqalpogiston', label: 'Qoraqalpog\'iston',    api: 'Nukus',      lat: 42.4531, lon: 59.6103, sub: 'Nukus' },
+];
+
+let nmzEnabled = false;
+let nmzRegion = null;
+// 🔴 ANIQ JOYLASHUV (2026-08-09): viloyat markazi 1–2 daqiqa xato berardi
+//    (Qarshi'dagi odam Qashqadaryo markazining vaqtini olardi). aladhan
+//    koordinata bilan ishlaydi — shuning uchun foydalanuvchining O'Z
+//    koordinatasi saqlanadi va aynan u yuboriladi. Viloyat esa QOLADI:
+//    ko'rsatish uchun va islomapi (faqat viloyat bilan ishlaydi) uchun.
+let nmzLat = null, nmzLon = null;
+let _nmzMissing = false;    // TASKFIX_NAMOZ.sql ishga tushirilmagan
+let _nmzBusy = false;       // ikki marta bosilmasin
+
+function nmzRegionById(v) { return NMZ_REGIONS.find(function (r) { return r.value === v; }) || null; }
+function nmzRegionLabel(v) { const r = nmzRegionById(v); return r ? r.label : ''; }
+
+// Profil yuklangandan keyin (bootstrap) chaqiriladi. HECH QACHON throw qilmaydi.
+function loadNamozSettings() {
+  try {
+    _nmzMissing = !(myProfile && Object.prototype.hasOwnProperty.call(myProfile, 'namoz_enabled'));
+    if (_nmzMissing) {
+      nmzEnabled = false; nmzRegion = null; nmzLat = null; nmzLon = null;
+      console.warn('namoz: profiles.namoz_enabled ustuni yo\'q — TASKFIX_NAMOZ.sql ishga tushirilmagan.');
+      return;
+    }
+    nmzEnabled = !!myProfile.namoz_enabled;
+    nmzRegion = myProfile.namoz_region || null;
+    // Koordinata ixtiyoriy: yo'q bo'lsa viloyat markazi ishlatiladi.
+    // ⚠️ Ikkovi ham bo'lishi shart (DB CHECK ham shunday) — yarmi kelsa tashlaymiz.
+    const la = Number(myProfile.namoz_lat), lo = Number(myProfile.namoz_lon);
+    const hasGeo = myProfile.namoz_lat !== null && myProfile.namoz_lat !== undefined
+                && myProfile.namoz_lon !== null && myProfile.namoz_lon !== undefined
+                && isFinite(la) && isFinite(lo);
+    nmzLat = hasGeo ? la : null;
+    nmzLon = hasGeo ? lo : null;
+    // Ustun bor, lekin viloyat yo'q — yoqilgan holat mumkin emas (himoya).
+    if (nmzEnabled && !nmzRegion) nmzEnabled = false;
+  } catch (e) {
+    console.error('loadNamozSettings:', e);
+    nmzEnabled = false; nmzRegion = null; nmzLat = null; nmzLon = null;
+  }
+}
+
+// ── Toggle ──────────────────────────────────────────────────────────────────
+function nmzRenderCtl() {
+  const btn = $('nmzToggle');
+  if (btn) {
+    btn.classList.toggle('active', !!nmzEnabled);
+    btn.setAttribute('aria-pressed', nmzEnabled ? 'true' : 'false');
+    btn.title = _nmzMissing
+      ? 'TASKFIX_NAMOZ.sql ishga tushirilmagan'
+      : (nmzEnabled ? 'Namoz vaqtlari rejada ko\'rsatilmoqda' : 'Namoz vaqtlarini rejaga qo\'shish');
+  }
+  const reg = $('nmzRegBtn');
+  if (reg) {
+    reg.style.display = (nmzEnabled && nmzRegion) ? 'inline-flex' : 'none';
+    reg.textContent = nmzRegionLabel(nmzRegion) + (nmzHasGeo() ? ' · 📍' : '');
+    reg.title = nmzHasGeo()
+      ? 'Aniq joylashuv bo\'yicha hisoblanmoqda — o\'zgartirish uchun bosing'
+      : 'Viloyat markazi bo\'yicha hisoblanmoqda — o\'zgartirish uchun bosing';
+  }
+}
+
+async function nmzToggleClick() {
+  if (_nmzBusy) return;
+  if (_nmzMissing) {
+    toast('Namoz moduli sozlanmagan — TASKFIX_NAMOZ.sql ishga tushirilmagan', 'err');
+    return;
+  }
+  if (nmzEnabled) { await nmzSetEnabled(false); return; }
+
+  // Yoqishda viloyat SHART: bo'lmasa avval so'raymiz (joylashuvdan taxmin).
+  if (!nmzRegion) {
+    const picked = await nmzAskRegion(true);
+    if (!picked) return;                 // foydalanuvchi bekor qildi — yoqilmaydi
+  }
+  await nmzSetEnabled(true);
+}
+
+// 🔴 `.select()` SHART — RLS/xato jimgina o'tsa "yoqildi" degan yolg'on
+//    holat qolib ketmasin (6-qoida). Xatoda holat ORQAGA qaytariladi.
+async function nmzSetEnabled(on) {
+  const prev = nmzEnabled;
+  _nmzBusy = true;
+  nmzEnabled = on;
+  nmzRenderCtl();
+  try {
+    const { data, error } = await sb.from('profiles')
+      .update({ namoz_enabled: on }).eq('id', me.id).select('id, namoz_enabled');
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    if (myProfile) myProfile.namoz_enabled = on;
+    toast(on ? '☾ Namoz vaqtlari yoqildi' : 'Namoz vaqtlari o\'chirildi', 'ok');
+    nmzAfterChange();
+  } catch (e) {
+    console.error('nmzSetEnabled:', e);
+    nmzEnabled = prev;
+    nmzRenderCtl();
+    toast(translateErr(e.message || String(e)), 'err');
+  } finally {
+    _nmzBusy = false;
+  }
+}
+
+// ── Viloyat ─────────────────────────────────────────────────────────────────
+// Joylashuvdan taxmin: BIR MARTA (faqat viloyat hali tanlanmaganda) so'raladi.
+// Rad etilsa/xato bo'lsa — jimgina taxminsiz davom etadi (bloklovchi emas).
+function nmzGuessRegion() {
+  return new Promise(function (resolve) {
+    if (!navigator.geolocation) { resolve(null); return; }
+    let done = false;
+    const finish = function (v) { if (!done) { done = true; resolve(v); } };
+    // Brauzer o'z oynasini ko'rsatadi; javob kelmasa 8 soniyada davom etamiz.
+    setTimeout(function () { finish(null); }, 8000);
+    navigator.geolocation.getCurrentPosition(
+      function (pos) {
+        try {
+          const la = pos.coords.latitude, lo = pos.coords.longitude;
+          const near = nmzNearestRegion(la, lo);
+          // Viloyat — ko'rsatish/zaxira uchun; lat/lon — ANIQ hisob uchun.
+          finish(near ? { value: near.value, km: near.km, lat: la, lon: lo } : null);
+        } catch (e) { console.error('nmzGuessRegion:', e); finish(null); }
+      },
+      function (err) {
+        // Rad etish — xato emas, oddiy holat (faqat log).
+        console.warn('nmzGuessRegion: joylashuv olinmadi —', err && err.message);
+        finish(null);
+      },
+      { enableHighAccuracy: false, timeout: 7000, maximumAge: 600000 }
+    );
+  });
+}
+
+// Eng yaqin viloyat markazi (haversine — km).
+function nmzNearestRegion(lat, lon) {
+  const R = 6371, rad = Math.PI / 180;
+  let best = null, bestD = Infinity;
+  NMZ_REGIONS.forEach(function (r) {
+    const dLat = (r.lat - lat) * rad, dLon = (r.lon - lon) * rad;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat * rad) * Math.cos(r.lat * rad) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const d = 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
+    if (d < bestD) { bestD = d; best = r; }
+  });
+  return best ? { value: best.value, km: Math.round(bestD) } : null;
+}
+
+// Viloyat tanlash oynasi. `firstTime` — birinchi yoqish (joylashuv so'raladi).
+// Qaytadi: tanlangan slug yoki null (bekor).
+async function nmzAskRegion(firstTime) {
+  if (_nmzMissing) { toast('Namoz moduli sozlanmagan — TASKFIX_NAMOZ.sql ishga tushirilmagan', 'err'); return null; }
+
+  let guess = null;
+  if (firstTime && !nmzRegion) {
+    toast('Joylashuv so\'ralmoqda — viloyatni taxmin qilamiz', 'ok');
+    guess = await nmzGuessRegion();
+  }
+
+  const items = NMZ_REGIONS.map(function (r) {
+    return {
+      value: r.value,
+      label: r.label,
+      sub: (guess && guess.value === r.value) ? ('Taxmin · ~' + guess.km + ' km') : (r.sub || ''),
+      search: r.api + ' ' + (r.sub || '')
+    };
+  });
+
+  const hint = guess
+    ? 'Joylashuvingizga eng yaqin viloyat tanlab qo\'yildi — to\'g\'ri bo\'lmasa o\'zgartiring.'
+    : 'Viloyat ko\'rsatish uchun; aniq vaqt quyidagi joylashuvdan hisoblanadi.';
+
+  const vals = await uiForm('☾ Joylashuvingiz', [
+    { id: 'region', type: 'search', label: 'Viloyat', items: items,
+      value: (guess && guess.value) || nmzRegion || 'toshkent',
+      placeholder: 'Viloyatni qidiring…', hint: hint },
+    // 🔴 Shahar aniqligi: viloyat markazi 1–2 daqiqa xato beradi (Qarshi'da
+    //    turib Qashqadaryo markazining vaqti). Yoqilsa aniq koordinata
+    //    ishlatiladi (aladhan koordinata bilan ishlaydi).
+    { id: 'geo', type: 'toggle', label: 'Aniqlik',
+      toggleLabel: 'Aniq joylashuvim bo\'yicha hisoblansin (shahar aniqligi)',
+      value: !!(guess || nmzHasGeo()),
+      hint: 'O\'chirilsa viloyat markazi bo\'yicha hisoblanadi (1–2 daqiqa farq qilishi mumkin).' }
+  ], { okText: 'Saqlash' });
+  if (!vals) return null;
+
+  const pick = vals.region || '';
+  if (!nmzRegionById(pick)) { toast('Viloyat tanlanmadi', 'err'); return null; }
+
+  // Koordinata: yoqilgan bo'lsa — yangi olingani, bo'lmasa avvalgisi;
+  // ikkalasi ham yo'q bo'lsa SHU YERDA so'raymiz (foydalanuvchi o'zi yoqdi).
+  let lat = null, lon = null;
+  if (vals.geo) {
+    if (guess && isFinite(guess.lat)) { lat = guess.lat; lon = guess.lon; }
+    else if (nmzHasGeo()) { lat = nmzLat; lon = nmzLon; }
+    else {
+      const g2 = await nmzGuessRegion();
+      if (g2 && isFinite(g2.lat)) { lat = g2.lat; lon = g2.lon; }
+      else toast('Joylashuv olinmadi — viloyat markazi bo\'yicha hisoblanadi', 'err');
+    }
+  }
+
+  const same = pick === nmzRegion
+    && ((lat === null && nmzLat === null) || (lat !== null && nmzLat !== null
+        && Math.abs(lat - nmzLat) < 1e-6 && Math.abs(lon - nmzLon) < 1e-6));
+  if (same) return pick;
+
+  const prevR = nmzRegion, prevLat = nmzLat, prevLon = nmzLon;
+  try {
+    const { data, error } = await sb.from('profiles')
+      .update({ namoz_region: pick, namoz_lat: lat, namoz_lon: lon })
+      .eq('id', me.id).select('id, namoz_region, namoz_lat, namoz_lon');
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    nmzRegion = pick; nmzLat = lat; nmzLon = lon;
+    if (myProfile) { myProfile.namoz_region = pick; myProfile.namoz_lat = lat; myProfile.namoz_lon = lon; }
+    nmzRenderCtl();
+    toast('✅ ' + nmzRegionLabel(pick) + (lat !== null ? ' · aniq joylashuv' : ''), 'ok');
+    nmzAfterChange();
+    return pick;
+  } catch (e) {
+    console.error('nmzAskRegion:', e);
+    nmzRegion = prevR; nmzLat = prevLat; nmzLon = prevLon;
+    nmzRenderCtl();
+    toast(translateErr(e.message || String(e)), 'err');
+    return null;
+  }
+}
+
+// Sozlama o'zgargandan keyingi yagona nuqta.
+function nmzAfterChange() {
+  nmzRenderCtl();
+  // Viloyat almashsa eski viloyat vaqtlari qolib ketmasin
+  _nmzDays = {};
+  _nmzMonth = {};
+  if (nmzEnabled && nmzRegion) {
+    const t = new Date();
+    nmzEnsureMonth(t.getFullYear(), t.getMonth() + 1);
+  }
+  try { if (currentPage === 'planner' && plnTab === 'schedule') renderPlanner(); }
+  catch (e) { console.error('nmzAfterChange → renderPlanner:', e); }
+  // Toggle o'chirilsa countdown ham to'xtaydi (fon'da sanab yotmasin)
+  if (nmzEnabled && currentPage === 'planner' && plnTab === 'schedule') nmzTickStart();
+  else nmzTickStop();
+}
+
+// ── Ma'lumot qatlami: xotira → DB kesh → API ────────────────────────────────
+// 🔴 UCH BOSQICH, shu tartibda:
+//   1) `_nmzDays` — shu sessiya xotirasi (so'rovsiz);
+//   2) `namoz_times` — DB kesh (bir odam olib kelsa, qolganlarga API kerak emas);
+//   3) API — oylik (BITTA so'rov 30–31 kunga), keyin DB'ga upsert.
+//
+// ⚠️ Kesh hammaga yozish ochiq (TASKFIX_NAMOZ.sql izohiga qarang), shuning
+//    uchun keshdan kelgan har qator `nmzValidTimes()` dan o'tkaziladi.
+const NMZ_KEYS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+const NMZ_LABELS = { fajr: 'Bomdod', dhuhr: 'Peshin', asr: 'Asr', maghrib: 'Shom', isha: 'Xufton' };
+const NMZ_FETCH_MS = 9000;    // bitta so'rov uchun chegara
+
+let _nmzDays = {};    // 'YYYY-MM-DD' → { fajr, dhuhr, asr, maghrib, isha, sunrise, source }
+let _nmzMonth = {};   // 'region|YYYY-MM' → 'loading' | 'ok' | 'err'
+let _nmzErr = null;   // oxirgi xato (panelda ochiq ko'rsatiladi)
+
+function nmzPad(n) { return String(n).padStart(2, '0'); }
+
+// Kesh kaliti uchun koordinata: 0.05° ≈ 5.5 km ≈ 12 soniya farq — bir shahar
+// aholisi bitta keshni baham ko'radi, qo'shni shahar esa aralashmaydi.
+// '' = koordinata yo'q (viloyat markazi / islomapi).
+function nmzGeoKey() {
+  if (nmzLat === null || nmzLon === null) return '';
+  const r = function (v) { return (Math.round(v / 0.05) * 0.05).toFixed(2); };
+  return r(nmzLat) + ',' + r(nmzLon);
+}
+function nmzHasGeo() { return nmzGeoKey() !== ''; }
+
+// ⚠️ Oy kaliti geo'ni ham o'z ichiga oladi — koordinata o'zgarsa xotiradagi
+//    eski oy qayta ishlatilmaydi.
+function nmzMonthKey(y, m) { return nmzRegion + '|' + nmzGeoKey() + '|' + y + '-' + nmzPad(m); }
+function nmzDayStr(y, m, d) { return y + '-' + nmzPad(m) + '-' + nmzPad(d); }
+
+// 'HH:MM' → daqiqa. Noto'g'ri bo'lsa null (jimgina 0 ga aylanmasin).
+function nmzToMin(s) {
+  const m = /^([01][0-9]|2[0-3]):([0-5][0-9])$/.exec(String(s || '').trim());
+  return m ? (parseInt(m[1], 10) * 60 + parseInt(m[2], 10)) : null;
+}
+
+// Format + tartib. DB CHECK'lari birinchi to'siq, bu — ikkinchisi (kesh
+// buzilgan yoki API kutilmagan javob qaytargan holat).
+function nmzValidTimes(o) {
+  if (!o) return false;
+  let prev = -1;
+  for (let i = 0; i < NMZ_KEYS.length; i++) {
+    const v = nmzToMin(o[NMZ_KEYS[i]]);
+    if (v === null || v <= prev) return false;
+    prev = v;
+  }
+  return true;
+}
+
+// Tarmoq so'rovi — chegaralangan vaqt bilan (osilib qolmasin).
+async function nmzFetchJson(url, ms) {
+  const ctl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  const tid = setTimeout(function () { if (ctl) ctl.abort(); }, ms || NMZ_FETCH_MS);
+  try {
+    const r = await fetch(url, ctl ? { signal: ctl.signal } : undefined);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } finally {
+    clearTimeout(tid);
+  }
+}
+
+// Sana matnini 'YYYY-MM-DD' ga keltiradi. ISO, DD-MM-YYYY va DD.MM.YYYY.
+function nmzNormDate(s) {
+  const t = String(s || '').trim();
+  let m = /^(\d{4})-(\d{2})-(\d{2})/.exec(t);
+  if (m) return m[1] + '-' + m[2] + '-' + m[3];
+  m = /^(\d{2})[.\-\/](\d{2})[.\-\/](\d{4})/.exec(t);
+  if (m) return m[3] + '-' + m[2] + '-' + m[1];
+  return null;
+}
+
+// '03:47 (+05)' → '03:47'
+function nmzNormTime(s) {
+  const m = /(\d{1,2}):(\d{2})/.exec(String(s || ''));
+  return m ? (nmzPad(parseInt(m[1], 10)) + ':' + m[2]) : '';
+}
+
+// ── 1-manba: islomapi.uz (O'zbekiston musulmonlari idorasi, hanafiy) ────────
+// ⚠️ 2026-08-08 holatiga: server 502 qaytarmoqda, shuning uchun javob shakli
+//    JONLI TEKSHIRILMAGAN — kod hujjatlashgan shaklga tayanadi va mos
+//    kelmasa THROW qiladi (zaxira manbaga o'tadi, jimgina bo'sh qolmaydi).
+// ⚠️ Agar server tuzalib CORS bermasa — SHU URL n8n webhook'iga almashtiriladi
+//    (boshqa joyni o'zgartirish shart emas).
+async function nmzFetchIslom(y, m) {
+  const reg = nmzRegionById(nmzRegion);
+  if (!reg) throw new Error('Viloyat tanlanmagan');
+  const url = 'https://islomapi.uz/api/monthly?region=' + encodeURIComponent(reg.api) + '&month=' + m;
+  const j = await nmzFetchJson(url);
+  if (!Array.isArray(j) || !j.length) throw new Error('islomapi: kutilmagan javob');
+
+  const out = {};
+  j.forEach(function (row) {
+    const t = row && (row.times || row.vaqtlar);
+    const ds = nmzNormDate(row && row.date);
+    if (!t || !ds) return;
+    // Oy mos kelmasa (API boshqa yilni qaytarsa) — e'tiborsiz
+    if (ds.slice(0, 7) !== y + '-' + nmzPad(m)) return;
+    const o = {
+      fajr:    nmzNormTime(t.tong_saharlik || t.bomdod || t.fajr),
+      sunrise: nmzNormTime(t.quyosh || t.sunrise),
+      dhuhr:   nmzNormTime(t.peshin || t.dhuhr),
+      asr:     nmzNormTime(t.asr),
+      maghrib: nmzNormTime(t.shom_iftor || t.shom || t.maghrib),
+      isha:    nmzNormTime(t.hufton || t.xufton || t.isha),
+      source:  'islomapi.uz'
+    };
+    if (nmzValidTimes(o)) out[ds] = o;
+  });
+  if (!Object.keys(out).length) throw new Error('islomapi: vaqtlar o\'qilmadi');
+  return out;
+}
+
+// ── 2-manba (zaxira): api.aladhan.com ───────────────────────────────────────
+// CORS ochiq (`access-control-allow-origin: *`, 2026-08-08 da tekshirilgan),
+// oylik kalendar bitta so'rovda. method=3 (MWL), school=1 (HANAFIY asr).
+// ⚠️ Rasmiy O'zbekiston jadvalidan 1–3 daqiqa farq qilishi mumkin — shuning
+//    uchun UI manbani ochiq yozadi.
+async function nmzFetchAladhan(y, m) {
+  const reg = nmzRegionById(nmzRegion);
+  if (!reg) throw new Error('Viloyat tanlanmagan');
+  // 🔴 Foydalanuvchining ANIQ koordinatasi bo'lsa — aynan u yuboriladi
+  //    (Qarshi'da Qarshi vaqti, Qashqadaryo markazi emas). Bo'lmasa —
+  //    viloyat markazi (avvalgi xatti-harakat).
+  const lat = nmzHasGeo() ? nmzLat : reg.lat;
+  const lon = nmzHasGeo() ? nmzLon : reg.lon;
+  const url = 'https://api.aladhan.com/v1/calendar?latitude=' + lat + '&longitude=' + lon +
+              '&method=3&school=1&month=' + m + '&year=' + y;
+  const j = await nmzFetchJson(url);
+  const arr = j && j.data;
+  if (!Array.isArray(arr) || !arr.length) throw new Error('aladhan: kutilmagan javob');
+
+  const out = {};
+  arr.forEach(function (row) {
+    const t = row && row.timings;
+    const ds = nmzNormDate(row && row.date && row.date.gregorian && row.date.gregorian.date);
+    if (!t || !ds || ds.slice(0, 7) !== y + '-' + nmzPad(m)) return;
+    const o = {
+      fajr:    nmzNormTime(t.Fajr),
+      sunrise: nmzNormTime(t.Sunrise),
+      dhuhr:   nmzNormTime(t.Dhuhr),
+      asr:     nmzNormTime(t.Asr),
+      maghrib: nmzNormTime(t.Maghrib),
+      isha:    nmzNormTime(t.Isha),
+      source:  'aladhan.com' + (nmzHasGeo() ? ' (aniq joylashuv)' : ' (viloyat markazi)')
+    };
+    if (nmzValidTimes(o)) out[ds] = o;
+  });
+  if (!Object.keys(out).length) throw new Error('aladhan: vaqtlar o\'qilmadi');
+  return out;
+}
+
+// Oylik ma'lumotni ta'minlaydi. Bir oy uchun bir marta ishlaydi (holat
+// `_nmzMonth` da), qayta chaqirilsa darrov qaytadi.
+async function nmzEnsureMonth(y, m) {
+  if (!nmzEnabled || !nmzRegion || _nmzMissing) return false;
+  const key = nmzMonthKey(y, m);
+  if (_nmzMonth[key] === 'ok' || _nmzMonth[key] === 'loading') return _nmzMonth[key] === 'ok';
+  _nmzMonth[key] = 'loading';
+
+  const last = new Date(y, m, 0).getDate();
+  const from = nmzDayStr(y, m, 1), to = nmzDayStr(y, m, last);
+
+  // 2) DB kesh
+  // ⚠️ Ikki xil aniqlik bir jadvalda yotadi: `geo=''` — viloyat markazi
+  //    (islomapi), `geo='38.85,65.80'` — aniq joylashuv (aladhan). Ikkalasini
+  //    ham o'qiymiz, lekin AYNI geo'niki ustun (aniqrog'i tanlanadi).
+  const geo = nmzGeoKey();
+  let have = 0;
+  try {
+    const q = sb.from('namoz_times').select('*')
+      .eq('region', nmzRegion).gte('date', from).lte('date', to);
+    const { data, error } = await (geo ? q.in('geo', ['', geo]) : q.eq('geo', ''));
+    if (error) throw error;
+    const seen = {};
+    (data || []).forEach(function (r) {
+      const ds = nmzNormDate(r.date);
+      if (!ds || !nmzValidTimes(r)) {
+        if (ds) console.warn('namoz: keshdagi qator tekshiruvdan o\'tmadi —', ds);
+        return;
+      }
+      const exact = (r.geo || '') === geo;
+      // Aniq geo qatori kelsa — taxminiy (viloyat markazi) qatorini bosadi
+      if (seen[ds] && !exact) return;
+      if (!seen[ds]) have++;
+      seen[ds] = true;
+      _nmzDays[ds] = { fajr: r.fajr, sunrise: r.sunrise, dhuhr: r.dhuhr, asr: r.asr,
+                       maghrib: r.maghrib, isha: r.isha, source: r.source || 'kesh' };
+    });
+    // Aniq joylashuv bor, lekin keshda faqat viloyat markazi qatori bo'lsa —
+    // to'liq deb hisoblamaymiz: API'dan aniqrog'ini olamiz.
+    if (geo) {
+      const exactN = (data || []).filter(function (r) { return (r.geo || '') === geo; }).length;
+      if (exactN < last) have = Math.min(have, exactN);
+    }
+  } catch (e) {
+    // Kesh o'qilmasa ham API bor — bu halokat emas.
+    console.error('nmzEnsureMonth (kesh):', e);
+  }
+  if (have >= last) { _nmzMonth[key] = 'ok'; _nmzErr = null; return true; }
+
+  // 3) API. 🔴 TARTIB ANIQLIKKA QARAB:
+  //    • aniq koordinata BOR  → avval aladhan (koordinata bilan ishlaydi →
+  //      shahar aniqligi), zaxira islomapi (faqat viloyat);
+  //    • koordinata YO'Q → avval islomapi (rasmiy, viloyat), zaxira aladhan.
+  const order = nmzHasGeo()
+    ? [{ fn: nmzFetchAladhan, nm: 'aladhan', geo: geo }, { fn: nmzFetchIslom, nm: 'islomapi', geo: '' }]
+    : [{ fn: nmzFetchIslom, nm: 'islomapi', geo: '' }, { fn: nmzFetchAladhan, nm: 'aladhan', geo: geo }];
+
+  let got = null, usedGeo = '', usedNm = '', fallback = false;
+  for (let i = 0; i < order.length; i++) {
+    try {
+      got = await order[i].fn(y, m);
+      usedGeo = order[i].geo; usedNm = order[i].nm; fallback = i > 0;
+      break;
+    } catch (e) {
+      if (i < order.length - 1) {
+        console.warn('namoz: ' + order[i].nm + ' ishlamadi —', e && e.message, '→ keyingi manbaga o\'tamiz');
+      } else {
+        console.error('nmzEnsureMonth (API):', e);
+        _nmzMonth[key] = 'err';
+        _nmzErr = e;
+        return false;
+      }
+    }
+  }
+
+  Object.keys(got).forEach(function (ds) { _nmzDays[ds] = got[ds]; });
+  _nmzMonth[key] = 'ok';
+  _nmzErr = null;
+  if (fallback) console.info('namoz: zaxira manba ishlatildi (' + usedNm + ').');
+
+  // ⚠️ Kesh kaliti MA'LUMOTNING o'ziga qarab yoziladi: islomapi natijasi
+  //    viloyat markaziniki (geo=''), aladhan natijasi esa aniq joylashuvniki.
+  nmzCacheSave(got, usedGeo);      // fon — kutilmaydi
+  return true;
+}
+
+// DB keshiga yozish — BEST-EFFORT. Foydalanuvchi kutayotgan natija vaqtlar
+// (ular allaqachon ekranda), kesh esa faqat tezlik. Shuning uchun xato
+// toast qilinmaydi, lekin JIMGINA ham yutilmaydi (console.error).
+async function nmzCacheSave(days, geoKey) {
+  try {
+    const rows = Object.keys(days).map(function (ds) {
+      const o = days[ds];
+      return { region: nmzRegion, geo: geoKey || '', date: ds, fajr: o.fajr, sunrise: o.sunrise || null,
+               dhuhr: o.dhuhr, asr: o.asr, maghrib: o.maghrib, isha: o.isha,
+               source: o.source || 'unknown' };
+    });
+    if (!rows.length) return;
+    const { error } = await sb.from('namoz_times').upsert(rows, { onConflict: 'region,geo,date' });
+    if (error) throw error;
+  } catch (e) {
+    console.error('nmzCacheSave (kesh yozilmadi, vaqtlar baribir ko\'rsatiladi):', e);
+  }
+}
+
+// Ko'rsatilayotgan hafta uchun kerakli oy(lar)ni ta'minlaydi (hafta ikki oyga
+// tushishi mumkin), keyin planner'ni qayta chizadi.
+async function nmzEnsureDays(days) {
+  if (!nmzEnabled || !nmzRegion || _nmzMissing) return;
+  const months = {};
+  days.forEach(function (d) { months[d.getFullYear() + '-' + (d.getMonth() + 1)] = d; });
+  const keys = Object.keys(months);
+  let changed = false;
+  for (let i = 0; i < keys.length; i++) {
+    const d = months[keys[i]];
+    const key = nmzMonthKey(d.getFullYear(), d.getMonth() + 1);
+    if (_nmzMonth[key] === 'ok') continue;
+    const ok = await nmzEnsureMonth(d.getFullYear(), d.getMonth() + 1);
+    changed = changed || ok;
+  }
+  if (changed) {
+    try { if (currentPage === 'planner' && plnTab === 'schedule') renderPlanner(); }
+    catch (e) { console.error('nmzEnsureDays → renderPlanner:', e); }
+  }
+}
+
+// Bir kunning vaqtlari (xotiradan). Yo'q bo'lsa null.
+function nmzDay(dateStr) { return _nmzDays[dateStr] || null; }
+
+// ── Vaqt: viloyat mintaqasi bo'yicha ────────────────────────────────────────
+// ⚠️ Qurilma soati boshqa mintaqada turgan bo'lsa ham (safar, noto'g'ri
+//    sozlama) countdown TO'G'RI ishlashi kerak — shuning uchun "hozir"
+//    Asia/Tashkent bo'yicha o'qiladi. O'zbekistonda yagona mintaqa (UTC+5),
+//    yozgi vaqt yo'q, shuning uchun 14 viloyatga ham shu to'g'ri keladi.
+const NMZ_TZ = 'Asia/Tashkent';
+// Blok namoz vaqtining O'ZIDAN emas, undan NMZ_LAG daqiqa KEYIN boshlanadi
+// (azon va tayyorgarlik uchun), keyin NMZ_DUR davom etadi.
+// Masalan peshin 12:07 → blok 12:17–12:42.
+const NMZ_LAG = 10;      // namoz vaqtidan keyingi kechikish (daqiqa)
+const NMZ_DUR = 25;      // blok davomiyligi (daqiqa)
+
+function nmzTodayStr() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: NMZ_TZ }); }
+  catch (e) { console.error('nmzTodayStr:', e); return plnDateStr(new Date()); }
+}
+function nmzNowMin() {
+  try {
+    const s = new Date().toLocaleTimeString('en-GB', { timeZone: NMZ_TZ, hour12: false });
+    const m = /^(\d{2}):(\d{2}):(\d{2})/.exec(s);
+    if (m) return parseInt(m[1], 10) * 60 + parseInt(m[2], 10) + parseInt(m[3], 10) / 60;
+  } catch (e) { console.error('nmzNowMin:', e); }
+  const d = new Date();
+  return d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60;
+}
+
+// ── Planner bloklari ────────────────────────────────────────────────────────
+// 🔴 FAQAT CHIZISH: `pointer-events:none` → namoz bloki ustidan ham vazifa
+//    yaratish/sudrash ishlayveradi (eski planner mexanikasi buzilmaydi).
+//    localStorage'dagi `planner_*` jadvaliga hech narsa yozilmaydi.
+//
+// ⚠️ Setka PLN_H_START (07:00) dan boshlanadi, bomdod esa ko'pincha undan
+//    oldin (03:47). Bunday vaqt KESILIB YO'QOLMAYDI: ustunning eng tepasiga
+//    ingichka "erta" chipi bo'lib chiqadi (30 daqiqalik blok bo'lib
+//    ko'rinmaydi — bo'lmagan joyda turgandek tuyulmasin).
+function nmzDayBlocksHtml(ds) {
+  if (!nmzEnabled || !nmzRegion || _nmzMissing) return '';
+  const day = nmzDay(ds);
+  if (!day) return '';
+
+  const gridStart = PLN_H_START * 60, gridEnd = (PLN_H_END + 1) * 60;
+  let out = '', earlyN = 0;
+
+  NMZ_KEYS.forEach(function (k) {
+    const min = nmzToMin(day[k]);
+    if (min === null) return;
+    const label = NMZ_LABELS[k];
+    // Blok namoz vaqtidan NMZ_LAG daqiqa keyin boshlanadi
+    const bStart = min + NMZ_LAG;
+    const bLbl = plnMinLabel(bStart) + '–' + plnMinLabel(bStart + NMZ_DUR);
+    const title = label + ' ' + day[k] + ' · blok ' + bLbl;
+
+    if (bStart < gridStart) {
+      const top = earlyN * 19;
+      earlyN++;
+      out += '<div class="nmz-early" style="top:' + top + 'px;" title="' +
+        escapeHtml(title + ' — jadval boshlanishidan oldin') + '">' +
+        '☾ ' + escapeHtml(label) + ' ' + escapeHtml(day[k]) + '</div>';
+      return;
+    }
+    if (bStart >= gridEnd) return;   // setkadan keyin (O'zbekistonda bo'lmaydi — himoya)
+
+    const dur = Math.min(NMZ_DUR, gridEnd - bStart);
+    const top = ((bStart - gridStart) / 60) * PLN_HPX;
+    const height = Math.max(16, (dur / 60) * PLN_HPX);
+    out += '<div class="nmz-blk" style="top:' + top + 'px;height:' + height + 'px;" title="' +
+      escapeHtml(title) + '">' +
+      '<span class="nb-nm">' + escapeHtml(label) + '</span>' +
+      '<span class="nb-tm">' + escapeHtml(plnMinLabel(bStart)) + '</span>' +
+    '</div>';
+  });
+  return out;
+}
+
+// ── Jonli panel (bugungi vaqtlar + countdown) ───────────────────────────────
+// Keyingi namoz: bugungi o'tmaganlaridan birinchisi; hammasi o'tgan bo'lsa —
+// ERTANGI bomdod (kun oxirida panel "keyingisi yo'q" deb qolmasin).
+function nmzNext(nowMin, today, tomorrow) {
+  for (let i = 0; i < NMZ_KEYS.length; i++) {
+    const k = NMZ_KEYS[i], v = nmzToMin(today && today[k]);
+    if (v !== null && v > nowMin) return { key: k, at: v, left: v - nowMin, tomorrow: false };
+  }
+  const f = nmzToMin(tomorrow && tomorrow.fajr);
+  if (f === null) return null;
+  return { key: 'fajr', at: f, left: (24 * 60 - nowMin) + f, tomorrow: true };
+}
+
+// Joriy namoz — oxirgi o'tgani (chipda ajratiladi)
+function nmzCurrentKey(nowMin, today) {
+  let cur = null;
+  NMZ_KEYS.forEach(function (k) {
+    const v = nmzToMin(today && today[k]);
+    if (v !== null && v <= nowMin) cur = k;
+  });
+  return cur;
+}
+
+function nmzLeftLabel(mins) {
+  const total = Math.max(0, Math.round(mins * 60));   // soniya
+  const h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60), s = total % 60;
+  return (h ? (h + ':' + nmzPad(m)) : String(m)) + ':' + nmzPad(s);
+}
+
+function nmzRenderPanel() {
+  const el = $('nmzPanel');
+  if (!el) return;
+  if (!nmzEnabled || !nmzRegion || _nmzMissing) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.style.display = 'block';
+
+  const ds = nmzTodayStr();
+  const day = nmzDay(ds);
+
+  if (!day) {
+    // Sabab JIMGINA yashirilmaydi: yuklanmoqdami yoki xatomi — ochiq yoziladi.
+    const key = nmzMonthKey(parseInt(ds.slice(0, 4), 10), parseInt(ds.slice(5, 7), 10));
+    const st = _nmzMonth[key];
+    el.innerHTML = '<div class="nmz-line"><span class="nmz-reg-lbl">' + escapeHtml(nmzRegionLabel(nmzRegion)) + '</span>' +
+      '<span class="nmz-msg">' +
+        (st === 'loading' ? 'Namoz vaqtlari yuklanmoqda…'
+          : (_nmzErr ? ('Vaqtlar olinmadi: ' + escapeHtml(translateErr(_nmzErr.message || String(_nmzErr))))
+                     : 'Namoz vaqtlari topilmadi')) +
+      '</span>' +
+      (st === 'loading' ? '' : '<button class="nmz-retry" onclick="nmzReload()">Qayta urinish</button>') +
+      '</div>';
+    return;
+  }
+
+  const nowMin = nmzNowMin();
+  const curKey = nmzCurrentKey(nowMin, day);
+  const tomorrow = nmzDay(nmzShiftDay(ds, 1));
+  const nx = nmzNext(nowMin, day, tomorrow);
+
+  let chips = '';
+  NMZ_KEYS.forEach(function (k) {
+    const cls = 'nmz-chip' + (k === curKey ? ' now' : '') + (nx && !nx.tomorrow && nx.key === k ? ' next' : '');
+    chips += '<span class="' + cls + '"><b>' + escapeHtml(NMZ_LABELS[k]) + '</b>' + escapeHtml(day[k]) + '</span>';
+  });
+
+  const src = day.source && day.source !== 'kesh' ? day.source : '';
+  el.innerHTML =
+    '<div class="nmz-line">' +
+      '<span class="nmz-reg-lbl">☾ ' + escapeHtml(nmzRegionLabel(nmzRegion)) + '</span>' +
+      '<span class="nmz-chips">' + chips + '</span>' +
+      (nx ? '<span class="nmz-cd" id="nmzCd">' + escapeHtml(nmzCdText(nx)) + '</span>' : '') +
+    '</div>' +
+    (src ? '<div class="nmz-src">Manba: ' + escapeHtml(src) +
+            (src.indexOf('aladhan') === 0 ? ' (zaxira — rasmiy jadvaldan 1–3 daqiqa farq qilishi mumkin)' : '') +
+           '</div>' : '');
+}
+
+function nmzCdText(nx) {
+  return (nx.tomorrow ? 'Ertangi ' : '') + NMZ_LABELS[nx.key] + 'gacha ' + nmzLeftLabel(nx.left);
+}
+
+// 'YYYY-MM-DD' + n kun
+function nmzShiftDay(ds, n) {
+  const p = ds.split('-');
+  const d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+  d.setDate(d.getDate() + n);
+  return plnDateStr(d);
+}
+
+// ── Soniyalik yangilanish ───────────────────────────────────────────────────
+// ⚠️ Interval BITTA (`_nmzTick`) va planner ko'rinmasa TO'XTAYDI — fon'da
+//    sanab yotmasin (sizib chiqish).
+let _nmzTick = 0;
+let _nmzLastNextKey = '';
+
+function nmzTickStart() {
+  nmzTickStop();
+  if (!nmzEnabled || !nmzRegion || _nmzMissing) return;
+  nmzRenderPanel();
+  _nmzTick = setInterval(nmzTickUpdate, 1000);
+}
+function nmzTickStop() {
+  if (_nmzTick) { clearInterval(_nmzTick); _nmzTick = 0; }
+}
+function nmzTickUpdate() {
+  if (currentPage !== 'planner' || plnTab !== 'schedule' || !nmzEnabled) { nmzTickStop(); return; }
+  const cd = $('nmzCd');
+  if (!cd) { nmzRenderPanel(); return; }
+  const ds = nmzTodayStr();
+  const day = nmzDay(ds);
+  if (!day) { nmzRenderPanel(); return; }
+  const nx = nmzNext(nmzNowMin(), day, nmzDay(nmzShiftDay(ds, 1)));
+  if (!nx) { nmzRenderPanel(); return; }
+  // Namoz vaqti kirdi (keyingisi almashdi) — chiplarni ham qayta bo'yaymiz
+  const k = (nx.tomorrow ? 'T:' : '') + nx.key;
+  if (k !== _nmzLastNextKey) { _nmzLastNextKey = k; nmzRenderPanel(); return; }
+  cd.textContent = nmzCdText(nx);
+}
+
+// Panel'dagi "Qayta urinish" — oy holatini tozalab qaytadan so'raydi.
+async function nmzReload() {
+  if (!nmzEnabled || !nmzRegion) return;
+  const ds = nmzTodayStr();
+  const y = parseInt(ds.slice(0, 4), 10), m = parseInt(ds.slice(5, 7), 10);
+  delete _nmzMonth[nmzMonthKey(y, m)];
+  _nmzErr = null;
+  nmzRenderPanel();
+  const ok = await nmzEnsureMonth(y, m);
+  nmzRenderPanel();
+  if (ok) { try { renderPlanner(); } catch (e) { console.error('nmzReload → renderPlanner:', e); } }
+  else toast(translateErr((_nmzErr && (_nmzErr.message || String(_nmzErr))) || 'Vaqtlar olinmadi'), 'err');
 }
 
 // ============ DEPARTMENTS LIST ============
@@ -12269,6 +13856,9 @@ async function teamSetMemberPos(uid, pos) {
 
 // ---- Sub-tab: Hodimlar / Tashkilot ----
 let _teamTab = 'hodimlar';
+// ⚠️ Tab qatori HTML'da izohga olingan (2026-08-06) — 'tashkilot' shoxiga
+//    hozir HECH KIM kirmaydi. Funksiya saqlanmoqda: goPage('team') uni
+//    'hodimlar' bilan chaqiradi va qaytarish oson bo'lsin.
 function teamSetTab(tab) {
   _teamTab = tab;
   document.querySelectorAll('#page-team [data-teamtab]').forEach(b => b.classList.toggle('active', b.dataset.teamtab === tab));
@@ -12281,7 +13871,8 @@ function teamSetTab(tab) {
       oc.style.display = 'block';
       $('teamPaneTashkilot').appendChild(oc);
     }
-    try { loadOrgChart(); } catch (e) {}
+    // Bo'sh catch taqiqlanadi (qoida 6) — hech bo'lmasa console'ga.
+    try { loadOrgChart(); } catch (e) { console.error('teamSetTab → loadOrgChart:', e); }
   }
 }
 
@@ -15202,7 +16793,7 @@ async function loadTgUsers() {
   if (!intg || !intg.is_enabled) {
     $('tgUsersList').innerHTML = '';
     $('tgUsersEmpty').style.display = 'block';
-    $('tgUsersEmpty').innerHTML = '<strong>Telegram bot yoqilmagan</strong>Avval Integratsiyalar bo\'limidan botni yoqing.';
+    $('tgUsersEmpty').innerHTML = '<strong>Telegram bot yoqilmagan</strong>Avval "Qo\'shimcha service" bo\'limidan botni yoqing.';
     return;
   }
   const { data, error } = await sb.from('tg_bot_users').select('*').eq('integration_id', intg.id).order('created_at', { ascending: false });
@@ -15549,28 +17140,84 @@ async function loadIntegrations() {
   if (!currentWs || currentWs.kind !== 'organization') return;
   const canManage = isOwnerLike();
   if (!canManage) {
-    $('intgGrid').innerHTML = '<div class="empty"><strong>Faqat boshqaruvchi ko\'radi</strong>Integratsiyalarni faqat workspace egasi yoki administratori sozlaydi.</div>';
+    $('intgGrid').innerHTML = '<div class="empty"><strong>Faqat boshqaruvchi ko\'radi</strong>Qo\'shimcha service\'ni faqat workspace egasi yoki administratori sozlaydi.</div>';
     return;
   }
-  const { data, error } = await sb.from('integrations_safe').select('*').eq('workspace_id', currentWs.id);
-  if (error) { toast(translateErr(error.message), 'err'); return; }
+  // HR holati alohida jadvalda (hr_settings) — sahifa ochilganda yangilaymiz,
+  // shunda "Qayta urinish" tugmasi ham haqiqatan qayta o'qiydi.
+  const [{ data, error }] = await Promise.all([
+    sb.from('integrations_safe').select('*').eq('workspace_id', currentWs.id),
+    loadHrSvcSettings(),
+  ]);
+  if (error) { toast(translateErr(error.message), 'err'); renderIntegrations(); return; }
   integrationsCache = data || [];
   renderIntegrations();
+  renderSidebar();   // HR yoqilgan/o'chirilgan bo'lsa chap menyu ham yangilansin
 }
 
 const TOOL_META = {
   telegram: { name: 'Telegram', desc: 'Vazifa, taklif va eslatmalarni botingiz orqali yetkazing.', logo: '✈', cls: 'tg', available: true },
+  // HR — tashqi integratsiya emas, ICHKI modul. Holati integrations'da emas,
+  // public.hr_settings da (hrsv* bloki).
+  hr:       { name: 'HR Service', desc: 'Tashkiliy sxema: papka daraxti va xodimlarning bo\'ysunish tuzilmasi.', logo: '', cls: 'hr', available: true, internal: true },
   n8n:      { name: 'n8n',      desc: 'Vazifa hodisalarini sizning n8n instance\'ingizga webhook orqali yuborish.', logo: 'n', cls: 'n8n', available: true },
   gdrive:   { name: 'Google Drive', desc: 'Vazifa fayllarini Drive\'ga saqlash (tez orada).', logo: 'D', cls: 'gdrive', available: false },
 };
 
+// HR kartasining holati + tugmasi. integrations jadvalidan EMAS — hrsv* dan.
+function intgHrParts() {
+  // SQL ishga tushirilmagan: yolg'on "yoqilgan" ko'rsatmaymiz, aniq aytamiz.
+  if (_hrsvMissing) {
+    return {
+      status: '<span class="intg-status err">●  Sozlanmagan</span>' +
+              '<div style="margin-top:6px;font-size:12px;color:var(--muted);line-height:1.5;">' +
+              'Supabase SQL Editor\'da <code style="background:#F0EFEA;padding:1px 5px;border-radius:4px;">TASKFIX_HR.sql</code> ni bajaring.</div>',
+      action: '<button class="btn sm secondary" disabled title="Avval TASKFIX_HR.sql ni ishga tushiring">Yoqish</button>'
+    };
+  }
+  if (_hrsvErr) {
+    return {
+      status: '<span class="intg-status err">●  O\'qilmadi</span>',
+      action: '<button class="btn sm secondary" onclick="loadIntegrations()">Qayta urinish</button>'
+    };
+  }
+  if (hrsvEnabled()) {
+    return {
+      status: '<span class="intg-status on">●  Yoqilgan</span>',
+      action: '<button class="btn secondary sm" onclick="goPage(\'orgschema\')">Org Schema</button>' +
+              '<button class="btn sm" style="background: transparent; color: var(--danger); border: 1px solid var(--danger-soft);" onclick="hrsvToggle(false)">O\'chirish</button>'
+    };
+  }
+  return {
+    status: '<span class="intg-status off">○  Yoqilmagan</span>',
+    action: '<button class="btn sm" onclick="hrsvToggle(true)">Yoqish</button>'
+  };
+}
+
 function renderIntegrations() {
   const grid = $('intgGrid');
-  const tools = ['telegram','n8n','gdrive'];
+  if (!grid) return;
+  // HR — Telegram YONIDA (ikkinchi karta).
+  const tools = ['telegram','hr','n8n','gdrive'];
   grid.innerHTML = tools.map(tool => {
     const meta = TOOL_META[tool];
     const intg = integrationsCache.find(i => i.tool === tool);
     let statusHtml, action;
+    if (meta.internal && tool === 'hr') {
+      const p = intgHrParts();
+      statusHtml = p.status; action = p.action;
+      return '<div class="intg-card">' +
+        '<div class="intg-head">' +
+          '<div class="intg-logo ' + meta.cls + '">' + icon('hr', 21) + '</div>' +
+          '<div style="flex:1; min-width:0;">' +
+            '<div class="intg-name">' + meta.name + '</div>' +
+            '<div class="intg-desc">' + meta.desc + '</div>' +
+            '<div style="margin-top:8px;">' + statusHtml + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="intg-foot">' + action + '</div>' +
+      '</div>';
+    }
     if (intg && intg.is_enabled && intg.status === 'active') {
       let info = '';
       if (tool === 'telegram' && intg.bot_username) info = ' <span style="font-size:12px; color: var(--muted); margin-left:6px;">@' + escapeHtml(intg.bot_username) + '</span>';
@@ -15647,7 +17294,7 @@ async function saveN8nFromModal() {
 }
 
 async function disableIntegration(id) {
-  if (!confirm('Integratsiyani o\'chirib qo\'yasizmi? Sozlama saqlanadi, lekin xabarlar yuborilmaydi.')) return;
+  if (!confirm('Service\'ni o\'chirib qo\'yasizmi? Sozlama saqlanadi, lekin xabarlar yuborilmaydi.')) return;
   try {
     const { error } = await sb.from('integrations').update({ is_enabled: false }).eq('id', id);
     if (error) throw error;
@@ -15910,6 +17557,1513 @@ async function tgNotifyTaskEdit(task, field, oldValue, newValue) {
   } catch (e) { console.error('tgNotifyTaskEdit:', e); }
 }
 
+// ============ ORG SCHEMA (osc*) — HR Service ============
+// Ikki ko'rinish, BITTA manba (org_folders + org_people, TASKFIX_HR.sql):
+//   • "Papka ko'rinishi" — daraxt ro'yxati (papka ichida papka + xodimlar)
+//   • "Org chart"        — o'sha daraxtning vizual sxemasi
+// Joylashuv avtomatik hisoblanadi (node_x/node_y saqlanmaydi) — shuning uchun
+// ikki ko'rinish hech qachon bir-biridan ajralib qolmaydi.
+//
+// ⚠️ ESKI "Tashkilot tuzilmasi" (oc* / org_containers) BU YERGA ALOQADOR EMAS.
+//    U kod ham, ma'lumoti ham joyida — faqat Jamoa sahifasidagi tabi
+//    vaqtincha yashirilgan.
+//
+// ⚠️ Inline handler chaqiradigan hamma narsa top-level (init() ichida EMAS).
+let oscView = 'folders';        // 'folders' | 'chart'
+
+function oscSetView(v) {
+  oscView = (v === 'chart') ? 'chart' : 'folders';
+  document.querySelectorAll('#page-orgschema [data-osctab]').forEach(function (b) {
+    b.classList.toggle('active', b.dataset.osctab === oscView);
+  });
+  const pf = $('oscPaneFolders'), pc = $('oscPaneChart');
+  if (pf) pf.style.display = (oscView === 'folders') ? 'block' : 'none';
+  if (pc) pc.style.display = (oscView === 'chart') ? 'block' : 'none';
+  try { localStorage.setItem('osc_view', oscView); } catch (e) { console.error('oscSetView:', e); }
+
+  // Chartga BIRINCHI marta o'tilganda o'zi sig'sin. Keyingi o'tishlarda
+  // foydalanuvchining zoom'i saqlanadi (har safar tiklash bezovta qilardi).
+  if (oscView === 'chart' && _oscChartBuilt && !_oscFitted) {
+    _oscFitted = true;
+    requestAnimationFrame(function () { oscZoomFit(); });
+  }
+}
+
+// ── Ma'lumot ────────────────────────────────────────────────────────────────
+let oscFolders = [];          // org_folders qatorlari
+let oscPeople  = [];          // org_people qatorlari (5-qadamda to'ladi)
+let oscExpanded = null;       // Set(folderId) — yoyilgan papkalar
+let _oscWs = null;            // yuklangan workspace (poyga himoyasi)
+let _oscMissing = false;      // TASKFIX_HR.sql ishga tushirilmagan
+let _oscErr = null;           // oxirgi yuklash xatosi
+let _oscLoading = false;
+
+function oscCanEdit() { return isOwnerLike(); }
+
+function oscTableMissing(err) {
+  if (!err) return false;
+  const c = String(err.code || '');
+  const m = String(err.message || '').toLowerCase();
+  if (c === '42P01' || c === 'PGRST205') return true;
+  return (m.indexOf('org_folders') !== -1 || m.indexOf('org_people') !== -1) &&
+         (m.indexOf('does not exist') !== -1 || m.indexOf('schema cache') !== -1 || m.indexOf('could not find') !== -1);
+}
+
+// Yoyilgan papkalar — workspace bo'yicha eslab qolinadi.
+function oscExpKey() { return 'osc_exp_' + (currentWs ? currentWs.id : '0'); }
+function oscLoadExpanded() {
+  if (oscExpanded) return oscExpanded;
+  oscExpanded = new Set();
+  try {
+    const raw = localStorage.getItem(oscExpKey());
+    if (raw) JSON.parse(raw).forEach(function (id) { oscExpanded.add(id); });
+  } catch (e) { console.error('oscLoadExpanded:', e); }
+  return oscExpanded;
+}
+function oscSaveExpanded() {
+  try { localStorage.setItem(oscExpKey(), JSON.stringify(Array.from(oscLoadExpanded()))); }
+  catch (e) { console.error('oscSaveExpanded:', e); }
+}
+
+// ── Daraxt tuzilishi ────────────────────────────────────────────────────────
+// ⚠️ BITTA BIRLASHGAN DARAXT: tugun papka ham, hodim ham bo'lishi mumkin va
+//    HAR QANDAY tugun pastga davom etadi.
+//      papka ostida  → papkalar (parent_id) + hodimlar (folder_id)
+//      hodim ostida  → papkalar (parent_person_id) + hodimlar (parent_person_id)
+//    Ikkala ko'rinish (papka ro'yxati va org chart) SHU daraxtdan o'qiydi —
+//    shuning uchun ular ajralib qola olmaydi.
+//
+// Tugun: { type:'folder'|'person', id, row, children:[] }
+// Kalit: 'f:<id>' / 'p:<id>' — ikki jadval id'lari to'qnashmasin.
+function oscKey(type, id) { return (type === 'folder' ? 'f:' : 'p:') + id; }
+
+// Butun daraxt: { roots:[...], byKey:{}, parentOf:{} }
+// ⚠️ Yetim tugun (otasi ko'rinmaydi) JIMGINA YO'QOLMAYDI — ildizga chiqadi.
+function oscTree() {
+  const fById = {}, pById = {};
+  oscFolders.forEach(function (f) { fById[f.id] = f; });
+  oscPeople.forEach(function (p) { pById[p.id] = p; });
+
+  const nodes = {};   // key → node
+  oscFolders.forEach(function (f) { nodes[oscKey('folder', f.id)] = { type: 'folder', id: f.id, row: f, children: [] }; });
+  oscPeople.forEach(function (p) { nodes[oscKey('person', p.id)] = { type: 'person', id: p.id, row: p, children: [] }; });
+
+  // Har tugunning otasi (ko'rinadigan bo'lsa)
+  function parentKeyOfFolder(f) {
+    if (f.parent_person_id && pById[f.parent_person_id]) return oscKey('person', f.parent_person_id);
+    if (f.parent_id && fById[f.parent_id]) return oscKey('folder', f.parent_id);
+    return null;
+  }
+  function parentKeyOfPerson(p) {
+    if (p.parent_person_id && pById[p.parent_person_id]) return oscKey('person', p.parent_person_id);
+    if (p.folder_id && fById[p.folder_id]) return oscKey('folder', p.folder_id);
+    return null;
+  }
+
+  const parentOf = {}, roots = [];
+  Object.keys(nodes).forEach(function (k) {
+    const n = nodes[k];
+    const pk = n.type === 'folder' ? parentKeyOfFolder(n.row) : parentKeyOfPerson(n.row);
+    parentOf[k] = pk;
+    if (pk && nodes[pk]) nodes[pk].children.push(n);
+    else roots.push(n);
+  });
+
+  // Tartib: avval papkalar, keyin hodimlar; ichida sort_order → nom
+  function cmp(a, b) {
+    if (a.type !== b.type) return a.type === 'folder' ? -1 : 1;
+    const d = (a.row.sort_order || 0) - (b.row.sort_order || 0);
+    if (d !== 0) return d;
+    const an = a.type === 'folder' ? (a.row.name || '') : oscPersonName(a.row.user_id);
+    const bn = b.type === 'folder' ? (b.row.name || '') : oscPersonName(b.row.user_id);
+    return an.localeCompare(bn, 'uz');
+  }
+  roots.sort(cmp);
+  Object.keys(nodes).forEach(function (k) { nodes[k].children.sort(cmp); });
+
+  return { roots: roots, byKey: nodes, parentOf: parentOf };
+}
+
+// Tugun va butun avlodi (o'zi ham) — kalitlar to'plami.
+// ⚠️ `seen` — sikl himoyasi: server sikl yaratmaydi, lekin ma'lumot boshqa
+//    yo'l bilan buzilsa ilova rekursiyada YIQILMASLIGI kerak.
+function oscSubtreeKeys(tree, node) {
+  const out = new Set();
+  (function walk(n) {
+    const k = oscKey(n.type, n.id);
+    if (out.has(k)) { console.error('oscSubtreeKeys: daraxtda sikl —', k); return; }
+    out.add(k);
+    n.children.forEach(walk);
+  })(node);
+  return out;
+}
+
+// ── Yuklash ─────────────────────────────────────────────────────────────────
+async function oscLoad() {
+  const ws = currentWs.id;
+  _oscWs = ws; _oscErr = null; _oscMissing = false; _oscLoading = true;
+  try {
+    // ⚠️ AVTOMATIK BO'LIM SINXRONIZATSIYASI OLIB TASHLANDI (2026-08-06).
+    //    Avval bu yerda org_sync_departments() RPC chaqirilib, TaskFix'dagi
+    //    eski `departments` qatorlari daraxtga papka bo'lib tortilardi.
+    //    Endi Org Schema BO'SH boshlanadi — papkalarni foydalanuvchi noldan
+    //    o'zi yaratadi. `departments` jadvaliga bu yerdan umuman tegilmaydi.
+    //
+    //    Papkalar + hodimlar (parallel)
+    const [fRes, pRes] = await Promise.all([
+      sb.from('org_folders').select('*').eq('workspace_id', ws),
+      sb.from('org_people').select('*').eq('workspace_id', ws),
+    ]);
+    if (fRes.error) throw fRes.error;
+    if (pRes.error) throw pRes.error;
+
+    // Workspace almashgan bo'lsa — eski natijani yozmaymiz
+    if (_oscWs !== ws || !currentWs || currentWs.id !== ws) return false;
+
+    oscFolders = fRes.data || [];
+    oscPeople  = pRes.data || [];
+    return true;
+  } catch (e) {
+    if (oscTableMissing(e)) {
+      _oscMissing = true;
+      console.warn('org_folders/org_people topilmadi — TASKFIX_HR.sql ishga tushirilmagan.');
+    } else {
+      _oscErr = e;
+      console.error('oscLoad:', e);
+    }
+    oscFolders = []; oscPeople = [];
+    return false;
+  } finally {
+    _oscLoading = false;
+  }
+}
+
+// ── Hodimlar ────────────────────────────────────────────────────────────────
+// ⚠️ MODEL: DARAXT = BO'YSUNISH SXEMASI. Alohida `manager_id` yo'q.
+//      • hodim ostidagi hodim → o'sha hodimga bo'ysunadi;
+//      • papka ichidagi hodimlar TENG, hammasi yuqoridagi eng yaqin
+//        hodim(lar)ga bo'ysunadi (yo'lda bo'sh papkalar o'tkazib yuboriladi);
+//      • boshqa ildiz (alohida daraxt) bilan bog'lanish YO'Q.
+function oscPersonName(uid) {
+  const m = wsMembers.find(function (x) { return x.user_id === uid; });
+  const p = m && m.profile ? m.profile : null;
+  return (p && (p.full_name || p.email)) || 'Noma\'lum xodim';
+}
+function oscPersonTitle(row) {
+  const t = (row.title || '').trim();
+  return t || memberPos(row.user_id) || '';
+}
+function oscPersonById(id) { return oscPeople.find(function (p) { return p.id === id; }); }
+
+// Shu xodimning sxemadagi O'RINLARI soni (bir odam bir necha joyda bo'lishi
+// mumkin — 2026-08-06 dan). 1 bo'lsa belgi ko'rsatilmaydi.
+function oscSeatCount(uid) {
+  let n = 0;
+  oscPeople.forEach(function (p) { if (p.user_id === uid) n++; });
+  return n;
+}
+
+// "N o'rin" belgisi — bir odam bir necha joyda bo'lganda ko'rsatiladi.
+// ⚠️ Busiz foydalanuvchi bir xil ismni ikki joyda ko'rib "bu xatolikmi?"
+//    deb o'ylardi. Tooltip'da qayerda turgani sanab beriladi.
+function oscSeatBadge(uid, tree) {
+  const seats = oscPeople.filter(function (p) { return p.user_id === uid; });
+  if (seats.length < 2) return '';
+  const t = tree || oscTree();
+  const where = seats.map(function (p) {
+    const pk = t.parentOf[oscKey('person', p.id)];
+    const n = pk ? t.byKey[pk] : null;
+    return n ? oscNodeName(n) : 'Ildiz';
+  });
+  return '<span class="osc-seat" title="' + escapeHtml(seats.length + ' o\'rin: ' + where.join(', ')) + '">' + seats.length + ' o\'rin</span>';
+}
+
+// AYNI SHU o'rinda (bir xil ota tugunda) allaqachon bormi?
+// pk: 'f' | 'p' | '' (ildiz), pid: ota id yoki null.
+function oscHasSeat(uid, pk, pid) {
+  return oscPeople.some(function (p) {
+    if (p.user_id !== uid) return false;
+    if (pk === 'f') return p.folder_id === pid;
+    if (pk === 'p') return p.parent_person_id === pid;
+    return !p.folder_id && !p.parent_person_id;   // ildiz
+  });
+}
+function oscFolderById(id) { return oscFolders.find(function (f) { return f.id === id; }); }
+function oscNodeName(n) { return n.type === 'folder' ? (n.row.name || '') : oscPersonName(n.row.user_id); }
+
+// Shu hodim KIMGA bo'ysunadi — daraxtdan hisoblanadi, saqlanmaydi.
+//   • otasi HODIM bo'lsa → o'sha hodim (to'g'ridan-to'g'ri bo'ysunish);
+//   • otasi PAPKA bo'lsa → o'sha papkadagilar TENGDOSH (o'zi ham shu yerda!),
+//     shuning uchun ular emas, YUQORIDAGI eng yaqin hodim(lar) rahbar.
+//
+// ⚠️ Shu "o'z papkasini o'tkazib yuborish" qadami MUHIM: busiz hodim o'zini
+//    va tengdoshlarini rahbar deb ko'rsatardi.
+function oscDerivedManagers(person, tree) {
+  const t = tree || oscTree();
+  const first = t.parentOf[oscKey('person', person.id)];
+  if (!first) return [];                       // ildiz — hech kimga bo'ysunmaydi
+
+  const firstNode = t.byKey[first];
+  if (!firstNode) return [];
+  if (firstNode.type === 'person') return [firstNode.row];   // to'g'ridan-to'g'ri
+
+  // Otasi papka → o'sha papkani O'TKAZIB YUBORAMIZ (tengdoshlar) va
+  // undan yuqoridagi birinchi "odamli" tugunni qidiramiz.
+  let key = t.parentOf[first];
+  const seen = new Set([first]);
+  let steps = 0;
+  while (key && steps < 200) {
+    if (seen.has(key)) { console.error('oscDerivedManagers: daraxtda sikl —', key); return []; }
+    seen.add(key); steps++;
+    const n = t.byKey[key];
+    if (!n) return [];
+    if (n.type === 'person') return [n.row];
+    const here = n.children.filter(function (c) { return c.type === 'person'; }).map(function (c) { return c.row; });
+    if (here.length) return here;
+    key = t.parentOf[key];   // bo'sh papka — yana yuqoriga
+  }
+  return [];
+}
+
+// "→ Rahbar" belgisi (faqat ma'lumot uchun; tanlanmaydi).
+function oscMgrBadge(person, tree) {
+  const mgrs = oscDerivedManagers(person, tree);
+  if (!mgrs.length) return '';
+  const names = mgrs.map(function (m) { return oscPersonName(m.user_id); });
+  const label = names.length === 1 ? names[0] : (names.length + ' kishi');
+  return '<span class="osc-mgr" title="' + escapeHtml('Bo\'ysunadi: ' + names.join(', ')) + '">→ ' + escapeHtml(label) + '</span>';
+}
+
+// ── Chizish ─────────────────────────────────────────────────────────────────
+function oscRenderActions() {
+  const box = $('oscActions'); if (!box) return;
+  if (!oscCanEdit()) { box.innerHTML = ''; return; }
+  box.innerHTML =
+    '<button class="btn secondary sm" onclick="oscExpandAll(true)">Hammasini yoyish</button>' +
+    '<button class="btn secondary sm" onclick="oscExpandAll(false)">Yig\'ish</button>' +
+    '<button class="btn secondary sm" onclick="oscAddPerson(\'\',\'\')">' + icon('userPlus', 14) + ' Xodim</button>' +
+    '<button class="btn sm" onclick="oscNewFolder(\'\',\'\')">' + icon('plus', 14) + ' Papka</button>';
+}
+
+function oscRenderCount() {
+  const el = $('oscCount'); if (!el) return;
+  if (_oscMissing) { el.textContent = ''; return; }
+  el.textContent = oscFolders.length + ' papka · ' + oscPeople.length + ' xodim';
+}
+
+// Bitta tugun qatori (papka ham, hodim ham) — birlashgan daraxt bo'yicha.
+//
+// ⚠️ BUTUN QATOR bosiladi → FAQAT SHU tugun ochiladi/yopiladi. Har tugun
+//    mustaqil (accordion emas). Chevron — bezak (span): qator o'zi hodisani
+//    oladi, ikki marta toggle bo'lmaydi.
+// ⚠️ Amal tugmalari event.stopPropagation() qiladi, aks holda "o'chirish"
+//    bosilganda tugun ham yig'ilib ketardi.
+// ⚠️ `seen` — sikl himoyasi: buzilgan ma'lumot butun sahifani yiqitmasin.
+function oscNodeRowHtml(n, t, seen) {
+  const key = oscKey(n.type, n.id);
+  if (seen.has(key)) { console.error('oscNodeRowHtml: daraxtda sikl —', key); return ''; }
+  seen.add(key);
+
+  const isF = n.type === 'folder';
+  const kids = n.children;
+  const exp = oscLoadExpanded().has(key);
+  const canEdit = oscCanEdit();
+  const has = kids.length > 0;
+  const nF = kids.filter(function (c) { return c.type === 'folder'; }).length;
+  const nP = kids.length - nF;
+
+  let html = '<div class="osc-node">';
+  html += '<div class="osc-row ' + (isF ? 'folder' : 'person') + (has ? ' clickable' : '') + '"' +
+          (has
+            ? ' onclick="oscToggle(\'' + key + '\')" onkeydown="oscRowKey(event,\'' + key + '\')"' +
+              ' role="button" tabindex="0" aria-expanded="' + (exp ? 'true' : 'false') + '"' +
+              ' title="' + (exp ? 'Yig\'ish' : 'Yoyish') + '"'
+            : '') + '>';
+
+  html += has
+    ? '<span class="osc-tw' + (exp ? ' open' : '') + '" aria-hidden="true">' + icon('chevron', 14) + '</span>'
+    : '<span class="osc-tw empty"></span>';
+
+  if (isF) {
+    html += '<span class="osc-fic">' + icon(exp && has ? 'folderOpen' : 'folder', 17) + '</span>';
+    html += '<span class="osc-nm">' + escapeHtml(n.row.name || '') + '</span>';
+  } else {
+    const nm = oscPersonName(n.row.user_id);
+    const title = oscPersonTitle(n.row);
+    html += '<span class="osc-av">' + avatarHtml(nm, 'sm', null, n.row.user_id) + '</span>';
+    html += '<span class="osc-nm">' + escapeHtml(nm) + '</span>';
+    if (title) html += '<span class="osc-pos">' + escapeHtml(title) + '</span>';
+    html += oscSeatBadge(n.row.user_id, t);
+    html += oscMgrBadge(n.row, t);
+  }
+  if (nF) html += '<span class="osc-cnt" title="Ichki papkalar">' + nF + '</span>';
+  if (nP) html += '<span class="osc-cnt people" title="Xodimlar">' + nP + '</span>';
+
+  if (canEdit) {
+    const k = isF ? 'f' : 'p';
+    html += '<span class="osc-acts">' +
+      // ⚠️ HAR QANDAY tugun pastga davom etadi — hodim ostiga ham papka,
+      //    ham hodim qo'shiladi.
+      '<button class="osc-act" title="Ostiga xodim qo\'shish" onclick="event.stopPropagation();oscAddPerson(\'' + k + '\',\'' + n.id + '\')">' + icon('userPlus', 14) + '</button>' +
+      '<button class="osc-act" title="Ostiga papka qo\'shish" onclick="event.stopPropagation();oscNewFolder(\'' + k + '\',\'' + n.id + '\')">' + icon('plus', 14) + '</button>' +
+      (isF ? '<button class="osc-act" title="Nomini o\'zgartirish" onclick="event.stopPropagation();oscRenameFolder(\'' + n.id + '\')">' + icon('pencil', 14) + '</button>' : '') +
+      '<button class="osc-act" title="Boshqa joyga ko\'chirish" onclick="event.stopPropagation();oscMoveNode(\'' + k + '\',\'' + n.id + '\')">' + icon('network', 14) + '</button>' +
+      '<button class="osc-act danger" title="' + (isF ? 'O\'chirish' : 'Sxemadan olib tashlash') + '" onclick="event.stopPropagation();' +
+        (isF ? 'oscDeleteFolder(\'' + n.id + '\')' : 'oscRemovePerson(\'' + n.id + '\')') + '">' + icon('trash', 14) + '</button>' +
+    '</span>';
+  }
+  html += '</div>';
+
+  if (exp && has) {
+    html += '<div class="osc-kids">';
+    kids.forEach(function (c) { html += oscNodeRowHtml(c, t, seen); });
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function oscRenderFolders() {
+  const pane = $('oscPaneFolders'); if (!pane) return;
+
+  if (_oscMissing) {
+    pane.innerHTML = '<div class="empty"><strong>Sxema jadvallari topilmadi</strong>' +
+      'Supabase SQL Editor\'da <code style="background:#F0EFEA;padding:1px 5px;border-radius:4px;">TASKFIX_HR.sql</code> ni bajaring, so\'ng sahifani yangilang.</div>';
+    return;
+  }
+  if (_oscErr) {
+    pane.innerHTML = '<div class="empty"><strong>Yuklab bo\'lmadi</strong>' +
+      escapeHtml(translateErr(_oscErr.message || String(_oscErr))) +
+      '<div style="margin-top:12px;"><button class="btn sm secondary" onclick="loadOrgSchema()">Qayta urinish</button></div></div>';
+    return;
+  }
+
+  const t = oscTree();
+  if (!t.roots.length) {
+    pane.innerHTML = '<div class="empty"><strong>Sxema hali bo\'sh</strong>' +
+      (oscCanEdit()
+        ? 'Yuqoridagi <b>+ Papka</b> yoki <b>+ Xodim</b> bilan boshlang — tuzilmani noldan o\'zingiz qurasiz.'
+        : 'Boshqaruvchi hali tuzilmani qurmagan.') + '</div>';
+    return;
+  }
+
+  const seen = new Set();
+  let html = '<div class="osc-tree">';
+  t.roots.forEach(function (n) { html += oscNodeRowHtml(n, t, seen); });
+  html += '</div>';
+  pane.innerHTML = html;
+}
+
+// ── Amallar ─────────────────────────────────────────────────────────────────
+// FAQAT shu papkani toggle qiladi — boshqalarga tegmaydi (accordion emas).
+function oscToggle(id) {
+  const set = oscLoadExpanded();
+  if (set.has(id)) set.delete(id); else set.add(id);
+  oscSaveExpanded();
+  oscRenderFolders();
+}
+
+// Qator klaviatura bilan ham ochilsin (Enter / Bo'sh joy).
+// ⚠️ Inline handler ichida arrow function yo'q (qoida 5) — shuning uchun
+//    alohida top-level funksiya.
+function oscRowKey(ev, id) {
+  if (!ev) return;
+  if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'Spacebar') {
+    ev.preventDefault();
+    oscToggle(id);
+  }
+}
+
+function oscExpandAll(open) {
+  const set = oscLoadExpanded();
+  set.clear();
+  if (open) oscFolders.forEach(function (f) { set.add(f.id); });
+  oscSaveExpanded();
+  oscRenderFolders();
+}
+
+// Tugun ota sifatida: 'f' (papka) yoki 'p' (hodim). Bo'sh — ildiz.
+// ⚠️ HAR QANDAY tugun pastga davom etadi (2026-08-06 talab).
+function oscParentPatch(kind, id) {
+  if (kind === 'p' && id) return { parent_id: null, parent_person_id: id };
+  if (kind === 'f' && id) return { parent_id: id, parent_person_id: null };
+  return { parent_id: null, parent_person_id: null };
+}
+function oscPersonParentPatch(kind, id) {
+  if (kind === 'p' && id) return { folder_id: null, parent_person_id: id };
+  if (kind === 'f' && id) return { folder_id: id, parent_person_id: null };
+  return { folder_id: null, parent_person_id: null };
+}
+function oscParentLabel(kind, id) {
+  if (kind === 'f' && id) { const f = oscFolderById(id); return f ? f.name : ''; }
+  if (kind === 'p' && id) { const p = oscPersonById(id); return p ? oscPersonName(p.user_id) : ''; }
+  return '';
+}
+
+async function oscNewFolder(parentKind, parentId) {
+  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  const pname = oscParentLabel(parentKind, parentId);
+  const vals = await uiForm(pname ? ('"' + pname + '" ostiga papka') : 'Yangi papka', [
+    { id: 'name', label: 'Papka nomi', type: 'text', placeholder: 'Masalan: Sotuv bo\'limi' }
+  ], { okText: 'Yaratish' });
+  if (!vals) return;
+  const name = (vals.name || '').trim();
+  if (!name) { toast('Nom kiriting', 'err'); return; }
+
+  try {
+    const row = Object.assign({
+      workspace_id: currentWs.id,
+      name: name,
+      sort_order: oscFolders.length,
+      created_by: me.id
+    }, oscParentPatch(parentKind, parentId));
+    const { data, error } = await sb.from('org_folders').insert(row).select();
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    // Ota tugun ochiq bo'lsin, yangi papka ko'rinsin
+    if (parentId) { oscLoadExpanded().add(oscKey(parentKind === 'p' ? 'person' : 'folder', parentId)); oscSaveExpanded(); }
+    toast('✅ Papka yaratildi', 'ok');
+    logActivity('org_folder_created', { entityType: 'org_folder', entityId: data[0].id, entityTitle: name });
+    await loadOrgSchema();
+  } catch (e) {
+    console.error('oscNewFolder:', e);
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+async function oscRenameFolder(id) {
+  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  const f = oscFolders.find(function (x) { return x.id === id; });
+  if (!f) { toast('Papka topilmadi', 'err'); return; }
+
+  const vals = await uiForm('Nomini o\'zgartirish', [
+    { id: 'name', label: 'Papka nomi', type: 'text', value: f.name || '' }
+  ], { okText: 'Saqlash' });
+  if (!vals) return;
+  const name = (vals.name || '').trim();
+  if (!name) { toast('Nom kiriting', 'err'); return; }
+  if (name === f.name) return;
+
+  try {
+    // ⚠️ Avval kind='department' papka nomi `departments` jadvalida
+    //    o'zgartirilardi (manba o'sha edi, server trigger'i papkaga
+    //    ergashardi). Avtomatik sync olib tashlangach (2026-08-06) Org Schema
+    //    papkalari `departments` bilan bog'liq emas — nom faqat shu yerda,
+    //    org_folders da o'zgaradi. TaskFix bo'limlariga TEGILMAYDI.
+    const { data, error } = await sb.from('org_folders').update({ name: name }).eq('id', id).select();
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    toast('✅ Saqlandi', 'ok');
+    logActivity('org_folder_renamed', { entityType: 'org_folder', entityId: id, entityTitle: name });
+    await loadOrgSchema();
+  } catch (e) {
+    console.error('oscRenameFolder:', e);
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+// Ko'chirish — papka ham, hodim ham. Istalgan tugun ostiga.
+// ⚠️ O'zini va butun avlodini tanlab bo'lmaydi (sikl). Server ham to'sadi
+//    (org_check_ancestor), lekin ro'yxatda ko'rsatmaslik tushunarliroq.
+async function oscMoveNode(kind, id) {
+  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  const isF = kind === 'f';
+  const row = isF ? oscFolderById(id) : oscPersonById(id);
+  if (!row) { toast('Tugun topilmadi', 'err'); return; }
+
+  const t = oscTree();
+  const me_ = t.byKey[oscKey(isF ? 'folder' : 'person', id)];
+  if (!me_) { toast('Tugun topilmadi', 'err'); return; }
+  const banned = oscSubtreeKeys(t, me_);
+
+  const opts = [{ value: '', label: '— Ildiz (eng yuqori daraja) —' }];
+  const seen = new Set();
+  (function walk(nodes, prefix) {
+    nodes.forEach(function (n) {
+      const k = oscKey(n.type, n.id);
+      if (seen.has(k)) return;      // sikl himoyasi
+      seen.add(k);
+      if (!banned.has(k)) {
+        opts.push({
+          value: (n.type === 'folder' ? 'f' : 'p') + ':' + n.id,
+          label: prefix + oscNodeName(n),
+          sub: n.type === 'folder' ? 'Papka' : (oscPersonTitle(n.row) || 'Xodim'),
+          uid: n.type === 'person' ? n.row.user_id : null
+        });
+      }
+      walk(n.children, prefix + '— ');
+    });
+  })(t.roots, '');
+
+  if (opts.length === 1) { toast('Ko\'chirish uchun boshqa joy yo\'q', 'err'); return; }
+
+  const curKind = isF ? (row.parent_person_id ? 'p' : (row.parent_id ? 'f' : ''))
+                      : (row.parent_person_id ? 'p' : (row.folder_id ? 'f' : ''));
+  const curId = isF ? (row.parent_person_id || row.parent_id || '')
+                    : (row.parent_person_id || row.folder_id || '');
+  const cur = curId ? (curKind + ':' + curId) : '';
+
+  const nm = isF ? row.name : oscPersonName(row.user_id);
+  const vals = await uiForm('"' + nm + '" ni ko\'chirish', [
+    { id: 'parent', label: 'Qaysi tugun ostiga?', type: 'search', value: cur, items: opts,
+      placeholder: 'Papka yoki xodimni qidiring…',
+      hint: 'O\'zining yoki o\'z ostidagining ichiga ko\'chirib bo\'lmaydi.' }
+  ], { okText: 'Ko\'chirish' });
+  if (!vals) return;
+  const pick = vals.parent || '';
+  if (pick === cur) return;
+  const pk = pick ? pick.slice(0, 1) : '';
+  const pid = pick ? pick.slice(2) : null;
+
+  try {
+    const patch = isF ? oscParentPatch(pk, pid) : oscPersonParentPatch(pk, pid);
+    const { data, error } = await sb.from(isF ? 'org_folders' : 'org_people')
+      .update(patch).eq('id', id).select();
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    if (pid) { oscLoadExpanded().add(oscKey(pk === 'p' ? 'person' : 'folder', pid)); oscSaveExpanded(); }
+    toast('✅ Ko\'chirildi', 'ok');
+    logActivity(isF ? 'org_folder_moved' : 'org_person_moved',
+      { entityType: isF ? 'org_folder' : 'org_person', entityId: id, entityTitle: nm });
+    await loadOrgSchema();
+  } catch (e) {
+    console.error('oscMoveNode:', e);
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+async function oscDeleteFolder(id) {
+  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  const f = oscFolders.find(function (x) { return x.id === id; });
+  if (!f) { toast('Papka topilmadi', 'err'); return; }
+
+  // ⚠️ Avval kind='department' papkani o'chirish TAQIQLANGAN edi — chunki
+  //    keyingi avtomatik sync uni qaytarardi. Sync olib tashlangach (2026-08-06)
+  //    bunday cheklovga hojat yo'q: HAR QANDAY papka o'chiriladi.
+  //    (Eski versiyada avtomatik yaratilgan bo'lim papkalari qolgan bo'lsa,
+  //     endi ularni ham shu yerdan tozalash mumkin. `departments` jadvaliga
+  //     bu amal TEGMAYDI — faqat sxemadagi papka o'chadi.)
+
+  // Nima yo'qolishini OLDINDAN aytamiz.
+  // ⚠️ Ichki PAPKALAR CASCADE bilan o'chadi; XODIMLAR o'chmaydi — ular
+  //    ildizga ko'chadi (ON DELETE SET NULL).
+  const t = oscTree();
+  const node = t.byKey[oscKey('folder', id)];
+  const keys = node ? oscSubtreeKeys(t, node) : new Set();
+  let subF = 0, subP = 0;
+  keys.forEach(function (k) { if (k === oscKey('folder', id)) return; if (k.charAt(0) === 'f') subF++; else subP++; });
+
+  let msg = '"' + f.name + '" o\'chiriladi.';
+  if (subF) msg += ' Ichidagi ' + subF + ' ta papka ham o\'chadi.';
+  if (subP) msg += ' ' + subP + ' ta xodim sxemada qoladi, lekin ildizga ko\'chadi (o\'chmaydi).';
+  const ok = await uiConfirm('Papkani o\'chirish', msg, { danger: true, okText: 'O\'chirish' });
+  if (!ok) return;
+
+  try {
+    // ⚠️ .select() — RLS jimgina to'ssa "O'chirildi" yolg'on chiqmasin.
+    const { data, error } = await sb.from('org_folders').delete().eq('id', id).select();
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('O\'chirilmadi — ruxsat yo\'q (RLS)');
+    toast('O\'chirildi', 'ok');
+    logActivity('org_folder_deleted', { entityType: 'org_folder', entityId: id, entityTitle: f.name });
+    await loadOrgSchema();
+  } catch (e) {
+    console.error('oscDeleteFolder:', e);
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// ORG CHART — ikkinchi ko'rinish
+// ══════════════════════════════════════════════════════════════════════════
+// ⚠️ AYNAN SHU ma'lumot (oscFolders + oscPeople) chiziladi — papka
+//    ko'rinishining vertikal transpozitsiyasi. Joylashuv HAR SAFAR qaytadan
+//    hisoblanadi va SAQLANMAYDI (node_x/node_y ustunlari yo'q) — shu sababli
+//    ikki ko'rinish hech qachon bir-biridan ajralib qololmaydi.
+//
+// Joylashuv: klassik "barglar qat'iy joy egallaydi, ota bolalari ustida
+// markazlashadi" algoritmi. Ustma-ust tushish mumkin emas, chunki har barg
+// o'z ustunini oladi va ota faqat markazga suriladi.
+const OSC_NW = 196;     // tugun kengligi
+const OSC_NH = 66;      // tugun balandligi
+const OSC_HGAP = 20;    // yonma-yon tugunlar orasi
+const OSC_VGAP = 46;    // qatlamlar orasi
+const OSC_PAD = 32;     // sahna chekkasi
+const OSC_R = 12;       // bog'lovchi chiziq burchagi radiusi
+
+const OSC_ZMIN = 0.3;   // eng kichik masshtab
+const OSC_ZMAX = 2.5;   // eng katta masshtab
+
+let oscZoom = 1;
+let _oscNatW = 0, _oscNatH = 0;   // sahnaning masshtabsiz o'lchami
+let _oscLay = null;               // oxirgi chizilgan layout (drag shundan o'qiydi)
+let _oscChartBuilt = false;
+let _oscFitted = false;   // chart shu workspace uchun sig'dirildimi
+let _oscFitWs = null;     // qaysi workspace uchun sig'dirilgan
+
+// DARAXT = ORG CHART. Chart AYNI `oscTree()` dan o'qiydi — papka
+// ko'rinishining vertikal transpozitsiyasi.
+//
+// 🔴 VIZUAL BIRLASHTIRISH: papkada ATIGI BITTA hodim bo'lsa, papka va hodim
+//    ikki alohida daraja bo'lib emas, BITTA kartochka bo'lib chiziladi:
+//        "CEO · Feruzbek Nazarov"
+//    Bolalar: papkaning qolgan bolalari + o'sha hodimning bolalari —
+//    hammasi birlashgan kartochkadan ulanadi.
+//    Papkada 2+ hodim bo'lsa — eskicha: papka tuguni + ichida hodimlar.
+//
+// ⚠️ Bu FAQAT CHIZISH: DB ham, oscTree() ham o'zgarmaydi (papka va hodim
+//    alohida qatorlar bo'lib qoladi). Shu sababli tahrirlash tugmalari
+//    ikkovini ham alohida boshqaradi.
+function oscChartRoots() {
+  const t = oscTree();
+  const seen = new Set();
+
+  function build(n) {
+    const k = oscKey(n.type, n.id);
+    if (seen.has(k)) { console.error('oscChartRoots: daraxtda sikl —', k); return null; }
+    seen.add(k);
+
+    // Birlashtirish sharti: PAPKA + ichida bevosita ATIGI BITTA hodim
+    if (n.type === 'folder') {
+      const people = n.children.filter(function (c) { return c.type === 'person'; });
+      if (people.length === 1) {
+        const only = people[0];
+        seen.add(oscKey('person', only.id));
+        const rest = n.children.filter(function (c) { return c !== only; });
+        const kids = rest.concat(only.children).map(build).filter(Boolean);
+        return { type: 'merged', key: k, row: n.row, person: only.row, children: kids };
+      }
+    }
+    return { type: n.type, key: k, row: n.row, children: n.children.map(build).filter(Boolean) };
+  }
+
+  return t.roots.map(build).filter(Boolean);
+}
+
+// Tugunning QO'LDA surilgan joyi. NULL/bo'sh = avtomatik joylashuv.
+// ⚠️ Joy tugunning O'Z qatorida saqlanadi: hodim → org_people, papka →
+//    org_folders. Birlashgan kartochka (papka·hodim) PAPKA qatorida — tugun
+//    kaliti ham papkaniki; keyin birlashish buzilsa papka o'z joyida qoladi,
+//    hodim avtoga qaytadi.
+function oscManualPos(n) {
+  const r = n && n.row;
+  if (!r || r.node_x === null || r.node_x === undefined
+        || r.node_y === null || r.node_y === undefined) return null;
+  const x = Number(r.node_x), y = Number(r.node_y);
+  if (!isFinite(x) || !isFinite(y)) return null;
+  return { x: x, y: y };
+}
+
+// Koordinatalarni hisoblaydi va {nodes, edges, byKey, w, h} qaytaradi.
+//
+// 🔴 IKKI QATLAM (2026-08-08):
+//   1) AVTO — avvalgi algoritm o'zgarmadi: barglar qat'iy ustun egallaydi,
+//      ota bolalari ustida markazlashadi (ax/ay).
+//   2) QO'LDA — surilgan tugun aynan o'z (node_x, node_y) siga qo'yiladi,
+//      uning AVLODI esa ota qancha siljigan bo'lsa shuncha siljiydi (o'zi
+//      avto bo'lib qolaveradi — keyin yangi bola qo'shilsa to'g'ri joyga
+//      tushadi). Qolgani avvalgidek avto.
+//
+// ⚠️ Qo'lda surilgan tugunning avtomatik O'RNI BO'SH QOLADI — ataylab:
+//    bitta kartani surganda qolgan sxema "sakramasin".
+function oscLayout(roots) {
+  const nodes = [], edges = [], byKey = {};
+  let cursorX = 0;
+
+  function place(n, depth) {
+    n.ay = depth * (OSC_NH + OSC_VGAP);
+    if (!n.children.length) {
+      n.ax = cursorX;
+      cursorX += OSC_NW + OSC_HGAP;
+    } else {
+      n.children.forEach(function (c) { place(c, depth + 1); });
+      const a = n.children[0], b = n.children[n.children.length - 1];
+      n.ax = (a.ax + b.ax) / 2;
+    }
+    nodes.push(n);
+    byKey[n.key] = n;
+    n.children.forEach(function (c) { edges.push({ from: n, to: c }); });
+  }
+
+  roots.forEach(function (r) { place(r, 0); cursorX += OSC_HGAP * 2; });
+
+  if (!nodes.length) return { nodes: nodes, edges: edges, byKey: byKey, w: 0, h: 0 };
+
+  // Avto koordinatalarni chekkaga tekislaymiz (qo'lda qiymatlar SHU fazoda
+  // saqlanadi — shuning uchun surish AVVAL emas, keyin qo'llanadi).
+  let minAx = Infinity;
+  nodes.forEach(function (n) { if (n.ax < minAx) minAx = n.ax; });
+  const shift = OSC_PAD - minAx;
+  nodes.forEach(function (n) { n.ax += shift; n.ay += OSC_PAD; });
+
+  function applyManual(n, dx, dy) {
+    const m = oscManualPos(n);
+    let ndx = dx, ndy = dy;
+    n.manual = !!m;
+    if (m) { ndx = m.x - n.ax; ndy = m.y - n.ay; }
+    // Manfiy joyga tushib qolmasin — u yerga scroll qilib bo'lmaydi.
+    n.x = Math.max(0, n.ax + ndx);
+    n.y = Math.max(0, n.ay + ndy);
+    n.children.forEach(function (c) { applyManual(c, ndx, ndy); });
+  }
+  roots.forEach(function (r) { applyManual(r, 0, 0); });
+
+  let maxX = 0, maxY = 0;
+  nodes.forEach(function (n) {
+    if (n.x > maxX) maxX = n.x;
+    if (n.y > maxY) maxY = n.y;
+  });
+
+  return {
+    nodes: nodes, edges: edges, byKey: byKey,
+    w: maxX + OSC_NW + OSC_PAD,
+    h: maxY + OSC_NH + OSC_PAD
+  };
+}
+
+// Barcha bog'lovchi chiziqlar (SVG path'lari) — layoutdagi JORIY koordinatalardan.
+// Surish paytida ham shu funksiya chaqiriladi (chiziqlar kartaga ergashsin).
+function oscEdgesPath(lay) {
+  let d = '';
+  lay.edges.forEach(function (e) {
+    d += '<path d="' + oscElbow(
+      e.from.x + OSC_NW / 2, e.from.y + OSC_NH,
+      e.to.x + OSC_NW / 2,   e.to.y
+    ) + '" />';
+  });
+  return d;
+}
+
+// Ota pastidan bola tepasiga — yumaloq burchakli "tirsak".
+// To'g'ri tik tushsa oddiy chiziq (ortiqcha egrilik chiroyli emas).
+function oscElbow(x1, y1, x2, y2) {
+  if (Math.abs(x2 - x1) < 0.6) return 'M' + x1 + ' ' + y1 + ' L' + x2 + ' ' + y2;
+  const midY = y1 + (y2 - y1) / 2;
+  const dir = x2 > x1 ? 1 : -1;
+  const r = Math.min(OSC_R, Math.abs(x2 - x1) / 2, (y2 - y1) / 2);
+  return 'M' + x1 + ' ' + y1 +
+         ' L' + x1 + ' ' + (midY - r) +
+         ' Q' + x1 + ' ' + midY + ' ' + (x1 + dir * r) + ' ' + midY +
+         ' L' + (x2 - dir * r) + ' ' + midY +
+         ' Q' + x2 + ' ' + midY + ' ' + x2 + ' ' + (midY + r) +
+         ' L' + x2 + ' ' + y2;
+}
+
+// ⚠️ Chart FAQAT KO'RISH uchun emas: bu yerdan ham papka/xodim qo'shiladi va
+//    o'zgartiriladi. Ikkala ko'rinish AYNI funksiyalarni chaqiradi
+//    (oscAddPerson/oscNewFolder/oscMovePerson/...), shuning uchun chartdan
+//    qilingan o'zgarish papka ko'rinishida ham darrov ko'rinadi va aksincha.
+//
+// ⚠️ Inline handler ichida arrow function YO'Q (qoida 5). Karta bosilishi
+//    (hodim sahifasi) tugmalarga o'tib ketmasin — event.stopPropagation().
+// "Avto joyiga qaytarish" — FAQAT qo'lda surilgan kartada ko'rinadi.
+// (oscLayout har chizishda n.manual ni belgilaydi.)
+function oscResetAct(n, kind, id) {
+  if (!n || !n.manual) return [];
+  return [{ icon: 'undo', title: 'Avtomatik joyiga qaytarish',
+            run: 'oscResetNode(\'' + kind + '\',\'' + id + '\')' }];
+}
+
+function oscCardActs(items) {
+  return '<span class="osc-card-acts">' + items.map(function (it) {
+    return '<button class="osc-cact' + (it.danger ? ' danger' : '') + '" title="' + escapeHtml(it.title) +
+           '" onclick="event.stopPropagation();' + it.run + '">' + icon(it.icon, 13) + '</button>';
+  }).join('') + '</span>';
+}
+
+function oscNodeHtml(n) {
+  const st = 'left:' + n.x + 'px;top:' + n.y + 'px;width:' + OSC_NW + 'px;height:' + OSC_NH + 'px;';
+  const canEdit = oscCanEdit();
+  // data-k — drag uchun tugun kaliti (DOM ↔ layout bog'lanishi)
+  const dk = ' data-k="' + escapeHtml(n.key) + '"';
+
+  // 🔴 BIRLASHGAN kartochka: papka nomi ustida, hodim pastida — bir kartada.
+  //    Tahrir tugmalari ikkovini ham boshqaradi (DB'da ular alohida).
+  if (n.type === 'merged') {
+    const f = n.row, p = n.person;
+    const name = oscPersonName(p.user_id);
+    const acts = canEdit ? oscCardActs([
+      { icon: 'userPlus', title: 'Ostiga xodim qo\'shish', run: 'oscAddPerson(\'p\',\'' + p.id + '\')' },
+      { icon: 'plus',     title: 'Ostiga papka qo\'shish',  run: 'oscNewFolder(\'p\',\'' + p.id + '\')' },
+      { icon: 'pencil',   title: 'Papka nomini o\'zgartirish', run: 'oscRenameFolder(\'' + f.id + '\')' }
+    ].concat(oscResetAct(n, 'f', f.id))) : '';
+    const mSeats = oscSeatCount(p.user_id);
+    return '<div class="osc-card merged" style="' + st + '"' + dk + ' onclick="oscCardOpen(\'' + escapeHtml(p.user_id) + '\')" title="' + escapeHtml(f.name + ' · ' + name) + '">' +
+      '<span class="osc-card-av">' + avatarHtml(name, 'sm', null, p.user_id) + '</span>' +
+      '<span class="osc-card-txt">' +
+        '<span class="osc-card-nm">' + escapeHtml(f.name || '') + '</span>' +
+        '<span class="osc-card-sub">' + escapeHtml(name) + '</span>' +
+      '</span>' +
+      (mSeats > 1 ? '<span class="osc-card-seat" title="' + escapeHtml('Bu xodim ' + mSeats + ' o\'rinda') + '">' + mSeats + '</span>' : '') +
+      acts +
+    '</div>';
+  }
+
+  if (n.type === 'folder') {
+    const f = n.row;
+    const nP = n.children.length;
+    const acts = canEdit ? oscCardActs([
+      { icon: 'userPlus', title: 'Ostiga xodim qo\'shish', run: 'oscAddPerson(\'f\',\'' + f.id + '\')' },
+      { icon: 'plus',     title: 'Ostiga papka qo\'shish',  run: 'oscNewFolder(\'f\',\'' + f.id + '\')' },
+      { icon: 'pencil',   title: 'Nomini o\'zgartirish',    run: 'oscRenameFolder(\'' + f.id + '\')' }
+    ].concat(oscResetAct(n, 'f', f.id))) : '';
+    return '<div class="osc-card folder" style="' + st + '"' + dk + '>' +
+      '<span class="osc-card-ic">' + icon('folder', 18) + '</span>' +
+      '<span class="osc-card-txt">' +
+        '<span class="osc-card-nm">' + escapeHtml(f.name || '') + '</span>' +
+        '<span class="osc-card-sub">Papka' + (nP ? ' · ' + nP + ' ta ichida' : '') + '</span>' +
+      '</span>' + acts +
+    '</div>';
+  }
+
+  const p = n.row;
+  const name = oscPersonName(p.user_id);
+  const title = oscPersonTitle(p);
+  const acts = canEdit ? oscCardActs([
+    { icon: 'userPlus', title: 'Ostiga xodim qo\'shish', run: 'oscAddPerson(\'p\',\'' + p.id + '\')' },
+    { icon: 'plus',     title: 'Ostiga papka qo\'shish',  run: 'oscNewFolder(\'p\',\'' + p.id + '\')' },
+    { icon: 'trash',    title: 'Sxemadan olib tashlash',  run: 'oscRemovePerson(\'' + p.id + '\')', danger: true }
+  ].concat(oscResetAct(n, 'p', p.id))) : '';
+  const seats = oscSeatCount(p.user_id);
+  return '<div class="osc-card person" style="' + st + '"' + dk + ' onclick="oscCardOpen(\'' + escapeHtml(p.user_id) + '\')" title="' + escapeHtml(name) + '">' +
+    '<span class="osc-card-av">' + avatarHtml(name, 'sm', null, p.user_id) + '</span>' +
+    '<span class="osc-card-txt">' +
+      '<span class="osc-card-nm">' + escapeHtml(name) + '</span>' +
+      '<span class="osc-card-sub">' + escapeHtml(title || '—') + '</span>' +
+    '</span>' +
+    // Bir odam bir necha o'rinda → chartda bir necha kartochka. Belgi
+    // "bu takroriy chizish emas, boshqa o'rin" ekanini aytadi.
+    (seats > 1 ? '<span class="osc-card-seat" title="' + escapeHtml('Bu xodim ' + seats + ' o\'rinda') + '">' + seats + '</span>' : '') +
+    acts +
+  '</div>';
+}
+
+// Kartaga bosilganda hodim sahifasi. Ruxsati yo'q bo'lsa openEmployee
+// o'zi xabar beradi — bu yerda jimgina yutmaymiz.
+//
+// ⚠️ Surishdan (drag) keyin keladigan `click` ni yutamiz: aks holda kartani
+//    surib qo'yib yuborish hodim sahifasini ochib yuborardi. Bayroq emas,
+//    VAQT tekshiriladi — surish oxirida chart qaytadan chiziladi va click
+//    boshqa elementga tushishi mumkin.
+function oscCardOpen(uid) {
+  if (!uid) return;
+  if (Date.now() - _oscDragEndAt < 300) return;
+  openEmployee(uid);
+}
+
+function oscRenderChart() {
+  const pane = $('oscPaneChart'); if (!pane) return;
+
+  if (_oscMissing || _oscErr) {
+    pane.innerHTML = '<div class="empty"><strong>Chizib bo\'lmadi</strong>' +
+      (_oscMissing ? 'TASKFIX_HR.sql ishga tushirilmagan.' : escapeHtml(translateErr(_oscErr.message || String(_oscErr)))) + '</div>';
+    _oscChartBuilt = false;
+    return;
+  }
+
+  const lay = oscLayout(oscChartRoots());
+  if (!lay.nodes.length) {
+    pane.innerHTML = '<div class="empty"><strong>Sxema hali bo\'sh</strong>' +
+      (oscCanEdit()
+        ? 'Shu yerdan boshlashingiz mumkin — qo\'shilgani papka ko\'rinishida ham chiqadi.' +
+          '<div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">' +
+            '<button class="btn sm" onclick="oscNewFolder(\'\',\'\')">' + icon('plus', 14) + ' Papka</button>' +
+            '<button class="btn sm secondary" onclick="oscAddPerson(\'\',\'\')">' + icon('userPlus', 14) + ' Xodim</button>' +
+          '</div>'
+        : 'Boshqaruvchi hali tuzilmani qurmagan.') + '</div>';
+    _oscChartBuilt = false;
+    return;
+  }
+
+  // Chizishdan oldingi scroll holatini eslab qolamiz — tahrirdan keyin
+  // foydalanuvchi qaragan joyiga qaytsin (innerHTML almashadi).
+  const oldVp = $('oscViewport');
+  const keepL = oldVp ? oldVp.scrollLeft : 0;
+  const keepT = oldVp ? oldVp.scrollTop  : 0;
+
+  // ⚠️ _oscLay — surish (drag) uchun: DOM'dagi karta `data-k` orqali shu
+  //    layout tugunini topadi, chiziqlar ham shundan qayta chiziladi.
+  _oscLay = lay;
+
+  const svg = '<svg class="osc-lines" id="oscLines" width="' + lay.w + '" height="' + lay.h +
+    '" viewBox="0 0 ' + lay.w + ' ' + lay.h + '">' + oscEdgesPath(lay) + '</svg>';
+
+  let cards = '';
+  lay.nodes.forEach(function (n) { cards += oscNodeHtml(n); });
+
+  pane.innerHTML =
+    '<div class="osc-chart-bar">' +
+      '<button class="btn secondary sm" onclick="oscZoomBy(-0.15)" title="Kichraytirish">−</button>' +
+      '<span class="osc-zoom" id="oscZoomLbl">100%</span>' +
+      '<button class="btn secondary sm" onclick="oscZoomBy(0.15)" title="Kattalashtirish">+</button>' +
+      '<button class="btn secondary sm" onclick="oscZoomFit()">Sig\'dirish</button>' +
+      '<button class="btn secondary sm" onclick="oscZoomSet(1)">100%</button>' +
+      // Qo'lda surilgan karta bo'lsagina — hammasini avtomatga qaytarish
+      (oscCanEdit() && oscManualCount()
+        ? '<button class="btn secondary sm" onclick="oscResetLayout()" title="Qo\'lda surilgan kartalarni avtomatik joyiga qaytarish">' +
+            icon('undo', 14) + ' Avto joylashuv</button>'
+        : '') +
+      // Chartdan ham qo'shish mumkin — papka ko'rinishi bilan bir xil funksiya.
+      (oscCanEdit()
+        ? '<span class="osc-bar-sep"></span>' +
+          '<button class="btn secondary sm" onclick="oscAddPerson(\'\',\'\')">' + icon('userPlus', 14) + ' Xodim</button>' +
+          '<button class="btn sm" onclick="oscNewFolder(\'\',\'\')">' + icon('plus', 14) + ' Papka</button>'
+        : '') +
+      '<span class="osc-hint">' +
+        (oscCanEdit() ? 'Kartani surib joylashtiring · g\'ildirak yoki pinch — masshtab'
+                      : 'G\'ildirak yoki pinch — masshtab · bo\'sh joyni ushlab surish') +
+      '</span>' +
+    '</div>' +
+    '<div class="osc-viewport" id="oscViewport">' +
+      '<div class="osc-canvas" id="oscCanvas" style="width:' + lay.w + 'px;height:' + lay.h + 'px;">' +
+        '<div class="osc-stage" id="oscStage" style="width:' + lay.w + 'px;height:' + lay.h + 'px;">' +
+          svg + cards +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  // Zoom hisob-kitobi uchun sahnaning MASSHTABSIZ o'lchami
+  _oscNatW = lay.w; _oscNatH = lay.h;
+  _oscChartBuilt = true;
+  oscBindPan();
+  oscApplyZoom();
+
+  // ⚠️ Zoom ham, scroll ham SAQLANADI: tahrirdan keyin sxema "sakrab"
+  //    ketmasin (qayta sig'dirish faqat workspace almashganda — loadOrgSchema).
+  const vp = $('oscViewport');
+  if (vp && (keepL || keepT)) { vp.scrollLeft = keepL; vp.scrollTop = keepT; }
+}
+
+// ── Zoom / pan ──────────────────────────────────────────────────────────────
+// 🔴 ZOOM FAQAT CHARTGA TEGADI, SAHIFAGA EMAS (2026-08-08 tuzatildi).
+//    Avval chartda `wheel` umuman ushlanmasdi: trackpad'dagi pinch brauzerga
+//    `ctrl+wheel` bo'lib boradi va `preventDefault()` bo'lmagach BRAUZER BUTUN
+//    SAHIFANI kattalashtirardi ("zoom sahifani kattalashtiryapti" — aynan shu).
+//    Endi viewport wheel'ni o'zi oladi: sahifa zoom'i bo'lmaydi, chart zoom'i
+//    bo'ladi. Sahifaning boshqa qismida brauzer zoom'i avvalgidek ishlaydi.
+function oscApplyZoom() {
+  const stage = $('oscStage'); if (!stage) return;
+  stage.style.transform = 'scale(' + oscZoom + ')';
+  // ⚠️ Canvas — scroll maydoni. Transform layout o'lchamini o'zgartirmagani
+  //    uchun busiz 100% dan kattalashtirilganda sahnaning o'ng/past qismiga
+  //    scroll qilib bo'lmasdi.
+  const cv = $('oscCanvas');
+  if (cv && _oscNatW && _oscNatH) {
+    cv.style.width  = Math.round(_oscNatW * oscZoom) + 'px';
+    cv.style.height = Math.round(_oscNatH * oscZoom) + 'px';
+  }
+  const lbl = $('oscZoomLbl');
+  if (lbl) lbl.textContent = Math.round(oscZoom * 100) + '%';
+}
+
+// ax/ay — viewport'ga nisbatan langar nuqta (px). Berilmasa markaz olinadi.
+// Langar: masshtab o'zgarganda kursor tagidagi nuqta JOYIDA qoladi.
+function oscZoomSet(z, ax, ay, instant) {
+  const nz = Math.max(OSC_ZMIN, Math.min(OSC_ZMAX, z));
+  const vp = $('oscViewport'), stage = $('oscStage');
+  const old = oscZoom;
+  if (Math.abs(nz - old) < 0.0004) return;
+  if (stage) stage.classList.toggle('instant', !!instant);
+  if (!vp) { oscZoom = nz; oscApplyZoom(); return; }
+
+  const px = (ax === undefined || ax === null) ? vp.clientWidth / 2 : ax;
+  const py = (ay === undefined || ay === null) ? vp.clientHeight / 2 : ay;
+  // Langar nuqtaning MASSHTABSIZ (sahna) koordinatasi
+  const sx = (vp.scrollLeft + px) / old;
+  const sy = (vp.scrollTop + py) / old;
+
+  oscZoom = nz;
+  oscApplyZoom();
+  vp.scrollLeft = sx * nz - px;
+  vp.scrollTop  = sy * nz - py;
+}
+function oscZoomBy(d) { oscZoomSet(oscZoom + d); }
+function oscZoomFit() {
+  const vp = $('oscViewport'), stage = $('oscStage');
+  if (!vp || !stage) return;
+  const w = _oscNatW || parseFloat(stage.style.width) || 0;
+  const h = _oscNatH || parseFloat(stage.style.height) || 0;
+  if (!w || !h) return;
+  // Panel yashirin bo'lsa o'lchov 0 bo'ladi — bunda zoom'ni buzmaymiz.
+  if (!vp.clientWidth || !vp.clientHeight) return;
+  // Butun sxema ko'rinsin, lekin 100% dan kattalashtirmaymiz (kichik
+  // tashkilotda kartalar cho'zilib ketmasin).
+  oscZoom = Math.max(OSC_ZMIN, Math.min(1, (vp.clientWidth - 16) / w, (vp.clientHeight - 16) / h));
+  if (stage) stage.classList.remove('instant');
+  oscApplyZoom();
+  vp.scrollLeft = 0; vp.scrollTop = 0;
+}
+
+// G'ildirak/pinch. ⚠️ `passive:false` SHART — aks holda preventDefault()
+//    e'tiborsiz qoladi va brauzer sahifani zoom qiladi.
+function oscWheel(e) {
+  const vp = $('oscViewport'); if (!vp) return;
+  // shift+g'ildirak — gorizontal scroll, brauzerga qoldiramiz.
+  if (e.shiftKey && !e.ctrlKey && !e.metaKey) return;
+  e.preventDefault();
+  // deltaMode: 0=px, 1=qator, 2=sahifa. Sichqonchalar 1-rejimda ham keladi.
+  let dy = e.deltaY;
+  if (e.deltaMode === 1) dy *= 16;
+  else if (e.deltaMode === 2) dy *= (vp.clientHeight || 400);
+  // Pinch (ctrlKey) nozikroq: barmoq harakati kichik, delta katta bo'ladi.
+  const f = (e.ctrlKey || e.metaKey) ? 0.009 : 0.0022;
+  const rc = vp.getBoundingClientRect();
+  oscZoomSet(oscZoom * Math.exp(-dy * f), e.clientX - rc.left, e.clientY - rc.top, true);
+}
+
+// Bo'sh joydan ushlab surish. ⚠️ Karta ustidan boshlanmasin — aks holda
+// kartaga bosish "surish" deb qabul qilinardi.
+//
+// ⚠️ window listener'lari BIR MARTA qo'shiladi (_oscPanBound). oscRenderChart
+//    har yuklashda chaqiriladi — har safar yangi listener qo'shilsa ular
+//    to'planib ketardi (klassik sizib chiqish).
+let _oscPanBound = false;
+const _oscPan = { on: false, sx: 0, sy: 0, sl: 0, st: 0 };
+
+// ── Kartani qo'lda surish (drag) ────────────────────────────────────────────
+// 🔴 Kartani ushlab surganda OSTIDAGILAR HAM birga siljiydi — aks holda
+//    rahbarni surganda chiziqlar cho'zilib, sxema o'qilmay qolardi. Lekin
+//    "qo'lda" deb FAQAT surilgan tugun belgilanadi (`oscNodeMoved`): avlodi
+//    avto bo'lib qolaveradi va otasi bilan birga siljiydi (oscLayout).
+const _oscDrag = { on: false, node: null, moved: false, sx: 0, sy: 0, minX: 0, minY: 0, items: [] };
+let _oscDragEndAt = 0;    // oxirgi surish tugagan vaqt (klik bilan chalkashmasin)
+let _oscEdgeRaf = 0;
+let _oscPosMissing = false;   // node_x/node_y ustunlari yo'q (TASKFIX_ORGCHART.sql)
+
+// Chiziqlarni qayta chizish — surish paytida kadr bo'yicha (rAF), ya'ni
+// mousemove qanchalik tez kelmasin, kadrga bitta chizish.
+function oscEdgesRepaint() {
+  if (_oscEdgeRaf) return;
+  _oscEdgeRaf = requestAnimationFrame(function () {
+    _oscEdgeRaf = 0;
+    const svg = $('oscLines');
+    if (svg && _oscLay) svg.innerHTML = oscEdgesPath(_oscLay);
+  });
+}
+
+// Surishni boshlash. Karta topilmasa (layout eskirgan) — false, pan ishlaydi.
+function oscDragStart(e, card) {
+  if (!_oscLay || !_oscLay.byKey) return false;
+  const n = _oscLay.byKey[card.getAttribute('data-k') || ''];
+  if (!n) return false;
+
+  const items = [];
+  const seen = new Set();
+  (function walk(x) {
+    if (seen.has(x.key)) { console.error('oscDragStart: sikl —', x.key); return; }
+    seen.add(x.key);
+    items.push({
+      n: x, x0: x.x, y0: x.y,
+      el: document.querySelector('.osc-card[data-k="' + x.key + '"]')
+    });
+    x.children.forEach(walk);
+  })(n);
+
+  _oscDrag.on = true; _oscDrag.node = n; _oscDrag.moved = false;
+  _oscDrag.sx = e.clientX; _oscDrag.sy = e.clientY;
+  _oscDrag.items = items;
+  // Butun to'plam 0 dan chapga/tepaga chiqmasin
+  _oscDrag.minX = items.reduce(function (m, it) { return Math.min(m, it.x0); }, Infinity);
+  _oscDrag.minY = items.reduce(function (m, it) { return Math.min(m, it.y0); }, Infinity);
+  card.classList.add('dragging');
+  return true;
+}
+
+function oscDragMove(e) {
+  const dxp = e.clientX - _oscDrag.sx, dyp = e.clientY - _oscDrag.sy;
+  // 3px dan kam siljish — bu bosish (klik), surish emas.
+  if (!_oscDrag.moved) {
+    if (Math.abs(dxp) + Math.abs(dyp) < 3) return;
+    _oscDrag.moved = true;
+    const st = $('oscStage'); if (st) st.classList.add('dragging');
+  }
+  // Ekran pikseli → sahna pikseli (masshtabni hisobga olamiz)
+  let dx = dxp / oscZoom, dy = dyp / oscZoom;
+  dx = Math.max(dx, -_oscDrag.minX);
+  dy = Math.max(dy, -_oscDrag.minY);
+  _oscDrag.items.forEach(function (it) {
+    it.n.x = it.x0 + dx; it.n.y = it.y0 + dy;
+    if (it.el) { it.el.style.left = it.n.x + 'px'; it.el.style.top = it.n.y + 'px'; }
+  });
+  oscEdgesRepaint();
+}
+
+function oscDragEnd() {
+  const n = _oscDrag.node, moved = _oscDrag.moved;
+  _oscDrag.on = false; _oscDrag.node = null; _oscDrag.items = [];
+  const st = $('oscStage'); if (st) st.classList.remove('dragging');
+  const card = document.querySelector('.osc-card.dragging');
+  if (card) card.classList.remove('dragging');
+  if (!moved || !n) return;
+  _oscDragEndAt = Date.now();
+  oscNodeMoved(n);
+}
+
+// Surib bo'lingandan keyin: yangi joyni tugun qatoriga yozamiz, qayta
+// chizamiz (sahna o'lchami ham yangilanadi) va DB'ga saqlaymiz.
+function oscNodeMoved(n) {
+  const r = n && n.row; if (!r) return;
+  const prev = { x: oscNum(r.node_x), y: oscNum(r.node_y) };
+  r.node_x = Math.round(n.x);
+  r.node_y = Math.round(n.y);
+  oscRenderChart();
+  // Ustunlar yo'q (SQL ishga tushmagan) — surish sessiya ichida ishlaydi,
+  // lekin har safar so'rov yuborib xato ko'rsatishning ma'nosi yo'q.
+  if (_oscPosMissing) return;
+  oscSaveNodePos(n.type === 'person' ? 'p' : 'f', r, prev);
+}
+
+function oscNum(v) { return (v === null || v === undefined) ? null : Number(v); }
+
+// node_x/node_y ustunlari yo'qmi? PostgREST ikki xil javob beradi: 42703
+// (postgres) yoki PGRST204 ("schema cache'da ustun topilmadi").
+function oscPosColMissing(err) {
+  const code = (err && err.code) || '';
+  const msg = String((err && (err.message || err.details)) || '');
+  if (code === '42703' || code === 'PGRST204') return true;
+  return /node_x|node_y/i.test(msg) && /column|ustun|schema cache/i.test(msg);
+}
+
+// 🔴 Joyni saqlash. `.select()` SHART — RLS jimgina to'ssa "saqlandi" degan
+//    yolg'on holat qolib ketmasin (6-qoida). Xato bo'lsa karta ESKI joyiga
+//    qaytariladi: ekranda saqlanmagan joy turib qolmasin.
+async function oscSaveNodePos(kind, row, prev) {
+  const tbl = kind === 'p' ? 'org_people' : 'org_folders';
+  try {
+    const { data, error } = await sb.from(tbl)
+      .update({ node_x: row.node_x, node_y: row.node_y })
+      .eq('id', row.id).select('id');
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+  } catch (e) {
+    if (oscPosColMissing(e)) {
+      // Ustun yo'q — joy sessiya ichida qoladi (qaytarmaymiz), lekin
+      // foydalanuvchi saqlanmasligini BILIB tursin. Bir marta aytamiz.
+      console.warn('oscSaveNodePos: node_x/node_y ustuni yo\'q — TASKFIX_ORGCHART.sql ishga tushirilmagan.');
+      if (!_oscPosMissing) {
+        _oscPosMissing = true;
+        toast('Joylashuv saqlanmaydi — TASKFIX_ORGCHART.sql ishga tushirilmagan', 'err');
+        oscRenderChart();   // "Avto joylashuv" tugmasi holati yangilansin
+      }
+      return;
+    }
+    console.error('oscSaveNodePos:', e);
+    row.node_x = prev.x; row.node_y = prev.y;
+    oscRenderChart();
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+// Qo'lda surilganlar soni (tugma ko'rsatish/yashirish uchun)
+function oscManualCount() {
+  let n = 0;
+  const has = function (r) { return r.node_x !== null && r.node_x !== undefined; };
+  oscPeople.forEach(function (p) { if (has(p)) n++; });
+  oscFolders.forEach(function (f) { if (has(f)) n++; });
+  return n;
+}
+
+// Bitta tugunni avtomatik joyiga qaytarish (kartadagi ↺).
+async function oscResetNode(kind, id) {
+  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  const row = kind === 'p' ? oscPersonById(id) : oscFolderById(id);
+  if (!row) { toast('Tugun topilmadi', 'err'); return; }
+  const prev = { x: oscNum(row.node_x), y: oscNum(row.node_y) };
+  row.node_x = null; row.node_y = null;
+  oscRenderChart();
+  if (_oscPosMissing) return;
+  try {
+    const { data, error } = await sb.from(kind === 'p' ? 'org_people' : 'org_folders')
+      .update({ node_x: null, node_y: null }).eq('id', id).select('id');
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    toast('✅ Avtomatik joyiga qaytarildi', 'ok');
+  } catch (e) {
+    console.error('oscResetNode:', e);
+    row.node_x = prev.x; row.node_y = prev.y;
+    oscRenderChart();
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+// Hammasini avtomatik joylashuvga qaytarish (paneldagi tugma).
+// ⚠️ Mahalliy kesh MUVAFFAQIYATDAN KEYIN tozalanadi — server rad etsa
+//    ekranda "qaytarilgandek" ko'rinib qolmasin.
+async function oscResetLayout() {
+  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  const cnt = oscManualCount();
+  if (!cnt) { toast('Qo\'lda surilgan karta yo\'q', 'err'); return; }
+  const ok = await uiConfirm('Avto joylashuv',
+    cnt + ' ta qo\'lda surilgan karta avtomatik joyiga qaytariladi. Sxemaning o\'zi (kim kimga bo\'ysunadi) o\'zgarmaydi.',
+    { okText: 'Qaytarish' });
+  if (!ok) return;
+
+  const clearLocal = function () {
+    oscPeople.forEach(function (p) { p.node_x = null; p.node_y = null; });
+    oscFolders.forEach(function (f) { f.node_x = null; f.node_y = null; });
+    oscRenderChart();
+  };
+
+  if (_oscPosMissing) { clearLocal(); return; }
+
+  try {
+    const ws = currentWs.id;
+    const [pR, fR] = await Promise.all([
+      sb.from('org_people').update({ node_x: null, node_y: null })
+        .eq('workspace_id', ws).not('node_x', 'is', null).select('id'),
+      sb.from('org_folders').update({ node_x: null, node_y: null })
+        .eq('workspace_id', ws).not('node_x', 'is', null).select('id'),
+    ]);
+    if (pR.error) throw pR.error;
+    if (fR.error) throw fR.error;
+    const n = (pR.data || []).length + (fR.data || []).length;
+    if (!n) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    clearLocal();
+    toast('✅ ' + n + ' ta karta avtomatik joyiga qaytarildi', 'ok');
+    logActivity('org_layout_reset', { entityType: 'org_chart', entityId: ws, entityTitle: n + ' ta tugun' });
+  } catch (e) {
+    console.error('oscResetLayout:', e);
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+function oscBindPan() {
+  const vp = $('oscViewport'); if (!vp) return;
+
+  // G'ildirak/pinch — faqat shu viewport ustida. Viewport har chizishda yangi
+  // element, shuning uchun listener ham har safar yangisiga bog'lanadi
+  // (eskisi element bilan birga yo'qoladi — to'planib qolmaydi).
+  vp.addEventListener('wheel', oscWheel, { passive: false });
+
+  // Viewport har chizishda YANGI element — mousedown har safar unga bog'lanadi
+  // (eski element bilan birga o'z listener'i ham yo'qoladi).
+  vp.addEventListener('mousedown', function (e) {
+    if (e.button !== 0) return;
+    const card = e.target.closest ? e.target.closest('.osc-card') : null;
+    if (card) {
+      // Amal tugmalari (+ xodim / + papka / o'chirish) ustidan surish boshlanmasin
+      if (e.target.closest('.osc-cact')) return;
+      // Faqat o'zgartira oladigan foydalanuvchi suradi; qolganlar uchun
+      // karta ustidan pan ham boshlanmaydi (avvalgi xatti-harakat).
+      if (oscCanEdit() && oscDragStart(e, card)) { e.preventDefault(); }
+      return;
+    }
+    _oscPan.on = true;
+    _oscPan.sx = e.clientX; _oscPan.sy = e.clientY;
+    _oscPan.sl = vp.scrollLeft; _oscPan.st = vp.scrollTop;
+    vp.classList.add('panning');
+    e.preventDefault();   // matn belgilanib ketmasin
+  });
+
+  if (_oscPanBound) return;
+  _oscPanBound = true;
+  window.addEventListener('mousemove', function (e) {
+    if (_oscDrag.on) { oscDragMove(e); return; }
+    if (!_oscPan.on) return;
+    const v = $('oscViewport'); if (!v) { _oscPan.on = false; return; }
+    v.scrollLeft = _oscPan.sl - (e.clientX - _oscPan.sx);
+    v.scrollTop  = _oscPan.st - (e.clientY - _oscPan.sy);
+  });
+  window.addEventListener('mouseup', function () {
+    if (_oscDrag.on) { oscDragEnd(); return; }
+    if (!_oscPan.on) return;
+    _oscPan.on = false;
+    const v = $('oscViewport'); if (v) v.classList.remove('panning');
+  });
+}
+
+// ── Hodim amallari ──────────────────────────────────────────────────────────
+// Ota tanlash uchun tekis ro'yxat: papkalar VA hodimlar (ichma-ichlik "— ").
+// bannedKeys — o'zi va avlodi (sikl).
+function oscNodeOptions(tree, bannedKeys, rootLabel) {
+  const t = tree || oscTree();
+  const banned = bannedKeys || new Set();
+  const opts = [{ value: '', label: rootLabel || '— Ildiz (eng yuqori daraja) —' }];
+  const seen = new Set();
+  (function walk(nodes, prefix) {
+    nodes.forEach(function (n) {
+      const k = oscKey(n.type, n.id);
+      if (seen.has(k)) return;     // sikl himoyasi
+      seen.add(k);
+      if (!banned.has(k)) {
+        opts.push({
+          value: (n.type === 'folder' ? 'f' : 'p') + ':' + n.id,
+          label: prefix + oscNodeName(n),
+          sub: n.type === 'folder' ? 'Papka' : (oscPersonTitle(n.row) || 'Xodim'),
+          uid: n.type === 'person' ? n.row.user_id : null
+        });
+      }
+      walk(n.children, prefix + '— ');
+    });
+  })(t.roots, '');
+  return opts;
+}
+
+// ⚠️ 2026-08-06: bir xodim BIR NECHA O'RINDA bo'la oladi (ikki bo'limda,
+//    bir necha rolda). Shuning uchun ro'yxatdan "allaqachon sxemada"
+//    bo'lganlar OLIB TASHLANMAYDI — faqat AYNI O'SHA o'ringa ikkinchi
+//    marta qo'shish to'siladi (DB'da ham qisman UNIQUE indekslar bor).
+async function oscAddPerson(parentKind, parentId) {
+  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  if (!wsMembers || !wsMembers.length) { toast('Jamoada xodim yo\'q', 'err'); return; }
+
+  // Hamma a'zo ko'rsatiladi; kimda allaqachon o'rin bor bo'lsa — nechta
+  // ekanini izohda aytamiz (foydalanuvchi bilib tursin, lekin to'silmasin).
+  const people = ssMemberItems(wsMembers).map(function (it) {
+    const n = oscSeatCount(it.value);
+    return n ? Object.assign({}, it, { sub: (it.sub ? it.sub + ' · ' : '') + n + ' o\'rinda bor' }) : it;
+  });
+
+  const cur = parentId ? ((parentKind === 'p' ? 'p' : 'f') + ':' + parentId) : '';
+  const pname = oscParentLabel(parentKind, parentId);
+
+  const vals = await uiForm(pname ? ('"' + pname + '" ostiga xodim') : 'Sxemaga xodim qo\'shish', [
+    { id: 'uids', label: 'Xodimlar', type: 'msearch', value: [], items: people, placeholder: 'Ism, lavozim, telefon…',
+      hint: 'Bir xodim bir necha o\'rinda tura oladi — turli papkalarga qo\'sha berasiz.' },
+    { id: 'parent', label: 'Qayerda tursin?', type: 'search', value: cur, items: oscNodeOptions(null, null, '— Ildiz (papkasiz) —'),
+      placeholder: 'Papka yoki xodimni qidiring…' },
+    { id: 'title', label: 'Lavozim (ixtiyoriy)', type: 'text', placeholder: 'Bo\'sh qoldirilsa HR ma\'lumotidan olinadi', hint: 'Faqat bitta xodim tanlanganda qo\'llanadi.' }
+  ], { okText: 'Qo\'shish' });
+  if (!vals) return;
+  let uids = vals.uids || [];
+  if (!uids.length) { toast('Kamida bitta xodimni tanlang', 'err'); return; }
+
+  const pick = vals.parent || '';
+  const pk = pick ? pick.slice(0, 1) : '';
+  const pid = pick ? pick.slice(2) : null;
+
+  // AYNI SHU o'rinda allaqachon bor bo'lganlarni ajratamiz — DB 23505
+  // qaytarib butun so'rovni yiqitmasin va foydalanuvchi nima bo'lganini bilsin.
+  const dupes = uids.filter(function (u) { return oscHasSeat(u, pk, pid); });
+  if (dupes.length) {
+    uids = uids.filter(function (u) { return dupes.indexOf(u) === -1; });
+    const names = dupes.map(oscPersonName).join(', ');
+    if (!uids.length) { toast(names + ' — bu yerda allaqachon bor', 'err'); return; }
+    toast(names + ' — bu yerda allaqachon bor, o\'tkazib yuborildi', 'err');
+  }
+
+  try {
+    // ⚠️ Lavozim maydoni faqat BITTA xodim tanlanganda ma'noli — ko'p
+    //    tanlanganda hammasiga bir xil lavozim yozib qo'ymaymiz.
+    const title = (uids.length === 1 ? (vals.title || '').trim() : '') || null;
+    const patch = oscPersonParentPatch(pk, pid);
+    const rows = uids.map(function (u, i) {
+      return Object.assign({
+        workspace_id: currentWs.id,
+        user_id: u,
+        title: title,
+        sort_order: oscPeople.length + i,
+        created_by: me.id
+      }, patch);
+    });
+    const { data, error } = await sb.from('org_people').insert(rows).select();
+    if (error) throw error;
+    if (!data || data.length !== rows.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    if (pid) { oscLoadExpanded().add(oscKey(pk === 'p' ? 'person' : 'folder', pid)); oscSaveExpanded(); }
+    toast('✅ ' + data.length + ' o\'rin qo\'shildi', 'ok');
+    logActivity('org_person_added', { entityType: 'org_person', entityId: data[0].id, entityTitle: oscPersonName(uids[0]), details: uids.length + ' ta' });
+    await loadOrgSchema();
+  } catch (e) {
+    console.error('oscAddPerson:', e);
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+// ⚠️ oscSetManager() OLIB TASHLANDI (2026-08-06): rahbar endi QO'LDA
+//    tanlanmaydi. Bo'ysunish papka joylashuvidan hisoblanadi
+//    (oscDerivedManagers) — xodimni ko'chirish uchun oscMovePerson().
+
+// Eski nom — endi umumiy oscMoveNode ga yo'naltiriladi (papka ham, hodim
+// ham bir xil oqim bilan ko'chadi).
+function oscMovePerson(personId) { return oscMoveNode('p', personId); }
+
+async function oscRemovePerson(personId) {
+  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  const p = oscPersonById(personId);
+  if (!p) { toast('Xodim topilmadi', 'err'); return; }
+
+  // Ostidagi tugunlar O'CHMAYDI — ular ildizga ko'chadi (ON DELETE SET NULL),
+  // ya'ni butun shox yo'qolib ketmaydi.
+  const _t = oscTree();
+  const _n = _t.byKey[oscKey('person', personId)];
+  const under = _n ? (oscSubtreeKeys(_t, _n).size - 1) : 0;
+  // ⚠️ FAQAT SHU O'RIN o'chadi (org_people.id bo'yicha) — xodimning boshqa
+  //    o'rinlari (boshqa papkalardagi) joyida qoladi.
+  const pk = _t.parentOf[oscKey('person', personId)];
+  const pn = pk && _t.byKey[pk] ? oscNodeName(_t.byKey[pk]) : null;
+  const seats = oscSeatCount(p.user_id);
+
+  let msg = oscPersonName(p.user_id) + (pn ? (' — "' + pn + '" dagi o\'rni') : '') + ' sxemadan olib tashlanadi.';
+  if (seats > 1) msg += ' Uning qolgan ' + (seats - 1) + ' o\'rni JOYIDA QOLADI.';
+  if (under) msg += ' Ostidagi ' + under + ' ta tugun ildizga ko\'chadi (o\'chmaydi).';
+  msg += ' ⚠️ Xodim jamoadan CHIQARILMAYDI va vazifalariga tegilmaydi.';
+
+  const ok = await uiConfirm(seats > 1 ? 'Shu o\'rinni olib tashlash' : 'Sxemadan olib tashlash', msg, { danger: true, okText: 'Olib tashlash' });
+  if (!ok) return;
+
+  try {
+    // ⚠️ .select() — RLS jimgina to'ssa "Olib tashlandi" yolg'on chiqmasin.
+    const { data, error } = await sb.from('org_people').delete().eq('id', personId).select();
+    if (error) throw error;
+    if (!data || !data.length) throw new Error('O\'chirilmadi — ruxsat yo\'q (RLS)');
+    toast('Olib tashlandi', 'ok');
+    logActivity('org_person_removed', { entityType: 'org_person', entityId: personId, entityTitle: oscPersonName(p.user_id) });
+    await loadOrgSchema();
+  } catch (e) {
+    console.error('oscRemovePerson:', e);
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
+
+// ── Sahifa ochilganda ───────────────────────────────────────────────────────
+async function loadOrgSchema() {
+  if (!currentWs || currentWs.kind !== 'organization') return;
+
+  let stored = null;
+  try { stored = localStorage.getItem('osc_view'); } catch (e) { console.error('loadOrgSchema:', e); }
+  oscSetView(stored === 'chart' ? 'chart' : 'folders');
+
+  const pane = $('oscPaneFolders');
+  if (pane && !oscFolders.length) pane.innerHTML = '<div class="empty"><strong>Yuklanmoqda…</strong></div>';
+
+  await oscLoad();
+
+  // Yuklash paytida boshqa sahifaga o'tib ketgan bo'lsa — chizmaymiz
+  if (currentPage !== 'orgschema') return;
+
+  const warn = $('oscWarn');
+  if (warn) {
+    if (_hrsvMissing || _oscMissing) {
+      warn.style.display = 'block';
+      warn.innerHTML = '<b>TASKFIX_HR.sql ishga tushirilmagan.</b> Sxema saqlanmaydi — avval SQL faylni Supabase SQL Editor\'da bajaring.';
+    } else if (_oscErr) {
+      warn.style.display = 'block';
+      warn.innerHTML = '<b>Ogohlantirish:</b> ' + escapeHtml(translateErr(_oscErr.message || String(_oscErr)));
+    } else {
+      warn.style.display = 'none';
+      warn.innerHTML = '';
+    }
+  }
+
+  // Yangi workspace — chart qaytadan sig'dirilsin. Ayni workspace ichida
+  // esa foydalanuvchining zoom'i saqlanadi (har tahrirdan keyin tiklash
+  // bezovta qilardi).
+  if (_oscFitWs !== currentWs.id) { _oscFitWs = currentWs.id; _oscFitted = false; }
+
+  oscRenderActions();
+  oscRenderCount();
+  oscRenderFolders();
+  oscRenderChart();
+
+  // Org chart ochiq bo'lsa — birinchi ko'rsatishda o'zi sig'sin.
+  // ⚠️ requestAnimationFrame: viewport hali o'lchamga ega bo'lmasa
+  //    (display:none dan endi chiqqan) oscZoomFit 0 ga bo'lardi.
+  if (oscView === 'chart' && _oscChartBuilt && !_oscFitted) {
+    _oscFitted = true;
+    requestAnimationFrame(function () { oscZoomFit(); });
+  }
+}
+
 // ============ 🔍 UNIVERSAL QIDIRUV (gs*) — topbar + ⌘K ============
 // Bitta maydon butun TaskFix bo'ylab qidiradi: xodimlar (ism/familiya, email,
 // telefon), vazifalar (nom, tavsif), loyihalar, bo'limlar, filiallar,
@@ -16152,16 +19306,20 @@ function gsPushPages(b, q) {
     { label: 'Loyihalar', icon: '📁', page: 'projects', org: true },
     { label: 'Jamoa', icon: '👥', page: 'team' },
     { label: 'Statistika', icon: '📊', page: 'stats', mgr: true },
-    { label: 'Tashkilot tuzilmasi', icon: '⛓', page: 'orgchart', mgr: true, org: true },
+    // ⚠️ Eski "Tashkilot tuzilmasi" (orgchart) qidiruvdan ham vaqtincha
+    // olib qo'yildi — o'rniga HR Service → Org Schema. Kod o'chirilmadi.
+    // { label: 'Tashkilot tuzilmasi', icon: '⛓', page: 'orgchart', mgr: true, org: true },
+    { label: 'Org Schema', icon: '🗂', page: 'orgschema', org: true, hr: true },
     { label: 'Filiallar', icon: '🏪', page: 'branches', mgr: true, org: true },
     { label: 'Lavozimlar', icon: '🎖', page: 'positions', mgr: true, org: true },
-    { label: 'Integratsiyalar', icon: '🔌', page: 'integrations', mgr: true, org: true },
+    { label: 'Qo\'shimcha service', icon: '🔌', page: 'integrations', mgr: true, org: true },
     { label: 'Sozlamalar', icon: '⚙', page: 'settings', mgr: true },
     { label: 'Mening profilim', icon: '👤', page: 'profile' },
   ];
   all.forEach(function (p) {
     if (p.mgr && !isOwnerLike()) return;
     if (p.org && !gsIsOrg()) return;
+    if (p.hr && !hrsvEnabled()) return;   // HR Service o'chiq — sahifa yo'q
     if (q && !gsTextMatch(p.label, q)) return;
     b.page.push({
       id: 'page:' + p.page, rank: 0, sortKey: gsNorm(p.label), icon: p.icon,
