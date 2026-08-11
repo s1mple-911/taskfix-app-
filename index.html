@@ -4056,6 +4056,97 @@ function prjStateBadge(p, tasks) {
   return '<span class="prj-state ' + s.cls + '">' + escapeHtml(s.label) + '</span>';
 }
 
+// ============ 🔴 LOYIHA BOSHLANISH DARVOZASI (prjNotStarted / taskHiddenByStart) ============
+// MUAMMO: start_at kelajakda bo'lgan loyihaning bosqichi bajaruvchiga darrov
+// ko'rinardi va xabar ketardi. To'g'ri mantiq: loyiha boshlanmaguncha HAMMA
+// bosqich yopiq; boshlangach — sequential (navbat bilan) / parallel (birdan).
+//
+// 🔴 YECHIM — FAQAT KO'RSATISH DARVOZASI, DB'GA HECH NARSA YOZILMAYDI:
+//   • `taskHiddenByStart(t)` umumiy ro'yxatlarda (dashboard / vazifalar / kanban /
+//     jadval / kalendar / bo'lim / planner) filtr sifatida ishlatiladi;
+//   • `is_locked` ga TEGILMAYDI — u SOF KETMA-KETLIK belgisi bo'lib qoladi
+//     (server trigger avtoriteti). Boshlanishni qulfga yozib qo'ysak `start_at`
+//     o'tgach vazifa O'ZI ochilmasdi: qulfni kimdir (owner loyiha sahifasini
+//     ochib) ochishi kerak bo'lardi, 1-sequential bosqichni esa trigger hech
+//     qachon ochmaydi (oldingisi yo'q). Darvoza `Date.now()` ga qaraydi —
+//     start_at o'tishi bilan `false` bo'ladi va bosqich AVTOMAT ko'rinadi.
+//     Cron ham, "ochish" amali ham kerak emas.
+//   • `prjShouldBeOpen`/`prjTaskOpen` ham darvozani hisobga oladi — bu FAQAT
+//     ko'rsatish uchun (loyiha sahifasidagi karta "Loyiha … da boshlanadi"
+//     deydi); `prjSyncLocks` esa boshlanmagan bosqichga qulf YOZMAYDI (qorovul).
+// ⚠️ Loyiha qatori keshda YO'Q bo'lsa (RLS to'sgan / yuklanmagan) darvoza hech
+//    narsa yashirmaydi — shuning uchun TASKFIX_LOYIHA_RLS.sql ham kerak.
+let prjStartMap = {};            // project_id → { id, start_at, status } (yengil kesh)
+let _prjStartColWarned = false;  // start_notified_at ustuni yo'qligi bir marta console'ga
+
+// Loyiha hali boshlanmaganmi? (start_at bor VA hozir undan oldin)
+// ⚠️ `status` ga qaramaydi — sana darvozasi holatdan mustaqil (prjState esa
+//    paused/done ni ustun qo'yadi, u ALOHIDA masala: belgi ko'rsatish).
+function prjNotStarted(p) {
+  if (!p || !p.start_at) return false;
+  const st = new Date(p.start_at).getTime();
+  if (isNaN(st)) return false;   // o'qilmagan sana hech narsani to'smaydi
+  return Date.now() < st;
+}
+// Vazifaning loyihasi: ochilgan loyiha → projectsCache → yengil kesh.
+// Tartib MUHIM: to'liq qatorlar (server'dan yangi kelgan) keshdan ustun.
+function prjInfoById(id) {
+  if (!id) return null;
+  const cur = window._curProject;
+  if (cur && cur.id === id) return cur;
+  const c = (projectsCache || []).find(function (p) { return p.id === id; });
+  if (c) return c;
+  return prjStartMap[id] || null;
+}
+// Umumiy ro'yxatlarda yashirilsinmi?
+// ⚠️ `completed`/`cancelled` ISTISNO — 2-qatlam (prjShouldBeOpen) ham ularni
+//    hech qachon qulflamaydi; ikki qatlam bir xil to'plamni bersin.
+function taskHiddenByStart(t) {
+  if (!t || !t.project_id) return false;
+  if (t.status === 'completed' || t.status === 'cancelled') return false;
+  return prjNotStarted(prjInfoById(t.project_id));
+}
+// "Loyiha 12.08.2026 da boshlanadi" — qulf sababi (oldingi bosqichdan FARQLI matn)
+function prjStartLabel(p) {
+  const d = p && p.start_at ? prjFmtDT(p.start_at).split(' ')[0] : '';
+  return d ? ('Loyiha ' + d + ' da boshlanadi') : 'Loyiha hali boshlanmagan';
+}
+function prjTaskStartLabel(t) {
+  return prjStartLabel(prjInfoById(t && t.project_id));
+}
+// Yengil keshni to'ldirish/yangilash (loadProjects / loadProjectDetail ham chaqiradi)
+function prjStartSync(list) {
+  (list || []).forEach(function (p) {
+    if (p && p.id) prjStartMap[p.id] = { id: p.id, start_at: p.start_at || null, status: p.status || null };
+  });
+}
+// Loyiha sanalari — 1-to'lqinda o'qiladi. `projectsCache` faqat "Loyihalar"
+// sahifasida to'ladi, darvoza esa dashboard/vazifalar/planner'da ham kerak.
+// ⚠️ Hech qachon throw QILMAYDI (loadEmailSettings naqshi) — boot buzilmasin.
+// ⚠️ start_at ustuni yo'q bo'lsa (TASKFIX_LOYIHA.sql run qilinmagan) — kesh
+//    bo'sh qoladi va darvoza hech narsa yashirmaydi (eski xatti-harakat).
+// ⚠️ "ws almashdimi" tekshiruvi (loadHrData naqshi) — javob kechikkanda eski
+//    workspace sanalari yangisining ustiga yozilmasin.
+async function loadProjectStarts() {
+  prjStartMap = {};
+  if (!currentWs) return;
+  const wsId = currentWs.id;
+  try {
+    const { data, error } = await sb.from('projects').select('id,start_at,status').eq('workspace_id', wsId);
+    if (!currentWs || currentWs.id !== wsId) return;   // boshqa workspace ochilgan
+    if (error) { console.error('loadProjectStarts:', error.message); return; }
+    prjStartSync(data || []);
+  } catch (e) { console.error('loadProjectStarts:', e); }
+}
+// TASKFIX_LOYIHA_START.sql ishga tushmagan bo'lsa — start_notified_at ustuni yo'q
+function prjNoStartCol(err) {
+  const m = String((err && err.message) || err || '');
+  const code = String((err && err.code) || '');
+  if (!/start_notified_at/i.test(m)) return false;
+  return /(does not exist|schema cache|could not find|unknown column)/i.test(m) ||
+         code === '42703' || code === 'PGRST204';
+}
+
 function prjByOrder(a, b) { return (a.flow_order || 0) - (b.flow_order || 0); }
 
 async function loadProjects() {
@@ -4067,6 +4158,7 @@ async function loadProjects() {
     const { data: projs, error } = await sb.from('projects').select('*').eq('workspace_id', currentWs.id).order('created_at', { ascending: false });
     if (error) throw error;
     projectsCache = projs || [];
+    prjStartSync(projectsCache);   // boshlanish darvozasi keshi ham yangilansin
     // Har loyiha uchun tasklarni olamiz (flow holati uchun)
     const ids = projectsCache.map(p => p.id);
     let allTasks = [];
@@ -4090,14 +4182,31 @@ async function loadProjects() {
 function prjTaskOpen(t, list) {
   if (t.status === 'completed' || t.status === 'cancelled') return true; // tugagan
   if (t.is_locked) return false;         // server qulflagan
+  if (taskHiddenByStart(t)) return false; // 🔴 loyiha hali boshlanmagan (start_at)
   if (!t.depends_on_prev) return true;   // parallel
   const prev = list.filter(x => (x.flow_order || 0) < (t.flow_order || 0)).sort((a, b) => (b.flow_order || 0) - (a.flow_order || 0))[0];
   if (!prev) return true; // birinchi
   return prev.status === 'completed' || prev.status === 'cancelled';
 }
-// Faqat mantiq bo'yicha (is_locked'siz) ochiqmi? — "qulf qotib qolgan" holatni aniqlash uchun
+// SOF KETMA-KETLIK — boshlanish darvozasi HISOBGA OLINMAYDI.
+// 🔴 `prjSyncLocks` AYNAN shuni ishlatadi: `is_locked` DB'da faqat navbatni
+//    aks ettirsin. Darvozani DB'ga yozib qo'ysak `start_at` o'tgach vazifa o'zi
+//    ochilmasdi (1-sequential bosqichni trigger hech qachon ochmaydi — oldingi
+//    bosqich yo'q). Darvoza esa `taskHiddenByStart` bilan vaqt o'tishi bilan
+//    o'zi tushadi.
+function prjShouldBeOpenSeq(t, list) {
+  if (t.status === 'completed' || t.status === 'cancelled') return true;
+  if (!t.depends_on_prev) return true;
+  const prev = list.filter(x => (x.flow_order || 0) < (t.flow_order || 0)).sort((a, b) => (b.flow_order || 0) - (a.flow_order || 0))[0];
+  if (!prev) return true;
+  return prev.status === 'completed' || prev.status === 'cancelled';
+}
+// Faqat mantiq bo'yicha (is_locked'siz) ochiqmi? — "qulf qotib qolgan" holatni aniqlash uchun.
+// ⚠️ Bu darvozani HAM hisobga oladi va FAQAT KO'RSATISH uchun ishlatiladi
+//    (`prjTaskCardHtml`, `stuck`). DB yozuvi uchun `prjShouldBeOpenSeq`.
 function prjShouldBeOpen(t, list) {
   if (t.status === 'completed' || t.status === 'cancelled') return true;
+  if (taskHiddenByStart(t)) return false;
   if (!t.depends_on_prev) return true;
   const prev = list.filter(x => (x.flow_order || 0) < (t.flow_order || 0)).sort((a, b) => (b.flow_order || 0) - (a.flow_order || 0))[0];
   if (!prev) return true;
@@ -4396,7 +4505,12 @@ function prjcCardHtml(p) {
   // Hozirgi holat — bitta qator (bosqich bo'lmasa umuman ko'rsatilmaydi)
   let now = '';
   if (total) {
-    if (prjFlowType(p) === 'parallel') {
+    if (prjNotStarted(p)) {
+      // 🔴 Boshlanmagan loyihada hech bir bosqich ochilmaydi — bu shoxsiz
+      //    quyidagi mantiq "Barcha bosqichlar tugadi" deb YOLG'ON yozardi.
+      now = '<div class="prjc-now">' + icon('clock', 14) +
+        '<span class="prjc-now-t">' + escapeHtml(prjStartLabel(p)) + '</span></div>';
+    } else if (prjFlowType(p) === 'parallel') {
       const open = prjOpenTasks(list);
       now = open.length
         ? '<div class="prjc-now">' + icon('zap', 14) + '<span class="prjc-now-t">' + open.length + ' ta bosqich ochiq</span></div>'
@@ -4536,6 +4650,89 @@ function prjRecurDue(project) {
   return false;
 }
 
+// ============ 🔴 LOYIHA BOSHLANDI — BIR MARTALIK XABAR ============
+// ⚠️ BU FUNKSIYA QULF BILAN ISHLAMAYDI. Ko'rinish `taskHiddenByStart` bilan
+//    hal qilingan — u `Date.now()` ga qaraydi, ya'ni `start_at` o'tishi bilan
+//    vazifa HECH KIMNI KUTMASDAN o'zi ko'rinadi (cron ham, "ochish" ham kerak
+//    emas). Bu yerda qolgan yagona ish — YARATILISHIDA TO'SILGAN xabarni
+//    keyinroq yuborish (LAZY: owner/admin loyihani ochganda, takrorlanish naqshi).
+//   1) OPTIMISTIK DA'VO: `projects.start_notified_at` FAQAT NULL bo'lsa yoziladi
+//      (`.is(col,null)` + `.select('id')`) — 0 qator = boshqa admin ulgurdi → jim;
+//   2) da'vo yutilgandagina xabar ketadi.
+// ⚠️ Ustun yo'q bo'lsa (TASKFIX_LOYIHA_START.sql run qilinmagan) — XABAR
+//    YUBORILMAYDI (aks holda har ochilishda takror ketardi), lekin vazifaning
+//    KO'RINISHIGA ta'sir qilmaydi. Sabab bir marta console'ga yoziladi.
+async function prjStartClaim(project) {
+  const now = new Date().toISOString();
+  const { data, error } = await sb.from('projects')
+    .update({ start_notified_at: now })
+    .eq('id', project.id).is('start_notified_at', null)
+    .select('id');
+  if (error) {
+    if (prjNoStartCol(error)) {
+      if (!_prjStartColWarned) {
+        _prjStartColWarned = true;
+        console.error('projects.start_notified_at yo\'q (TASKFIX_LOYIHA_START.sql) — loyiha boshlanishi haqida xabar yuborilmaydi:', error.message);
+      }
+      return 'nocol';
+    }
+    console.error('prjStartClaim:', error.message);
+    return 'err';
+  }
+  if (!data || !data.length) {
+    // 0 qator: (a) boshqa admin ulgurdi — normal, (b) RLS to'sdi — jimgina
+    // "yuborilgan" deb o'qilmasin. Ikkovini mijozdan ajratib bo'lmaydi.
+    console.warn('prjStartClaim: 0 qator yangilandi (boshqa admin ulgurgan yoki RLS to\'sgan) — loyiha:', project.id);
+    return 'taken';
+  }
+  project.start_notified_at = now;
+  return 'ok';
+}
+
+// Loyiha boshlanganda shu bosqich egasiga xabar yuborilishi kerakmi?
+// 🔴 IKKI MARTA YUBORILMASIN: xabar yaratilishida FAQAT loyiha hali boshlanmagan
+//    bo'lganda to'silgan — ya'ni bosqich `start_at` DAN OLDIN yaratilgan bo'lsa.
+//    `start_at` o'tgach qo'shilgan bosqich xabarni `prjSaveTask` da allaqachon
+//    olgan (aynan shu yerda ikkilanish bor edi: "bugun boshlangan" loyihaga
+//    bosqich qo'shilsa, prjSaveTask xabar yuborardi, keyin loadProjectDetail →
+//    kickoff o'sha bosqichga IKKINCHI marta yuborardi).
+// ⚠️ Sana o'qilmasa — YUBORMAYMIZ (takroriy xabardan ko'ra o'tkazib yuborish afzal).
+function prjStartNotifyTarget(t, project) {
+  if (!t || !project || !t.assigned_to) return false;
+  if (t.status === 'completed' || t.status === 'cancelled') return false;
+  const st = new Date(project.start_at).getTime();
+  const cr = t.created_at ? new Date(t.created_at).getTime() : NaN;
+  if (isNaN(st) || isNaN(cr)) return false;
+  return cr < st;
+}
+
+async function prjStartKickoff(project) {
+  try {
+    if (!project || !project.start_at) return;   // sanasiz loyihaga umuman tegilmaydi
+    if (prjNotStarted(project)) return;          // hali boshlanmagan
+    if (project.start_notified_at) return;       // bir marta bajarilgan
+    if (project.status === 'paused' || project.status === 'done') return;
+    const list = prjTasks.slice().sort(prjByOrder);
+    if (!list.length) return;
+
+    // Endi OCHIQ (navbati kelgan) va yaratilishida xabari to'silgan bosqichlar
+    const targets = prjOpenTasks(list).filter(function (t) {
+      return t.assigned_to !== me.id && prjStartNotifyTarget(t, project);
+    });
+
+    // Da'vo — bo'sh ro'yxatda ham qo'yiladi (loyiha "boshlandi" deb yopiladi,
+    // keyingi ochilishlarda qayta tekshirilmaydi).
+    const claim = await prjStartClaim(project);
+    if (claim !== 'ok') return;                  // 'taken' | 'nocol' | 'err' → xabar yo'q
+
+    targets.forEach(function (t) {
+      try { tgNotifyAssignment(t.id, { user_id: t.assigned_to }); emailNotify('task_assigned', t.id, t.assigned_to); }
+      catch (e) { console.error('prjStartKickoff (xabar):', e); }
+    });
+    if (targets.length) toast('▶️ Loyiha boshlandi — ' + targets.length + ' ta bajaruvchiga xabar yuborildi', 'ok');
+  } catch (e) { console.error('prjStartKickoff:', e); }
+}
+
 async function loadProjectDetail() {
   if (!currentProjectId) return;
   _prjDenied = false;   // har yangi yuklashda tozalanadi (qayta urinish ishlasin)
@@ -4568,6 +4765,7 @@ async function loadProjectDetail() {
     return;
   }
   window._curProject = project;
+  prjStartSync([project]);   // start_at yangi qiymati darvozaga ham yetib borsin
 
   // 2) Bosqichlar
   const { data: ts, error: tErr } = await sb.from('tasks').select('*').eq('project_id', currentProjectId).order('flow_order', { ascending: true });
@@ -4590,6 +4788,10 @@ async function loadProjectDetail() {
   //    sana saqlanmadi, RLS to'sdi) jimgina yutilmasin. Da'vo mag'lubiyati —
   //    normal holat — baribir jim qoladi (u `silent` ga bog'liq emas).
   if (isOwnerLike() && prjRecurDue(project)) await prjResetRecurrence(project, false);
+
+  // 3b) Loyiha boshlandimi? — start-qulflarini ochib, xabarni BIR MARTA yuboramiz
+  //     (takrorlanish bilan bir xil LAZY naqsh: owner loyihani ochganda).
+  if (isOwnerLike()) await prjStartKickoff(project);
 
   // 4) A'zolar — xato bo'lsa A'zolar tabida bildiramiz
   const { data: pm, error: mErr } = await sb.from('project_members').select('*').eq('project_id', currentProjectId);
@@ -4645,6 +4847,11 @@ function prjRenderHero() {
   if (!total) {
     block = '<div class="prj-block none"><span style="font-size:20px;">🧩</span><div class="prj-block-txt"><b>Bosqich qo\'shilmagan</b>' +
       '<div class="prj-block-sub">' + (isOwnerLike() ? 'Flow tabidagi tugma bilan birinchi bosqichni qo\'shing.' : 'Administrator bosqich qo\'shishini kutmoqda.') + '</div></div></div>';
+  } else if (prjNotStarted(p)) {
+    // 🔴 Boshlanmagan loyihada `open` HAR DOIM bo'sh bo'ladi (start darvozasi) —
+    //    bu shox bo'lmasa quyidagi "Barcha bosqichlar tugadi" YOLG'ON chiqardi.
+    block = '<div class="prj-block">' + icon('clock', 20) + '<div class="prj-block-txt"><b>' + escapeHtml(prjStartLabel(p)) + '</b>' +
+      '<div class="prj-block-sub">Bosqichlar shu vaqtgacha yopiq — bajaruvchilarga ko\'rinmaydi va xabar yuborilmaydi.</div></div></div>';
   } else if (!open.length) {
     block = '<div class="prj-block done"><span style="font-size:20px;">✅</span><div class="prj-block-txt"><b>Barcha bosqichlar tugadi</b>' +
       '<div class="prj-block-sub">' + done + ' / ' + total + ' bajarildi.' + (prjRecurLabel(p) ? ' Takrorlanish: ' + escapeHtml(prjRecurLabel(p)) + '.' : '') + '</div></div></div>';
@@ -4710,7 +4917,10 @@ function prjTaskCardHtml(t, i, list, ft, curId, canEdit) {
   const openNow = prjTaskOpen(t, list);
   const isCur = !isDone && !isCancel && openNow && t.id === curId;
   const locked = !openNow && !isDone && !isCancel;
-  const stuck = locked && prjShouldBeOpen(t, list);   // qulf qotib qolgan (masalan oldingi bekor qilingan)
+  const waitStart = locked && taskHiddenByStart(t);   // loyiha hali boshlanmagan (start_at)
+  // ⚠️ Loyiha boshlanmagan bo'lsa qulf TO'G'RI — "qotib qolgan" deyilmaydi va
+  //    "Qulfni ochish" tugmasi chiqmaydi (prjShouldBeOpen ham false qaytaradi).
+  const stuck = locked && !waitStart && prjShouldBeOpen(t, list);   // qulf qotib qolgan (masalan oldingi bekor qilingan)
 
   let cls = 'prj-task', nodeCls = '', state = '';
   if (isCancel) {
@@ -4724,7 +4934,8 @@ function prjTaskCardHtml(t, i, list, ft, curId, canEdit) {
     state = '<span class="prj-state cur">' + icon('play', 11) + 'Hozir shu bosqichda</span>';
   } else if (locked) {
     cls += ' locked'; nodeCls = ' lock';
-    state = '<span class="prj-state lock">' + icon('lock', 12) + (stuck ? 'Qulflangan (qotib qolgan)' : 'Oldingi bosqichni kutmoqda') + '</span>';
+    state = '<span class="prj-state lock">' + icon('lock', 12) +
+      escapeHtml(waitStart ? prjTaskStartLabel(t) : (stuck ? 'Qulflangan (qotib qolgan)' : 'Oldingi bosqichni kutmoqda')) + '</span>';
   } else {
     cls += ' open'; nodeCls = ' open';
     state = '<span class="prj-state open">' + icon('zap', 12) + (ft === 'parallel' ? 'Ochiq' : 'Parallel — ochiq') + '</span>';
@@ -4833,7 +5044,7 @@ function renderProjectKanban() {
           ' data-id="' + t.id + '" ondragstart="kanDragStart(event, ' + t.id + ')" ondragend="kanDragEnd(event)" onclick="openDetail(' + t.id + ')">' +
           '<div class="kan-card-title' + (isDone ? ' done' : '') + '">' +
             (isDone ? '<span class="prj-kan-done" title="Bajarildi">' + icon('check', 13) + '</span>'
-                    : (locked ? '<span class="prj-kan-lock" title="Qulflangan — oldingi bosqichni kutmoqda">' + icon('lock', 13) + '</span>' : '')) +
+                    : (locked ? '<span class="prj-kan-lock" title="' + escapeHtml(taskHiddenByStart(t) ? prjTaskStartLabel(t) : 'Qulflangan — oldingi bosqichni kutmoqda') + '">' + icon('lock', 13) + '</span>' : '')) +
             escapeHtml(t.title || '') + '</div>' +
           '<div class="kan-card-meta">' +
             (asgName ? '<span class="prj-asg" title="' + escapeHtml(memberNamePos(t.assigned_to, asgName)) + '">' + avatarHtml(asgName, 'sm', null, t.assigned_to) +
@@ -5075,11 +5286,17 @@ async function prjApplyTypeToTasks(ft) {
 }
 
 // Qulflarni (is_locked) hozirgi tartib/holatga moslaydi. Xatolar sonini qaytaradi.
+// 🔴 `prjShouldBeOpenSeq` — SOF KETMA-KETLIK, boshlanish darvozasisiz. `is_locked`
+//    DB'da faqat navbatni aks ettiradi; darvoza esa mijozda vaqt bilan o'zi tushadi.
+//    ⚠️ Bu yerda "boshlanmagan bo'lsa o'tkazib yubor" QOROVULI BO'LMASIN — u qulfni
+//    yozmaslik o'rniga ESKIRTIRIB qo'yadi: boshlanmagan loyihada tur (sequential->
+//    parallel) yoki tartib (↑↓) o'zgartirilsa qulflar eski holida qolib, start'dan
+//    keyin hech kim ularni tuzatmasdi (noto'g'ri bosqich ochiq, to'g'risi yopiq).
 async function prjSyncLocks(list) {
   const arr = (list || prjTasks).slice().sort(prjByOrder);
   let fail = 0;
   for (const t of arr) {
-    const want = !prjShouldBeOpen(t, arr);
+    const want = !prjShouldBeOpenSeq(t, arr);
     if (!!t.is_locked === want) continue;
     const { data, error } = await sb.from('tasks').update({ is_locked: want }).eq('id', t.id).select().single();
     if (error) { console.error('prjSyncLocks:', error.message); fail++; continue; }
@@ -5403,6 +5620,12 @@ async function prjSaveTask(title, dependsOnPrev, assignee, deadlineIso, recur, d
     // Bloklanganmi? Oldingi bosqich bo'lsa va u tugamagan bo'lsa — bloklangan
     const prevTasks = prjTasks.filter(t => (t.flow_order || 0) <= maxOrder).sort((a, b) => (b.flow_order || 0) - (a.flow_order || 0));
     const prev = prevTasks[0];
+    // 🔴 `is_locked` — SOF KETMA-KETLIK belgisi (server trigger avtoriteti).
+    //    Loyiha boshlanmagani BU YERGA YOZILMAYDI: yozilsa qulf DB'da qotib
+    //    qolardi va start_at o'tgach vazifa O'ZI ochilmasdi (ayniqsa 1-bosqich —
+    //    uni trigger hech qachon ochmaydi, oldingisi yo'q). Boshlanish faqat
+    //    KO'RSATISH darvozasi (taskHiddenByStart) bilan hal qilinadi — u
+    //    Date.now() ga qaraydi va vaqt o'tishi bilan o'zi ochiladi.
     const locked = dependsOnPrev && prev && prev.status !== 'completed' && prev.status !== 'cancelled';
     const { data, error } = await sb.from('tasks').insert({
       workspace_id: currentWs.id, project_id: currentProjectId,
@@ -5418,8 +5641,11 @@ async function prjSaveTask(title, dependsOnPrev, assignee, deadlineIso, recur, d
     dftClear(dftKeyPrjTask(_dftPrjId));
     toast('✅ Bosqich qo\'shildi', 'ok');
     logActivity('task_created', { entityType: 'task', entityId: data.id, entityTitle: title, details: { project: (window._curProject || {}).name } });
-    // Xabar faqat OCHIQ (bloklanmagan) bo'lsa va biriktirilgan bo'lsa
-    if (!data.is_locked && assignee && assignee !== me.id) {
+    // Xabar faqat OCHIQ (bloklanmagan) bo'lsa va biriktirilgan bo'lsa.
+    // ⚠️ `taskHiddenByStart` alohida tekshiriladi — server trigger'i insert'da
+    //    is_locked'ni qaytarib false qilishi mumkin; boshlanmagan loyihadan
+    //    xabar ketmasin (u prjStartKickoff'da, boshlangach yuboriladi).
+    if (!data.is_locked && !taskHiddenByStart(data) && assignee && assignee !== me.id) {
       try { tgNotifyAssignment(data.id, { user_id: assignee }); emailNotify('task_assigned', data.id, assignee); }
       catch (e) { console.error('bosqich xabari:', e); }
     }
@@ -7125,6 +7351,9 @@ async function loadCurrentContext() {
   // Loyiha muddati bayroqlari ham — TASKFIX_LOYIHA.sql / TASKFIX_PROJECT.sql
   // sessiya davomida ishga tushirilsa, F5 siz tuzalsin.
   _prjLoyihaMissing = false; _prjLoyihaWarned = false; _prjFlowWarned = false;
+  // start_notified_at ustuni yo'qligi bayrog'i ham — TASKFIX_LOYIHA_START.sql
+  // sessiya davomida ishga tushirilsa, ws almashtirish kifoya (F5 shart emas).
+  _prjStartColWarned = false;
   // Dam olish kunlari keshi — boshqa workspace, boshqa jadval (va boshqa RLS ko'rinishi)
   dofClear();
 
@@ -7153,6 +7382,11 @@ async function loadCurrentContext() {
     // HR Service yoqilganmi? Chap menyu shunga qarab chiziladi, shuning uchun
     // 1-to'lqinda. O'zi throw qilmaydi; o'qilmasa "o'chiq" deb hisoblanadi.
     loadHrSvcSettings(),
+    // Loyiha boshlanish sanalari (yengil: id/start_at/status) — boshlanmagan
+    // loyiha bosqichlari umumiy ro'yxatlarda ko'rinmasligi uchun (taskHiddenByStart).
+    // projectsCache faqat "Loyihalar" sahifasida to'ladi, bu esa hamma joyda kerak.
+    // O'zi throw qilmaydi; o'qilmasa darvoza jimgina o'chiq qoladi (eski holat).
+    loadProjectStarts(),
   ]);
 
   // "Mening vazifalarim" uchun — mening Telegram identitetlarim.
@@ -7751,7 +7985,9 @@ function updateDashboard(sub) {
     return d.getUTCDate() === today.getUTCDate() && d.getUTCMonth() === today.getUTCMonth() && d.getUTCFullYear() === today.getUTCFullYear();
   };
 
-  const _vis = tasksCache.filter(t => !t.is_locked); // bloklangan flow tasklar ko'rinmaydi
+  // bloklangan flow tasklar ko'rinmaydi + boshlanmagan loyiha bosqichlari ham
+  // (taskHiddenByStart — is_locked'dan MUSTAQIL: trigger qulfni ochsa ham yashiradi)
+  const _vis = tasksCache.filter(t => !t.is_locked && !taskHiddenByStart(t));
   const active = _vis.filter(t => t.status === 'new' || t.status === 'in_progress' || t.status === 'qabul_kutilyapti');
   const overdue = _vis.filter(isOver);
   const today = _vis.filter(isToday);
@@ -8316,8 +8552,10 @@ function onTasksSearch() {
 
 // Task scope (sidebar bo'limlari) — barcha view ishlatadi
 function applyTaskScope(list) {
-  // Navbati kelmagan (bloklangan) flow tasklar hech qaysi umumiy ko'rinishda chiqmaydi
-  list = list.filter(t => !t.is_locked);
+  // Navbati kelmagan (bloklangan) flow tasklar hech qaysi umumiy ko'rinishda chiqmaydi.
+  // 🔴 taskHiddenByStart — loyiha start_at'i kelmaguncha bosqich hech kimga
+  //    ko'rinmaydi (is_locked'dan MUSTAQIL: server trigger qulfni ochib yuborsa ham).
+  list = list.filter(t => !t.is_locked && !taskHiddenByStart(t));
   // ⚠️ plf* filtri BU YERGA ULANMAYDI — u faqat rejalashtirgichning chap
   //    "Bajarishim kerak" ro'yxatiga tegishli (plnSideTasks). Kanban/list
   //    ko'rinishlari tab scope'i bilan ishlaydi, avvalgidek.
@@ -10453,8 +10691,12 @@ async function updateField(field, value) {
     // oldTask havolasi hali ESKI obyektga ishora qiladi (yuqorida tasksCache[i]
     // yangi obyekt bilan ALMASHTIRILDI, mavjudi o'zgartirilmadi).
     thRecord(oldTask, data);
-    // Telegram'ga tahrirlangan xabar yuborish (faqat asosiy maydonlar uchun)
-    if (['title','description','deadline','priority_level','status','assigned_to','assigned_to_tg_bot_user'].includes(field)) {
+    // Telegram'ga tahrirlangan xabar yuborish (faqat asosiy maydonlar uchun).
+    // ⚠️ Boshlanmagan loyiha bosqichi bo'lsa YUBORILMAYDI — bajaruvchi vazifani
+    //    hali ko'rmaydi (taskHiddenByStart), lekin uning nomi/muddati haqida
+    //    Telegram xabari kelib qolardi.
+    if (['title','description','deadline','priority_level','status','assigned_to','assigned_to_tg_bot_user'].includes(field) &&
+        !taskHiddenByStart(data)) {
       tgNotifyTaskEdit(data, field, oldValue, value);
     }
   } catch (e) { toast(translateErr(e.message), 'err'); }
@@ -12883,8 +13125,11 @@ async function tblUpdate(taskId, field, value) {
   try {
     const { error } = await sb.from('tasks').update({ [field]: value }).eq('id', taskId);
     if (error) throw error;
-    // Bajaruvchi o'zgargan bo'lsa — yangi odamga email + TG xabar
-    if (field === 'assigned_to' && value && value !== old && value !== me.id) {
+    // Bajaruvchi o'zgargan bo'lsa — yangi odamga email + TG xabar.
+    // ⚠️ Boshlanmagan loyiha bosqichi bo'lsa xabar YO'Q — vazifa unga hali
+    //    ko'rinmaydi (taskHiddenByStart); xabar loyiha boshlanganda ketadi.
+    if (field === 'assigned_to' && value && value !== old && value !== me.id &&
+        !taskHiddenByStart(idx >= 0 ? tasksCache[idx] : _t)) {
       tgNotifyAssignment(taskId, { user_id: value });
       emailNotify('task_assigned', taskId, value);
     }
@@ -13355,7 +13600,7 @@ function plnTaskColor(t) {
 function plnSideTasks() {
   if (!me) return [];
   const sched = plnGetSchedule();
-  let list = (tasksCache || []).filter(t => !t.is_locked && !sched[t.id]);
+  let list = (tasksCache || []).filter(t => !t.is_locked && !taskHiddenByStart(t) && !sched[t.id]);
   if (plfActive()) {
     list = plfApply(list);
     // "Bajarilganlar" filtridan tashqari — tugallangan/bekor qilinganlar chiqmaydi
@@ -13669,7 +13914,10 @@ function tkCalNav(dir) {
 
 function renderTasksCalendar() {
   const grid = $('tkCalGrid'); if (!grid) return;
-  const tasks = applyEmpFilter(tasksCache || []); // Xodim filtri (umumiy)
+  // ⚠️ Kalendar avval `applyTaskScope` DAN O'TMASDI — qulflangan (navbati
+  //    kelmagan) va boshlanmagan loyiha bosqichlari bu yerda nomi+muddati bilan
+  //    ko'rinib, `openDetail` bilan ochilardi. Endi boshqa ko'rinishlar bilan bir xil.
+  const tasks = applyEmpFilter(applyTaskScope((tasksCache || []).slice())); // Xodim filtri (umumiy)
   const cur = new Date(tkCalCursor.getFullYear(), tkCalCursor.getMonth(), 1);
   const monthNames = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
   $('tkCalMonth').textContent = monthNames[cur.getMonth()] + ' ' + cur.getFullYear();
@@ -14642,7 +14890,11 @@ function setDeptView(v) {
   else if (v === 'team') loadDeptTeam();
 }
 
-function deptTasks() { return tasksCache.filter(t => t.department_id === currentDeptId); }
+// ⚠️ `moveTaskToDept` loyiha bosqichini bo'limga ko'chira oladi → bu yerda
+//    qulflangan/boshlanmagan bosqich butun bo'lim a'zolariga ko'rinardi
+//    (bu ro'yxatda `is_locked` filtri UMUMAN yo'q edi). Endi boshqa umumiy
+//    ko'rinishlar bilan bir xil darvozadan o'tadi.
+function deptTasks() { return tasksCache.filter(t => t.department_id === currentDeptId && !t.is_locked && !taskHiddenByStart(t)); }
 
 // ---- Kanban ----
 async function loadKanbanColumns() {
