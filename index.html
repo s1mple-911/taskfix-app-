@@ -1228,6 +1228,16 @@
   .prj-state.lock { background: #F0EFEA; color: var(--muted); }
   .prj-state.open { background: #FEF3C7; color: #92400E; }
   .prj-state.cancel { background: var(--danger-soft); color: #B91C1C; }
+  /* Loyiha holati — HISOBLANADI (prjState), DB'da saqlanmaydi. Yuqoridagi
+     .prj-state.* (bosqich holati) modifikatorlari bilan nom to'qnashuvi YO'Q. */
+  .prj-state.upcoming { background: rgba(100,116,139,.12); color: #64748b; }
+  .prj-state.active   { background: rgba(22,163,74,.12);   color: #16a34a; }
+  .prj-state.ended    { background: rgba(107,114,128,.10); color: #6b7280; }
+  .prj-state.overdue  { background: rgba(220,38,38,.12);   color: #dc2626; }
+  .prj-state.paused   { background: rgba(217,119,6,.12);   color: #d97706; }
+  .prj-range { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .prj-range svg { flex: 0 0 auto; }
+  .prj-card-dates { margin: 8px 0 2px; }
   .prj-over { color: var(--danger); font-weight: 600; }
   .prj-ord { display: flex; gap: 3px; flex: 0 0 auto; }
   .prj-ord-btn { border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 7px; width: 25px; height: 25px; font-size: 11px; line-height: 1; cursor: pointer; padding: 0; font-family: inherit; }
@@ -3709,13 +3719,156 @@ function prjNoFlowTypeCol(err) {
   return /flow_type/i.test(m) && /(does not exist|schema cache|could not find|unknown column)/i.test(m);
 }
 
-// Loyiha holati — noma'lum/bo'sh qiymat "faol" deb qaraladi (eski yozuvlar uchun)
+// Loyiha holati (QO'LDA qo'yilgani) — noma'lum/bo'sh qiymat "faol" deb qaraladi (eski yozuvlar uchun).
+// ⚠️ Ko'rsatish uchun prjStateBadge ishlatiladi (hisoblanadigan 4 holat) — eski
+//    prjStatusBadge olib tashlandi (u prjState bilan ziddiyatli belgi chizardi).
 function prjStatusKey(p) { return (p && (p.status === 'done' || p.status === 'paused')) ? p.status : 'active'; }
-function prjStatusBadge(p) {
-  const k = prjStatusKey(p);
-  if (k === 'done') return '<span class="badge" style="background:var(--success-soft);color:#047857;">✓ Tugadi</span>';
-  if (k === 'paused') return '<span class="badge muted">⏸ To\'xtatilgan</span>';
-  return '<span class="badge" style="background:#DDEBFF;color:#1E40AF;">● Faol</span>';
+
+// ============ LOYIHA MUDDATI + 4 HOLAT (TASKFIX_LOYIHA.sql) ============
+// 🔴 4 holat (upcoming/active/ended/overdue) DB'da SAQLANMAYDI — har chizishda
+//    hisoblanadi (prjState). Sabab: (1) projects.status band — u qo'lda hayot sikli
+//    ('active'|'paused'|'done', "Sozlash" oynasi yozadi), uni bosib ketsak "pauza"
+//    va mavjud ma'lumot buziladi; (2) "overdue" devor soati bilan o'zgaradi —
+//    saqlangan ustun eskirar va cron talab qilardi.
+let _prjLoyihaMissing = false;   // start_at/end_at/recur_type ustunlari yo'q (SQL run qilinmagan)
+let _prjLoyihaWarned = false;    // ⚠️ FAQAT console.error ni bir martaga cheklaydi (toast HAR SAFAR)
+let _prjFlowWarned = false;      // shu maqsadda, flow_type uchun
+let _prjTasksErr = false;        // bosqichlar o'qilmadi → prjTasks=[] "noma'lum" degani
+
+// Foydalanuvchiga ko'rsatiladigan sabab — HAR SAFAR aytiladi (6-qoida: jimgina yutilmasin)
+const PRJ_MSG_NO_DATE = 'sana saqlanmadi — TASKFIX_LOYIHA.sql ishga tushirilmagan';
+const PRJ_MSG_NO_FLOW = 'loyiha turi saqlanmadi — TASKFIX_PROJECT.sql ishga tushirilmagan';
+
+// TASKFIX_LOYIHA.sql hali ishga tushmagan bo'lsa — ustun yo'q (42703 / PGRST204)
+function prjNoLoyihaCol(err) {
+  const m = String((err && err.message) || err || '');
+  const code = String((err && err.code) || '');
+  if (!/(start_at|end_at|recur_type|recur_parent_id)/i.test(m)) return false;
+  return /(does not exist|schema cache|could not find|unknown column)/i.test(m) ||
+         code === '42703' || code === 'PGRST204';
+}
+// Ustun yo'q — jimgina yutmaymiz. Bu yerda FAQAT console (bir marta);
+// foydalanuvchiga ko'rinadigan xabarni chaqiruvchi HAR SAFAR beradi.
+function prjLoyihaWarn(err) {
+  _prjLoyihaMissing = true;
+  if (_prjLoyihaWarned) return;
+  _prjLoyihaWarned = true;
+  console.error('Loyiha muddati ustunlari yo\'q (TASKFIX_LOYIHA.sql):', (err && err.message) || err);
+}
+function prjFlowWarn(err) {
+  if (_prjFlowWarned) return;
+  _prjFlowWarned = true;
+  console.error('flow_type ustuni yo\'q (TASKFIX_PROJECT.sql):', (err && err.message) || err);
+}
+
+// 🔴 Ustun yo'q holatida so'rovni "yumshoq" qayta uradi.
+//    PostgREST bitta xatoda BITTA ustun nomini qaytaradi — prod'da flow_type HAM,
+//    start_at/end_at HAM yo'q bo'lishi mumkin, shuning uchun SIKL: qaysi biri
+//    birinchi aytilishiga bog'liq bo'lib qolmasin (aks holda 2-xato tutilmay
+//    throw bo'lardi va loyiha umuman yaratilmasdi).
+//    obj — insert row / update patch (o'sha OBYEKT o'zgartiriladi), run() — so'rov.
+//    Qaytaradi: { res, droppedDates, droppedFlow }
+async function prjRunWithColFallback(obj, run) {
+  let res = await run();
+  let droppedDates = false, droppedFlow = false;
+  for (let i = 0; i < 3 && res.error; i++) {
+    if (prjNoLoyihaCol(res.error) && ('start_at' in obj || 'end_at' in obj)) {
+      prjLoyihaWarn(res.error);
+      delete obj.start_at; delete obj.end_at;
+      droppedDates = true;
+    } else if (prjNoFlowTypeCol(res.error) && ('flow_type' in obj)) {
+      prjFlowWarn(res.error);
+      delete obj.flow_type;
+      droppedFlow = true;
+    } else break;
+    if (!Object.keys(obj).length) break;   // yozadigan narsa qolmadi — chaqiruvchi hal qiladi
+    res = await run();
+  }
+  return { res: res, droppedDates: droppedDates, droppedFlow: droppedFlow };
+}
+// Muvaffaqiyat matniga sabab qo'shadi (tashlab yuborilgan maydonlar jimgina yo'qolmasin)
+function prjOkMsg(base, out) {
+  const w = [];
+  if (out && out.droppedDates) w.push(PRJ_MSG_NO_DATE);
+  if (out && out.droppedFlow) w.push(PRJ_MSG_NO_FLOW);
+  return w.length ? (base + ' (⚠️ ' + w.join('; ') + ')') : base;
+}
+// Qisman yo'qotish YASHIL toast bilan chiqmasin — foydalanuvchi o'qimay o'tib ketadi.
+function prjOkKind(out) { return (out && (out.droppedDates || out.droppedFlow)) ? 'err' : 'ok'; }
+
+// Formadagi sana maydoni izohi — SQL run qilinmagani ma'lum bo'lsa ochiq aytamiz
+function prjDateHint(base) {
+  return (_prjLoyihaMissing ? '⚠️ TASKFIX_LOYIHA.sql ishga tushirilmagan — sana saqlanmaydi. ' : '') + base;
+}
+
+// uiForm 'datetime' qiymati ('YYYY-MM-DDTHH:MM') — Toshkent vaqti deb qaraladi (+05:00),
+// prjAddTask'dagi deadline naqshi bilan bir xil.
+// ⚠️ Noto'g'ri sana (masalan brauzer ruxsat beradigan 5–6 xonali yil) → null.
+//    Qalqonsiz `.toISOString()` throw qilib, try'dan tashqarida "unhandled rejection"
+//    berardi (hech qanday toast chiqmasdi). Chaqiruvchi bo'sh emas-u null bo'lsa
+//    xato deb ogohlantiradi (prjDtBad).
+function prjDtToIso(v) {
+  if (!v) return null;
+  const d = new Date(v + '+05:00');
+  return isNaN(d.getTime()) ? null : d.toISOString();
+}
+// Maydon to'ldirilgan, lekin sana o'qilmadi
+function prjDtBad(v, iso) { return !!v && !iso; }
+function prjDtInput(iso) { return iso ? toInputDt(iso) : ''; }
+function prjFmtDT(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const p = n => String(n).padStart(2, '0');
+  return p(d.getDate()) + '.' + p(d.getMonth() + 1) + '.' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+// "boshlanish → tugash" qatori (bittasi bo'lsa ham ko'rsatiladi)
+function prjRangeHtml(p) {
+  if (!p) return '';
+  const s = p.start_at ? prjFmtDT(p.start_at) : '';
+  const e = p.end_at ? prjFmtDT(p.end_at) : '';
+  if (!s && !e) return '';
+  const txt = (s && e) ? (s + ' → ' + e) : (s ? ('Boshlanish: ' + s) : ('Tugash: ' + e));
+  return '<span class="prj-range">' + icon('calendar', 14) + escapeHtml(txt) + '</span>';
+}
+
+const PRJ_STATE = {
+  upcoming: { label: 'Boshlanmagan',   cls: 'upcoming' },
+  active:   { label: 'Davom etyapti',  cls: 'active'   },
+  ended:    { label: 'Tugagan',        cls: 'ended'    },
+  overdue:  { label: 'Muddat o\'tgan', cls: 'overdue'  },
+  paused:   { label: 'Pauza',          cls: 'paused'   }
+};
+
+// prjState(p, tasks) → 'upcoming'|'active'|'ended'|'overdue'|'paused'
+// Tartib MUHIM: qo'lda qo'yilgan holat (paused/done) sana bo'yicha hisobdan USTUN.
+// tasks — bosqichlar ro'yxati (ro'yxatda p._tasks, detalda prjTasks). BERILMASA
+// "hammasi tugadimi" ni bilib bo'lmaydi → muddat o'tgan bo'lsa 'overdue' deymiz
+// (ehtiyotkor taxmin: tugagan loyihani "kechikdi" deb ko'rsatish, tugamaganini
+// "tugadi" deb yashirishdan afzal).
+function prjState(p, tasks) {
+  if (!p) return 'active';
+  if (p.status === 'paused') return 'paused';   // qo'lda to'xtatilgan — yo'qolmasin
+  if (p.status === 'done') return 'ended';      // qo'lda yopilgan
+  const now = Date.now();
+  const st = p.start_at ? new Date(p.start_at).getTime() : NaN;
+  const en = p.end_at ? new Date(p.end_at).getTime() : NaN;
+  if (!isNaN(st) && now < st) return 'upcoming';
+  if (!isNaN(en) && now > en) {
+    if (!Array.isArray(tasks)) return 'overdue';
+    // ⚠️ Bo'sh ro'yxat "tugagan" EMAS: bosqich qo'shilmagan loyiha muddati o'tsa
+    //    "Muddat o'tgan" bo'ladi (aks holda kartaning o'zi pastda "Bosqich
+    //    qo'shilmagan" deb turib, tepada "Tugagan" deb ziddiyat chiqarardi).
+    return tasks.length
+      ? tasks.every(t => t.status === 'completed' || t.status === 'cancelled') ? 'ended' : 'overdue'
+      : 'overdue';
+  }
+  return 'active';
+}
+function prjStateBadge(p, tasks) {
+  const k = prjState(p, tasks);
+  const s = PRJ_STATE[k] || PRJ_STATE.active;
+  return '<span class="prj-state ' + s.cls + '">' + escapeHtml(s.label) + '</span>';
 }
 
 function prjByOrder(a, b) { return (a.flow_order || 0) - (b.flow_order || 0); }
@@ -3837,8 +3990,9 @@ function renderProjectsOverview() {
       }
     }
     return '<div class="prj-card" onclick="openProject(\'' + p.id + '\')">' +
-      '<div class="prj-card-head"><div class="prj-card-name">' + escapeHtml(p.name) + '</div>' + prjStatusBadge(p) + '</div>' +
+      '<div class="prj-card-head"><div class="prj-card-name">' + escapeHtml(p.name) + '</div>' + prjStateBadge(p, list) + '</div>' +
       '<div class="prj-chips">' + prjTypeChip(p) + (recur ? '<span class="prj-chip prj-chip-recur">🔁 ' + escapeHtml(recur) + '</span>' : '') + '</div>' +
+      (prjRangeHtml(p) ? '<div class="prj-card-dates">' + prjRangeHtml(p) + '</div>' : '') +
       '<div class="prj-bar-row"><span>' + done + '/' + total + ' bajarildi</span><span>' + pct + '%</span></div>' +
       '<div class="prj-bar"><div class="prj-bar-fill" style="width:' + pct + '%;background:' + (pct === 100 ? 'var(--success)' : '#3B82F6') + ';"></div></div>' +
       now +
@@ -3915,10 +4069,14 @@ async function loadProjectDetail() {
   if (tErr) {
     console.error('loadProjectDetail (tasks):', tErr.message);
     prjTasks = [];   // eski loyihaning bosqichlari ko'rinib qolmasin
+    // ⚠️ Bo'sh ro'yxat bu yerda "bosqich yo'q" emas, "noma'lum" — prjState uni
+    //    "hammasi tugadi" deb o'qimasligi uchun bayroq qo'yamiz.
+    _prjTasksErr = true;
     prjRenderHeader(project);
     prjShowError(translateErr(tErr.message));
     return;
   }
+  _prjTasksErr = false;
   prjTasks = ts || [];
 
   // 3) Takrorlanish: muddati kelgan bo'lsa qayta boshlaymiz (faqat owner/admin)
@@ -3939,9 +4097,11 @@ function prjRenderHeader(project) {
   const total = prjTasks.length, done = prjTasks.filter(x => x.status === 'completed').length;
   const meta = $('prjMeta');
   if (meta) {
-    meta.innerHTML = '<div class="prj-chips" style="margin:0;">' + prjTypeChip(project) + prjStatusBadge(project) +
+    const range = prjRangeHtml(project);
+    meta.innerHTML = '<div class="prj-chips" style="margin:0;">' + prjTypeChip(project) + prjStateBadge(project, _prjTasksErr ? null : prjTasks) +
       (prjRecurLabel(project) ? '<span class="prj-chip prj-chip-recur">🔁 ' + escapeHtml(prjRecurLabel(project)) + '</span>' : '') +
       '<span class="prj-chip">' + done + '/' + total + ' bajarildi</span></div>' +
+      (range ? '<div class="prj-card-dates">' + range + '</div>' : '') +
       (project.description ? '<div style="margin-top:6px;">' + escapeHtml(project.description) + '</div>' : '');
   }
   const act = $('prjActions');
@@ -4159,34 +4319,43 @@ async function openCreateProject() {
     { id: 'type', label: 'Loyiha turi', type: 'choice', value: 'sequential', options: prjTypeOptions(),
       hint: 'Tur — yangi bosqichlar uchun default. Keyin "Sozlash"da o\'zgartirish mumkin.' },
     { id: 'desc', label: 'Tavsif (ixtiyoriy)', type: 'textarea', placeholder: 'Qisqacha izoh...' },
+    { id: 'start_at', label: 'Boshlanish (ixtiyoriy)', type: 'datetime',
+      hint: prjDateHint('Bo\'sh qoldirsangiz loyiha darrov "Davom etyapti" bo\'ladi.') },
+    { id: 'end_at', label: 'Tugash (ixtiyoriy)', type: 'datetime',
+      hint: prjDateHint('Muddat o\'tib, bosqichlar tugamagan bo\'lsa — "Muddat o\'tgan" ko\'rsatiladi.') },
     { id: 'recur', label: 'Takrorlanish (ixtiyoriy)', type: 'number', placeholder: 'Masalan: 30', hint: 'Har necha kunda loyiha qaytadan boshlanadi. Bo\'sh = takrorlanmaydi.' }
   ], { okText: 'Yaratish', draftKey: DFT_K_PROJECT_NEW });
   if (!v) return;
   if (!v.name || !v.name.trim()) { toast('Loyiha nomini kiriting', 'err'); return; }
+  const startIso = prjDtToIso(v.start_at), endIso = prjDtToIso(v.end_at);
+  if (prjDtBad(v.start_at, startIso) || prjDtBad(v.end_at, endIso)) { toast('Sana noto\'g\'ri kiritilgan', 'err'); return; }
+  if (startIso && endIso && new Date(endIso).getTime() <= new Date(startIso).getTime()) {
+    toast('Tugash vaqti boshlanishdan keyin bo\'lishi kerak', 'err'); return;
+  }
   const recDays = v.recur && parseInt(v.recur, 10) > 0 ? parseInt(v.recur, 10) : null;
-  saveProject(v.name.trim(), recDays, (v.desc || '').trim() || null, v.type === 'parallel' ? 'parallel' : 'sequential');
+  saveProject(v.name.trim(), recDays, (v.desc || '').trim() || null, v.type === 'parallel' ? 'parallel' : 'sequential', startIso, endIso);
 }
 
-async function saveProject(name, recDays, desc, flowType) {
+async function saveProject(name, recDays, desc, flowType, startIso, endIso) {
   const row = {
     workspace_id: currentWs.id, name, description: desc || null, created_by: me.id,
     recurrence_days: recDays, last_reset_at: recDays ? new Date().toISOString() : null,
     flow_type: flowType || 'sequential'
   };
+  // Muddat — faqat berilgan bo'lsa yoziladi (ustun yo'q bo'lsa pastda olib tashlanadi)
+  if (startIso) row.start_at = startIso;
+  if (endIso) row.end_at = endIso;
   try {
-    let res = await sb.from('projects').insert(row).select().single();
-    if (res.error && prjNoFlowTypeCol(res.error)) {
-      // TASKFIX_PROJECT.sql hali ishga tushmagan — loyiha baribir yaratilsin, lekin JIM qolmasin
-      console.error('flow_type ustuni yo\'q (TASKFIX_PROJECT.sql):', res.error.message);
-      delete row.flow_type;
-      res = await sb.from('projects').insert(row).select().single();
-      if (!res.error) toast('⚠️ Loyiha turi saqlanmadi — TASKFIX_PROJECT.sql ishga tushirilmagan', 'err');
-    }
+    // Ustun yo'q bo'lsa (flow_type va/yoki start_at) — sikl bilan olib tashlab qayta uriladi,
+    // qaysi ustun xatosi birinchi kelishiga bog'liq bo'lib qolmaydi.
+    const out = await prjRunWithColFallback(row, () => sb.from('projects').insert(row).select().single());
+    const res = out.res;
     if (res.error) throw res.error;
     const data = res.data;
     // 💾 Loyiha HAQIQATAN yozildi — endi qoralama kerak emas
     dftClear(DFT_K_PROJECT_NEW);
-    toast('✅ Loyiha yaratildi', 'ok');
+    // ⚠️ Tashlab yuborilgan maydon bo'lsa — muvaffaqiyat xabari SABABINI aytadi (har safar)
+    toast(prjOkMsg('✅ Loyiha yaratildi', out), prjOkKind(out));
     logActivity('project_created', { entityType: 'project', entityId: data.id, entityTitle: name });
     try { await loadProjects(); } catch (e) { console.error('loadProjects (yaratishdan keyin):', e); }
     openProject(data.id);
@@ -4205,16 +4374,29 @@ async function prjRenameOrDelete() {
     { id: 'desc', label: 'Tavsif', type: 'textarea', value: p.description || '' },
     { id: 'type', label: 'Loyiha turi', type: 'choice', value: curType, options: prjTypeOptions(),
       hint: 'Tur — yangi bosqichlar uchun default. Mavjud bosqichlarga ham qo\'llashni alohida so\'raymiz.' },
+    { id: 'start_at', label: 'Boshlanish', type: 'datetime', value: prjDtInput(p.start_at),
+      hint: prjDateHint('Bo\'sh = belgilanmagan. Boshlanish kelmagan bo\'lsa loyiha "Boshlanmagan" ko\'rinadi.') },
+    { id: 'end_at', label: 'Tugash', type: 'datetime', value: prjDtInput(p.end_at),
+      hint: prjDateHint('Muddat o\'tib, bosqichlar tugamagan bo\'lsa — "Muddat o\'tgan".') },
     { id: 'status', label: 'Holat', type: 'search', value: curStatus, options: [
       { value: 'active', label: '● Faol' },
       { value: 'paused', label: '⏸ To\'xtatilgan' },
       { value: 'done', label: '✓ Tugallandi' }
-    ], hint: 'Holat faqat ro\'yxatdagi belgi — vazifalarni qulflamaydi.' }
+    ], hint: 'Holat faqat ro\'yxatdagi belgi — vazifalarni qulflamaydi. "To\'xtatilgan"/"Tugallandi" sana bo\'yicha hisobdan ustun turadi.' }
   ], { okText: 'Saqlash', draftKey: dftKeyProject(p.id) });
   if (!v) return;
   if (!v.name || !v.name.trim()) { toast('Loyiha nomi bo\'sh bo\'lmasin', 'err'); return; }
+  const nsIso = prjDtToIso(v.start_at), neIso = prjDtToIso(v.end_at);
+  if (prjDtBad(v.start_at, nsIso) || prjDtBad(v.end_at, neIso)) { toast('Sana noto\'g\'ri kiritilgan', 'err'); return; }
+  if (nsIso && neIso && new Date(neIso).getTime() <= new Date(nsIso).getTime()) {
+    toast('Tugash vaqti boshlanishdan keyin bo\'lishi kerak', 'err'); return;
+  }
 
   const patch = {};
+  const curStart = p.start_at ? new Date(p.start_at).toISOString() : null;
+  const curEnd = p.end_at ? new Date(p.end_at).toISOString() : null;
+  if (nsIso !== curStart) patch.start_at = nsIso;
+  if (neIso !== curEnd) patch.end_at = neIso;
   if (v.name.trim() !== p.name) patch.name = v.name.trim();
   const nd = (v.desc || '').trim() || null;
   if (nd !== (p.description || null)) patch.description = nd;
@@ -4227,19 +4409,27 @@ async function prjRenameOrDelete() {
 
   let typeChanged = !!patch.flow_type;
   try {
-    let res = await sb.from('projects').update(patch).eq('id', p.id);
-    if (res.error && prjNoFlowTypeCol(res.error)) {
-      console.error('flow_type ustuni yo\'q (TASKFIX_PROJECT.sql):', res.error.message);
-      delete patch.flow_type; typeChanged = false;
-      if (!Object.keys(patch).length) { toast('⚠️ Loyiha turi saqlanmadi — TASKFIX_PROJECT.sql ishga tushirilmagan', 'err'); return; }
-      res = await sb.from('projects').update(patch).eq('id', p.id);
-      if (!res.error) toast('⚠️ Loyiha turi saqlanmadi — TASKFIX_PROJECT.sql ishga tushirilmagan', 'err');
+    // ⚠️ .select() SHART — RLS jimgina to'ssa "Saqlandi" yolg'on chiqmasin.
+    //    Ustun yo'q holatlari (flow_type / start_at) sikl bilan hal qilinadi.
+    const out = await prjRunWithColFallback(patch, () => sb.from('projects').update(patch).eq('id', p.id).select('id'));
+    const res = out.res;
+    if (!Object.keys(patch).length) {
+      // Faqat sana (va/yoki tur) o'zgargan edi, ustunlar esa yo'q — hech narsa
+      // saqlanmadi. JIM qolmaymiz: sababini har safar aytamiz.
+      const w = [];
+      if (out.droppedDates) w.push(PRJ_MSG_NO_DATE);
+      if (out.droppedFlow) w.push(PRJ_MSG_NO_FLOW);
+      toast('Saqlanmadi: ' + (w.join('; ') || translateErr((res.error && res.error.message) || 'noma\'lum xato')), 'err');
+      return;
     }
     if (res.error) throw res.error;
+    if (!res.data || !res.data.length) throw new Error('O\'zgarish saqlanmadi — ruxsat yo\'q yoki loyiha topilmadi');
+    typeChanged = !!patch.flow_type;   // fallback turni tashlagan bo'lishi mumkin
     Object.assign(p, patch);
     // 💾 O'zgarish HAQIQATAN yozildi (RLS/xato to'smadi) — qoralama o'chadi
     dftClear(dftKeyProject(p.id));
-    toast('✅ Saqlandi', 'ok');
+    // ⚠️ Tashlab yuborilgan maydon bo'lsa — sababi muvaffaqiyat xabarida (har safar)
+    toast(prjOkMsg('✅ Saqlandi', out), prjOkKind(out));
   } catch (e) {
     console.error('prjRenameOrDelete:', e);
     toast('Xato: ' + translateErr(e.message || String(e)), 'err');
@@ -5794,6 +5984,9 @@ async function loadCurrentContext() {
   // Tarix bayroqlarini tozalaymiz — SQL sessiya davomida ishga tushirilgan bo'lsa
   // workspace almashtirish kifoya (to'liq F5 shart emas).
   _thMissing = false; _thErr = null;
+  // Loyiha muddati bayroqlari ham — TASKFIX_LOYIHA.sql / TASKFIX_PROJECT.sql
+  // sessiya davomida ishga tushirilsa, F5 siz tuzalsin.
+  _prjLoyihaMissing = false; _prjLoyihaWarned = false; _prjFlowWarned = false;
 
   const wsId = currentWs.id;
   const isOrg = currentWs.kind === 'organization';
