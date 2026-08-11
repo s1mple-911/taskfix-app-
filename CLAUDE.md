@@ -1,7 +1,50 @@
 # CLAUDE.md — TaskFix loyihasi (doimiy xotira)
 
 Har sessiyada BIRINCHI shu fayl o'qiladi. Har katta o'zgarishdan keyin **o'zing yangila**.
+# FABLE — Orkestrator qoidalari (CLAUDE.md ga qo'shiladi)
 
+<!-- Bu blokni har reponing CLAUDE.md fayliga qo'shing (yuqoriga). CC (main agent) = Fable. -->
+
+## SEN — FABLE (loyiha boshqaruvchi / orkestrator)
+
+Sen Fable'san — bosh agent, loyiha boshqaruvchi. Asilbek senga task beradi. Sen O'YLAYSAN, ishni bo'laklarga bo'lasan, mos subagentlarga topshirasan, natijalarni yig'asan va Asilbekka HISOBOT berasan.
+
+### Subagentlaring (~/.claude/agents/)
+- **coder** — aniq kod yozadi (JS/SQL, TaskFix/Provodka qoidalari, {error}, RLS, double-entry). Kod yozish, bug tuzatish, refactor.
+- **designer** — UI/UX (Apple darajа, chiroyli, minimalist). Vizual, CSS, komponent ko'rinishi.
+- **tester** — QA (syntax, mantiq, chekka holat, xavfsizlik, regression). Har o'zgarishni test.
+
+### Ish oqimi (har task uchun)
+1. **O'yla + rejalashtir**: taskni tushun, bo'laklarga bo'l. Qaysi bo'lak coder'niki, qaysi designer'niki, qaysi tester'niki — aniqla.
+2. **Kontekst yig'** (kerak bo'lsa): avval mavjud kodni ko'r (o'zing yoki coder orqali) — pattern, field, mavjud funksiya. Taxmin qilma.
+3. **Topshir** (ketma-ket yoki parallel):
+   - Kod kerak → **coder**
+   - UI/dizayn → **designer**
+   - Yozilgach → **tester** (test)
+   - Murakkab: coder yozadi → designer chiroyli qiladi → tester test qiladi.
+4. **Yig' + tekshir**: subagent natijalarini ko'rib chiq. Tester ❌ topsa → coder'ga qaytar (tuzat). Sifat past bo'lsa → qayta topshir.
+5. **HISOBOT** Asilbekka: qisqa, aniq:
+   - Nima qilindi (har bo'lak)
+   - Qaysi agent nima qildi
+   - Test natijasi (✅/❌)
+   - Push kerak (qaysi commit) — Asilbek push qiladi (GitHub Desktop)
+   - Ochiq savol / qaror kerak bo'lsa
+
+### Qoidalar
+- 🔴 Eski funksiyalar buzilmasin — har o'zgarishdan keyin tester regression tekshirsin.
+- Katta ishni BOSQICHMA-BOSQICH — bir vaqtda bir bo'lak, tugagach keyingisi. Har bosqich alohida commit.
+- Push QILMA — Asilbek qiladi. Sen commit xabarini tavsiya qil.
+- SQL DDL — Asilbek RUN qiladi. Sen additive .sql yoz.
+- Kichik/oddiy fix — subagent SHART EMAS, o'zing (Fable) qil. Overhead bo'lmasin. Subagent — katta/ajratilgan ish uchun.
+- Subagent boshqa subagent chaqira olmaydi — faqat sen (Fable) chaqirasan.
+- Ikkilanганда — Asilbekdan so'ra (bitta savol), taxmin qilma.
+
+### Qachon subagent, qachon o'zing
+- **Subagent**: yangi feature (DB+backend+UI+test), katta refactor, ajratilgan ish, UI dizayn.
+- **O'zing (Fable)**: bitta qatorli fix, tez tekshiruv, savolga javob, kichik tahrir.
+
+### Hisobot uslubi
+Asilbek o'zbekcha, qisqa, aniq javob kutadi. Uzun tafsilot emas — nima bo'ldi, test qanday, keyingi qadam. Emoji minimal.
 ## Loyiha
 - **TaskFix** — vazifa/jamoa boshqaruvi ilovasi. Supabase backend + bitta katta `index.html` (~560KB) frontend.
 - **Supabase ref**: `nnpsbwsppgxbytlfloth`
@@ -81,6 +124,17 @@ Har sessiyada BIRINCHI shu fayl o'qiladi. Har katta o'zgarishdan keyin **o'zing 
 - **⚠️ Eski "Tashkilot tuzilmasi" (`oc*` / `org_containers`)** — *2026-08-06 dan vaqtincha YASHIRILGAN*, o'chirilmagan. Jamoa sahifasidagi **butun tab qatori** (`view-tabs`: "👥 Hodimlar" + "🏢 Tashkilot") HTML izohiga olindi — Tashkilot HR'ga ko'chgach bitta tab qolib ma'nosiz bo'lgandi; `teamPaneHodimlar` endi to'g'ridan-to'g'ri ko'rinadi. `gsPushPages` dagi "Tashkilot tuzilmasi" yozuvi ham izohda. `teamSetTab()` saqlanmoqda (`goPage('team')` uni 'hodimlar' bilan chaqiradi). Kod ham, DB ma'lumoti ham joyida; qaytarish uchun izohni ochish yetarli.
 - **Ikonkalar (`ic*`)**: `ICON_PATHS` (23 ta, Lucide geometriyasi, 24×24) — 2026-08-06 da qo'shildi: `hr` (contact-round), `network`, `folderOpen`, `trash`, `pencil`, `userPlus`. + `icon(name,size)` + `sideIcon(name)`. **Inline SVG, tashqi CDN YO'Q** (build yo'q + CDN beqaror). Noma'lum nom → `console.warn` + bo'sh matn. Ishlatilgan: chap menu, `add-mini` (+), `msFilter` qatorlari, sidebar toggle chevron (CSS bilan aylanadi). Sahifa sarlavhalarida emoji **yo'q** — ikonkani chap menu ko'taradi.
 - **Responsive (kichik ekranli kompyuter)**: ⚠️ ASOSIY — `.main { min-width: 0 }`. `.app.show` grid'ining `1fr` track'i sukut bo'yicha `min-width:auto`, ya'ni kontentdan kichik bo'lolmaydi → kanban/keng jadval **butun sahifani** gorizontal scroll qilardi (1024px: scrollWidth 1752 / clientWidth 1014). Endi keng kontent o'z idishida scroll bo'ladi (`.kanban`/`.tbl-wrap`/`.pln-cal`). Moslashtirish bloki **stylesheet OXIRIDA** (media query specificity qo'shmaydi → `.kan-col`/`.pln-grid` dan keyin turishi SHART) va `min-width:981px` chegarali (980/880px dagi mobil qoidalar buzilmasin): ≤1440 padding, 981–1280 (kan-col 252, pln-grid 48+7×96, dashSplit 1 ustun), 981–1180 (kan-col 236), ≤1180 pln-layout 1 ustun, `max-height:780px` balandlik tuzatishlari.
+- **Qoralama / autosave (`dft*`)** *(2026-08-11)*: `// ============ 💾 QORALAMA / AUTOSAVE (dft*) ============` bloki, `gs*` dan bevosita OLDIN, `init()` dan **tashqarida** (banner tugmalari inline `onclick` — 2026-07-28 saboqi). Yozilgan matn forma yopilsa ham yo'qolmaydi.
+  - **Faqat `text`/`textarea`**. Tanlagichlar (`ss*` search/msearch, `select`, `choice`, `toggle`, `datetime`, `number`, sana, fayl, subtask, `msSelected`) **ATAYLAB kirmaydi** — ular tashqi holatga bog'liq (a'zo o'chishi, bo'lim o'zgarishi) va 7 kundan keyin mavjud bo'lmagan id'ni tiklash xato manbai bo'lardi.
+  - Kalit: `localStorage['tfdraft_<wsId>_<userId>_<name>']` → `{v:1, at, d:{...}}`. ⚠️ Workspace o'zgaruvchisi **`currentWs`** (`currentWorkspace` YO'Q). `DFT_DEBOUNCE=400ms`, `DFT_TTL=7 kun` (eskisi `dftLoad`da o'chiriladi), `DFT_MAX=20000` belgi (kesilsa `console.warn`).
+  - 🔴 **Tozalash FAQAT HAQIQIY MUVAFFAQIYATDAN KEYIN** (6-qoida). `uiForm`ning `submit()` da `dftClear` **YO'Q** — `submit()` = "OK bosildi", saqlash emas: validatsiya va DB yozuvi chaqiruvchida, undan keyin turadi. Har chaqiruvchi throw'lardan keyin o'zi tozalaydi: `saveCreate`, `addComment`, `saveProject`, `prjRenameOrDelete`, `prjSaveTask`. Bekor/Escape/backdrop → qoralama **saqlanib qoladi** (`close()` faqat `dftDetach`).
+  - **Kalitlar bitta joyda**: `DFT_K_PROJECT_NEW`, `dftKeyProject(id)`, `dftKeyPrjTask(projectId)`, `dftKeyComment(taskId)`, `dftCreateName(deptId)` — `draftKey` va `dftClear` harfma-harf bir xil bo'lishi shart, qo'lda satr yozilmaydi.
+  - ⚠️ **`task:new` va `task:new:<deptId>` — ATAYLAB alohida kalit**: bo'lim ichidan ochilgan modal boshqa kontekst, umumiy qoralama u yerga tushmasin.
+  - **Tiklash UI — `uiConfirm` EMAS** (modal ustiga modal chiqmasin): forma ichida `.dft-bar` banneri (`dftBarHtml`, kehribar, `⟲ Saqlanmagan qoralama bor (vaqt)` + Tiklash/O'chirish). Banner **faqat**: qoralama bor + forma tegilmagan (yaratishda bo'sh, tahrirda `opts.initial` bilan bir xil) + qoralama hozirgidan farq qiladi. Foydalanuvchi yoza boshlasa banner **yo'qoladi** (`dftOnInput`) — aks holda keyingi "Tiklash" yangi matnni bosib ketardi.
+  - **Ulangan 3 joy**: (1) vazifa modali — `dftAttachCreate` `openCreateInternal` oxirida, kalit `_dftCreateName`; (2) izoh `#newCmtInput` — `dftAttachComment` `renderDetailBody` oxirida; (3) `uiForm(title,fields,{draftKey})` — berilmasa xatti-harakat **mutlaqo o'zgarmaydi**. Ishlatgan formalar: `openCreateProject`, `prjRenameOrDelete`, `prjAddTask`.
+  - 🔴 **Ikki xotira/o'chirish tuzog'i** (tester tutgan): (a) `#cTitle`/`#cDesc` DOM'da **doimiy** → `input` listener `dataset.dftBound` bilan bir marta bog'lanadi va joriy ulanish `el._dftToken` orqali topiladi; modalni tez yopib-ochganda oldingi ulanishning kutayotgan debounce yozuvi **bekor qilinadi** (u bo'shatilgan maydonni o'qib qoralamani o'chirardi). (b) `renderDetailBody()` har safar **YANGI** `#newCmtInput` yaratadi (~25 chaqiruv joyi + realtime) → yangi elementda `_dftToken` yo'q, tozalash ishlamaydi va `_dftReg` cheksiz o'sardi; shuning uchun `_dftCmtTok` modul darajasida saqlanib, yangi `dftAttach` dan **oldin** `dftDetach` qilinadi.
+  - `snapshot` — banner ochiq turganda foydalanuvchi yozib yuborsa ham "Tiklash" **aynan yuklangan** qoralamani qaytaradi. localStorage quota/JSON xatosi → `console.error` + buzilgan kalit o'chadi, ilova yiqilmaydi.
+  - CSS `.dft-*` (moslashtirish blokidan OLDIN). ⚠️ Ilovada **dark theme YO'Q** (bitta `:root`) — `.dft-bar` rangi `#92400e` qattiq yozilgan; dark theme qo'shilsa shu blokka override kerak.
 - **Universal qidiruv (`gs*`)**: `// ============ 🔍 UNIVERSAL QIDIRUV (gs*) ============` bloki, `init()`dan **oldin, global scope'da** (~14222). **Modal YO'Q** — topbardagi `#topSearchInp` haqiqiy input (`oninput=gsOnInput`, `onkeydown=gsKey`, `onfocus=gsOpen`), natijalar `#gsDrop`/`#gsList` panelida uning ostida ochiladi (`.gs-drop`, `@keyframes gsDrop` .22s). Panel **`<body>`ning bevosita farzandi** + `gsPosition()` (fixed, `getBoundingClientRect`) — topbar `sticky`/`z-index:20` bilan urishmasin; `z-index:90` (modal 100 ostida). ⌘K → `gsFocus()` (fokus + select + ochish). `gsClose()` matnni saqlaydi (Esc/tashqariga bosish, `gsWatch` mousedown), `gsDone()` natija tanlangandan keyin tozalaydi. Xodim qatorida **`＋ Vazifa`** tugmasi (`.gs-act` → `gsNewTaskFor(uid)`): `openCreate()` + `msSelected=[{type:'user'|'me',id,label}]` + `msUpdateSummary()`/`msFilter()`. Shu sababli natija elementi `<div role="option">` (button ichida button bo'lmasligi uchun). Yagona dvigatel: `gsLocal(q,qd)` (kesh: wsMembers/tasksCache/departments/branchesCache/positionsCache/projectsCache) + `gsServer(q)` (parallel `ilike`: tasks/projects/positions, har biri `{error}`) → `gsApplyServer` (id bo'yicha dublikatsiz) → `gsPaint()`. Guruhlar `GS_GROUPS`, guruhda 5 ta + `gsShowMore`. Telefon `gsPhoneMatch`/`gsHiPhone` (raqamlargacha normallashtirish, oxirgi 9 raqam). Highlight `gsHi`/`gsHiPhone` (escapeHtml ichida). Debounce `GS_DEBOUNCE`, eskirgan javob `_gsSeq` bilan bekor. CSS `.gs-*`; mobilda (`@media max-width:640px`) panel deyarli butun kenglik (`gsPosition` `innerWidth<=640`). `openCmdPalette`/`closeCmdPalette` — eski nom aliaslari (⌘K listener va init'dagi Escape ishlatadi; Escape `_gsShown`ga qaraydi). Tezlik uchun ixtiyoriy `TASKFIX_SEARCH.sql` (pg_trgm GIN).
   - ⚠️ **Saboq (2026-07-28)**: eski qidiruv butunlay `init()` ICHIDA edi → funksiyalar lokal, HTML inline handler esa global scope'da baholanadi → `openCmdPalette is not defined`. **Inline handler chaqiradigan funksiya global bo'lishi SHART** (top-level `function`). Top-level `const`/`let` (masalan `$`) inline handler'ga ko'rinadi, funksiya ichidagilar YO'Q.
 - **Import**: `hrImport*` (preflight 5b — telefon+ism blokeri mijozda).

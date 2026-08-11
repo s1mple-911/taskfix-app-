@@ -1393,6 +1393,31 @@
   .esn-row { border-top-color: var(--line-soft); }
   .detail-row { border-color: var(--line-soft); }
 
+  /* ── Qoralama (autosave) banneri — dft* ────────────────────────────────
+     Modal ustiga modal ochmaymiz: forma tepasida ingichka kehribar chiziq. */
+  .dft-bar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: rgba(245, 158, 11, .10);
+    border: 1px solid rgba(245, 158, 11, .35);
+    color: #92400e;
+    border-radius: 8px; padding: 8px 10px; margin-bottom: 12px;
+    font-size: 12.5px; line-height: 1.35;
+  }
+  .dft-bar-ic { flex: 0 0 auto; font-size: 13px; opacity: .85; }
+  .dft-bar-txt { flex: 1 1 160px; min-width: 0; }
+  .dft-bar-txt b { font-weight: 600; }
+  .dft-bar-time { opacity: .75; }
+  .dft-bar-acts { display: flex; gap: 6px; flex: 0 0 auto; }
+  .dft-btn {
+    border: 1px solid rgba(245, 158, 11, .45);
+    background: rgba(255, 255, 255, .65);
+    color: #92400e; font: inherit; font-size: 12px; font-weight: 600;
+    padding: 4px 10px; border-radius: 6px; cursor: pointer;
+    transition: background .14s ease, border-color .14s ease;
+  }
+  .dft-btn:hover { background: #fff; border-color: rgba(245, 158, 11, .7); }
+  .dft-btn.ghost { font-weight: 500; opacity: .8; }
+
   /* ═══════════════════════════════════════════════════════════════════════
      KICHIK EKRANLI KOMPYUTER (1024 / 1280 / 1366)
      ═══════════════════════════════════════════════════════════════════════
@@ -3600,11 +3625,28 @@ function uiForm(title, fields, opts) {
         });
       });
     });
+    // 💾 Qoralama (dft*) — FAQAT opts.draftKey berilgan bo'lsa.
+    //    Berilmasa hech narsa o'zgarmaydi (regressiya yo'q).
+    //    Faqat text/textarea: search/msearch/choice/toggle/datetime/number KIRMAYDI.
+    let _dftTok = null;
+    if (opts.draftKey) {
+      const dftFields = fields
+        .filter(f => !f.type || f.type === 'text' || f.type === 'textarea')
+        .map(f => ({ el: document.getElementById('uif_' + f.id), key: f.id }))
+        .filter(x => !!x.el);
+      if (dftFields.length) {
+        const dftInit = {};
+        dftFields.forEach(x => { dftInit[x.key] = x.el.value || ''; });
+        _dftTok = dftAttach(opts.draftKey, dftFields, bd.querySelector('.ui-modal-body'), { initial: dftInit });
+      }
+    }
     const first = bd.querySelector('.ui-input'); if (first) setTimeout(() => first.focus(), 60);
     // ⚠️ Modal yopilganda ss* maydonlari ro'yxatdan o'chiriladi va ochiq
     //    panel yopiladi — aks holda panel "osilib" qolardi va _ssReg o'sardi.
     const ssIds = fields.filter(f => f.type === 'search' || f.type === 'msearch').map(f => f.id);
-    const close = (val) => { ssForget(ssIds); bd.classList.remove('show'); setTimeout(() => bd.remove(), 180); resolve(val); };
+    // ⚠️ close() qoralamani O'CHIRMAYDI — Bekor/Escape'da matn saqlanib qolsin.
+    //    Faqat ro'yxatdan chiqaramiz (DOM ketdi).
+    const close = (val) => { if (_dftTok) dftDetach(_dftTok); ssForget(ssIds); bd.classList.remove('show'); setTimeout(() => bd.remove(), 180); resolve(val); };
     const submit = () => {
       const values = {};
       fields.forEach(f => {
@@ -3624,6 +3666,11 @@ function uiForm(title, fields, opts) {
         if (!el) return;
         values[f.id] = f.type === 'toggle' ? el.checked : el.value;
       });
+      // 💾 ⚠️ Qoralama BU YERDA o'chirilmaydi. submit() = "OK bosildi", SAQLANDI emas:
+      //    validatsiya va DB yozuvi chaqiruvchida, bundan KEYIN. Bu yerda o'chirsak
+      //    RLS rad etganda yoki nom bo'sh bo'lganda matn butunlay yo'qolardi
+      //    (6-qoida). Har chaqiruvchi HAQIQIY muvaffaqiyatdan keyin o'zi
+      //    `dftClear(<o'sha draftKey>)` qiladi.
       close(values);
     };
     bd.querySelector('[data-act="ok"]').onclick = submit;
@@ -4113,7 +4160,7 @@ async function openCreateProject() {
       hint: 'Tur — yangi bosqichlar uchun default. Keyin "Sozlash"da o\'zgartirish mumkin.' },
     { id: 'desc', label: 'Tavsif (ixtiyoriy)', type: 'textarea', placeholder: 'Qisqacha izoh...' },
     { id: 'recur', label: 'Takrorlanish (ixtiyoriy)', type: 'number', placeholder: 'Masalan: 30', hint: 'Har necha kunda loyiha qaytadan boshlanadi. Bo\'sh = takrorlanmaydi.' }
-  ], { okText: 'Yaratish' });
+  ], { okText: 'Yaratish', draftKey: DFT_K_PROJECT_NEW });
   if (!v) return;
   if (!v.name || !v.name.trim()) { toast('Loyiha nomini kiriting', 'err'); return; }
   const recDays = v.recur && parseInt(v.recur, 10) > 0 ? parseInt(v.recur, 10) : null;
@@ -4137,6 +4184,8 @@ async function saveProject(name, recDays, desc, flowType) {
     }
     if (res.error) throw res.error;
     const data = res.data;
+    // 💾 Loyiha HAQIQATAN yozildi — endi qoralama kerak emas
+    dftClear(DFT_K_PROJECT_NEW);
     toast('✅ Loyiha yaratildi', 'ok');
     logActivity('project_created', { entityType: 'project', entityId: data.id, entityTitle: name });
     try { await loadProjects(); } catch (e) { console.error('loadProjects (yaratishdan keyin):', e); }
@@ -4161,7 +4210,7 @@ async function prjRenameOrDelete() {
       { value: 'paused', label: '⏸ To\'xtatilgan' },
       { value: 'done', label: '✓ Tugallandi' }
     ], hint: 'Holat faqat ro\'yxatdagi belgi — vazifalarni qulflamaydi.' }
-  ], { okText: 'Saqlash' });
+  ], { okText: 'Saqlash', draftKey: dftKeyProject(p.id) });
   if (!v) return;
   if (!v.name || !v.name.trim()) { toast('Loyiha nomi bo\'sh bo\'lmasin', 'err'); return; }
 
@@ -4172,7 +4221,9 @@ async function prjRenameOrDelete() {
   const nt = v.type === 'parallel' ? 'parallel' : 'sequential';
   if (nt !== curType) patch.flow_type = nt;
   if (v.status !== curStatus) patch.status = v.status;
-  if (!Object.keys(patch).length) return;   // o'zgarish yo'q — bekorga yozmaymiz
+  // O'zgarish yo'q — bekorga yozmaymiz. Ekrandagi holat DB bilan bir xil, ya'ni
+  // saqlanadigan narsa qolmadi → qoralama ham keraksiz.
+  if (!Object.keys(patch).length) { dftClear(dftKeyProject(p.id)); return; }
 
   let typeChanged = !!patch.flow_type;
   try {
@@ -4186,6 +4237,8 @@ async function prjRenameOrDelete() {
     }
     if (res.error) throw res.error;
     Object.assign(p, patch);
+    // 💾 O'zgarish HAQIQATAN yozildi (RLS/xato to'smadi) — qoralama o'chadi
+    dftClear(dftKeyProject(p.id));
     toast('✅ Saqlandi', 'ok');
   } catch (e) {
     console.error('prjRenameOrDelete:', e);
@@ -4380,6 +4433,9 @@ async function prjAddTask() {
   if (!isOwnerLike()) { toast('Bosqichni faqat administrator qo\'shadi', 'err'); return; }
   const ft = prjFlowType(window._curProject);
   const seq = ft === 'sequential';
+  // 💾 Qoralama kaliti modal OCHILISHIDA olinadi va saqlashga uzatiladi —
+  //    modal ochiq turganda boshqa loyihaga o'tilsa kalitlar ajralib ketmasin.
+  const _dftPrjId = currentProjectId;
   // ⚠️ BITTA tanlash: tasks.assigned_to — bitta ustun. Ko'p bajaruvchi
   //    kerak bo'lsa avval DB o'zgarishi kerak.
   const memberOpts = [{ value: '', label: '— Biriktirilmagan —' }].concat(ssMemberItems(wsMembers));
@@ -4392,15 +4448,17 @@ async function prjAddTask() {
         ? 'Loyiha turi 🔗 Ketma-ket — shuning uchun yoqiq. O\'chirsangiz shu bosqich darrov ochiladi.'
         : 'Loyiha turi ⚡ Parallel — shuning uchun o\'chiq. Yoqsangiz faqat shu bosqich oldingisini kutadi.' },
     { id: 'recur', label: 'Takrorlanish (ixtiyoriy, kun)', type: 'number', placeholder: 'Masalan: 7', hint: 'Bo\'sh = takrorlanmaydi.' }
-  ], { okText: 'Qo\'shish' });
+  ], { okText: 'Qo\'shish', draftKey: dftKeyPrjTask(_dftPrjId) });
   if (!v) return;
   if (!v.title || !v.title.trim()) { toast('Vazifa nomini kiriting', 'err'); return; }
   const deadlineIso = v.deadline ? new Date(v.deadline + '+05:00').toISOString() : null;
   const recur = v.recur && parseInt(v.recur, 10) > 0 ? parseInt(v.recur, 10) : null;
-  prjSaveTask(v.title.trim(), !!v.dep, v.assignee || null, deadlineIso, recur);
+  prjSaveTask(v.title.trim(), !!v.dep, v.assignee || null, deadlineIso, recur, _dftPrjId);
 }
 
-async function prjSaveTask(title, dependsOnPrev, assignee, deadlineIso, recur) {
+async function prjSaveTask(title, dependsOnPrev, assignee, deadlineIso, recur, draftPrjId) {
+  // Qoralama kaliti modal ochilgandagi loyihaga tegishli (chaqiruvchidan keladi)
+  const _dftPrjId = draftPrjId || currentProjectId;
   try {
     const maxOrder = prjTasks.reduce((mx, t) => Math.max(mx, t.flow_order || 0), 0);
     // Bloklanganmi? Oldingi bosqich bo'lsa va u tugamagan bo'lsa — bloklangan
@@ -4417,6 +4475,8 @@ async function prjSaveTask(title, dependsOnPrev, assignee, deadlineIso, recur) {
     if (error) throw error;
     prjTasks.push(data);
     if (!data.is_locked) tasksCache.unshift(data);
+    // 💾 Bosqich HAQIQATAN yaratildi — qoralama o'chadi
+    dftClear(dftKeyPrjTask(_dftPrjId));
     toast('✅ Bosqich qo\'shildi', 'ok');
     logActivity('task_created', { entityType: 'task', entityId: data.id, entityTitle: title, details: { project: (window._curProject || {}).name } });
     // Xabar faqat OCHIQ (bloklanmagan) bo'lsa va biriktirilgan bo'lsa
@@ -7475,6 +7535,8 @@ function openCreateInternal(forceDeptId) {
   msFilter();
   $('createBd').classList.add('show');
   attachCreatePaste();
+  // 💾 Qoralama (dft*) — Nomi/Tavsif avtomatik saqlanadi, yopilsa ham yo'qolmaydi
+  dftAttachCreate(forceDeptId);
   setTimeout(()=>$('cTitle').focus(), 50);
 }
 
@@ -8333,6 +8395,8 @@ async function saveCreate() {
       window._plnPendingSchedule = null;
     }
     closeCreate();
+    // 💾 Vazifa HAQIQATAN yaratildi (yuqoridagi throw'lardan o'tdi) — qoralama kerak emas
+    dftClear(_dftCreateName);
     toast(targets.length > 1 ? ('✅ ' + targets.length + ' ta vazifa yaratildi') : '✅ Vazifa yaratildi', 'ok');
     refreshActiveView();
 
@@ -8863,6 +8927,8 @@ function renderDetailBody() {
     '</div>';
 
   $('dDelete').style.display = (canEditTask) ? 'inline-block' : 'none';
+  // 💾 Izoh qoralamasi (dft*) — innerHTML har safar yangi input yaratadi
+  dftAttachComment();
 }
 
 function renderCommentItem(c, canDelete) {
@@ -9144,6 +9210,9 @@ async function addComment() {
   const input = document.getElementById('newCmtInput'); if (!input) return;
   const text = (input.value || '').trim(); if (!text) return;
   const mentions = cmtParseMentions(text);
+  // 💾 Qoralama kaliti await'DAN OLDIN olinadi — insert davomida foydalanuvchi
+  //    detalni yopsa `currentDetailId` null bo'lib, qoralama tozalanmay qolardi.
+  const _dftTaskId = currentDetailId;
   try {
     const { data, error } = await sb.from('task_comments').insert({
       workspace_id: currentWs.id, task_id: currentDetailId, author_id: me.id, comment_text: text
@@ -9151,6 +9220,9 @@ async function addComment() {
     if (error) throw error;
     curDetailComments.push(data);
     input.value = '';
+    // 💾 Izoh haqiqatan yozildi — qoralama o'chadi (renderDetailBody'dan OLDIN,
+    //    aks holda qayta chizishda banner yana chiqib qolardi)
+    dftClear(dftKeyComment(_dftTaskId));
     const drop = document.getElementById('cmtMentionDrop'); if (drop) drop.style.display = 'none';
     renderDetailBody();
     // Telegram'ga yuborish — assignee'ga
@@ -19162,6 +19234,274 @@ async function loadOrgSchema() {
     _oscFitted = true;
     requestAnimationFrame(function () { oscZoomFit(); });
   }
+}
+
+// ============ 💾 QORALAMA / AUTOSAVE (dft*) ============
+// Maqsad: forma tasodifan yopilsa ham yozilgan MATN yo'qolmasin.
+// ⚠️ Bu blok ATAYLAB global scope'da (init() dan TASHQARIDA) — banner
+//    tugmalari inline `onclick` bilan chaqiriladi (2026-07-28 saboqi:
+//    init() ichidagi funksiya inline handler'ga KO'RINMAYDI).
+// ⚠️ Draftga FAQAT matn maydonlari tushadi (text / textarea). Tanlagichlar
+//    (ss*, select, sana, toggle, fayl, subtask) ATAYLAB kirmaydi: ular tashqi
+//    holatga bog'liq (a'zo o'chishi, bo'lim o'zgarishi) va tiklashda "yo'q
+//    qiymatni qo'yish" xatosining manbai bo'lardi.
+// ⚠️ Tiklash uchun uiConfirm ISHLATILMAYDI — modal ustiga modal chiqmasin.
+//    O'rniga forma ichida ingichka `.dft-bar` banneri.
+
+const DFT_DEBOUNCE = 400;               // ms — oxirgi belgidan keyin saqlashgacha
+const DFT_TTL = 7 * 24 * 3600 * 1000;   // 7 kun — undan eskisi tashlanadi
+const DFT_MAX = 20000;                  // bitta maydon uchun belgi chegarasi
+const DFT_PREFIX = 'tfdraft_';
+
+const _dftTimers = {};   // name  -> setTimeout id (har forma alohida)
+const _dftReg = {};      // token -> { name, els, getObj, snapshot }
+let _dftSeq = 0;
+let _dftCreateName = 'task:new';  // vazifa modali uchun joriy qoralama nomi
+
+// Kalit: workspace + foydalanuvchi + forma nomi (boshqa ws/odamning qoralamasi ko'rinmasin)
+function dftKey(name) {
+  const ws = (typeof currentWs !== 'undefined' && currentWs && currentWs.id) ? currentWs.id : 'x';
+  const uid = (typeof me !== 'undefined' && me && me.id) ? me.id : 'x';
+  return DFT_PREFIX + ws + '_' + uid + '_' + name;
+}
+
+function dftIsEmpty(obj) {
+  if (!obj) return true;
+  const keys = Object.keys(obj);
+  if (!keys.length) return true;
+  return keys.every(function (k) {
+    const v = obj[k];
+    return v == null || String(v).trim() === '';
+  });
+}
+
+// Ikki qoralama obyekti bir xilmi (matn solishtiruvi)
+function dftSame(a, b) {
+  const ka = Object.keys(a || {});
+  const kb = Object.keys(b || {});
+  if (ka.length !== kb.length) return false;
+  return ka.every(function (k) { return String((a || {})[k] || '') === String((b || {})[k] || ''); });
+}
+
+// Xom yozuv (debounce'siz). Bo'sh bo'lsa — saqlamaymiz, o'chiramiz.
+function dftSave(name, obj) {
+  if (dftIsEmpty(obj)) { dftClear(name); return; }
+  const clean = {};
+  Object.keys(obj).forEach(function (k) {
+    const v = obj[k] == null ? '' : String(obj[k]);
+    if (v.length > DFT_MAX) {
+      // Jimgina qirqilmasin — nima bo'lganini konsolda ochiq aytamiz
+      console.warn('dftSave (' + name + '): "' + k + '" maydoni ' + v.length +
+        ' belgi — qoralamada faqat birinchi ' + DFT_MAX + ' belgi saqlandi.');
+      clean[k] = v.slice(0, DFT_MAX);
+    } else clean[k] = v;
+  });
+  try {
+    localStorage.setItem(dftKey(name), JSON.stringify({ v: 1, at: Date.now(), d: clean }));
+  } catch (e) {
+    // Quota to'lgan / private rejim — qoralama saqlanmaydi, lekin ilova yiqilmaydi.
+    // Foydalanuvchini bezovta qilmaymiz (fon amali), lekin jimgina ham yutmaymiz.
+    console.error('dftSave (' + name + '):', e);
+  }
+}
+
+// 400ms debounce — har forma uchun alohida timer
+function dftQueue(name, getObj) {
+  if (_dftTimers[name]) clearTimeout(_dftTimers[name]);
+  _dftTimers[name] = setTimeout(function () {
+    delete _dftTimers[name];
+    let obj = null;
+    try { obj = getObj(); }
+    catch (e) { console.error('dftQueue getObj (' + name + '):', e); return; }
+    dftSave(name, obj);
+  }, DFT_DEBOUNCE);
+}
+
+// TTL tekshiradi; eskisi/buzilgani -> o'chiriladi va null qaytadi
+function dftLoad(name) {
+  let raw = null;
+  try { raw = localStorage.getItem(dftKey(name)); }
+  catch (e) { console.error('dftLoad (' + name + '):', e); return null; }
+  if (!raw) return null;
+  let rec = null;
+  try { rec = JSON.parse(raw); }
+  catch (e) {
+    console.error('dftLoad — buzilgan qoralama o\'chirildi (' + name + '):', e);
+    dftClear(name); return null;
+  }
+  // Array ham `typeof === 'object'` — u qoralama emas, rad etamiz
+  if (!rec || !rec.d || typeof rec.d !== 'object' || Array.isArray(rec.d)) { dftClear(name); return null; }
+  if (!rec.at || (Date.now() - rec.at) > DFT_TTL) { dftClear(name); return null; }
+  if (dftIsEmpty(rec.d)) { dftClear(name); return null; }
+  return rec;
+}
+
+function dftClear(name) {
+  if (_dftTimers[name]) { clearTimeout(_dftTimers[name]); delete _dftTimers[name]; }
+  try { localStorage.removeItem(dftKey(name)); }
+  catch (e) { console.error('dftClear (' + name + '):', e); }
+}
+
+// ---- Banner ----
+function dftBarHtml(token, at) {
+  let when = '';
+  try { when = relTime(new Date(at).toISOString()); }
+  catch (e) { console.error('dftBarHtml vaqt:', e); }
+  return '<div class="dft-bar" id="dftBar_' + token + '">' +
+      '<span class="dft-bar-ic">⟲</span>' +
+      '<span class="dft-bar-txt"><b>Saqlanmagan qoralama bor</b>' +
+        (when ? ' <span class="dft-bar-time">(' + escapeHtml(when) + ')</span>' : '') +
+      '</span>' +
+      '<span class="dft-bar-acts">' +
+        '<button type="button" class="dft-btn" onclick="dftRestore(' + token + ')">Tiklash</button>' +
+        '<button type="button" class="dft-btn ghost" onclick="dftDiscard(' + token + ')">O\'chirish</button>' +
+      '</span>' +
+    '</div>';
+}
+
+function dftBarRemove(token) {
+  const el = document.getElementById('dftBar_' + token);
+  if (el && el.parentNode) el.parentNode.removeChild(el);
+}
+
+// Yozuvchi listener BIR MARTA bog'lanadi (vazifa modali maydonlari DOM'da
+// doimiy — har ochilishda qayta bog'lansa listener'lar to'planib ketardi).
+function dftOnInput(ev) {
+  const el = ev.currentTarget;
+  const r = _dftReg[el._dftToken];
+  if (!r) return;
+  // ⚠️ Foydalanuvchi yoza boshladi — banner YO'QOLADI. Aks holda u ochiq qolib,
+  //    keyinroq "Tiklash" bosilsa endigina yozilgan matnni bosib ketardi
+  //    (qaytarib bo'lmaydi). Yozgan matn — eng yangi haqiqat.
+  dftBarRemove(el._dftToken);
+  dftQueue(r.name, r.getObj);
+}
+
+/**
+ * dftAttach(name, fields, mount, opts)
+ *   fields : [{ el, key }]   — faqat matn maydonlari
+ *   mount  : banner joylashadigan element (default: ichiga birinchi bo'lib)
+ *   opts   : { place:'before' — mount'dan OLDIN qo'yiladi,
+ *              initial:{...}  — forma ochilgandagi qiymatlar (tahrir formasi) }
+ * Banner FAQAT: qoralama bor + forma tegilmagan (bo'sh yoki initial bilan bir xil)
+ * + qoralama hozirgi qiymatdan farq qiladi.
+ */
+function dftAttach(name, fields, mount, opts) {
+  opts = opts || {};
+  const els = (fields || []).filter(function (f) { return f && f.el; });
+  if (!els.length) return null;
+
+  const token = ++_dftSeq;
+  const getObj = function () {
+    const o = {};
+    els.forEach(function (f) { o[f.key] = f.el.value || ''; });
+    return o;
+  };
+
+  // Eski ro'yxatdan o'tishni tozalaymiz (AYNAN shu element qayta ulanmoqda —
+  // masalan vazifa modali: #cTitle/#cDesc DOM'da doimiy va har ochilishda
+  // bo'shatiladi). ⚠️ Oldingi ulanishning kutayotgan debounce yozuvi ham
+  // bekor qilinadi: u endi BO'SHATILGAN maydonni o'qib, qoralamani
+  // o'chirib yuborardi (tez yopib-ochganda).
+  els.forEach(function (f) {
+    const old = f.el._dftToken;
+    if (old && _dftReg[old]) {
+      const oldName = _dftReg[old].name;
+      if (_dftTimers[oldName]) { clearTimeout(_dftTimers[oldName]); delete _dftTimers[oldName]; }
+      delete _dftReg[old];
+      dftBarRemove(old);
+    }
+    f.el._dftToken = token;
+    if (f.el.dataset.dftBound !== '1') {
+      f.el.dataset.dftBound = '1';
+      f.el.addEventListener('input', dftOnInput);
+    }
+  });
+
+  const rec = dftLoad(name);
+  // Snapshot: banner ochiq turganda foydalanuvchi yozib yuborsa ham
+  // "Tiklash" AYNAN yuklangan qoralamani qaytaradi (yangi yozuv bosib ketmasin).
+  _dftReg[token] = { name: name, els: els, getObj: getObj, snapshot: rec ? rec.d : null };
+
+  if (rec && mount) {
+    const cur = getObj();
+    const untouched = opts.initial ? dftSame(cur, opts.initial) : dftIsEmpty(cur);
+    if (untouched && !dftSame(cur, rec.d)) {
+      const html = dftBarHtml(token, rec.at);
+      if (opts.place === 'before') mount.insertAdjacentHTML('beforebegin', html);
+      else mount.insertAdjacentHTML('afterbegin', html);
+    }
+  }
+  return token;
+}
+
+// Forma DOM'dan ketdi — ro'yxatdan chiqaramiz (qoralama LOCALSTORAGE'da QOLADI)
+function dftDetach(token) {
+  if (!token) return;
+  const r = _dftReg[token];
+  if (r) r.els.forEach(function (f) { if (f.el && f.el._dftToken === token) f.el._dftToken = null; });
+  delete _dftReg[token];
+  dftBarRemove(token);
+}
+
+function dftRestore(token) {
+  const r = _dftReg[token];
+  if (!r) { dftBarRemove(token); return; }
+  const d = r.snapshot || {};
+  r.els.forEach(function (f) {
+    if (Object.prototype.hasOwnProperty.call(d, f.key)) f.el.value = d[f.key] == null ? '' : String(d[f.key]);
+  });
+  dftBarRemove(token);
+  // Tiklangandan keyin saqlangan nusxa ham ekrandagi bilan bir xil bo'lsin
+  dftSave(r.name, r.getObj());
+  const first = r.els[0];
+  if (first && first.el) { try { first.el.focus(); } catch (e) { console.error('dftRestore focus:', e); } }
+  toast('Qoralama tiklandi', 'ok');
+}
+
+function dftDiscard(token) {
+  const r = _dftReg[token];
+  if (r) { dftClear(r.name); r.snapshot = null; }
+  dftBarRemove(token);
+}
+
+// ---- Kalitlar BITTA joyda ----
+// ⚠️ `draftKey` (uiForm'ga beriladi) va `dftClear` (muvaffaqiyatdan keyin)
+//    HARFMA-HARF bir xil bo'lishi shart — aks holda qoralama tozalanmay qoladi.
+//    Shu sababli qo'lda satr yozilmaydi, faqat shu yordamchilar.
+const DFT_K_PROJECT_NEW = 'project:new';
+function dftKeyProject(id) { return 'project:' + id; }
+function dftKeyPrjTask(projectId) { return 'prjtask:' + projectId; }
+function dftKeyComment(taskId) { return 'comment:' + taskId; }
+
+// ---- 1) Vazifa yaratish modali ----
+// ⚠️ `task:new` va `task:new:<deptId>` ATAYLAB alohida kalit: bo'lim ichidan
+//    ochilgan modal boshqa kontekst (bo'lim oldindan tanlangan), umumiy
+//    qoralama u yerga tushib qolmasin.
+function dftCreateName(deptId) { return 'task:new' + (deptId ? ':' + deptId : ''); }
+
+function dftAttachCreate(deptId) {
+  const t = $('cTitle'), d = $('cDesc');
+  if (!t || !d) return;
+  _dftCreateName = dftCreateName(deptId);
+  const mount = t.closest ? t.closest('.modal-body') : null;
+  dftAttach(_dftCreateName, [{ el: t, key: 'title' }, { el: d, key: 'desc' }], mount);
+}
+
+// ---- 2) Izoh qutisi (detal oynasi har render'da qaytadan quriladi) ----
+// 🔴 `renderDetailBody()` innerHTML bilan HAR SAFAR YANGI #newCmtInput yaratadi
+//    (~25 chaqiruv joyi + realtime UPDATE). Yangi elementda `_dftToken` yo'q, ya'ni
+//    dftAttach ichidagi tozalash eski yozuvni TOPMAYDI → `_dftReg` cheksiz o'sardi
+//    va har yozuv DOM'dan uzilgan <input> ni ushlab turardi (xotira sizishi).
+//    Shuning uchun oldingi token modul darajasida saqlanadi va OLDIN detach qilinadi.
+let _dftCmtTok = null;
+function dftAttachComment() {
+  if (_dftCmtTok) { dftDetach(_dftCmtTok); _dftCmtTok = null; }
+  const inp = document.getElementById('newCmtInput');
+  if (!inp || !currentDetailId) return;
+  const row = inp.closest ? inp.closest('.cmt-input-row') : null;
+  if (!row) return;
+  _dftCmtTok = dftAttach(dftKeyComment(currentDetailId), [{ el: inp, key: 'text' }], row, { place: 'before' });
 }
 
 // ============ 🔍 UNIVERSAL QIDIRUV (gs*) — topbar + ⌘K ============
