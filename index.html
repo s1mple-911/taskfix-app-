@@ -748,6 +748,24 @@
   .pln-block:hover { filter:brightness(1.05); box-shadow:0 2px 8px rgba(0,0,0,.2); }
   .pln-sel-overlay { position:absolute; left:2px; right:2px; background:var(--accent); opacity:.55; border:1.5px dashed var(--accent-ink); border-radius:6px; z-index:3; pointer-events:none; font-size:10.5px; color:var(--accent-ink); font-weight:700; display:flex; align-items:center; justify-content:center; }
   .pln-day { cursor:crosshair; }
+  /* 🕌 Namoz vaqtlari (nmz*) — kalendardagi chiziq + tepadagi lenta.
+     ⚠️ pointer-events:none — sudrash/tanlash buzilmasin. */
+  .nmz-line { position:absolute; left:0; right:0; height:0; border-top:1px dashed rgba(16,185,129,.55); z-index:1; pointer-events:none; }
+  .nmz-line.dim { border-top-color:rgba(148,163,184,.5); }
+  .nmz-line .nmz-lbl { position:absolute; top:-8px; left:3px; font-size:9.5px; line-height:1.4; font-weight:600; color:#047857; background:var(--surface); padding:0 3px; border-radius:4px; white-space:nowrap; max-width:calc(100% - 6px); overflow:hidden; text-overflow:ellipsis; }
+  .nmz-line.dim .nmz-lbl { color:var(--muted); font-weight:500; }
+  .nmz-strip { display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:9px 12px; border-bottom:1px solid var(--line); background:var(--surface-2); }
+  .nmz-city { font-size:12px; font-weight:700; color:var(--ink); margin-right:2px; }
+  .nmz-chip { font-size:11.5px; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:7px; padding:2px 8px; font-variant-numeric:tabular-nums; }
+  .nmz-chip b { font-weight:600; color:var(--muted); margin-right:3px; }
+  .nmz-chip.dim { opacity:.6; }
+  .nmz-chip.next { border-color:#10B981; color:#047857; background:rgba(16,185,129,.09); }
+  .nmz-chip.next b { color:#059669; }
+  .nmz-gear { margin-left:auto; background:none; border:none; color:var(--muted); cursor:pointer; font-size:14px; line-height:1; padding:3px 6px; border-radius:6px; }
+  .nmz-gear:hover { color:var(--ink); background:var(--surface); }
+  .nmz-btn { background:var(--surface); border:1px solid var(--line); color:var(--muted); border-radius:9px; padding:5px 10px; font-size:12.5px; font-family:inherit; cursor:pointer; transition:background .12s,color .12s,border-color .12s; }
+  .nmz-btn:hover { color:var(--ink); }
+  .nmz-btn.active { background:rgba(16,185,129,.12); border-color:#10B981; color:#047857; font-weight:600; }
   /* Vazifa detalidagi "Rejam" qatori — boshlanish/tugash vaqti */
   .pln-dtl { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
   .pln-dtl-chip { display:inline-flex; align-items:center; gap:4px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:3px 9px; font-size:12.5px; }
@@ -1263,6 +1281,7 @@
           <span id="plnWeekLbl" style="font-weight:600;font-size:14px;min-width:180px;text-align:center;">—</span>
           <button class="btn sm secondary" onclick="plnNav(1)">›</button>
           <button class="btn sm secondary" onclick="plnNav(0)">Bugun</button>
+          <button type="button" class="nmz-btn" id="nmzBtn" onclick="nmzToggle()" title="Namoz vaqtlari (kalendarda chiziq)">🕌 Namoz</button>
         </div>
       </div>
       <div class="view-tabs" style="margin-bottom:16px;display:flex;align-items:center;">
@@ -1281,6 +1300,7 @@
             <div id="plnUnscheduled" class="pln-side-list"></div>
           </div>
           <div class="pln-cal-wrap">
+            <div id="nmzStrip" style="display:none"></div>
             <div class="pln-cal" id="plnCal"></div>
           </div>
         </div>
@@ -10489,6 +10509,162 @@ function tblResetAttachCache() { _tblAttachSet = null; }
 
 
 
+// ============ 🕌 NAMOZ VAQTLARI (nmz*) ============
+// Rejalashtirgich kalendarida namoz vaqtlari chizig'i + bugungi vaqtlar lentasi.
+//
+// ⚠️ TARMOQ YO'Q: vaqtlar MIJOZDA astronomik formula bilan hisoblanadi
+//    (PrayTimes uslubi). Shuning uchun planner ochilishi bilan DARROV chiqadi —
+//    hech qanday fetch/refresh kutilmaydi. Tashqi API/CDN ishlatilmaydi
+//    (ikonkalardagi qoida bilan bir xil sabab: build yo'q, CDN beqaror).
+// ⚠️ Hisoblangan vaqt rasmiy jadvaldan 1–2 daqiqa farq qilishi mumkin.
+//    Burchaklar (NMZ_ANG) va asr mazhabi sozlanadi.
+const NMZ_TZ = 5;                       // O'zbekiston UTC+5, yozgi vaqt yo'q
+const NMZ_ANG = { fajr: 18, isha: 18 }; // gorizontdan pastdagi burchak (daraja)
+const NMZ_CITIES = [
+  { id: 'toshkent',  name: 'Toshkent',   lat: 41.2995, lng: 69.2401 },
+  { id: 'samarqand', name: 'Samarqand',  lat: 39.6270, lng: 66.9750 },
+  { id: 'buxoro',    name: 'Buxoro',     lat: 39.7747, lng: 64.4286 },
+  { id: 'andijon',   name: 'Andijon',    lat: 40.7821, lng: 72.3442 },
+  { id: 'namangan',  name: 'Namangan',   lat: 40.9983, lng: 71.6726 },
+  { id: 'fargona',   name: 'Farg\'ona',  lat: 40.3864, lng: 71.7864 },
+  { id: 'qarshi',    name: 'Qarshi',     lat: 38.8606, lng: 65.7891 },
+  { id: 'navoiy',    name: 'Navoiy',     lat: 40.0844, lng: 65.3792 },
+  { id: 'jizzax',    name: 'Jizzax',     lat: 40.1158, lng: 67.8422 },
+  { id: 'guliston',  name: 'Guliston',   lat: 40.4897, lng: 68.7842 },
+  { id: 'termiz',    name: 'Termiz',     lat: 37.2242, lng: 67.2783 },
+  { id: 'urganch',   name: 'Urganch',    lat: 41.5500, lng: 60.6333 },
+  { id: 'nukus',     name: 'Nukus',      lat: 42.4531, lng: 59.6103 },
+];
+// Quyosh — namoz emas, lekin Bomdod vaqti shunda tugaydi (dim ko'rsatiladi)
+const NMZ_ROWS = [
+  { key: 'fajr',    name: 'Bomdod',  ic: '🌄' },
+  { key: 'sunrise', name: 'Quyosh',  ic: '☀️', dim: true },
+  { key: 'dhuhr',   name: 'Peshin',  ic: '🕌' },
+  { key: 'asr',     name: 'Asr',     ic: '🕌' },
+  { key: 'maghrib', name: 'Shom',    ic: '🌇' },
+  { key: 'isha',    name: 'Xufton',  ic: '🌙' },
+];
+
+function nmzOn() { try { return localStorage.getItem('nmz_on') !== '0'; } catch (e) { return true; } }
+function nmzCityId() { try { return localStorage.getItem('nmz_city') || 'toshkent'; } catch (e) { return 'toshkent'; } }
+function nmzCity() { return NMZ_CITIES.find(function (c) { return c.id === nmzCityId(); }) || NMZ_CITIES[0]; }
+function nmzAsrFactor() { try { return localStorage.getItem('nmz_asr') === 'shofe' ? 1 : 2; } catch (e) { return 2; } }
+function nmzToggle() {
+  try { localStorage.setItem('nmz_on', nmzOn() ? '0' : '1'); } catch (e) { /* private mode — sessiya ichida ishlaydi */ }
+  renderPlanner();
+}
+
+// ── Astronomiya (daraja bilan ishlaydigan trigonometriya) ───────────────────
+function _nmzSin(x) { return Math.sin(x * Math.PI / 180); }
+function _nmzCos(x) { return Math.cos(x * Math.PI / 180); }
+function _nmzTan(x) { return Math.tan(x * Math.PI / 180); }
+function _nmzFixAngle(a) { a = a - 360 * Math.floor(a / 360); return a < 0 ? a + 360 : a; }
+function _nmzFixHour(a) { a = a - 24 * Math.floor(a / 24); return a < 0 ? a + 24 : a; }
+function _nmzJulian(y, m, d) {
+  if (m <= 2) { y -= 1; m += 12; }
+  const A = Math.floor(y / 100);
+  const B = 2 - A + Math.floor(A / 4);
+  return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + B - 1524.5;
+}
+// Quyoshning og'ishi (declination) va vaqt tenglamasi (equation of time)
+function _nmzSunPos(jd) {
+  const D = jd - 2451545.0;
+  const g = _nmzFixAngle(357.529 + 0.98560028 * D);
+  const q = _nmzFixAngle(280.459 + 0.98564736 * D);
+  const L = _nmzFixAngle(q + 1.915 * _nmzSin(g) + 0.020 * _nmzSin(2 * g));
+  const e = 23.439 - 0.00000036 * D;
+  const RA = _nmzFixHour(Math.atan2(_nmzCos(e) * _nmzSin(L), _nmzCos(L)) * 180 / Math.PI / 15);
+  return { decl: Math.asin(_nmzSin(e) * _nmzSin(L)) * 180 / Math.PI, eqt: q / 15 - RA };
+}
+
+// Bir kunning namoz vaqtlari → yarim tundan boshlab DAQIQA (butun son).
+// Hisoblab bo'lmasa (qutb kengliklari) — null.
+function nmzTimes(date) {
+  const c = nmzCity();
+  const jd0 = _nmzJulian(date.getFullYear(), date.getMonth() + 1, date.getDate()) - c.lng / (15 * 24);
+  // Peshinni ikki-uch bosqichda aniqlaymiz (og'ish kun davomida o'zgaradi)
+  let dhuhr = 12, sp = null;
+  for (let i = 0; i < 3; i++) {
+    sp = _nmzSunPos(jd0 + dhuhr / 24);
+    dhuhr = 12 - sp.eqt - c.lng / 15 + NMZ_TZ;
+  }
+  const T = function (angle) {
+    const v = (-_nmzSin(angle) - _nmzSin(c.lat) * _nmzSin(sp.decl)) / (_nmzCos(c.lat) * _nmzCos(sp.decl));
+    if (!isFinite(v) || v > 1 || v < -1) return null;   // bu kenglikda bunday burchak yo'q
+    return Math.acos(v) * 180 / Math.PI / 15;
+  };
+  const asrAngle = -Math.atan(1 / (nmzAsrFactor() + _nmzTan(Math.abs(c.lat - sp.decl)))) * 180 / Math.PI;
+  const tF = T(NMZ_ANG.fajr), tS = T(0.833), tA = T(asrAngle), tI = T(NMZ_ANG.isha);
+  const min = function (h) { return h == null ? null : Math.round(h * 60); };
+  return {
+    fajr:    tF == null ? null : min(dhuhr - tF),
+    sunrise: tS == null ? null : min(dhuhr - tS),
+    dhuhr:   min(dhuhr),
+    asr:     tA == null ? null : min(dhuhr + tA),
+    maghrib: tS == null ? null : min(dhuhr + tS),
+    isha:    tI == null ? null : min(dhuhr + tI),
+  };
+}
+
+// Bir kun ustuniga chiziladigan chiziqlar (kalendar ko'rinadigan oralig'ida).
+// pointer-events:none — sudrash/tanlash buzilmaydi.
+function nmzOverlayHtml(date) {
+  if (!nmzOn()) return '';
+  let t;
+  try { t = nmzTimes(date); } catch (e) { console.error('namoz vaqti hisoblanmadi:', e); return ''; }
+  const loMin = PLN_H_START * 60, hiMin = (PLN_H_END + 1) * 60;
+  return NMZ_ROWS.map(function (r) {
+    const m = t[r.key];
+    if (m == null || m < loMin || m > hiMin) return '';   // ko'rinadigan oraliqdan tashqarida
+    const top = ((m - loMin) / 60) * PLN_HPX;
+    return '<div class="nmz-line' + (r.dim ? ' dim' : '') + '" style="top:' + top.toFixed(1) + 'px;">' +
+      '<span class="nmz-lbl">' + escapeHtml(r.ic + ' ' + r.name + ' ' + plnMinLabel(m)) + '</span>' +
+    '</div>';
+  }).join('');
+}
+
+// Kalendar tepasidagi lenta — bugungi 6 vaqt (Bomdod ko'pincha 07:00 dan
+// oldin bo'ladi, ya'ni gridda ko'rinmaydi — lenta shuning uchun kerak).
+function nmzStripHtml() {
+  if (!nmzOn()) return '';
+  let t;
+  try { t = nmzTimes(new Date()); } catch (e) { console.error('namoz lentasi:', e); return ''; }
+  const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+  // Keyingi vaqt (Quyosh hisobga olinmaydi — u namoz emas)
+  let nextKey = null;
+  NMZ_ROWS.forEach(function (r) {
+    if (r.dim || nextKey) return;
+    if (t[r.key] != null && t[r.key] > nowMin) nextKey = r.key;
+  });
+  return '<div class="nmz-strip">' +
+    '<span class="nmz-city">🕌 ' + escapeHtml(nmzCity().name) + '</span>' +
+    NMZ_ROWS.map(function (r) {
+      const m = t[r.key];
+      return '<span class="nmz-chip' + (r.dim ? ' dim' : '') + (r.key === nextKey ? ' next' : '') + '">' +
+        '<b>' + escapeHtml(r.name) + '</b> ' + escapeHtml(m == null ? '—' : plnMinLabel(m)) + '</span>';
+    }).join('') +
+    '<button type="button" class="nmz-gear" onclick="nmzOpenSettings()" title="Namoz sozlamalari">⚙</button>' +
+  '</div>';
+}
+
+async function nmzOpenSettings() {
+  const vals = await uiForm('Namoz vaqtlari', [
+    { id: 'city', label: 'Shahar', type: 'select', value: nmzCityId(),
+      options: NMZ_CITIES.map(function (c) { return { value: c.id, label: c.name }; }) },
+    { id: 'asr', label: 'Asr mazhabi', type: 'select', value: nmzAsrFactor() === 1 ? 'shofe' : 'hanafiy',
+      options: [{ value: 'hanafiy', label: 'Hanafiy (kechroq)' }, { value: 'shofe', label: 'Shofe\'iy (erta)' }],
+      hint: 'Vaqtlar astronomik hisoblanadi — rasmiy jadvaldan 1–2 daqiqa farq qilishi mumkin.' },
+    { id: 'on', label: 'Kalendarda ko\'rsatish', type: 'toggle', value: nmzOn(), toggleLabel: 'Namoz chiziqlari yoniq' },
+  ], { okText: 'Saqlash' });
+  if (!vals) return;
+  try {
+    localStorage.setItem('nmz_city', vals.city);
+    localStorage.setItem('nmz_asr', vals.asr);
+    localStorage.setItem('nmz_on', vals.on ? '1' : '0');
+  } catch (e) { console.error('namoz sozlamasi saqlanmadi:', e); toast('Sozlama saqlanmadi (brauzer xotirasi yopiq)', 'err'); }
+  renderPlanner();
+}
+
 // ============ REJALASHTIRGICH (Planner) ============
 const PLN_H_START = 7, PLN_H_END = 23, PLN_HPX = 44;
 let plnWeekStart = null; // dushanba 00:00
@@ -10595,6 +10771,8 @@ function renderPlanner() {
     const gridlines = 'repeating-linear-gradient(to bottom, transparent, transparent ' + (PLN_HPX-1) + 'px, var(--line) ' + (PLN_HPX-1) + 'px, var(--line) ' + PLN_HPX + 'px)';
     html += '<div class="pln-day" data-date="' + ds + '" style="position:relative;height:' + bodyH + 'px;border-right:1px solid var(--line);background:' + gridlines + ';" ' +
       'onmousedown="plnDayMouseDown(event,\'' + ds + '\')" ondragover="plnDayDragOver(event)" ondragleave="plnDayDragLeave(event)" ondrop="plnDayDrop(event,\'' + ds + '\')">';
+    // Namoz chiziqlari — bloklardan OLDIN (ular z-index bo'yicha ustida turadi)
+    html += nmzOverlayHtml(d);
     // Shu kundagi bloklar
     Object.keys(sched).forEach(tid => {
       const s = sched[tid];
@@ -10616,6 +10794,15 @@ function renderPlanner() {
   });
   html += '</div>';
   $('plnCal').innerHTML = html;
+
+  // Bugungi namoz lentasi — planner ochilishi bilan darrov (tarmoq kutilmaydi)
+  const _nmzEl = $('nmzStrip');
+  if (_nmzEl) {
+    _nmzEl.innerHTML = nmzStripHtml();
+    _nmzEl.style.display = nmzOn() ? 'block' : 'none';
+  }
+  const _nmzBtn = $('nmzBtn');
+  if (_nmzBtn) _nmzBtn.classList.toggle('active', nmzOn());
 
   // Chap panel: rejalashtirilmagan vazifalarim
   renderPlnUnscheduled();
