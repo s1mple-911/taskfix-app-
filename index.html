@@ -4076,7 +4076,7 @@ function prjStateBadge(p, tasks) {
 //     deydi); `prjSyncLocks` esa boshlanmagan bosqichga qulf YOZMAYDI (qorovul).
 // ⚠️ Loyiha qatori keshda YO'Q bo'lsa (RLS to'sgan / yuklanmagan) darvoza hech
 //    narsa yashirmaydi — shuning uchun TASKFIX_LOYIHA_RLS.sql ham kerak.
-let prjStartMap = {};            // project_id → { id, start_at, status } (yengil kesh)
+let prjStartMap = {};   // project_id → { id, name, start_at, status } (yengil kesh)
 let _prjStartColWarned = false;  // start_notified_at ustuni yo'qligi bir marta console'ga
 
 // Loyiha hali boshlanmaganmi? (start_at bor VA hozir undan oldin)
@@ -4117,7 +4117,16 @@ function prjTaskStartLabel(t) {
 // Yengil keshni to'ldirish/yangilash (loadProjects / loadProjectDetail ham chaqiradi)
 function prjStartSync(list) {
   (list || []).forEach(function (p) {
-    if (p && p.id) prjStartMap[p.id] = { id: p.id, start_at: p.start_at || null, status: p.status || null };
+    // ⚠️ `name` ham saqlanadi — busiz bildirishnoma sarlavhasi ("Loyihaga
+    //    taklif qilindingiz: <nom>") Vazifalar sahifasidan biriktirilganda
+    //    umumiy matnga tushib qolardi (projectsCache faqat Loyihalar
+    //    sahifasida to'ladi). Mavjud qiymatni bo'sh bilan bosmaymiz.
+    if (p && p.id) prjStartMap[p.id] = {
+      id: p.id,
+      name: p.name || (prjStartMap[p.id] && prjStartMap[p.id].name) || null,
+      start_at: p.start_at || null,
+      status: p.status || null
+    };
   });
 }
 // Loyiha sanalari — 1-to'lqinda o'qiladi. `projectsCache` faqat "Loyihalar"
@@ -4132,7 +4141,7 @@ async function loadProjectStarts() {
   if (!currentWs) return;
   const wsId = currentWs.id;
   try {
-    const { data, error } = await sb.from('projects').select('id,start_at,status').eq('workspace_id', wsId);
+    const { data, error } = await sb.from('projects').select('id,name,start_at,status').eq('workspace_id', wsId);
     if (!currentWs || currentWs.id !== wsId) return;   // boshqa workspace ochilgan
     if (error) { console.error('loadProjectStarts:', error.message); return; }
     prjStartSync(data || []);
@@ -4728,6 +4737,9 @@ async function prjStartKickoff(project) {
     targets.forEach(function (t) {
       try { tgNotifyAssignment(t.id, { user_id: t.assigned_to }); emailNotify('task_assigned', t.id, t.assigned_to); }
       catch (e) { console.error('prjStartKickoff (xabar):', e); }
+      // 🔔 Qo'ng'iroq — AYNAN shu qorovuldan (prjStartNotifyTarget) o'tgan
+      //    bosqichlarga; prjSaveTask allaqachon yuborgan bosqich bu ro'yxatda yo'q.
+      notifyProjectAssign(t.assigned_to, t, project);
     });
     if (targets.length) toast('▶️ Loyiha boshlandi — ' + targets.length + ' ta bajaruvchiga xabar yuborildi', 'ok');
   } catch (e) { console.error('prjStartKickoff:', e); }
@@ -5648,6 +5660,8 @@ async function prjSaveTask(title, dependsOnPrev, assignee, deadlineIso, recur, d
     if (!data.is_locked && !taskHiddenByStart(data) && assignee && assignee !== me.id) {
       try { tgNotifyAssignment(data.id, { user_id: assignee }); emailNotify('task_assigned', data.id, assignee); }
       catch (e) { console.error('bosqich xabari:', e); }
+      // 🔔 Qo'ng'iroq (in-app) — o'sha shart ostida, o'z ichida xatoni yutmaydi
+      notifyProjectAssign(assignee, data, window._curProject || null);
     }
     try { await loadProjectDetail(); } catch (e) { console.error('loadProjectDetail (bosqich):', e); }
   } catch (e) {
@@ -7382,7 +7396,7 @@ async function loadCurrentContext() {
     // HR Service yoqilganmi? Chap menyu shunga qarab chiziladi, shuning uchun
     // 1-to'lqinda. O'zi throw qilmaydi; o'qilmasa "o'chiq" deb hisoblanadi.
     loadHrSvcSettings(),
-    // Loyiha boshlanish sanalari (yengil: id/start_at/status) — boshlanmagan
+    // Loyiha boshlanish sanalari (yengil: id/name/start_at/status) — boshlanmagan
     // loyiha bosqichlari umumiy ro'yxatlarda ko'rinmasligi uchun (taskHiddenByStart).
     // projectsCache faqat "Loyihalar" sahifasida to'ladi, bu esa hamma joyda kerak.
     // O'zi throw qilmaydi; o'qilmasa darvoza jimgina o'chiq qoladi (eski holat).
@@ -10699,6 +10713,12 @@ async function updateField(field, value) {
         !taskHiddenByStart(data)) {
       tgNotifyTaskEdit(data, field, oldValue, value);
     }
+    // 🔔 Loyiha bosqichi boshqa odamga biriktirildi — in-app bildirishnoma.
+    //    Faqat qo'ng'iroq qo'shiladi; email/Telegram mantiqi TEGILMAYDI.
+    //    Boshlanish darvozasi funksiyaning ichida (prjNotStarted).
+    if (field === 'assigned_to' && value && value !== oldValue && value !== me.id && data.project_id) {
+      notifyProjectAssign(value, data, null);
+    }
   } catch (e) { toast(translateErr(e.message), 'err'); }
 }
 
@@ -10854,6 +10874,51 @@ async function notifyMention(userId, text, commentId) {
     if (error) throw error;
   } catch (e) { console.error('notifyMention tg-send:', e); }
 }
+
+// 🔔 Loyihaga taklif — IN-APP bildirishnoma (qo'ng'iroq paneli).
+// Yagona choke-point: loyiha bosqichi kimgadir biriktirilganda faqat shu yerdan
+// `notifications` ga yoziladi (notifyMention naqshi).
+// ⚠️ FAQAT loyiha bosqichi (`task.project_id`) — oddiy vazifada matn ("Loyihaga
+//    taklif") mos kelmaydi, shuning uchun jimgina chiqib ketamiz.
+// ⚠️ Boshlanish darvozasi (taskHiddenByStart naqshi): loyiha hali boshlanmagan
+//    bo'lsa yozilmaydi — bosqich egaga ko'rinmaydi ham; xabar loyiha
+//    boshlanganda `prjStartKickoff` dan ketadi (u yerda `prjStartNotifyTarget`
+//    qorovuli takrorni to'sadi).
+// ⚠️ `kind:'task_assigned'` — MAVJUD tur (NOTIF_ICONS da 🔔 bor). Yangi kind
+//    o'ylab topilmaydi: noma'lum kind panelni sindirmasa ham, ikonkasiz qolardi.
+// ⚠️ `meta.task_id` + `meta.workspace_id` MAJBURIY — bosilish (openNotifTask)
+//    aynan shu ikki kalitga qarab ishlaydi, qo'shimcha kod kerak emas.
+// Fon amali: foydalanuvchini bloklamaydi, toast YO'Q — lekin xato jimgina
+// yutilmaydi (CLAUDE.md 6-qoida: console.error).
+async function notifyProjectAssign(userId, task, project) {
+  try {
+    if (!userId || !task || !task.id) return;
+    if (!me || userId === me.id) return;            // o'ziga o'zi xabar yubormaymiz
+    if (!task.project_id) return;                   // oddiy vazifa — bu xabar emas
+    const wsId = task.workspace_id || (currentWs && currentWs.id);
+    if (!wsId) return;
+    const proj = project || prjInfoById(task.project_id);
+    // Boshlanmagan loyiha — jim (completed/cancelled istisno: taskHiddenByStart bilan bir xil)
+    if (task.status !== 'completed' && task.status !== 'cancelled' && prjNotStarted(proj)) return;
+    // Loyiha nomi topilmasa yiqilmaymiz — umumiy matn bilan davom etamiz
+    const pname = proj && proj.name ? String(proj.name) : '';
+    const title = pname ? ('Loyihaga taklif qilindingiz: ' + pname) : 'Sizga vazifa biriktirildi';
+    const by = (myProfile && myProfile.full_name) || (me && me.email) || '';
+    const { error } = await sb.from('notifications').insert({
+      workspace_id: wsId, user_id: userId, kind: 'task_assigned',
+      title: title,
+      body: String(task.title || '').slice(0, 160),
+      meta: {
+        task_id: task.id, workspace_id: wsId,
+        project_id: task.project_id,
+        project_name: pname || null,
+        invited_by_name: by || null
+      }
+    });
+    if (error) throw error;
+  } catch (e) { console.error('notifyProjectAssign:', e); }
+}
+
 async function deleteComment(id) {
   const _c = curDetailComments.find(c => c.id === id);
   if (_c && !(_c.author_id === me.id || isOwnerLike())) { toast('Izohni faqat muallif yoki admin/owner o\'chira oladi', 'err'); return; }
@@ -13132,6 +13197,8 @@ async function tblUpdate(taskId, field, value) {
         !taskHiddenByStart(idx >= 0 ? tasksCache[idx] : _t)) {
       tgNotifyAssignment(taskId, { user_id: value });
       emailNotify('task_assigned', taskId, value);
+      // 🔔 Loyiha bosqichi bo'lsa — qo'ng'iroqqa ham (oddiy vazifada o'zi chiqadi)
+      notifyProjectAssign(value, idx >= 0 ? tasksCache[idx] : _t, null);
     }
     // Audit log
     const _tt = tasksCache.find(x => x.id === taskId);
