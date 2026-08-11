@@ -748,6 +748,13 @@
   .pln-block:hover { filter:brightness(1.05); box-shadow:0 2px 8px rgba(0,0,0,.2); }
   .pln-sel-overlay { position:absolute; left:2px; right:2px; background:var(--accent); opacity:.55; border:1.5px dashed var(--accent-ink); border-radius:6px; z-index:3; pointer-events:none; font-size:10.5px; color:var(--accent-ink); font-weight:700; display:flex; align-items:center; justify-content:center; }
   .pln-day { cursor:crosshair; }
+  /* Vazifa detalidagi "Rejam" qatori — boshlanish/tugash vaqti */
+  .pln-dtl { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+  .pln-dtl-chip { display:inline-flex; align-items:center; gap:4px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:3px 9px; font-size:12.5px; }
+  .pln-dtl-chip.strong { font-weight:600; font-variant-numeric:tabular-nums; }
+  .pln-dtl-dim { font-size:11.5px; color:var(--muted); }
+  .pln-dtl-un { background:none; border:none; color:var(--muted); font-size:11.5px; font-family:inherit; cursor:pointer; padding:3px 5px; border-radius:6px; text-decoration:underline; }
+  .pln-dtl-un:hover { color:var(--ink); background:var(--surface-2); text-decoration:none; }
   .kan-add-task { background: none; border: 1px dashed var(--line-strong); border-radius: 8px; padding: 8px; width: 100%; color: var(--muted); font-size: 12.5px; cursor: pointer; margin-top: 6px; }
   .kan-add-task:hover { color: var(--accent-ink); border-color: var(--accent); background: var(--accent-soft); }
   .kan-col-actions { display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
@@ -7559,6 +7566,25 @@ function renderDetailBody() {
     const _bajAt = t.bajardi_at || t.completed_at || null;
     bajardiLine = '<div class="detail-row"><div class="lbl">Bajardi</div><div class="val" style="font-weight:600;color:#059669;">✓ ' + escapeHtml(_nm(_bajUid)) + (_bajUid === me.id ? ' <span style="color:var(--muted);font-weight:400;">(siz)</span>' : '') + (_bajAt ? ' <span style="color:var(--muted);font-weight:400;">· ' + fmtDeadline(_bajAt) + '</span>' : '') + '</div></div>';
   }
+  // Rejalashtirgichdagi vaqt — vazifa haftalik jadvalimga qo'yilgan bo'lsa,
+  // detalda boshlanish/tugash vaqti ko'rinsin. Manba: plnGetSchedule()
+  // (localStorage, faqat o'zimniki) — shuning uchun DB so'rovi shart emas.
+  let plnLine = '';
+  try {
+    const _ps = plnGetSchedule()[t.id];
+    if (_ps && _ps.date && typeof _ps.start === 'number') {
+      const _pdur = Math.max(0, _ps.dur || 0);
+      const _phh = Math.floor(_pdur / 60), _pmm = _pdur % 60;
+      const _plen = (_phh ? _phh + ' soat' : '') + (_phh && _pmm ? ' ' : '') + (_pmm ? _pmm + ' daq' : '');
+      plnLine = '<div class="detail-row"><div class="lbl">Rejam</div><div class="val pln-dtl">' +
+        '<span class="pln-dtl-chip">🗓 ' + escapeHtml(plnFmtDay(new Date(_ps.date + 'T00:00:00'))) + '</span>' +
+        '<span class="pln-dtl-chip strong">⏱ ' + escapeHtml(plnMinLabel(_ps.start) + ' – ' + plnMinLabel(_ps.start + _pdur)) + '</span>' +
+        (_plen ? '<span class="pln-dtl-dim">' + escapeHtml(_plen) + '</span>' : '') +
+        '<button type="button" class="pln-dtl-un" onclick="plnUnscheduleFromDetail(' + t.id + ')">Rejadan olish</button>' +
+      '</div></div>';
+    }
+  } catch (e) { console.error('reja vaqti ko\'rsatilmadi:', e); }
+
   let acceptorLine = '';
   if (t.acceptor_id) {
     // Qabul qiluvchi
@@ -7596,6 +7622,7 @@ function renderDetailBody() {
     (asgLine ? '<div class="detail-row"><div class="lbl">Biriktirildi</div><div class="val">'+escapeHtml(asgLine)+'</div></div>' : '') +
     acceptorLine +
     '<div class="detail-row"><div class="lbl">Deadline</div><div class="val '+(ov?'task-overdue':'')+'">'+deadlineHtml+'</div></div>' +
+    plnLine +
     '<div class="detail-row"><div class="lbl">Prioritet</div><div class="val">'+prioHtml+'</div></div>' +
     '<div class="detail-row"><div class="lbl">Yaratilgan</div><div class="val">'+new Date(t.created_at).toLocaleString('uz-UZ')+'</div></div>' +
 
@@ -10479,6 +10506,17 @@ function plnDateStr(d) {
 function plnGetSchedule() {
   if (!currentWs || !me) return {};
   try { return JSON.parse(localStorage.getItem('planner_' + currentWs.id + '_' + me.id) || '{}'); } catch (e) { return {}; }
+}
+// "12 Avg, Sesh" — vazifa detalidagi reja qatori uchun
+function plnFmtDay(d) {
+  const DOW = ['Yak', 'Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan'];
+  const MON = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'];
+  return d.getDate() + ' ' + MON[d.getMonth()] + ', ' + DOW[d.getDay()];
+}
+// Vazifa detalidagi "Rejadan olish" tugmasi (plnUnschedule + detalni yangilash)
+function plnUnscheduleFromDetail(taskId) {
+  plnUnschedule(taskId);
+  if (currentDetailId === taskId) renderDetailBody();
 }
 function plnSaveSchedule(obj) {
   if (!currentWs || !me) return;
