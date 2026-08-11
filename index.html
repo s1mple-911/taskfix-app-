@@ -1202,27 +1202,88 @@
   .prj-block.none { border-color: var(--line); background: var(--surface-2); }
   .prj-block-txt { min-width: 0; font-size: 13px; color: var(--ink); }
   .prj-block-sub { font-size: 11.5px; color: var(--muted); margin-top: 2px; line-height: 1.45; }
-  /* Flow */
+  /* ── Flow: bosqich kartasi ───────────────────────────────────────────────
+     🔴 FAQAT KO'RINISH. Qulf/tartib mantiqi (prjTaskOpen / prjShouldBeOpen /
+        prjMoveTask / is_locked) CSS ga bog'liq EMAS — bu yerda faqat rang.
+     • Rang MA'NO uchun: chap chekkadagi 3px chiziq = bosqich holati (`--st`).
+       U `box-shadow: inset` bilan beriladi (::before emas) — burchak radiusi
+       o'zi-o'zidan to'g'ri chiqadi va `overflow:hidden` kerak bo'lmaydi.
+       ⚠️ Hover'da ham inset qatlam QAYTA yoziladi, aks holda chiziq yo'qoladi.
+     • Qulflangan karta `opacity` bilan SO'LDIRILMAYDI (avval .62 edi — matn
+       o'qilmasdi): kulrang fon + uzuq chegara + qulf ikonkasi yetarli. */
   .prj-flow { display: flex; flex-direction: column; }
   .prj-par { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
   .prj-step { display: flex; align-items: stretch; gap: 12px; }
   .prj-rail { display: flex; flex-direction: column; align-items: center; width: 34px; flex: 0 0 34px; }
-  .prj-node { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; background: var(--surface-2); color: var(--muted); flex: 0 0 auto; }
+  .prj-node { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; background: var(--surface-2); color: var(--muted); flex: 0 0 auto; border: 1.5px solid transparent; font-variant-numeric: tabular-nums; transition: background .14s, color .14s, border-color .14s; }
   .prj-node.done { background: var(--success); color: #fff; }
   .prj-node.cur { background: #3B82F6; color: #fff; box-shadow: 0 0 0 4px rgba(59,130,246,.18); }
+  .prj-node.open { background: var(--accent); color: var(--accent-ink); }
+  /* ⚠️ --subtle EMAS: bosqich RAQAMI ma'no tashiydi, --surface-2 fonida
+     --subtle 2.3:1 berib WCAG AA (4.5:1) dan pastga tushardi. */
+  .prj-node.lock { background: var(--surface-2); color: var(--muted); border-color: var(--line); border-style: dashed; }
+  .prj-node.cancel { background: var(--danger-soft); color: #B91C1C; }
+  /* --line-soft sahifa fonida deyarli ko'rinmasdi; bu chiziq ketma-ket
+     oqimda bosqichlarni bog'lab turadi — ma'no tashiydi. */
   .prj-line { flex: 1; width: 2px; background: var(--line); min-height: 20px; }
-  .prj-task { flex: 1; min-width: 0; border: 1.5px solid var(--line); background: var(--surface); border-radius: 13px; padding: 12px 14px; margin-bottom: 12px; cursor: pointer; transition: border-color .12s, box-shadow .12s; }
-  .prj-task:hover { box-shadow: var(--shadow); }
-  .prj-task.done { border-color: #A7F3D0; background: #F7FDFA; }
-  .prj-task.cur { border-color: #3B82F6; background: #F5F9FF; }
-  .prj-task.locked { opacity: .62; border-style: dashed; }
+  .prj-line.done { background: var(--success); opacity: .45; }
+  .prj-task { --st: var(--line-strong); position: relative; flex: 1; min-width: 0; border: 1px solid var(--line-soft); background: var(--surface); border-radius: 13px; padding: 13px 15px 13px 17px; margin-bottom: 12px; cursor: pointer; box-shadow: inset 3px 0 0 var(--st), 0 1px 2px rgba(15,20,23,.06); transition: border-color .14s, box-shadow .14s, transform .14s, background .14s; }
+  .prj-task:hover { border-color: var(--line); box-shadow: inset 3px 0 0 var(--st), 0 6px 18px rgba(15,20,23,.09); transform: translateY(-1px); }
+  .prj-task:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
+  .prj-task.done { --st: var(--success); border-color: #D5F0E3; background: #FAFEFC; }
+  .prj-task.cur { --st: #3B82F6; border-color: #CFE0FB; background: #F7FAFF; }
+  .prj-task.open { --st: #D97706; }
+  .prj-task.locked { --st: var(--line-strong); border-style: dashed; border-color: var(--line); background: var(--surface-2); }
+  .prj-task.cancel { --st: #F87171; }
   .prj-par .prj-task { margin-bottom: 0; }
   .prj-task-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-  .prj-task-title { font-weight: 600; font-size: 14px; line-height: 1.35; color: var(--ink); }
-  .prj-task.done .prj-task-title { text-decoration: line-through; text-decoration-thickness: 1.5px; color: var(--muted); }
-  .prj-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; font-size: 12px; color: var(--muted); }
-  .prj-meta-i { display: inline-flex; align-items: center; gap: 5px; min-width: 0; }
-  .prj-state { font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .prj-task-head { min-width: 0; flex: 1 1 auto; }
+  .prj-task-act { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+  .prj-task-title { font-weight: 600; font-size: 14.5px; line-height: 1.35; color: var(--ink); letter-spacing: -.1px; }
+  .prj-task.done .prj-task-title,
+  .prj-task.cancel .prj-task-title { text-decoration: line-through; text-decoration-thickness: 1.5px; color: var(--muted); }
+  /* Nishonlar qatori: tartib raqami · holat · bog'liqlik · takrorlanish */
+  .prj-tags { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
+  .prj-idx { font-size: 11px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--subtle); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .prj-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 500; color: var(--muted); background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 6px; padding: 1px 7px; white-space: nowrap; }
+  .prj-tag.ic-only { padding: 3px; color: var(--subtle); }
+  /* Qulflangan karta foni var(--surface-2) — ustidagi kulrang nishonlar
+     ko'rinmay qolmasin (fon bilan bir xil tonda edi). */
+  .prj-task.locked .prj-tag, .prj-task.locked .prj-ord-btn { background: var(--surface); }
+  .prj-task.locked .prj-state.lock { background: var(--surface); border: 1px solid var(--line); padding: 2px 8px; }
+  .prj-task.locked .prj-meta { border-top-color: var(--line); }
+  .prj-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--line-soft); font-size: 12px; color: var(--muted); }
+  .prj-meta-i { display: inline-flex; align-items: center; gap: 5px; min-width: 0; }   /* umumiy yordamchi */
+  /* Bajaruvchi / qabul qiluvchi — avatar + ism (+ lavozim) */
+  .prj-asg { display: inline-flex; align-items: center; gap: 7px; min-width: 0; max-width: 100%; }
+  .prj-asg-ic { color: var(--subtle); flex: 0 0 auto; display: inline-flex; }
+  .prj-asg-n { font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+  .prj-asg-p { color: var(--subtle); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+  /* Ko'rinadigan rol yorlig'i ("Qabul") — tooltip sensorli ekranda yo'q */
+  .prj-asg-cap { color: var(--muted); font-weight: 600; font-size: 11px; letter-spacing: .01em; white-space: nowrap; }
+  .prj-asg-p::before { content: '·'; margin-right: 5px; }
+  .prj-asg.none .prj-asg-n { color: #B45309; font-weight: 600; }
+  .prj-av-none { width: 22px; height: 22px; border-radius: 50%; border: 1.5px dashed var(--line-strong); color: var(--subtle); display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  /* Muddat */
+  .prj-dl { display: inline-flex; align-items: center; gap: 5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .prj-dl .ic-svg { color: var(--subtle); }
+  .prj-dl.over, .prj-dl.over .ic-svg { color: var(--danger); }
+  .prj-dl.over { font-weight: 600; }
+  .prj-late { background: var(--danger-soft); color: #B91C1C; border-radius: 5px; padding: 0 6px; font-size: 11px; font-weight: 600; }
+  .prj-doneby { display: inline-flex; align-items: center; gap: 5px; color: #047857; font-weight: 600; min-width: 0; }
+  .prj-doneby-n { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+  .prj-doneby-at { font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
+  /* Qulfni ochish (faqat "qotib qolgan" bosqichda, owner uchun) */
+  .prj-unlock { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+  .prj-unlock .btn { display: inline-flex; align-items: center; gap: 7px; }
+  .prj-unlock-note { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+  /* Loyiha kanbani — bosqich kartasi (umumiy .kan-card ustiga qo'shimcha) */
+  .prj-kan-card.locked { border-style: dashed; background: var(--surface-2); }
+  .prj-kan-card .kan-card-meta { gap: 10px; }
+  .prj-kan-lock { color: var(--subtle); display: inline-flex; align-items: center; margin-right: 5px; vertical-align: -2px; }
+  .prj-kan-done { color: var(--success); display: inline-flex; align-items: center; margin-right: 5px; vertical-align: -2px; }
+  .prj-state { display: inline-flex; align-items: center; gap: 5px; vertical-align: middle; font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .prj-state .ic-svg { opacity: .85; flex: 0 0 auto; }
   .prj-state.done { background: var(--success-soft); color: #047857; }
   .prj-state.cur { background: #DBEAFE; color: #1D4ED8; }
   .prj-state.lock { background: #F0EFEA; color: var(--muted); }
@@ -1240,9 +1301,13 @@
   .prj-card-dates { margin: 8px 0 2px; }
   .prj-over { color: var(--danger); font-weight: 600; }
   .prj-ord { display: flex; gap: 3px; flex: 0 0 auto; }
-  .prj-ord-btn { border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 7px; width: 25px; height: 25px; font-size: 11px; line-height: 1; cursor: pointer; padding: 0; font-family: inherit; }
-  .prj-ord-btn:hover:not(:disabled) { border-color: var(--accent-ink); color: var(--accent-ink); }
-  .prj-ord-btn:disabled { opacity: .3; cursor: default; }
+  .prj-ord-btn { display: flex; align-items: center; justify-content: center; border: 1px solid var(--line-soft); background: var(--surface); color: var(--subtle); border-radius: 7px; width: 25px; height: 25px; font-size: 11px; line-height: 1; cursor: pointer; padding: 0; font-family: inherit; transition: border-color .12s, color .12s, background .12s; }
+  .prj-ord-btn:hover:not(:disabled) { border-color: var(--accent-ink); color: var(--accent-ink); background: var(--accent-soft); }
+  .prj-ord-btn:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 1px; }
+  .prj-ord-btn:disabled { opacity: .35; cursor: default; }
+  /* ⚠️ ICON_PATHS.chevron O'NGGA qaraydi → yuqori/past uchun buriladi (plf* naqshi) */
+  .prj-ord-btn.up .ic-svg { transform: rotate(-90deg); }
+  .prj-ord-btn.down .ic-svg { transform: rotate(90deg); }
   .prj-add { margin-top: 4px; width: 100%; padding: 13px; border: 1.5px dashed var(--line-strong); border-radius: 13px; background: none; cursor: pointer; color: var(--accent-ink); font-weight: 600; font-size: 13.5px; font-family: inherit; transition: background .12s, border-color .12s; }
   .prj-add:hover { background: var(--accent-soft); border-color: var(--accent-ink); }
   .prj-error { background: var(--danger-soft); border: 1px solid var(--danger); border-radius: 12px; padding: 16px; color: #991B1B; font-size: 13.5px; }
@@ -1276,7 +1341,10 @@
     .prj-rail { width: 26px; flex: 0 0 26px; }
     .prj-node { width: 26px; height: 26px; font-size: 12px; }
     .prj-step { gap: 9px; }
-    .prj-task { padding: 11px 12px; }
+    .prj-task { padding: 11px 12px 11px 14px; }
+    .prj-asg-n { max-width: 130px; }
+    .prj-asg-p { max-width: 110px; }
+    .prj-meta { gap: 9px; }
     .prj-hero { padding: 14px; }
     .prj-hero-stat { gap: 14px; }
   }
@@ -4134,11 +4202,25 @@ function prjRecurChip(p) {
   return lbl ? '<span class="prj-chip prj-chip-recur">' + icon('repeat', 13) + escapeHtml(lbl) + '</span>' : '';
 }
 
-// Odam: avatar + to'liq ism
-function prjPersonHtml(uid, prefix) {
+// Bosqich kartasidagi odam: [ikonka] avatar + ism (+ lavozim).
+// ⚠️ memberNamePos'dan farqli — ism va lavozim ALOHIDA elementda: tor kartada
+//    lavozim kesiladi, ism butun qoladi. tblMemberName/memberPos escapeHtml
+//    QILMAYDI (CLAUDE.md) — shu yerda qilinadi.
+// ⚠️ `capText` — KO'RINADIGAN yorliq. Ikkala shaxs (bajaruvchi/qabul qiluvchi)
+//    bir xil "avatar + ism" ko'rinishida bo'lgani uchun faqat 13px ikonka bilan
+//    farqlanardi va sensorli ekranda (hover yo'q) kim kimligi bilinmasdi.
+function prjPersonHtml(uid, iconName, capLabel, showPos, capText) {
   if (!uid) return '';
   const nm = tblMemberName(uid);
-  return '<span class="prj-meta-i">' + (prefix || '') + avatarHtml(nm, 'sm', null, uid) + '<span>' + escapeHtml(nm) + '</span></span>';
+  const pos = showPos ? memberPos(uid) : '';
+  const tip = (capLabel ? capLabel + ': ' : '') + nm + (pos ? ' · ' + pos : '');
+  return '<span class="prj-asg" title="' + escapeHtml(tip) + '">' +
+    (iconName ? '<span class="prj-asg-ic">' + icon(iconName, 13) + '</span>' : '') +
+    (capText ? '<span class="prj-asg-cap">' + escapeHtml(capText) + '</span>' : '') +
+    avatarHtml(nm, 'sm', null, uid) +
+    '<span class="prj-asg-n">' + escapeHtml(nm) + '</span>' +
+    (pos ? '<span class="prj-asg-p">' + escapeHtml(pos) + '</span>' : '') +
+  '</span>';
 }
 // "Bajardi: {ism} · sana" (TASKFIX_V8 ustunlari, zaxira: submitter_id/completed_at)
 function prjDoneByHtml(t) {
@@ -4146,7 +4228,10 @@ function prjDoneByHtml(t) {
   if (!uid) return '';
   if (t.status !== 'completed' && t.status !== 'qabul_kutilyapti') return '';
   const at = t.bajardi_at || t.completed_at || null;
-  return '<span class="prj-meta-i" style="color:#059669;font-weight:600;">✓ Bajardi: ' + escapeHtml(tblMemberName(uid)) + (at ? ' · ' + fmtDeadline(at) : '') + '</span>';
+  const nm = tblMemberName(uid);
+  return '<span class="prj-doneby" title="' + escapeHtml('Bajardi: ' + nm) + '">' + icon('check', 13) +
+    '<span class="prj-doneby-n">' + escapeHtml(nm) + '</span>' +
+    (at ? '<span class="prj-doneby-at">' + fmtDeadline(at) + '</span>' : '') + '</span>';
 }
 
 // ============ LOYIHALAR RO'YXATI FILTRI (prjf*) ============
@@ -4477,7 +4562,23 @@ function prjSetTab(tab) {
   else if (tab === 'members') renderProjectMembers();
 }
 
+// Karta <div> — tugma emas, shuning uchun klaviatura uchun alohida qo'llab-quvvatlash.
+// ⚠️ Faqat kartaning O'ZIDA ishlaydi: ichidagi tugmalar (tartib/qulf) Enter'ni
+//    o'zi ishlatadi (aks holda bir bosishda ikki amal ketardi).
+function prjCardKey(ev, id) {
+  if (!ev) return;
+  if (ev.key !== 'Enter' && ev.key !== ' ' && ev.key !== 'Spacebar') return;
+  if (ev.target !== ev.currentTarget) return;
+  ev.preventDefault();
+  openDetail(id);
+}
+
 // Bitta bosqich kartasi (flow va parallel ko'rinishlarda bir xil)
+// 🔴 2026-08-11 qayta dizayn — FAQAT KO'RINISH. Holat hisobi (prjTaskOpen /
+//    prjShouldBeOpen / is_locked), inline handler'lar (openDetail / prjMoveTask /
+//    prjUnlockTask) va ularning argumentlari O'ZGARMAGAN.
+// Tuzilish: [rail: raqam/✓/✕] → [sarlavha] → [nishonlar: N-bosqich · holat ·
+//    bog'liqlik · takror] → [meta: bajaruvchi · qabul · muddat · dam olish · bajardi].
 function prjTaskCardHtml(t, i, list, ft, curId, canEdit) {
   const isDone = t.status === 'completed';
   const isCancel = t.status === 'cancelled';
@@ -4486,51 +4587,75 @@ function prjTaskCardHtml(t, i, list, ft, curId, canEdit) {
   const locked = !openNow && !isDone && !isCancel;
   const stuck = locked && prjShouldBeOpen(t, list);   // qulf qotib qolgan (masalan oldingi bekor qilingan)
 
-  let cls = 'prj-task', state = '';
-  if (isCancel) { state = '<span class="prj-state cancel">✕ Bekor qilingan</span>'; }
-  else if (isDone) { cls += ' done'; state = '<span class="prj-state done">✓ Bajarildi</span>'; }
-  else if (isCur) { cls += ' cur'; state = '<span class="prj-state cur">▶ Hozir shu bosqichda</span>'; }
-  else if (locked) { cls += ' locked'; state = '<span class="prj-state lock">🔒 ' + (stuck ? 'Qulflangan (qotib qolgan)' : 'Oldingi bosqichni kutmoqda') + '</span>'; }
-  else { state = '<span class="prj-state open">' + (ft === 'parallel' ? '⚡ Ochiq' : '⚡ Parallel — ochiq') + '</span>'; }
+  let cls = 'prj-task', nodeCls = '', state = '';
+  if (isCancel) {
+    cls += ' cancel'; nodeCls = ' cancel';
+    state = '<span class="prj-state cancel">' + icon('x', 12) + 'Bekor qilingan</span>';
+  } else if (isDone) {
+    cls += ' done'; nodeCls = ' done';
+    state = '<span class="prj-state done">' + icon('check', 12) + 'Bajarildi</span>';
+  } else if (isCur) {
+    cls += ' cur'; nodeCls = ' cur';
+    state = '<span class="prj-state cur">' + icon('play', 11) + 'Hozir shu bosqichda</span>';
+  } else if (locked) {
+    cls += ' locked'; nodeCls = ' lock';
+    state = '<span class="prj-state lock">' + icon('lock', 12) + (stuck ? 'Qulflangan (qotib qolgan)' : 'Oldingi bosqichni kutmoqda') + '</span>';
+  } else {
+    cls += ' open'; nodeCls = ' open';
+    state = '<span class="prj-state open">' + icon('zap', 12) + (ft === 'parallel' ? 'Ochiq' : 'Parallel — ochiq') + '</span>';
+  }
 
-  const nodeCls = isDone ? ' done' : (isCur ? ' cur' : '');
   const over = t.deadline && !isDone && !isCancel && new Date(t.deadline).getTime() < Date.now();
   const asgName = t.assigned_to ? tblMemberName(t.assigned_to) : null;
 
-  const meta =
-    state +
-    (asgName ? prjPersonHtml(t.assigned_to, '👤 ')
-             : (isDone || isCancel ? '' : '<span class="prj-meta-i" style="color:var(--danger);">👤 Biriktirilmagan</span>')) +
-    (t.acceptor_id ? prjPersonHtml(t.acceptor_id, '🤝 Qabul: ') : '') +
-    (t.deadline ? '<span class="prj-meta-i' + (over ? ' prj-over' : '') + '">⏰ ' + fmtDeadline(t.deadline) + (over ? ' (kechikdi)' : '') + '</span>' : '') +
-    dofBadge(t) +
-    (t.recur_days ? '<span class="prj-meta-i" style="color:var(--accent-ink);">🔁 ' + t.recur_days + ' kun</span>' : '') +
-    prjDoneByHtml(t);
+  // ── Nishonlar qatori ──
+  const dep = t.depends_on_prev
+    ? '<span class="prj-tag ic-only" title="Oldingi bosqichga bog\'liq">' + icon('link', 13) + '</span>'
+    : '<span class="prj-tag ic-only" title="Oldingisini kutmaydi (parallel)">' + icon('zap', 13) + '</span>';
+  const recur = t.recur_days
+    ? '<span class="prj-tag" title="Takrorlanish">' + icon('repeat', 12) + escapeHtml(String(t.recur_days)) + ' kun</span>'
+    : '';
+  const tags = '<span class="prj-idx">' + (i + 1) + '-bosqich</span>' + state + dep + recur;
+
+  // ── Meta qatori (bo'sh bo'lsa ajratuvchi chiziq ham chizilmaydi) ──
+  const dof = dofBadge(t);       // ⚠️ har renderda chaqiriladi — navbatni u to'ldiradi
+  const doneBy = prjDoneByHtml(t);
+  const parts = [];
+  if (asgName) parts.push(prjPersonHtml(t.assigned_to, 'user', 'Bajaruvchi', true));
+  else if (!isDone && !isCancel) parts.push('<span class="prj-asg none" title="Bajaruvchi biriktirilmagan">' +
+      '<span class="prj-av-none">' + icon('user', 12) + '</span>' +
+      '<span class="prj-asg-n">Biriktirilmagan</span></span>');
+  if (t.acceptor_id) parts.push(prjPersonHtml(t.acceptor_id, 'badge', 'Qabul qiluvchi', false, 'Qabul'));
+  if (t.deadline) parts.push('<span class="prj-dl' + (over ? ' over' : '') + '" title="Muddat">' + icon('clock', 13) +
+      fmtDeadline(t.deadline) + (over ? '<span class="prj-late">kechikdi</span>' : '') + '</span>');
+  if (dof) parts.push(dof);
+  if (doneBy) parts.push(doneBy);
+  const meta = parts.length ? '<div class="prj-meta">' + parts.join('') + '</div>' : '';
 
   const ord = canEdit
     ? '<span class="prj-ord">' +
-        '<button class="prj-ord-btn" title="Yuqoriga" onclick="event.stopPropagation();prjMoveTask(' + t.id + ',-1)"' + (i === 0 ? ' disabled' : '') + '>▲</button>' +
-        '<button class="prj-ord-btn" title="Pastga" onclick="event.stopPropagation();prjMoveTask(' + t.id + ',1)"' + (i === list.length - 1 ? ' disabled' : '') + '>▼</button>' +
+        '<button class="prj-ord-btn up" title="Yuqoriga" onclick="event.stopPropagation();prjMoveTask(' + t.id + ',-1)"' + (i === 0 ? ' disabled' : '') + '>' + icon('chevron', 13) + '</button>' +
+        '<button class="prj-ord-btn down" title="Pastga" onclick="event.stopPropagation();prjMoveTask(' + t.id + ',1)"' + (i === list.length - 1 ? ' disabled' : '') + '>' + icon('chevron', 13) + '</button>' +
       '</span>'
     : '';
 
-  const dep = t.depends_on_prev
-    ? '<span class="prj-meta-i" title="Oldingi bosqichga bog\'liq">🔗</span>'
-    : '<span class="prj-meta-i" title="Oldingisini kutmaydi (parallel)">⚡</span>';
-
   const unlock = (canEdit && stuck)
-    ? '<div style="margin-top:8px;"><button class="btn sm secondary" onclick="event.stopPropagation();prjUnlockTask(' + t.id + ')">🔓 Qulfni ochish</button>' +
-      '<span style="font-size:11.5px;color:var(--muted);margin-left:8px;">Oldingi bosqich bekor qilingan yoki qulf eskirgan.</span></div>'
+    ? '<div class="prj-unlock"><button class="btn sm secondary" onclick="event.stopPropagation();prjUnlockTask(' + t.id + ')">' + icon('unlock', 14) + 'Qulfni ochish</button>' +
+      '<span class="prj-unlock-note">Oldingi bosqich bekor qilingan yoki qulf eskirgan.</span></div>'
     : '';
 
   return '<div class="prj-step">' +
-      '<div class="prj-rail"><div class="prj-node' + nodeCls + '">' + (isDone ? '✓' : (isCancel ? '✕' : (i + 1))) + '</div>' +
-        (ft === 'sequential' && i < list.length - 1 ? '<div class="prj-line"></div>' : '') +
+      '<div class="prj-rail"><div class="prj-node' + nodeCls + '">' + (isDone ? icon('check', 16) : (isCancel ? icon('x', 15) : (i + 1))) + '</div>' +
+        (ft === 'sequential' && i < list.length - 1 ? '<div class="prj-line' + (isDone ? ' done' : '') + '"></div>' : '') +
       '</div>' +
-      '<div class="' + cls + '" onclick="openDetail(' + t.id + ')">' +
-        '<div class="prj-task-top"><div class="prj-task-title">' + escapeHtml(t.title || '(nomsiz)') + '</div>' +
-          '<span style="display:flex;align-items:center;gap:6px;">' + dep + ord + '</span></div>' +
-        '<div class="prj-meta">' + meta + '</div>' + unlock +
+      '<div class="' + cls + '" role="button" tabindex="0" onclick="openDetail(' + t.id + ')" onkeydown="prjCardKey(event,' + t.id + ')">' +
+        '<div class="prj-task-top">' +
+          '<div class="prj-task-head">' +
+            '<div class="prj-task-title">' + escapeHtml(t.title || '(nomsiz)') + '</div>' +
+            '<div class="prj-tags">' + tags + '</div>' +
+          '</div>' +
+          (ord ? '<div class="prj-task-act">' + ord + '</div>' : '') +
+        '</div>' + meta + unlock +
       '</div>' +
     '</div>';
 }
@@ -4573,16 +4698,25 @@ function renderProjectKanban() {
     const cards = list.filter(t => t.status === col.status);
     return '<div class="kan-col" ondragover="kanDragOver(event)" ondragleave="kanDragLeave(event)" ondrop="kanDrop(event, \'' + col.status + '\')"><div class="kan-head" style="border-top:3px solid ' + (col.color || '#94A3B8') + '"><span>' + escapeHtml(col.name) + '</span><span class="kan-count">' + cards.length + '</span></div>' +
       '<div class="kan-cards">' + cards.map(t => {
+        // ⚠️ FAQAT KO'RINISH: locked/draggable hisobi va handler'lar o'zgarmagan.
         const isDone = t.status === 'completed';
-        const locked = !prjTaskOpen(t, list) && !isDone && t.status !== 'cancelled';
+        const isCancel = t.status === 'cancelled';
+        const locked = !prjTaskOpen(t, list) && !isDone && !isCancel;
         const asgName = t.assigned_to ? tblMemberName(t.assigned_to) : null;
-        return '<div class="kan-card' + (isDone ? ' kan-card-done' : '') + '" draggable="' + (locked ? 'false' : 'true') + '"' + (locked ? ' style="opacity:.62;border-style:dashed;"' : '') +
+        const over = t.deadline && !isDone && !isCancel && new Date(t.deadline).getTime() < Date.now();
+        return '<div class="kan-card prj-kan-card' + (isDone ? ' kan-card-done' : '') + (locked ? ' locked' : '') + '" draggable="' + (locked ? 'false' : 'true') + '"' +
           ' data-id="' + t.id + '" ondragstart="kanDragStart(event, ' + t.id + ')" ondragend="kanDragEnd(event)" onclick="openDetail(' + t.id + ')">' +
-          '<div class="kan-card-title' + (isDone ? ' done' : '') + '">' + (isDone ? '✓ ' : (locked ? '🔒 ' : '')) + escapeHtml(t.title || '') + '</div>' +
+          '<div class="kan-card-title' + (isDone ? ' done' : '') + '">' +
+            (isDone ? '<span class="prj-kan-done" title="Bajarildi">' + icon('check', 13) + '</span>'
+                    : (locked ? '<span class="prj-kan-lock" title="Qulflangan — oldingi bosqichni kutmoqda">' + icon('lock', 13) + '</span>' : '')) +
+            escapeHtml(t.title || '') + '</div>' +
           '<div class="kan-card-meta">' +
-            (asgName ? avatarHtml(asgName, 'sm', null, t.assigned_to) + '<span>' + escapeHtml(asgName) + '</span>'
-                     : (isDone || t.status === 'cancelled' ? '' : '<span>👤 Biriktirilmagan</span>')) +
-            (t.deadline ? '<span>⏰ ' + fmtDeadline(t.deadline) + '</span>' : '') +
+            (asgName ? '<span class="prj-asg" title="' + escapeHtml(memberNamePos(t.assigned_to, asgName)) + '">' + avatarHtml(asgName, 'sm', null, t.assigned_to) +
+                       '<span class="prj-asg-n">' + escapeHtml(asgName) + '</span></span>'
+                     : (isDone || isCancel ? '' : '<span class="prj-asg none" title="Bajaruvchi biriktirilmagan">' +
+                        '<span class="prj-av-none">' + icon('user', 12) + '</span><span class="prj-asg-n">Biriktirilmagan</span></span>')) +
+            (t.deadline ? '<span class="prj-dl' + (over ? ' over' : '') + '" title="Muddat">' + icon('clock', 12) + fmtDeadline(t.deadline) + '</span>' : '') +
+            dofBadge(t) +
           '</div></div>';
       }).join('') + '</div></div>';
   }).join('') + '</div>';
@@ -7251,7 +7385,16 @@ const ICON_PATHS = {
   repeat:    '<path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>',
   // Loyihalar tarixi (Lucide archive)
   archive:   '<rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/>',
-  check:     '<path d="M20 6 9 17l-5-5"/>'
+  check:     '<path d="M20 6 9 17l-5-5"/>',
+  // Loyiha bosqichi kartasi (prj*) — emoji o'rniga (Lucide: user, clock, lock,
+  // unlock, link, play, x). Bitta to'plam, bir xil 24×24 geometriya.
+  user:      '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  clock:     '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  lock:      '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  unlock:    '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>',
+  link:      '<path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><path d="M8 12h8"/>',
+  play:      '<path d="M6 4.5a1 1 0 0 1 1.5-.87l11 7.5a1 1 0 0 1 0 1.74l-11 7.5A1 1 0 0 1 6 19.5z"/>',
+  x:         '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'
 };
 
 // Ikonka SVG matni. Noma'lum nom — bo'sh (ilova yiqilmasin, joy ham egallamasin).
