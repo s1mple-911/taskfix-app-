@@ -455,6 +455,7 @@
   .th-item .th-new { color: var(--ink); font-weight: 600; }
   .th-item .th-meta { color: var(--muted); font-size: 11.5px; margin-left: auto; white-space: nowrap; }
   .th-empty { color: var(--muted); font-size: 12.5px; font-style: italic; padding: 10px 0; }
+  .th-empty.th-off { font-style: normal; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; }
 
   /* Vazifalar fonda sahifalab yuklanmoqda — kichik ko'rsatkich */
   .tsk-chip { position: fixed; right: 16px; bottom: 16px; z-index: 8000; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 8px 14px; font-size: 12.5px; color: var(--muted); box-shadow: var(--shadow); pointer-events: none; }
@@ -4908,6 +4909,9 @@ async function loadWorkspaces() {
 async function loadCurrentContext() {
   if (!currentWs) return;
   localStorage.setItem('current_ws_' + me.id, currentWs.id);
+  // Tarix bayroqlarini tozalaymiz — SQL sessiya davomida ishga tushirilgan bo'lsa
+  // workspace almashtirish kifoya (to'liq F5 shart emas).
+  _thMissing = false; _thErr = null;
 
   const wsId = currentWs.id;
   const isOrg = currentWs.kind === 'organization';
@@ -7252,6 +7256,7 @@ const TH_FIELDS = ['deadline', 'assigned_to', 'status'];
 const TH_LBL = { deadline: 'Deadline', assigned_to: 'Bajaruvchi', status: 'Holat' };
 let curDetailHistory = [];
 let _thMissing = false;   // jadval yo'q deb aniqlandi — qayta urinmaymiz
+let _thErr = null;        // oxirgi o'qish xatosi (RLS/tarmoq) — bo'lim JIM qolmasin
 
 // PostgREST: jadval yo'q → 'PGRST205' (schema cache) yoki Postgres '42P01'
 function thTableMissing(err) {
@@ -7355,7 +7360,10 @@ async function thRecordMany(pairs) {
 }
 
 function thListHtml() {
-  if (_thMissing) return '<div class="th-empty">Tarix yoqilmagan (TASKFIX_HISTORY.sql ishga tushirilmagan)</div>';
+  // ⚠️ Bo'lim hech qachon "jimgina bo'sh" bo'lmasin — sabab ko'rinsin:
+  //    jadval yo'q (SQL ishga tushmagan) / o'qish xatosi (RLS, tarmoq) / haqiqatan bo'sh.
+  if (_thMissing) return '<div class="th-empty th-off">Tarix yoqilmagan — <b>TASKFIX_HISTORY.sql</b> Supabase\'da ishga tushirilmagan.</div>';
+  if (_thErr) return '<div class="th-empty th-off">Tarixni o\'qib bo\'lmadi: ' + escapeHtml(_thErr) + '</div>';
   if (!curDetailHistory.length) return '<div class="th-empty">O\'zgarishlar yo\'q</div>';
   return '<div class="th-list">' + curDetailHistory.map(function (h) {
     const lbl = TH_LBL[h.field] || h.field;
@@ -7390,6 +7398,7 @@ async function openDetail(id) {
   if (!t) { console.error('openDetail: vazifa topilmadi, id=' + id); taskGoneLocal(id); return; }
   currentDetailId = id;
   curDetailHistory = [];   // oldingi vazifaning tarixi ko'rinib qolmasin
+  _thErr = null;           // oldingi xato yangi vazifaga o'tib ketmasin
   $('dTitle').textContent = t.title || '—';
   $('dBody').innerHTML = '<div style="text-align:center; padding: 30px; color: var(--muted); font-size: 13px;">⏳ Yuklanmoqda…</div>';
   $('detailBd').classList.add('show');
@@ -7410,6 +7419,7 @@ async function openDetail(id) {
   curDetailHistory = histRes.data || [];
   if (histRes.error) {
     if (thTableMissing(histRes.error)) _thMissing = true;
+    else _thErr = translateErr(histRes.error.message || String(histRes.error));
     console.error('task_history o\'qilmadi:', histRes.error.message);
   }
 
