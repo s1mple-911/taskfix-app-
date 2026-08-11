@@ -3745,6 +3745,11 @@ let _prjLoyihaMissing = false;   // start_at/end_at/recur_type ustunlari yo'q (S
 let _prjLoyihaWarned = false;    // ⚠️ FAQAT console.error ni bir martaga cheklaydi (toast HAR SAFAR)
 let _prjFlowWarned = false;      // shu maqsadda, flow_type uchun
 let _prjTasksErr = false;        // bosqichlar o'qilmadi → prjTasks=[] "noma'lum" degani
+// 🔴 Loyiha MENGA OCHIQ EMAS (RLS bo'sh qaytardi). Bu bayroqsiz `refreshActiveView()`
+//    (fon sahifalash/realtime — 20+ chaqiruv joyi) `prjShowError` blokini ustidan
+//    qayta chizib, o'rniga YOLG'ON "Bosqichlar yo'q — administrator qo'shgach
+//    ko'rinadi" xabarini qoldirardi. Rad etilgan holatda sahifa QAYTA CHIZILMAYDI.
+let _prjDenied = false;
 
 // Foydalanuvchiga ko'rsatiladigan sabab — HAR SAFAR aytiladi (6-qoida: jimgina yutilmasin)
 const PRJ_MSG_NO_DATE = 'sana saqlanmadi — TASKFIX_LOYIHA.sql ishga tushirilmagan';
@@ -4174,7 +4179,7 @@ function renderProjectsOverview() {
     wrap.innerHTML = '<div class="empty"><strong>Hali loyiha yo\'q</strong>' +
       (isOwnerLike()
         ? '<span style="display:block;margin-bottom:14px;">Loyiha — bir maqsad yo\'lidagi bosqichlar to\'plami (masalan: "Yangi filial ochish").</span><button class="btn" onclick="openCreateProject()">+ Birinchi loyihani yaratish</button>'
-        : '<span style="display:block;">Administrator loyiha yaratgach shu yerda ko\'rinadi.</span>') +
+        : '<span style="display:block;">Administrator loyiha yaratgach — yoki loyihada sizga bosqich biriktirilgach — shu yerda ko\'rinadi.</span>') +
       '</div>';
     return;
   }
@@ -4238,6 +4243,7 @@ function prjAssigneeSummary(list) {
 
 async function openProject(id) {
   // Oldingi loyihaning ma'lumoti ko'rinib qolmasin
+  _prjDenied = false;   // yangi urinish — eski "ochiq emas" holati tozalanadi
   if (currentProjectId !== id) { prjTasks = []; prjMembers = []; prjMembersErr = null; window._curProject = null; }
   currentProjectId = id;
   currentPage = 'project';
@@ -4249,10 +4255,11 @@ async function openProject(id) {
 }
 
 // Loyiha sahifasida xatoni ko'rsatamiz (jimgina bo'sh sahifa qolmasin)
-function prjShowError(msg) {
+// `sub` — ixtiyoriy tushuntirish; berilmasa eski matn (mavjud chaqiruvlar o'zgarmaydi).
+function prjShowError(msg, sub) {
   const hero = $('prjHero');
   const html = '<div class="prj-error">⚠️ ' + escapeHtml(msg) +
-    '<div class="prj-error-sub">Ma\'lumot to\'liq ko\'rsatilmayapti.</div>' +
+    '<div class="prj-error-sub">' + escapeHtml(sub || 'Ma\'lumot to\'liq ko\'rsatilmayapti.') + '</div>' +
     '<button class="btn sm secondary" style="margin-top:10px;" onclick="loadProjectDetail()">↻ Qayta urinish</button></div>';
   if (hero) hero.innerHTML = html;
   ['prjPaneFlow','prjPaneKanban','prjPaneMembers'].forEach(id => { const el = $(id); if (el) el.innerHTML = ''; });
@@ -4304,6 +4311,7 @@ function prjRecurDue(project) {
 
 async function loadProjectDetail() {
   if (!currentProjectId) return;
+  _prjDenied = false;   // har yangi yuklashda tozalanadi (qayta urinish ishlasin)
   // 1) Loyiha — xato bo'lsa ko'rsatamiz (RLS rad etsa sahifa jim qolmasin)
   const { data: proj, error: pErr } = await sb.from('projects').select('*').eq('id', currentProjectId).maybeSingle();
   if (pErr) {
@@ -4312,7 +4320,26 @@ async function loadProjectDetail() {
     return;
   }
   const project = proj || projectsCache.find(x => x.id === currentProjectId);
-  if (!project) { toast('Loyiha topilmadi yoki ruxsat yo\'q', 'err'); goPage('projects'); return; }
+  if (!project) {
+    // ⚠️ Xato YO'Q, lekin qator ham yo'q — bu deyarli har doim RLS: loyiha
+    //    menga ochilmagan. Avval "Loyiha topilmadi yoki ruxsat yo'q" deb
+    //    ro'yxatga qaytarardik — foydalanuvchi sababni o'qib ulgurmasdi.
+    //    Endi sahifada qoladi va aniq (lekin qo'rqitmaydigan) sabab ko'rsatiladi.
+    //    Bosqichi biriktirilgan hodim ham ko'rmasa — TASKFIX_LOYIHA_RLS.sql
+    //    hali ishga tushirilmagan bo'lishi mumkin (buni faqat admin ko'radi).
+    // 🔴 Bayroq prjShowError'DAN OLDIN: aks holda oradagi refreshActiveView()
+    //    blokni o'chirib, "Bosqichlar yo'q" degan yolg'on xabar qoldirardi.
+    _prjDenied = true;
+    prjTasks = []; prjMembers = []; prjMembersErr = null; window._curProject = null;
+    const t = $('prjTitle'); if (t) t.textContent = 'Loyiha';
+    const mt = $('prjMeta'); if (mt) mt.innerHTML = '';
+    const ac = $('prjActions'); if (ac) ac.innerHTML = '';
+    prjShowError('Bu loyiha sizga ochiq emas',
+      isOwnerLike()
+        ? 'Loyiha o\'chirilgan bo\'lishi mumkin. Agar bosqichi biriktirilgan hodim ham ko\'ra olmayotgan bo\'lsa — TASKFIX_LOYIHA_RLS.sql hali ishga tushirilmagan bo\'lishi mumkin.'
+        : 'Loyiha o\'chirilgan bo\'lishi yoki sizga hali ochilmagan bo\'lishi mumkin. Loyihada sizga bosqich biriktirilgan bo\'lsa — administratorga xabar bering, u ruxsatni yoqadi.');
+    return;
+  }
   window._curProject = project;
 
   // 2) Bosqichlar
@@ -4371,6 +4398,7 @@ function prjRenderHeader(project) {
 
 // Hero — "nima holatda / kim ushlab turibdi" (barcha tablarda ko'rinadi)
 function prjRenderHero() {
+  if (_prjDenied) return;   // "ochiq emas" bloki turibdi — ustidan chizmaymiz
   const el = $('prjHero'); if (!el) return;
   const p = window._curProject;
   if (!p) { el.innerHTML = ''; return; }
@@ -4486,6 +4514,7 @@ function prjTaskCardHtml(t, i, list, ft, curId, canEdit) {
 }
 
 function renderProjectFlow() {
+  if (_prjDenied) return;   // loyiha ochiq emas — "Bosqichlar yo'q" YOLG'ON bo'lardi
   const wrap = $('prjPaneFlow'); if (!wrap) return;
   const p = window._curProject;
   const ft = prjFlowType(p);
@@ -4509,6 +4538,7 @@ function renderProjectFlow() {
 }
 
 function renderProjectKanban() {
+  if (_prjDenied) return;
   const wrap = $('prjPaneKanban'); if (!wrap) return;
   const list = prjTasks.slice().sort(prjByOrder);
   if (!list.length) {
@@ -4537,6 +4567,7 @@ function renderProjectKanban() {
 }
 
 function renderProjectMembers() {
+  if (_prjDenied) return;
   const wrap = $('prjPaneMembers'); if (!wrap) return;
   const canEdit = isOwnerLike();
   let html = '';
@@ -11678,6 +11709,10 @@ function refreshActiveView() {
   }
   else if (currentPage === 'stats') renderStats();
   else if (currentPage === 'project') {
+    // 🔴 Loyiha menga ochiq bo'lmasa — sahifada `prjShowError` bloki turibdi;
+    //    uni qayta chizish o'rniga chetlab o'tamiz (aks holda blok yo'qolib,
+    //    o'rniga "Bosqichlar yo'q" degan yolg'on xabar qolardi).
+    if (_prjDenied) return;
     // prjTasks'ni tasksCache'dagi yangi holat bilan darrov sinxronlaymiz (kechikishsiz)
     prjTasks = prjTasks.map(pt => tasksCache.find(t => t.id === pt.id) || pt);
     prjRenderHero();
