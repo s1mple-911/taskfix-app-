@@ -844,7 +844,11 @@
   .plf-c { position:relative; height:26px; border:none; background:none; font-family:inherit; font-size:12px; color:var(--ink);
            cursor:pointer; border-radius:8px; padding:0; font-variant-numeric:tabular-nums; transition:background .1s,color .1s; }
   .plf-c.empty { cursor:default; }
-  .plf-c:not(.empty):hover { background:var(--surface-2); }
+  /* ⚠️ hover FAQAT tanlanmagan katakka. Aks holda `:not(.empty):hover` (0,3,0)
+     `.plf-c.end` (0,2,0) dan kuchli bo'lib, bosilgan tugash sanasi kulrang fonda
+     oq matn — ya'ni KO'RINMAY qoladi. */
+  .plf-c:not(.empty):not(.in):not(.start):not(.end):hover { background:var(--surface-2); }
+  .plf-c.in:hover, .plf-c.start:hover, .plf-c.end:hover { filter:brightness(1.08); }
   .plf-c.today { font-weight:700; }
   .plf-c.today::after { content:''; position:absolute; left:50%; bottom:3px; transform:translateX(-50%); width:3px; height:3px; border-radius:50%; background:var(--accent-ink); }
   /* Oraliq: to'ldirilgan yo'lak + yumaloq uchlar */
@@ -7051,12 +7055,48 @@ function plfCalPick(iso) {
   else if (iso < _plfSel.from)     { _plfSel = { from: iso, to: _plfSel.from }; }
   else                             { _plfSel.to = iso; }
   _plfHover = null;
-  plfPopPaint();
+  plfCalMark();   // panjara o'zgarmaydi — faqat belgilar
 }
 function plfCalHover(iso) {
   if (!_plfSel.from || _plfSel.to) return;   // faqat yarim tanlovda
+  if (_plfHover === iso) return;             // o'zgarish yo'q — ish ham yo'q
   _plfHover = iso;
-  plfPopPaint();
+  plfCalMark();
+}
+function plfCalHoverOut() {
+  if (!_plfHover) return;
+  _plfHover = null;
+  plfCalMark();
+}
+
+// Tanlangan oraliq yorlig'i ("4 Avg – 2 Sen" / "Sana tanlanmagan")
+function plfSelLabel() {
+  if (!_plfSel.from) return 'Sana tanlanmagan';
+  let a = _plfSel.from, b = _plfSel.to || (_plfHover || null);
+  if (b && b < a) { const t = a; a = b; b = t; }
+  return plfDayLbl(a) + (b && b !== a ? ' – ' + plfDayLbl(b) : '');
+}
+
+// ⚠️ FAQAT sinflarni yangilaydi — DOM QAYTA QURILMAYDI.
+//    Avval hover'da butun oyna `innerHTML` bilan qayta chizilardi: bosilayotgan
+//    tugma yo'q qilinib qayta yaratilar, `mousedown` va `mouseup` boshqa-boshqa
+//    elementlarga tushar va `click` UMUMAN chiqmasdi — shu sababli tugash
+//    sanasini tanlab bo'lmasdi (boshlanish ishlardi, chunki unda hover erta
+//    qaytadi). Panjara faqat oy almashganda qayta quriladi.
+function plfCalMark() {
+  const pop = $('plfPop'); if (!pop) return;
+  let a = _plfSel.from, b = _plfSel.to || (_plfSel.from && _plfHover ? _plfHover : null);
+  if (a && b && b < a) { const t = a; a = b; b = t; }
+  pop.querySelectorAll('.plf-c[data-d]').forEach(function (el) {
+    const iso = el.dataset.d;
+    const isA = !!(a && iso === a), isB = !!(b && iso === b);
+    el.classList.toggle('in',    !!(a && b && iso >= a && iso <= b));
+    el.classList.toggle('start', isA);
+    el.classList.toggle('end',   isB);
+    el.classList.toggle('only',  isA && isB);
+  });
+  const sel = pop.querySelector('.plf-pop-sel');
+  if (sel) sel.textContent = plfSelLabel();
 }
 function plfPreset(kind) {
   const now = new Date();
@@ -7120,9 +7160,7 @@ function plfMonthHtml(first) {
 function plfPopPaint() {
   const pop = $('plfPop'); if (!pop || !_plfCalMonth) return;
   const next = new Date(_plfCalMonth.getFullYear(), _plfCalMonth.getMonth() + 1, 1);
-  const sel = _plfSel.from
-    ? (plfDayLbl(_plfSel.from) + (_plfSel.to && _plfSel.to !== _plfSel.from ? ' – ' + plfDayLbl(_plfSel.to) : ''))
-    : 'Sana tanlanmagan';
+  const sel = plfSelLabel();
   pop.innerHTML =
     '<div class="plf-pop-head">' +
       '<span class="plf-pop-t">' + icon('calendar', 15) + ' Qaysi kunlar orasida bajarilgan?</span>' +
@@ -7135,7 +7173,7 @@ function plfPopPaint() {
       '<button type="button" class="plf-pre" onclick="plfPreset(\'month\')">Shu oy</button>' +
       '<button type="button" class="plf-pre" onclick="plfPreset(\'prev\')">O\'tgan oy</button>' +
     '</div>' +
-    '<div class="plf-cal">' +
+    '<div class="plf-cal" onmouseleave="plfCalHoverOut()">' +
       '<button type="button" class="plf-nav prev" onclick="plfCalNav(-1)" title="Oldingi oy">' + icon('chevron', 16) + '</button>' +
       plfMonthHtml(_plfCalMonth) +
       plfMonthHtml(next) +
