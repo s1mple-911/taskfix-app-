@@ -748,6 +748,33 @@
   .pln-block:hover { filter:brightness(1.05); box-shadow:0 2px 8px rgba(0,0,0,.2); }
   .pln-sel-overlay { position:absolute; left:2px; right:2px; background:var(--accent); opacity:.55; border:1.5px dashed var(--accent-ink); border-radius:6px; z-index:3; pointer-events:none; font-size:10.5px; color:var(--accent-ink); font-weight:700; display:flex; align-items:center; justify-content:center; }
   .pln-day { cursor:crosshair; }
+  /* Rejalashtirgich rol filtri (plf*) — segment chiplari + sana oralig'i oynasi */
+  .plf-bar { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin:-6px 0 16px; }
+  .plf-lbl { font-size:11.5px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin-right:3px; }
+  .plf-chip { display:inline-flex; align-items:center; gap:4px; background:var(--surface); border:1px solid var(--line); color:var(--muted); border-radius:999px; padding:5px 13px; font-size:12.5px; font-family:inherit; cursor:pointer; white-space:nowrap; transition:background .13s,color .13s,border-color .13s,box-shadow .13s; }
+  .plf-chip:hover { color:var(--ink); border-color:var(--muted); }
+  .plf-chip:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .plf-chip.active { background:var(--ink); border-color:var(--ink); color:var(--surface); font-weight:600; box-shadow:0 1px 4px rgba(0,0,0,.14); }
+  .plf-chip .plf-range { font-weight:500; opacity:.8; font-variant-numeric:tabular-nums; }
+  .plf-count { font-size:11.5px; color:var(--muted); margin-left:auto; font-variant-numeric:tabular-nums; }
+  .plf-wrap { position:relative; display:inline-flex; }
+  .plf-pop { position:absolute; top:calc(100% + 8px); left:0; z-index:70; width:288px; background:var(--surface); border:1px solid var(--line); border-radius:14px; box-shadow:0 14px 38px rgba(0,0,0,.16); padding:13px; animation:plfPop .16s ease; }
+  @keyframes plfPop { from { opacity:0; transform:translateY(-6px) scale(.98); } to { opacity:1; transform:none; } }
+  .plf-pop-head { font-size:12.5px; font-weight:700; color:var(--ink); margin-bottom:10px; }
+  .plf-presets { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:11px; }
+  .plf-pre { background:var(--surface-2); border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:4px 9px; font-size:11.5px; font-family:inherit; cursor:pointer; }
+  .plf-pre:hover { color:var(--ink); background:var(--surface); border-color:var(--muted); }
+  .plf-dates { display:flex; gap:8px; margin-bottom:12px; }
+  .plf-d { flex:1; display:flex; flex-direction:column; gap:4px; }
+  .plf-d span { font-size:11px; color:var(--muted); font-weight:600; }
+  .plf-d input { width:100%; box-sizing:border-box; padding:6px 8px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); font-size:12.5px; font-family:inherit; }
+  .plf-pop-act { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .plf-btn { border-radius:9px; padding:6px 13px; font-size:12.5px; font-family:inherit; cursor:pointer; border:1px solid var(--line); }
+  .plf-btn.ghost { background:none; color:var(--muted); }
+  .plf-btn.ghost:hover { color:var(--ink); background:var(--surface-2); }
+  .plf-btn.primary { background:var(--ink); border-color:var(--ink); color:var(--surface); font-weight:600; }
+  .plf-btn.primary:hover { opacity:.88; }
+  @media (max-width:640px){ .plf-pop { width:calc(100vw - 40px); left:auto; right:0; } .plf-count { margin-left:0; } }
   /* 🕌 Namoz vaqtlari (nmz*) — kalendardagi chiziq + tepadagi lenta.
      ⚠️ pointer-events:none — sudrash/tanlash buzilmasin. */
   .nmz-line { position:absolute; left:0; right:0; height:0; border-top:1px dashed rgba(16,185,129,.55); z-index:1; pointer-events:none; }
@@ -1285,12 +1312,24 @@
         </div>
       </div>
       <div class="view-tabs" style="margin-bottom:16px;display:flex;align-items:center;">
-        <button class="view-tab active" data-plntab="schedule" onclick="plnSetTab('schedule')">🗓 Mening jadvalim</button>
-        <button class="view-tab" data-plntab="mine" onclick="plnSetTab('mine')">📥 Mening vazifalarim</button>
-        <button class="view-tab" data-plntab="assigned" onclick="plnSetTab('assigned')">📤 Men topshirganlar</button>
-        <button class="view-tab" data-plntab="all" onclick="plnSetTab('all')">✓ Barcha vazifalar</button>
+        <button class="view-tab active" data-plntab="schedule" onclick="plnTabClick('schedule')">🗓 Mening jadvalim</button>
+        <button class="view-tab" data-plntab="mine" onclick="plnTabClick('mine')">📥 Mening vazifalarim</button>
+        <button class="view-tab" data-plntab="assigned" onclick="plnTabClick('assigned')">📤 Men topshirganlar</button>
+        <button class="view-tab" data-plntab="all" onclick="plnTabClick('all')">✓ Barcha vazifalar</button>
         <div style="flex:1"></div>
         <button type="button" class="done-toggle" data-done-toggle onclick="toggleHideCompleted(!window.hideCompleted)"><span class="dt-dot"></span> Bajarilganlarni yashirish</button>
+      </div>
+      <div class="plf-bar" id="plfBar">
+        <span class="plf-lbl">Filtr</span>
+        <button type="button" class="plf-chip active" data-plf="none" onclick="plfSet('none')">Hammasi</button>
+        <button type="button" class="plf-chip" data-plf="created" onclick="plfSet('created')">📤 Men topshirganlar</button>
+        <button type="button" class="plf-chip" data-plf="acceptor" onclick="plfSet('acceptor')">✅ Men qabul qiluvchiman</button>
+        <button type="button" class="plf-chip" data-plf="assignee" onclick="plfSet('assignee')">🙋 Men bajaruvchiman</button>
+        <span class="plf-wrap">
+          <button type="button" class="plf-chip" data-plf="done" onclick="plfDoneClick()">🏁 Bajarilganlar<span class="plf-range" id="plfRangeLbl"></span></button>
+          <div class="plf-pop" id="plfPop" style="display:none"></div>
+        </span>
+        <span class="plf-count" id="plfCount"></span>
       </div>
       <div id="plnCalPane">
         <div class="pln-layout">
@@ -5040,6 +5079,9 @@ async function loadCurrentContext() {
   // Xodim filtrini (workspace bo'yicha) tiklaymiz + panelni yangilaymiz
   empFilterLoad();
   try { empFilterRenderBar(); } catch (e) {}
+  // Rejalashtirgich rol filtri (workspace bo'yicha)
+  plfLoad();
+  try { plfRender(); } catch (e) { console.error('plfRender:', e); }
 
   setupRealtime();
   renderSidebar();
@@ -6042,15 +6084,193 @@ function onTasksSearch() {
 function applyTaskScope(list) {
   // Navbati kelmagan (bloklangan) flow tasklar hech qaysi umumiy ko'rinishda chiqmaydi
   list = list.filter(t => !t.is_locked);
-  if (taskScope === 'mine') {
+  // Rejalashtirgichdagi rol filtri (plf*) — YOQILGAN bo'lsa to'plamni O'ZI belgilaydi
+  // (tab scope'ini almashtiradi, kesishma emas). O'chiq bo'lsa — eski xatti-harakat.
+  const plfOn = (currentPage === 'planner' && plfActive());
+  if (plfOn) {
+    list = plfApply(list);
+  } else if (taskScope === 'mine') {
     const myTgIds = window._myTgBotIds || [];
     list = list.filter(t => t.assigned_to === me.id || (t.assigned_to_tg_bot_user && myTgIds.includes(t.assigned_to_tg_bot_user)));
   } else if (taskScope === 'assigned') {
     list = list.filter(t => t.created_by === me.id);
   }
-  // Bajarilganlarni yashirish (barcha view)
-  if (window.hideCompleted) list = list.filter(t => t.status !== 'completed');
+  // Bajarilganlarni yashirish (barcha view).
+  // ⚠️ "Bajarilganlar" filtri yoqiq bo'lsa qo'llanmaydi — aks holda natija doim bo'sh.
+  if (window.hideCompleted && !(plfOn && plfMode === 'done')) list = list.filter(t => t.status !== 'completed');
   return list;
+}
+
+// ============ REJALASHTIRGICH ROL FILTRI (plf*) ============
+// Planner sahifasidagi 4 filtr: men topshirganlar / men qabul qiluvchiman /
+// men bajaruvchiman / bajarilganlar (sana oralig'i bilan).
+// ⚠️ Faqat currentPage === 'planner' da qo'llanadi (applyTaskScope'dagi shart) —
+//    Vazifalar sahifasi va Bo'lim detali TEGILMAYDI.
+// ⚠️ plfMode='none' (default) = eski xatti-harakat, bir baytga ham o'zgarmagan.
+let plfMode = 'none';       // 'none' | 'created' | 'acceptor' | 'assignee' | 'done'
+let plfRange = null;        // {from:'YYYY-MM-DD', to:'YYYY-MM-DD'} — faqat 'done' uchun
+let _plfPopOn = false;      // sana oynasi ochiqmi
+let _plfWatch = null;       // tashqariga bosishni kuzatuvchi
+
+function plfKey() { return 'plf_' + (currentWs ? currentWs.id : 'x'); }
+function plfLoad() {
+  plfMode = 'none'; plfRange = null;
+  try {
+    const raw = localStorage.getItem(plfKey());
+    if (raw) {
+      const o = JSON.parse(raw);
+      if (o && typeof o.mode === 'string') plfMode = o.mode;
+      if (o && o.range && o.range.from && o.range.to) plfRange = { from: o.range.from, to: o.range.to };
+    }
+  } catch (e) { /* zaxira: filtrsiz */ }
+  if (['none', 'created', 'acceptor', 'assignee', 'done'].indexOf(plfMode) < 0) plfMode = 'none';
+  if (plfMode === 'done' && !plfRange) plfMode = 'none';   // oraliqsiz "bajarilganlar" ma'nosiz
+}
+function plfSave() {
+  try { localStorage.setItem(plfKey(), JSON.stringify({ mode: plfMode, range: plfRange })); } catch (e) {}
+}
+function plfActive() { return plfMode !== 'none'; }
+
+// Bajarilgan sana — V8 ustuni, zaxira completed_at. Mahalliy kun (YYYY-MM-DD).
+function plfDoneDay(t) {
+  const raw = t.bajardi_at || t.completed_at || null;
+  if (!raw) return null;
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return null;
+  return plnDateStr(d);
+}
+function plfApply(list) {
+  if (!me) return list;
+  if (plfMode === 'created')  return list.filter(t => t.created_by === me.id);
+  if (plfMode === 'acceptor') return list.filter(t => t.acceptor_id === me.id);
+  if (plfMode === 'assignee') {
+    const myTgIds = window._myTgBotIds || [];
+    return list.filter(t => t.assigned_to === me.id || (t.assigned_to_tg_bot_user && myTgIds.includes(t.assigned_to_tg_bot_user)));
+  }
+  if (plfMode === 'done') {
+    return list.filter(t => {
+      if (t.created_by !== me.id || t.status !== 'completed') return false;
+      if (!plfRange) return true;
+      const day = plfDoneDay(t);
+      if (!day) return false;   // bajarilgan sanasi noma'lum — oraliq filtriga tushmaydi
+      return day >= plfRange.from && day <= plfRange.to;
+    });
+  }
+  return list;
+}
+
+// 1–3 filtr: darrov. 4-si (done) — plfDoneClick orqali sana oynasi bilan.
+function plfSet(mode) {
+  if (mode === plfMode) mode = 'none';   // qayta bosish → o'chirish
+  plfMode = mode;
+  plfPopClose();
+  plfSave();
+  plfRender();
+  // Kalendar tabida vazifa ro'yxati yo'q — natija ko'rinadigan tabga o'tamiz
+  if (plfActive() && plnTab === 'schedule') { plnSetTab('all'); return; }
+  refreshActiveView();
+}
+function plfDoneClick() {
+  if (_plfPopOn) { plfPopClose(); return; }
+  plfPopOpen();
+}
+function plfClear() {
+  plfMode = 'none';
+  plfPopClose();
+  plfSave();
+  plfRender();
+  refreshActiveView();
+}
+
+// ── Sana oralig'i oynasi ────────────────────────────────────────────────────
+function plfPopOpen() {
+  const pop = $('plfPop'); if (!pop) return;
+  const today = plnDateStr(new Date());
+  const from = (plfRange && plfRange.from) || today;
+  const to   = (plfRange && plfRange.to)   || today;
+  pop.innerHTML =
+    '<div class="plf-pop-head">Qaysi kunlar orasida bajarilgan?</div>' +
+    '<div class="plf-presets">' +
+      '<button type="button" class="plf-pre" onclick="plfPreset(\'today\')">Bugun</button>' +
+      '<button type="button" class="plf-pre" onclick="plfPreset(\'7\')">7 kun</button>' +
+      '<button type="button" class="plf-pre" onclick="plfPreset(\'30\')">30 kun</button>' +
+      '<button type="button" class="plf-pre" onclick="plfPreset(\'month\')">Shu oy</button>' +
+      '<button type="button" class="plf-pre" onclick="plfPreset(\'prev\')">O\'tgan oy</button>' +
+    '</div>' +
+    '<div class="plf-dates">' +
+      '<label class="plf-d"><span>Dan</span><input type="date" id="plfFrom" value="' + escapeHtml(from) + '"></label>' +
+      '<label class="plf-d"><span>Gacha</span><input type="date" id="plfTo" value="' + escapeHtml(to) + '"></label>' +
+    '</div>' +
+    '<div class="plf-pop-act">' +
+      (plfMode === 'done' ? '<button type="button" class="plf-btn ghost" onclick="plfClear()">Filtrni o\'chirish</button>' : '<span></span>') +
+      '<button type="button" class="plf-btn primary" onclick="plfPopApply()">Ko\'rsatish</button>' +
+    '</div>';
+  pop.style.display = 'block';
+  _plfPopOn = true;
+  // Tashqariga bosilsa yopiladi (inline handler emas — bitta global kuzatuvchi)
+  _plfWatch = function (ev) {
+    if (ev.target.closest && ev.target.closest('.plf-wrap')) return;
+    plfPopClose();
+  };
+  setTimeout(function () { document.addEventListener('mousedown', _plfWatch); }, 0);
+}
+function plfPopClose() {
+  const pop = $('plfPop'); if (pop) { pop.style.display = 'none'; pop.innerHTML = ''; }
+  _plfPopOn = false;
+  if (_plfWatch) { document.removeEventListener('mousedown', _plfWatch); _plfWatch = null; }
+}
+function plfPreset(kind) {
+  const now = new Date();
+  let from = new Date(now), to = new Date(now);
+  if (kind === '7')       from.setDate(now.getDate() - 6);
+  else if (kind === '30') from.setDate(now.getDate() - 29);
+  else if (kind === 'month') from = new Date(now.getFullYear(), now.getMonth(), 1);
+  else if (kind === 'prev') {
+    from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    to   = new Date(now.getFullYear(), now.getMonth(), 0);
+  }
+  const f = $('plfFrom'), t = $('plfTo');
+  if (f) f.value = plnDateStr(from);
+  if (t) t.value = plnDateStr(to);
+}
+function plfPopApply() {
+  const f = ($('plfFrom')?.value || '').trim();
+  const t = ($('plfTo')?.value || '').trim();
+  if (!f || !t) { toast('Ikkala sanani ham tanlang', 'err'); return; }
+  if (f > t)   { toast('Boshlanish sanasi tugash sanasidan keyin — oraliq noto\'g\'ri', 'err'); return; }
+  plfRange = { from: f, to: t };
+  plfMode = 'done';
+  plfPopClose();
+  plfSave();
+  plfRender();
+  if (plnTab === 'schedule') { plnSetTab('all'); return; }
+  refreshActiveView();
+}
+
+// Chip holati + oraliq yorlig'i + natija soni
+function plfRender() {
+  const bar = $('plfBar'); if (!bar) return;
+  bar.querySelectorAll('[data-plf]').forEach(function (b) {
+    b.classList.toggle('active', b.dataset.plf === (plfActive() ? plfMode : 'none'));
+  });
+  const lbl = $('plfRangeLbl');
+  if (lbl) lbl.textContent = (plfMode === 'done' && plfRange) ? (' · ' + plfDayLbl(plfRange.from) + ' – ' + plfDayLbl(plfRange.to)) : '';
+  const cnt = $('plfCount');
+  if (cnt) {
+    if (!plfActive()) cnt.textContent = '';
+    else {
+      let n = 0;
+      try { n = plfApply((tasksCache || []).filter(t => !t.is_locked)).length; } catch (e) { console.error('plfRender:', e); }
+      cnt.textContent = n + ' ta';
+    }
+  }
+}
+// '2026-08-11' → '11 Avg'
+function plfDayLbl(iso) {
+  const MON = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'];
+  const p = String(iso || '').split('-');
+  if (p.length !== 3) return String(iso || '');
+  return String(Number(p[2])) + ' ' + (MON[Number(p[1]) - 1] || p[1]);
 }
 function toggleHideCompleted(v) {
   window.hideCompleted = !!v;
@@ -10718,6 +10938,14 @@ function plnNav(dir) {
 }
 
 let plnTab = 'schedule'; // 'schedule' | 'mine' | 'assigned' | 'all'
+// Tab TUGMASI bosilganda — rol filtri (plf*) tozalanadi: ikki boshqaruv bir
+// to'plamni belgilaydi, oxirgi bosilgani ustun. goPage/plfSet plnSetTab'ni
+// TO'G'RIDAN chaqiradi (tozalamaydi).
+function plnTabClick(tab) {
+  if (plfActive()) { plfMode = 'none'; plfSave(); plfPopClose(); plfRender(); }
+  plnSetTab(tab);
+}
+
 function plnSetTab(tab) {
   plnTab = tab;
   document.querySelectorAll('.done-toggle').forEach(b => b.classList.toggle('active', !!window.hideCompleted));
@@ -10727,7 +10955,9 @@ function plnSetTab(tab) {
   $('plnKanbanPane').style.display = isSchedule ? 'none' : 'block';
   $('plnWeekNav').style.display = isSchedule ? 'flex' : 'none';
   const titles = { schedule: 'Mening jadvalim', mine: 'Mening vazifalarim', assigned: 'Men topshirganlar', all: 'Barcha vazifalar' };
-  $('plnPageTitle').textContent = titles[tab] || 'Rejalashtirgich';
+  const plfTitles = { created: 'Men topshirganlar', acceptor: 'Men qabul qiluvchiman', assignee: 'Men bajaruvchiman', done: 'Bajarilganlar' };
+  $('plnPageTitle').textContent = (plfActive() && !isSchedule ? plfTitles[plfMode] : null) || titles[tab] || 'Rejalashtirgich';
+  try { plfRender(); } catch (e) { console.error('plfRender:', e); }
   if (isSchedule) {
     renderPlanner();
   } else {
