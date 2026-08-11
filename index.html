@@ -1324,6 +1324,61 @@
   .prjf-chip.active { background: var(--ink); border-color: var(--ink); color: var(--surface); font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,.15); }
   .prjf-chip.active .ic-svg { opacity: 1; }
   .prjf-count { font-size: 11.5px; color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+  /* ===== LOYIHA KARTASI — dashboard ko'rinishi (prjc-*) ======================
+     🔴 FAQAT KO'RINISH. prjState / prjf* filtri / openProject — tegilmagan.
+     • Prefiks `.prjc-*` ATAYLAB: `.prj-*` bosqich kartasiga (5-ish) band edi;
+       ikkovi bir uslub oilasida, lekin qoidalari ustma-ust tushmaydi.
+     • Rang faqat MA'NO uchun: chap chekkadagi 3px chiziq VA progress bar
+       holat rangini oladi (`--pst`). Boshqa hech joyda rang yo'q.
+     • Chiziq `box-shadow: inset` bilan (::before emas) — burchak radiusi
+       o'zi to'g'ri chiqadi, `overflow:hidden` kerak emas. ⚠️ Hover'da inset
+       qatlam QAYTA yoziladi, aks holda chiziq yo'qoladi (.prj-task naqshi).
+     • Grid media query'SIZ moslashadi: `minmax(min(320px,100%),1fr)` — idish
+       320px dan tor bo'lsa ustun idishga tenglashadi, gorizontal scroll yo'q. */
+  .prjc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 14px; align-items: start; }
+  .prjc-card { --pst: var(--line-strong); display: flex; flex-direction: column; gap: 10px; min-width: 0; background: var(--surface); border: 1px solid var(--line-soft); border-radius: 14px; padding: 15px 16px 15px 18px; cursor: pointer; box-shadow: inset 3px 0 0 var(--pst), 0 1px 2px rgba(15,20,23,.06); transition: border-color .14s, box-shadow .14s, transform .14s; }
+  .prjc-card:hover { border-color: var(--line); box-shadow: inset 3px 0 0 var(--pst), 0 6px 18px rgba(15,20,23,.09); transform: translateY(-1px); }
+  .prjc-card:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
+  /* Holat ranglari PRJ_STATE bilan BIR XIL (prj-state.* bilan qiymatma-qiymat) */
+  .prjc-card.st-upcoming { --pst: #64748b; }
+  .prjc-card.st-active   { --pst: #16a34a; }
+  .prjc-card.st-ended    { --pst: #6b7280; }
+  .prjc-card.st-overdue  { --pst: #dc2626; }
+  .prjc-card.st-paused   { --pst: #d97706; }
+  .prjc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .prjc-head .prj-state { flex: 0 0 auto; margin-top: 1px; }
+  .prjc-name { flex: 1 1 auto; margin: 0; min-width: 0; font-size: 15px; font-weight: 700; line-height: 1.35; letter-spacing: -.15px; color: var(--ink); overflow-wrap: anywhere; }
+  .prjc-desc { margin: -3px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+  .prjc-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .prjc-dates { min-width: 0; }
+  .prjc-dates .prj-range { white-space: normal; }
+  /* Progress */
+  .prjc-prog { display: flex; flex-direction: column; gap: 6px; }
+  .prjc-prog-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 11.5px; }
+  .prjc-prog-n { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .prjc-prog-pct { font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .prjc-track { height: 5px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+  .prjc-fill { display: block; height: 100%; border-radius: 999px; background: var(--pst); transition: width .3s ease; }
+  .prjc-none { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--subtle); }
+  .prjc-none .ic-svg { flex: 0 0 auto; opacity: .8; }
+  /* Hozirgi bosqich (bitta qator, kesiladi) */
+  .prjc-now { display: flex; align-items: center; gap: 7px; min-width: 0; padding: 8px 10px; border-radius: 9px; background: var(--surface-2); font-size: 12.5px; color: var(--ink); }
+  .prjc-now .ic-svg { flex: 0 0 auto; color: var(--subtle); }
+  .prjc-now-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .prjc-now.ok, .prjc-now.ok .ic-svg { color: #047857; }
+  /* Bajaruvchilar — avatar stack */
+  .prjc-foot { display: flex; align-items: center; gap: 10px; padding-top: 11px; border-top: 1px solid var(--line-soft); }
+  .prjc-stack { display: flex; align-items: center; flex: 0 0 auto; }
+  .prjc-av { display: inline-flex; margin-left: -8px; border-radius: 50%; box-shadow: 0 0 0 2px var(--surface); }
+  .prjc-av:first-child { margin-left: 0; }
+  .prjc-av .avatar.sm { width: 25px; height: 25px; font-size: 10px; }
+  .prjc-more { display: inline-flex; align-items: center; justify-content: center; width: 25px; height: 25px; border-radius: 50%; background: var(--surface-2); color: var(--muted); font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .prjc-cap { display: inline-flex; align-items: center; gap: 5px; min-width: 0; font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .prjc-cap .ic-svg { flex: 0 0 auto; color: var(--subtle); }
+  /* Bo'sh holat nishoni (emoji o'rniga ikonka) */
+  .prjc-eic { display: flex; align-items: center; justify-content: center; width: 46px; height: 46px; margin: 0 auto 14px; border-radius: 13px; background: var(--surface-2); color: var(--subtle); }
+  /* Sahifa tepasidagi izohdagi tur nomlari (statik HTML, inline SVG bilan) */
+  .prjc-kind { display: inline-flex; align-items: center; gap: 4px; vertical-align: -2px; color: var(--ink); }
   /* Modal — ikonli 2 kartali tanlov */
   .ui-choice { display: grid; gap: 8px; }
   .ui-choice-card { display: flex; align-items: flex-start; gap: 11px; padding: 11px 13px; border: 1.5px solid var(--line); border-radius: 13px; cursor: pointer; transition: border-color .12s, background .12s; }
@@ -2483,7 +2538,8 @@
         <h2 class="h2" style="margin:0">Loyihalar</h2>
         <button class="btn" id="prjNewBtn" onclick="openCreateProject()" style="display:none">+ Yangi loyiha</button>
       </div>
-      <div style="font-size:12.5px;color:var(--muted);margin:6px 0 16px;">Loyiha ikki xil bo'ladi: <b>🔗 Ketma-ket</b> — bosqichlar navbatma-navbat ochiladi; <b>⚡ Parallel</b> — hamma vazifa birdan ochiq. Qaysi bosqichda ekanini va kim ushlab turganini shu yerdan ko'ring.</div>
+      <!-- Emoji o'rniga inline SVG (ICON_PATHS: link / zap) — kartadagi nishonlar bilan bir xil to'plam. -->
+      <div style="font-size:12.5px;color:var(--muted);margin:6px 0 16px;">Loyiha ikki xil bo'ladi: <b class="prjc-kind"><svg class="ic-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><path d="M8 12h8"/></svg>Ketma-ket</b> — bosqichlar navbatma-navbat ochiladi; <b class="prjc-kind"><svg class="ic-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>Parallel</b> — hamma vazifa birdan ochiq. Qaysi bosqichda ekanini va kim ushlab turganini shu yerdan ko'ring.</div>
       <div id="projectsList"></div>
     </section>
 
@@ -3806,9 +3862,13 @@ const PRJ_TYPES = {
   parallel:   { icon: '⚡', name: 'Parallel',  desc: 'Hamma vazifa birdan ochiq. Istalgan tartibda bajariladi.' }
 };
 function prjFlowType(p) { return (p && p.flow_type === 'parallel') ? 'parallel' : 'sequential'; }
+// ⚠️ Ikonka `PRJ_TYPES[k].icon` (emoji) EMAS — u faqat `uiForm` `choice`
+//    kartalari uchun qoladi (`prjTypeOptions`). Bu yerda SVG: detal sarlavhasi
+//    va ro'yxat kartasi bir xil ko'rinsin.
 function prjTypeChip(p) {
   const k = prjFlowType(p), t = PRJ_TYPES[k];
-  return '<span class="prj-chip prj-chip-' + k + '" title="' + escapeHtml(t.desc) + '">' + t.icon + ' ' + escapeHtml(t.name) + '</span>';
+  return '<span class="prj-chip prj-chip-' + k + '" title="' + escapeHtml(t.desc) + '">' +
+    icon(k === 'parallel' ? 'zap' : 'link', 13) + escapeHtml(t.name) + '</span>';
 }
 function prjTypeOptions() {
   return ['sequential', 'parallel'].map(k => ({ value: k, icon: PRJ_TYPES[k].icon, label: PRJ_TYPES[k].name, desc: PRJ_TYPES[k].desc }));
@@ -4278,11 +4338,104 @@ function prjfBarHtml(shown, total) {
   }).join('') + '<span class="prjf-count">' + shown + ' / ' + total + ' ta</span></div>';
 }
 
+// ============ LOYIHA KARTASI (prjc*) — faqat KO'RINISH ============
+// 🔴 Bu blok hech qanday mantiqqa tegmaydi: holat `prjState`, filtr `prjf*`,
+//    ochish `openProject`, saralash `prjByOrder` — hammasi o'z joyida qoladi.
+//    Bu yerda faqat kartaning HTML'i yig'iladi.
+
+// Loyiha turi nishoni — kartada emoji o'rniga ikonka.
+// ⚠️ Mavjud `prjTypeChip` TEGILMAYDI (detal sarlavhasi va boshqa joylarda
+//    ishlatiladi) — kartaning o'z varianti alohida funksiya.
+// `prjTypeChip` bilan bir xil bo'lib qoldi — takrorlamaymiz.
+function prjcTypeChip(p) { return prjTypeChip(p); }
+// Bosqichlarga biriktirilgan NOYOB odamlar (bosqich tartibida)
+function prjcPeople(list) {
+  const out = [];
+  (list || []).forEach(function (t) {
+    if (t.assigned_to && out.indexOf(t.assigned_to) === -1) out.push(t.assigned_to);
+  });
+  return out;
+}
+const PRJC_STACK_MAX = 4;   // undan ortig'i "+N" bo'lib yig'iladi
+// Avatar stack: 4 tagacha ustma-ust + "+N". Ismlar `title` da.
+function prjcStackHtml(uids) {
+  if (!uids || !uids.length) return '';
+  const names = uids.map(function (u) { return tblMemberName(u); });
+  const shown = uids.slice(0, PRJC_STACK_MAX);
+  const rest = uids.length - shown.length;
+  return '<span class="prjc-stack" title="' + escapeHtml(names.join(', ')) + '">' +
+    shown.map(function (u, i) {
+      return '<span class="prjc-av" title="' + escapeHtml(names[i]) + '">' +
+        avatarHtml(names[i], 'sm', null, u) + '</span>';
+    }).join('') +
+    (rest > 0 ? '<span class="prjc-av prjc-more" title="' + escapeHtml(names.slice(PRJC_STACK_MAX).join(', ')) + '">+' + rest + '</span>' : '') +
+  '</span>';
+}
+// Klaviatura bilan ochish — sichqoncha handleri bilan AYNAN bir xil chaqiruv.
+function prjcCardKey(ev, id) {
+  if (!ev) return;
+  if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'Spacebar') { ev.preventDefault(); openProject(id); }
+}
+// Bitta loyiha kartasi
+function prjcCardHtml(p) {
+  const list = (p._tasks || []).slice().sort(prjByOrder);
+  const st = prjState(p, list);
+  const total = list.length;
+  // "Bajarildi" = completed + cancelled (bekor qilingan bosqich ham yopilgan)
+  const done = list.filter(function (t) { return t.status === 'completed' || t.status === 'cancelled'; }).length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+
+  const prog = total
+    ? '<div class="prjc-prog">' +
+        '<div class="prjc-prog-top"><span class="prjc-prog-n">' + done + ' / ' + total + ' bosqich</span>' +
+        '<span class="prjc-prog-pct">' + pct + '%</span></div>' +
+        '<div class="prjc-track"><span class="prjc-fill" style="width:' + pct + '%;"></span></div>' +
+      '</div>'
+    : '<div class="prjc-none">' + icon('checks', 14) + 'Bosqich qo\'shilmagan</div>';
+
+  // Hozirgi holat — bitta qator (bosqich bo'lmasa umuman ko'rsatilmaydi)
+  let now = '';
+  if (total) {
+    if (prjFlowType(p) === 'parallel') {
+      const open = prjOpenTasks(list);
+      now = open.length
+        ? '<div class="prjc-now">' + icon('zap', 14) + '<span class="prjc-now-t">' + open.length + ' ta bosqich ochiq</span></div>'
+        : '<div class="prjc-now ok">' + icon('check', 14) + '<span class="prjc-now-t">Barcha bosqichlar tugadi</span></div>';
+    } else {
+      const cur = prjCurrentTask(list);
+      now = cur
+        ? '<div class="prjc-now" title="' + escapeHtml('Hozir shu bosqichda: ' + (cur.title || '(nomsiz)')) + '">' +
+            icon('play', 14) + '<span class="prjc-now-t">' + escapeHtml(cur.title || '(nomsiz)') + '</span></div>'
+        : '<div class="prjc-now ok">' + icon('check', 14) + '<span class="prjc-now-t">Barcha bosqichlar tugadi</span></div>';
+    }
+  }
+
+  const people = prjcPeople(list);
+  let foot = '';
+  if (people.length) {
+    foot = '<div class="prjc-foot">' + prjcStackHtml(people) +
+      '<span class="prjc-cap">' + people.length + ' ta bajaruvchi</span></div>';
+  } else if (total) {
+    foot = '<div class="prjc-foot"><span class="prjc-cap">' + icon('user', 14) + 'Bajaruvchi biriktirilmagan</span></div>';
+  }
+
+  const range = prjRangeHtml(p);
+  // ⚠️ onclick AYNAN eski holida — openProject(id)
+  return '<article class="prjc-card st-' + st + '" role="button" tabindex="0" ' +
+      'onclick="openProject(\'' + p.id + '\')" onkeydown="prjcCardKey(event, \'' + p.id + '\')">' +
+    '<div class="prjc-head"><h3 class="prjc-name">' + escapeHtml(p.name) + '</h3>' + prjStateBadge(p, list) + '</div>' +
+    (p.description ? '<p class="prjc-desc">' + escapeHtml(p.description) + '</p>' : '') +
+    '<div class="prjc-chips">' + prjcTypeChip(p) + prjRecurChip(p) + '</div>' +
+    (range ? '<div class="prjc-dates">' + range + '</div>' : '') +
+    prog + now + foot +
+  '</article>';
+}
+
 function renderProjectsOverview() {
   const wrap = $('projectsList');
   if (!wrap) return;
   if (!projectsCache.length) {
-    wrap.innerHTML = '<div class="empty"><strong>Hali loyiha yo\'q</strong>' +
+    wrap.innerHTML = '<div class="empty"><div class="prjc-eic">' + icon('project', 22) + '</div><strong>Hali loyiha yo\'q</strong>' +
       (isOwnerLike()
         ? '<span style="display:block;margin-bottom:14px;">Loyiha — bir maqsad yo\'lidagi bosqichlar to\'plami (masalan: "Yangi filial ochish").</span><button class="btn" onclick="openCreateProject()">+ Birinchi loyihani yaratish</button>'
         : '<span style="display:block;">Administrator loyiha yaratgach — yoki loyihada sizga bosqich biriktirilgach — shu yerda ko\'rinadi.</span>') +
@@ -4292,47 +4445,15 @@ function renderProjectsOverview() {
   const shownList = prjfApply(projectsCache);
   const bar = prjfBarHtml(shownList.length, projectsCache.length);
   if (!shownList.length) {
-    wrap.innerHTML = bar + '<div class="empty"><strong>' +
+    wrap.innerHTML = bar + '<div class="empty"><div class="prjc-eic">' +
+      icon(prjFilter === 'ended' ? 'archive' : 'zap', 22) + '</div><strong>' +
       (prjFilter === 'ended' ? 'Tarixda loyiha yo\'q' : 'Faol loyiha yo\'q') + '</strong>' +
       '<span style="display:block;">' + (prjFilter === 'ended'
         ? 'Tugagan loyihalar shu yerda saqlanadi — hech narsa o\'chirilmaydi.'
         : 'Barcha loyihalar tugagan. "Tarix" yoki "Hammasi" ni bosing.') + '</span></div>';
     return;
   }
-  wrap.innerHTML = bar + '<div class="prj-grid">' + shownList.map(p => {
-    const list = (p._tasks || []).slice().sort(prjByOrder);
-    const ft = prjFlowType(p);
-    const total = list.length;
-    const done = list.filter(t => t.status === 'completed').length;
-    const pct = total ? Math.round(done / total * 100) : 0;
-    let now;
-    if (!total) {
-      now = '<div class="prj-now"><span style="color:var(--muted);">Bosqich qo\'shilmagan</span></div>';
-    } else if (ft === 'parallel') {
-      const open = prjOpenTasks(list);
-      now = '<div class="prj-now">' + (open.length
-        ? '<span class="prj-chip prj-chip-parallel">⚡ ' + open.length + ' ta ochiq</span><span class="prj-now-txt"><span class="prj-now-lbl">Bajarilmoqda</span><span class="prj-now-val">' + escapeHtml(prjAssigneeSummary(open)) + '</span></span>'
-        : '<span class="prj-now-done">✓ Barcha vazifalar tugadi</span>') + '</div>';
-    } else {
-      const cur = prjCurrentTask(list);
-      if (cur) {
-        const nm = cur.assigned_to ? tblMemberName(cur.assigned_to) : 'Biriktirilmagan';
-        now = '<div class="prj-now">' + avatarHtml(nm, null, null, cur.assigned_to || null) +
-          '<span class="prj-now-txt"><span class="prj-now-lbl">Hozir shu bosqichda · ' + escapeHtml(nm) + '</span>' +
-          '<span class="prj-now-val">' + escapeHtml(cur.title || '(nomsiz)') + '</span></span></div>';
-      } else {
-        now = '<div class="prj-now"><span class="prj-now-done">✓ Barcha vazifalar tugadi</span></div>';
-      }
-    }
-    return '<div class="prj-card" onclick="openProject(\'' + p.id + '\')">' +
-      '<div class="prj-card-head"><div class="prj-card-name">' + escapeHtml(p.name) + '</div>' + prjStateBadge(p, list) + '</div>' +
-      '<div class="prj-chips">' + prjTypeChip(p) + prjRecurChip(p) + '</div>' +
-      (prjRangeHtml(p) ? '<div class="prj-card-dates">' + prjRangeHtml(p) + '</div>' : '') +
-      '<div class="prj-bar-row"><span>' + done + '/' + total + ' bajarildi</span><span>' + pct + '%</span></div>' +
-      '<div class="prj-bar"><div class="prj-bar-fill" style="width:' + pct + '%;background:' + (pct === 100 ? 'var(--success)' : '#3B82F6') + ';"></div></div>' +
-      now +
-    '</div>';
-  }).join('') + '</div>';
+  wrap.innerHTML = bar + '<div class="prjc-grid">' + shownList.map(prjcCardHtml).join('') + '</div>';
 }
 
 // Ochiq vazifalarning bajaruvchilari (qisqa ro'yxat)
@@ -4511,7 +4632,11 @@ function prjRenderHero() {
   const list = prjTasks.slice().sort(prjByOrder);
   const ft = prjFlowType(p);
   const total = list.length;
-  const done = list.filter(t => t.status === 'completed').length;
+  // ⚠️ `cancelled` ham "yopilgan" hisoblanadi — `prjcCardHtml` (ro'yxat kartasi)
+  //    va `prjState` ning "hammasi tugagan -> ended" mantiqi bilan BIR XIL
+  //    bo'lsin. Aks holda bekor qilingan bosqichi bor loyihada ro'yxat 100%,
+  //    detal 50% ko'rsatardi.
+  const done = list.filter(t => t.status === 'completed' || t.status === 'cancelled').length;
   const pct = total ? Math.round(done / total * 100) : 0;
   const open = prjOpenTasks(list);
   const locked = prjLockedTasks(list);
