@@ -311,25 +311,18 @@ ul { margin: 0; padding: 0; list-style: none; }
 .lp-mod p { font-size: 14px; line-height: 1.6; color: var(--muted); margin-top: 7px; }
 
 /* ── Narxlar ────────────────────────────────────────────────────────────── */
-.lp-toggle { display: inline-flex; gap: 4px; background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 12px; padding: 4px; margin: 26px auto 0; }
-.lp-toggle button { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 16px; border: 0; border-radius: 9px; background: transparent; font-size: 13.5px; font-weight: 600; color: var(--muted); cursor: pointer; transition: background .16s ease, color .16s ease, box-shadow .16s ease; }
-.lp-toggle button:hover { color: var(--ink-soft); }
-.lp-toggle button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(28,31,36,.08); }
-.lp-save { font-size: 11px; font-weight: 700; letter-spacing: .04em; color: var(--accent-ink); background: var(--accent); border-radius: 999px; padding: 2px 8px; }
+/* 2026-08-12: narx ko'rsatilmaydi — .lp-toggle / .lp-save / .lp-amount / .lp-cur
+   / .lp-per qoidalari o'chirildi. Har rejada bitta "Bog'lanish" (Telegram). */
 /* align-items: stretch (default) — 3 karta bir xil balandlikda, tekis ko'rinadi */
 .lp-prices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 46px; }
 .lp-price { position: relative; background: var(--surface); border: 1px solid var(--line-soft); border-radius: 18px; padding: 28px 26px 30px; display: flex; flex-direction: column; }
 .lp-price.pop { background: var(--dark); border-color: var(--dark); color: var(--dark-ink); box-shadow: var(--shadow-lg); padding-top: 34px; }
 .lp-price-tag { position: absolute; top: 16px; right: 20px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent-ink); background: var(--accent); border-radius: 999px; padding: 4px 11px; }
 .lp-price h3 { font-size: 19px; font-weight: 600; letter-spacing: -.02em; }
-.lp-price .lp-for { font-size: 13.5px; color: var(--muted); margin-top: 5px; }
+/* min-height — 3 kartaning "Bog'lanish" tugmasi bir chiziqda tursin
+   (matnlar 1 yoki 2 qatorga tushishi mumkin) */
+.lp-price .lp-for { font-size: 13.5px; color: var(--muted); margin-top: 5px; line-height: 1.5; min-height: 40px; }
 .lp-price.pop .lp-for { color: rgba(250,247,240,.6); }
-/* min-height — "0 so'm", "19 000 so'm" va "Kelishuv asosida" bir chiziqda tursin */
-.lp-amount { display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap; min-height: 38px; margin: 20px 0 4px; }
-.lp-amount b { font-family: 'Space Grotesk', sans-serif; font-size: 36px; font-weight: 600; letter-spacing: -.035em; line-height: 1; }
-.lp-amount .lp-cur { font-family: 'Space Grotesk', sans-serif; font-size: 19px; font-weight: 600; letter-spacing: -.02em; }
-.lp-per { font-size: 12.5px; color: var(--muted); min-height: 32px; line-height: 1.4; }
-.lp-price.pop .lp-per { color: rgba(250,247,240,.6); }
 .lp-price .lp-btn { width: 100%; margin: 20px 0 22px; }
 .lp-plist { display: grid; gap: 11px; }
 .lp-plist li { display: grid; grid-template-columns: 18px 1fr; gap: 10px; align-items: start; font-size: 14px; line-height: 1.45; color: var(--ink-soft); }
@@ -426,7 +419,6 @@ ul { margin: 0; padding: 0; list-style: none; }
   .lp-trust > div { border-right: 0; border-bottom: 1px solid var(--line-soft); }
   .lp-trust > div:last-child { border-bottom: 0; }
   .lp-price { padding: 24px 20px 26px; }
-  .lp-amount b { font-size: 32px; }
 }
 </style>
 <script>document.documentElement.className += ' js';</script>
@@ -446,12 +438,12 @@ ul { margin: 0; padding: 0; list-style: none; }
     <nav class="lp-nav" aria-label="Asosiy menyu">
       <a href="#features">Imkoniyatlar</a>
       <a href="#modules">Modullar</a>
-      <a href="#pricing">Narxlar</a>
+      <a href="#pricing">Rejalar</a>
       <a href="#faq">Savollar</a>
     </nav>
     <div class="lp-hdr-cta">
       <a class="lp-btn lp-btn-txt lp-btn-sm" href="index.html?app=1#login">Kirish</a>
-      <a class="lp-btn lp-btn-dark lp-btn-sm" href="index.html?app=1#signup">Bepul boshlash</a>
+      <a class="lp-btn lp-btn-dark lp-btn-sm" href="index.html?app=1#signup">Ro'yxatdan o'tish</a>
     </div>
     <button class="lp-burger" id="lpBurger" type="button" aria-label="Menyuni ochish" aria-expanded="false" aria-controls="lpMnav">
       <svg class="lpi lp-bm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>
@@ -462,11 +454,12 @@ ul { margin: 0; padding: 0; list-style: none; }
     <div class="lp-wrap">
       <a href="#features">Imkoniyatlar</a>
       <a href="#modules">Modullar</a>
-      <a href="#pricing">Narxlar</a>
+      <a href="#pricing">Rejalar</a>
       <a href="#faq">Savollar</a>
       <div class="lp-mnav-btns">
         <a class="lp-btn lp-btn-ghost" href="index.html?app=1#login">Tizimga kirish</a>
-        <a class="lp-btn lp-btn-dark" href="index.html?app=1#signup">Bepul boshlash</a>
+        <a class="lp-btn lp-btn-dark" href="index.html?app=1#signup">Ro'yxatdan o'tish</a>
+        <a class="lp-btn lp-btn-ghost" href="https://t.me/data_aros" target="_blank" rel="noopener noreferrer">Bog'lanish</a>
       </div>
     </div>
   </div>
@@ -492,15 +485,18 @@ ul { margin: 0; padding: 0; list-style: none; }
 
       <div class="lp-hero-btns">
         <a class="lp-btn lp-btn-dark lp-btn-lg" href="index.html?app=1#signup">
-          Bepul boshlash
+          Ro'yxatdan o'tish
           <svg class="lpi lpi-16 lpi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
         </a>
-        <a class="lp-btn lp-btn-ghost lp-btn-lg" href="index.html?app=1#login">Tizimga kirish</a>
+        <a class="lp-btn lp-btn-ghost lp-btn-lg" href="https://t.me/data_aros" target="_blank" rel="noopener noreferrer">
+          <svg class="lpi lpi-16 lpi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.54 21.69a.5.5 0 0 0 .93-.03l6.5-19a.5.5 0 0 0-.63-.63l-19 6.5a.5.5 0 0 0-.03.93l7.93 3.18a2 2 0 0 1 1.11 1.11z"/><path d="m21.85 2.15-10.94 10.94"/></svg>
+          Bog'lanish
+        </a>
       </div>
 
       <p class="lp-hero-note">
-        <span><svg class="lpi lpi-14 lpi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Karta talab qilinmaydi</span>
-        <span><svg class="lpi lpi-14 lpi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> 5 kishigacha bepul</span>
+        <span><svg class="lpi lpi-14 lpi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> O'rnatish shart emas</span>
+        <span><svg class="lpi lpi-14 lpi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Jamoangizga moslanadi</span>
         <span><svg class="lpi lpi-14 lpi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> 2 daqiqada ishga tushadi</span>
       </p>
     </div>
@@ -906,25 +902,21 @@ ul { margin: 0; padding: 0; list-style: none; }
     <div class="lp-sec-head center reveal">
       <span class="lp-eyebrow">
         <svg class="lpi lpi-14" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg>
-        Narxlar
+        Rejalar
       </span>
-      <h2 class="lp-h2" id="priceH">Sodda narx, yashirin to'lovsiz</h2>
-      <p class="lp-lead">Kichik jamoa uchun bepul. O'sganingizda faqat foydalanuvchi soniga to'laysiz — boshqa hech narsaga emas.</p>
-
-      <div class="lp-toggle" role="group" aria-label="To'lov davri">
-        <button type="button" id="lpCycM" data-cycle="m" aria-pressed="true">Oylik</button>
-        <button type="button" id="lpCycY" data-cycle="y" aria-pressed="false">Yillik <span class="lp-save">−20%</span></button>
-      </div>
+      <h2 class="lp-h2" id="priceH">Jamoangizga mos rejani tanlang</h2>
+      <p class="lp-lead">Har bir jamoa har xil — shuning uchun shartlar jamoangiz hajmi va kerakli modullarga qarab belgilanadi. Bog'laning, ehtiyojingizni tinglab aniq taklif va bepul demo tayyorlaymiz.</p>
     </div>
 
     <div class="lp-prices reveal">
       <!-- Boshlang'ich -->
       <article class="lp-price">
         <h3>Boshlang'ich</h3>
-        <p class="lp-for">Kichik jamoa uchun</p>
-        <div class="lp-amount"><b>0</b><span class="lp-cur">so'm</span></div>
-        <p class="lp-per">Doimiy bepul, 5 foydalanuvchigacha</p>
-        <a class="lp-btn lp-btn-ghost" href="index.html?app=1#signup">Bepul boshlash</a>
+        <p class="lp-for">Kichik jamoa uchun — vazifa boshqaruvi bilan tanishish</p>
+        <a class="lp-btn lp-btn-ghost" href="https://t.me/data_aros" target="_blank" rel="noopener noreferrer">
+          <svg class="lpi lpi-16 lpi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.54 21.69a.5.5 0 0 0 .93-.03l6.5-19a.5.5 0 0 0-.63-.63l-19 6.5a.5.5 0 0 0-.03.93l7.93 3.18a2 2 0 0 1 1.11 1.11z"/><path d="m21.85 2.15-10.94 10.94"/></svg>
+          Bog'lanish
+        </a>
         <ul class="lp-plist">
           <li><svg class="lpi lpi-16 lpi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> 5 foydalanuvchigacha</li>
           <li><svg class="lpi lpi-16 lpi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Cheksiz vazifa</li>
@@ -939,10 +931,11 @@ ul { margin: 0; padding: 0; list-style: none; }
       <article class="lp-price pop">
         <span class="lp-price-tag">Ommabop</span>
         <h3>Biznes</h3>
-        <p class="lp-for">O'sayotgan kompaniyalar uchun</p>
-        <div class="lp-amount"><b id="lpAmt" data-m="19 000" data-y="15 000">19 000</b><span class="lp-cur">so'm</span></div>
-        <p class="lp-per" id="lpPer" data-m="Foydalanuvchi / oyiga" data-y="Foydalanuvchi / oyiga · yillik to'lovda">Foydalanuvchi / oyiga</p>
-        <a class="lp-btn lp-btn-accent" href="index.html?app=1#signup">Bepul boshlash</a>
+        <p class="lp-for">O'sayotgan kompaniyalar uchun — loyiha, HR va hisobot bilan</p>
+        <a class="lp-btn lp-btn-accent" href="https://t.me/data_aros" target="_blank" rel="noopener noreferrer">
+          <svg class="lpi lpi-16 lpi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.54 21.69a.5.5 0 0 0 .93-.03l6.5-19a.5.5 0 0 0-.63-.63l-19 6.5a.5.5 0 0 0-.03.93l7.93 3.18a2 2 0 0 1 1.11 1.11z"/><path d="m21.85 2.15-10.94 10.94"/></svg>
+          Bog'lanish
+        </a>
         <ul class="lp-plist">
           <li><svg class="lpi lpi-16 lpi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> <span class="lp-inherit">Boshlang'ichdagi hammasi, va:</span></li>
           <li><svg class="lpi lpi-16 lpi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Cheksiz foydalanuvchi</li>
@@ -960,10 +953,11 @@ ul { margin: 0; padding: 0; list-style: none; }
       <!-- Korxona -->
       <article class="lp-price">
         <h3>Korxona</h3>
-        <p class="lp-for">Katta tashkilotlar uchun</p>
-        <div class="lp-amount"><b style="font-size:26px">Kelishuv asosida</b></div>
-        <p class="lp-per">Ehtiyojingizga qarab hisoblanadi</p>
-        <a class="lp-btn lp-btn-ghost" href="mailto:info@taskfix.org">Bog'lanish</a>
+        <p class="lp-for">Katta tashkilotlar uchun — import, integratsiya va alohida shartlar</p>
+        <a class="lp-btn lp-btn-ghost" href="https://t.me/data_aros" target="_blank" rel="noopener noreferrer">
+          <svg class="lpi lpi-16 lpi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.54 21.69a.5.5 0 0 0 .93-.03l6.5-19a.5.5 0 0 0-.63-.63l-19 6.5a.5.5 0 0 0-.03.93l7.93 3.18a2 2 0 0 1 1.11 1.11z"/><path d="m21.85 2.15-10.94 10.94"/></svg>
+          Bog'lanish
+        </a>
         <ul class="lp-plist">
           <li><svg class="lpi lpi-16 lpi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> <span class="lp-inherit">Biznesdagi hammasi, va:</span></li>
           <li><svg class="lpi lpi-16 lpi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Ma'lumot importi (Excel, 1C)</li>
@@ -976,7 +970,7 @@ ul { margin: 0; padding: 0; list-style: none; }
       </article>
     </div>
 
-    <p class="lp-price-note">Narxlar O'zbekiston so'mida, QQS hisobga olinmagan.</p>
+    <p class="lp-price-note">Qaysi reja mos kelishini bilmayapsizmi? Telegram orqali yozing — jamoangizni so'rab, o'zimiz tavsiya qilamiz.</p>
   </div>
 </section>
 
@@ -991,7 +985,7 @@ ul { margin: 0; padding: 0; list-style: none; }
         Savollar
       </span>
       <h2 class="lp-h2" id="faqH">Ko'p so'raladigan savollar</h2>
-      <p class="lp-lead">Javobini topa olmadingizmi? <a href="mailto:info@taskfix.org" style="color:var(--accent-ink);font-weight:600;text-decoration:underline;text-underline-offset:3px">info@taskfix.org</a> ga yozing — javob beramiz.</p>
+      <p class="lp-lead">Javobini topa olmadingizmi? Telegramda <a href="https://t.me/data_aros" target="_blank" rel="noopener noreferrer" style="color:var(--accent-ink);font-weight:600;text-decoration:underline;text-underline-offset:3px">@data_aros</a> ga yozing — javob beramiz.</p>
     </div>
 
     <div class="lp-faqs reveal">
@@ -1026,10 +1020,10 @@ ul { margin: 0; padding: 0; list-style: none; }
         <p class="lp-faq-a">Excel yoki boshqa tizimdan xodim va vazifalarni ko'chirishda yordam beramiz — Korxona rejasiga kiradi.</p>
       </details>
       <details class="lp-faq">
-        <summary>Bepul rejadan Biznesga qachon o'tish kerak?
+        <summary>Rejani keyinroq o'zgartira olamanmi?
           <svg class="lpi lpi-18 lp-faq-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
         </summary>
-        <p class="lp-faq-a">Jamoangiz 5 kishidan oshganda yoki loyiha/HR modullari kerak bo'lganda. Ma'lumotlaringiz joyida qoladi.</p>
+        <p class="lp-faq-a">Ha. Jamoangiz o'sganda yoki loyiha va HR modullari kerak bo'lganda rejani istalgan vaqtda kengaytirasiz — ma'lumotlaringiz joyida qoladi. Shartlarni Telegram orqali kelishamiz.</p>
       </details>
     </div>
   </div>
@@ -1040,13 +1034,16 @@ ul { margin: 0; padding: 0; list-style: none; }
   <div class="lp-wrap">
     <div class="lp-cta-in">
       <h2 id="ctaH">Jamoangiz bugundan tartibli ishlasin.</h2>
-      <p>Bepul boshlang — karta ham, shartnoma ham talab qilinmaydi.</p>
+      <p>Ro'yxatdan o'ting yoki Telegram orqali yozing — jamoangizga demo ko'rsatamiz.</p>
       <div class="lp-cta-btns">
         <a class="lp-btn lp-btn-accent lp-btn-lg" href="index.html?app=1#signup">
-          Bepul boshlash
+          Ro'yxatdan o'tish
           <svg class="lpi lpi-16 lpi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
         </a>
-        <a class="lp-btn lp-btn-onDark lp-btn-lg" href="index.html?app=1#login">Kirish</a>
+        <a class="lp-btn lp-btn-onDark lp-btn-lg" href="https://t.me/data_aros" target="_blank" rel="noopener noreferrer">
+          <svg class="lpi lpi-16 lpi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.54 21.69a.5.5 0 0 0 .93-.03l6.5-19a.5.5 0 0 0-.63-.63l-19 6.5a.5.5 0 0 0-.03.93l7.93 3.18a2 2 0 0 1 1.11 1.11z"/><path d="m21.85 2.15-10.94 10.94"/></svg>
+          Bog'lanish
+        </a>
       </div>
     </div>
   </div>
@@ -1074,18 +1071,19 @@ ul { margin: 0; padding: 0; list-style: none; }
         <ul>
           <li><a href="#features">Imkoniyatlar</a></li>
           <li><a href="#modules">Modullar</a></li>
-          <li><a href="#pricing">Narxlar</a></li>
+          <li><a href="#pricing">Rejalar</a></li>
           <li><a href="index.html?app=1#login">Kirish</a></li>
+          <li><a href="index.html?app=1#signup">Ro'yxatdan o'tish</a></li>
         </ul>
       </nav>
 
       <nav aria-labelledby="footComp">
         <h4 id="footComp">Kompaniya</h4>
         <ul>
-          <li><a href="#">Biz haqimizda</a></li>
-          <li><a href="#">Aloqa</a></li>
-          <li><a href="#">Maxfiylik siyosati</a></li>
-          <li><a href="#">Foydalanish shartlari</a></li>
+          <li><a href="https://t.me/data_aros" target="_blank" rel="noopener noreferrer">Bog'lanish</a></li>
+          <li><a href="https://t.me/data_aros" target="_blank" rel="noopener noreferrer">Demo so'rash</a></li>
+          <li><a href="https://t.me/data_aros" target="_blank" rel="noopener noreferrer">Hamkorlik</a></li>
+          <li><a href="https://t.me/data_aros" target="_blank" rel="noopener noreferrer">Qo'llab-quvvatlash</a></li>
         </ul>
       </nav>
 
@@ -1093,12 +1091,8 @@ ul { margin: 0; padding: 0; list-style: none; }
         <h4 id="footCon">Aloqa</h4>
         <ul class="lp-foot-c" aria-labelledby="footCon">
           <li>
-            <svg class="lpi lpi-16" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-            <a href="mailto:info@taskfix.org">info@taskfix.org</a>
-          </li>
-          <li>
             <svg class="lpi lpi-16" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.54 21.69a.5.5 0 0 0 .93-.03l6.5-19a.5.5 0 0 0-.63-.63l-19 6.5a.5.5 0 0 0-.03.93l7.93 3.18a2 2 0 0 1 1.11 1.11z"/><path d="m21.85 2.15-10.94 10.94"/></svg>
-            <a href="https://t.me/taskfix_support" target="_blank" rel="noopener noreferrer">@taskfix_support</a>
+            <a href="https://t.me/data_aros" target="_blank" rel="noopener noreferrer">@data_aros</a>
           </li>
           <li>
             <svg class="lpi lpi-16" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -1158,23 +1152,8 @@ ul { margin: 0; padding: 0; list-style: none; }
     if (window.innerWidth > 880) setNav(false);
   });
 
-  /* ── Narx: Oylik / Yillik ───────────────────────────────────────────── */
-  var cyc = document.querySelectorAll('[data-cycle]');
-  var swap = document.querySelectorAll('[data-m][data-y]');
-  function setCycle(mode) {
-    var i;
-    for (i = 0; i < cyc.length; i++) {
-      cyc[i].setAttribute('aria-pressed', cyc[i].getAttribute('data-cycle') === mode ? 'true' : 'false');
-    }
-    for (i = 0; i < swap.length; i++) {
-      swap[i].textContent = swap[i].getAttribute(mode === 'y' ? 'data-y' : 'data-m');
-    }
-  }
-  for (var c = 0; c < cyc.length; c++) {
-    cyc[c].addEventListener('click', function () {
-      setCycle(this.getAttribute('data-cycle'));
-    });
-  }
+  /* Narx toggle (Oylik/Yillik) 2026-08-12 da olib tashlandi — sahifada narx
+     ko'rsatilmaydi, har rejada "Bog'lanish" (Telegram) turadi. */
 
   /* ── Reveal (sokin) ─────────────────────────────────────────────────── */
   var items = document.querySelectorAll('.reveal');
