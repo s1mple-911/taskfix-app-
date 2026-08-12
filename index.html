@@ -7,6 +7,36 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>TaskFix — Vazifalarni hal qiling</title>
+<!-- ============ LANDING DARVOZASI ============
+     Noma'lum mehmon (sessiyasi yo'q, auth parametri yo'q) marketing sahifasiga
+     yo'naltiriladi — 1.2 MB ilova umuman yuklanmasin.
+     🔴 Tamoyil: SHUBHA BO'LSA — ILOVADA QOLAMIZ. Har qanday xato/noaniqlikda
+     yo'naltirish qilinmaydi (parol tiklash, taklif, OAuth oqimlari buzilmasin).
+     Sinxron va <head> da — keyingi resurslar yuklanishidan oldin ishlaydi. -->
+<script>
+(function () {
+  try {
+    var s = location.search || '', h = location.hash || '';
+    // 1. Ataylab ilovaga kelgan (landing tugmasi ?app=1 bilan yuboradi)
+    if (s.indexOf('app=1') !== -1) return;
+    // 2. Auth oqimi — parol tiklash, taklif, OAuth kod, xato
+    if (/access_token|refresh_token|type=|error_description|error=/.test(h)) return;
+    // ⚠️ `error` query'da ham bo'ladi: PKCE/verify oqimida eskirgan reset/invite
+    // havolasi xatoni hash'da EMAS, query'da qaytaradi (?error=access_denied&...).
+    // Busiz eskirgan havolani bosgan odam kirish ekrani o'rniga landingga tushardi.
+    if (/[?&](invite|code|token_hash|type|error|error_description)=/.test(s)) return;
+    // 3. Ilova ichidagi chuqur havola (#/tasks, #/projects ...)
+    if (h.indexOf('#/') === 0) return;
+    if (h === '#login' || h === '#signup') return;
+    // 4. Sessiya bor — supabase-js localStorage kaliti (sb-<ref>-auth-token)
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k && k.indexOf('sb-') === 0 && k.indexOf('-auth-token') !== -1) return;
+    }
+    location.replace('landing.html');
+  } catch (e) { /* shubha bo'lsa — ilovada qolamiz */ }
+})();
+</script>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230F1417'/%3E%3Cpath d='M 9 16 L 14 21 L 23 11' stroke='%23FEF3C7' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -115,6 +145,9 @@
   }
   #authShell .brand::after { right: -140px; bottom: -160px; width: 420px; height: 420px; background: radial-gradient(circle, rgba(254,243,199,.13), transparent 65%); }
   #authShell .wordmark { font-size: 21px; gap: 10px; color: #FAF7F0; }
+  /* Logo → landing.html (ko'rinish o'zgarmaydi: o'sha inline-flex + 10px gap) */
+  #authShell .wordmark .au-wm-link { display: inline-flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; border-radius: 10px; }
+  #authShell .wordmark .au-wm-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
   #authShell .brand-hero { max-width: 440px; }
   #authShell .brand-hero h1 { font-size: clamp(30px, 3vw, 42px); line-height: 1.06; letter-spacing: -.032em; margin: 0 0 16px; color: #F7F6F2; }
   #authShell .brand-hero p { color: rgba(237,237,233,.62); font-size: 15.5px; line-height: 1.65; max-width: 400px; margin: 0; }
@@ -1840,11 +1873,13 @@
 <div class="shell" id="authShell" style="display:none">
   <aside class="brand">
     <div class="wordmark">
-      <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-        <rect width="32" height="32" rx="8" fill="#FEF3C7"/>
-        <path d="M 9 16 L 14 21 L 23 11" stroke="#0F1417" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      </svg>
-      <span>TaskFix</span>
+      <a href="landing.html" class="au-wm-link" aria-label="TaskFix bosh sahifasi">
+        <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+          <rect width="32" height="32" rx="8" fill="#FEF3C7"/>
+          <path d="M 9 16 L 14 21 L 23 11" stroke="#0F1417" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <span>TaskFix</span>
+      </a>
     </div>
     <div class="brand-hero">
       <h1>Biznesingiz <span class="au-hl">bitta oynada</span>.</h1>
@@ -22459,7 +22494,13 @@ async function init() {
     return;
   }
   if (session) { await bootstrap(); }
-  else { setMode('login'); showAuth(); }
+  else {
+    // #signup bilan kelgan bo'lsa darrov "Ro'yxatdan o'tish" tabi ochiladi
+    // (landing sahifasidagi "Boshlash" tugmasi shu hash bilan yuboradi).
+    // ⚠️ _rawHash — location.hash EMAS: detectSessionInUrl uni tozalagan bo'lishi mumkin.
+    setMode(_rawHash === '#signup' ? 'signup' : 'login');
+    showAuth();
+  }
 
   // Keyboard shortcuts
   // STALE CONNECTION FIX: tab background'dan qaytganda
