@@ -93,6 +93,168 @@
   .msg.err { background: var(--danger-soft); color: #B91C1C; }
   .msg.ok { background: var(--success-soft); color: #047857; }
 
+  /* ═══════════════════════════════════════════════════════════════════════
+     AUTH / LOGIN (au*) — 2026-08-12 vizual qayta ishlash
+     ⚠️ Hammasi #authShell bilan skoplangan: yuqoridagi .card/.field/.msg/.btn
+        qoidalari ILOVANING QOLGAN QISMIDA ishlatiladi va tegilmaydi.
+        ID (1,1,0) > class (0,1,0) — keyingi media query'lar (880px bloki)
+        buni BOSA OLMAYDI, shuning uchun blok shu yerda turishi yetarli.
+     ═══════════════════════════════════════════════════════════════════════ */
+
+  /* --- 1. Karkas --- */
+  #authShell { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); background: var(--bg); }
+  #authShell form { margin: 0; }
+
+  /* --- 2. Chap brend paneli --- */
+  #authShell .brand {
+    padding: 44px 52px; gap: 28px; color: #EDEDE9;
+    background:
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,.055) 1px, transparent 0) 0 0 / 24px 24px,
+      radial-gradient(900px 440px at 6% -12%, rgba(254,243,199,.10), transparent 62%),
+      linear-gradient(160deg, #1B1E27 0%, #101116 72%);
+  }
+  #authShell .brand::after { right: -140px; bottom: -160px; width: 420px; height: 420px; background: radial-gradient(circle, rgba(254,243,199,.13), transparent 65%); }
+  #authShell .wordmark { font-size: 21px; gap: 10px; color: #FAF7F0; }
+  #authShell .brand-hero { max-width: 440px; }
+  #authShell .brand-hero h1 { font-size: clamp(30px, 3vw, 42px); line-height: 1.06; letter-spacing: -.032em; margin: 0 0 16px; color: #F7F6F2; }
+  #authShell .brand-hero p { color: rgba(237,237,233,.62); font-size: 15.5px; line-height: 1.65; max-width: 400px; margin: 0; }
+  .au-hl { color: var(--accent); }
+  .au-bottom { display: flex; flex-direction: column; gap: 18px; }
+  .au-feats { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+  .au-feat { display: flex; align-items: center; gap: 11px; font-size: 14px; line-height: 1.35; color: rgba(237,237,233,.86); }
+  .au-feat-ic { width: 26px; height: 26px; flex: 0 0 26px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: rgba(254,243,199,.10); border: 1px solid rgba(254,243,199,.16); color: var(--accent); }
+  .au-note { font-size: 12.5px; letter-spacing: .01em; color: rgba(237,237,233,.42); }
+  .au-note b { color: rgba(237,237,233,.66); font-weight: 600; }
+
+  /* --- 3. O'ng ustun + karta --- */
+  /* margin:auto — "xavfsiz markazlash": karta ekrandan baland bo'lsa
+     justify-content:center TEPASINI KESADI, margin:auto kesmaydi. */
+  #authShell .auth { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow-y: auto; padding: 40px 24px; }
+  #authShell .card {
+    margin: auto; max-width: 400px; padding: 32px 32px 28px;
+    border: 1px solid var(--line-soft); border-radius: 18px;
+    box-shadow: 0 1px 2px rgba(28,31,36,.04), 0 14px 36px rgba(28,31,36,.07);
+  }
+  #authShell .card h2 { font-size: 22px; letter-spacing: -.025em; margin: 0 0 6px; }
+  #authShell .card .sub { font-size: 13.5px; line-height: 1.5; margin: 0 0 24px; }
+
+  /* --- 4. Tab (Kirish / Ro'yxatdan o'tish) --- */
+  #authShell .tabs-pill { background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 22px; }
+  #authShell .tab-pill { min-height: 38px; border-radius: 9px; font-size: 13.5px; color: var(--muted); transition: background .16s ease, color .16s ease, box-shadow .16s ease; }
+  #authShell .tab-pill:hover { color: var(--ink-soft); }
+  #authShell .tab-pill.active { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(28,31,36,.08); }
+  #authShell .tab-pill:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: -2px; }
+
+  /* --- 5. Maydonlar --- */
+  #authShell .field { margin-bottom: 14px; }
+  #authShell .field label { font-size: 12.5px; font-weight: 600; letter-spacing: -.005em; color: var(--ink-soft); margin-bottom: 6px; }
+  #authShell .field input { height: 44px; padding: 0 14px; font-size: 15px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); transition: border-color .14s ease, box-shadow .14s ease; }
+  #authShell .field input::placeholder { color: var(--subtle); }
+  #authShell .field input:hover { border-color: var(--line-strong); }
+  #authShell .field input:focus { outline: none; border-color: #E2B95E; box-shadow: 0 0 0 3px rgba(254,243,199,.55); }
+  /* Klaviatura fokusi — sichqonchadagidan KUCHLIROQ (.ss-trig naqshi) */
+  #authShell .field input:focus-visible { outline: none; border-color: var(--accent-ink); box-shadow: 0 0 0 3px var(--accent), 0 0 0 4px rgba(133,77,14,.35); }
+  #authShell .field input[readonly] { background: var(--surface-2); color: var(--muted); cursor: not-allowed; }
+  #authShell .field input[readonly]:hover { border-color: var(--line); }
+  #authShell input:-webkit-autofill,
+  #authShell input:-webkit-autofill:hover,
+  #authShell input:-webkit-autofill:focus { -webkit-text-fill-color: var(--ink); -webkit-box-shadow: 0 0 0 1000px var(--surface) inset; caret-color: var(--ink); transition: background-color 9999s ease-in-out 0s; }
+
+  /* Rasm (file) — native tugma sayqallanadi, DOM o'zgarmaydi (JS .files o'qiydi) */
+  #authShell input[type=file] { height: auto; padding: 9px 12px; font-size: 13px; color: var(--muted); background: var(--surface-2); border-style: dashed; cursor: pointer; }
+  #authShell input[type=file]::file-selector-button { font-family: inherit; font-size: 12.5px; font-weight: 600; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; margin-right: 10px; cursor: pointer; transition: background .14s ease, border-color .14s ease; }
+  #authShell input[type=file]::file-selector-button:hover { background: var(--surface-2); border-color: var(--line-strong); }
+
+  /* Label + o'ngdagi havola bir qatorda */
+  .au-lblrow { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+  #authShell .au-lblrow label { margin-bottom: 0; }
+
+  /* Signup: ism/familiya yonma-yon. row-gap 0 — maydonning o'z margin'i yetarli. */
+  .au-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+  /* Signup maydonlari display:none dan chiqqanda yumshoq ochiladi */
+  #authShell .au-anim { animation: auReveal .22s ease both; }
+  @keyframes auReveal { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+  /* --- 6. Parol: ko'rsatish/yashirish --- */
+  .au-pw { position: relative; }
+  #authShell .au-pw input { padding-right: 46px; }
+  .au-pweye { position: absolute; top: 50%; right: 6px; transform: translateY(-50%); width: 34px; height: 34px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border: none; border-radius: 8px; background: transparent; color: var(--subtle); cursor: pointer; transition: color .14s ease, background .14s ease; }
+  .au-pweye:hover { color: var(--ink-soft); background: var(--surface-2); }
+  .au-pweye:active { transform: translateY(-50%) scale(.94); }
+  .au-pweye:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 1px; color: var(--ink-soft); }
+  .au-pweye svg { display: block; }
+  .au-pweye .au-ic-off { display: none; }
+  .au-pweye[aria-pressed="true"] { color: var(--ink-soft); }
+  .au-pweye[aria-pressed="true"] .au-ic-on { display: none; }
+  .au-pweye[aria-pressed="true"] .au-ic-off { display: block; }
+
+  /* --- 7. Asosiy tugma + yuklanish spinneri --- */
+  #authShell .btn.block { height: 46px; margin-top: 4px; padding: 0 18px; border-radius: 11px; font-size: 14.5px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 9px; background: #0F1417; color: #FAF7F0; box-shadow: 0 1px 2px rgba(15,20,23,.10); }
+  #authShell .btn.block:hover:not(:disabled) { background: #232833; }
+  #authShell .btn.block:active:not(:disabled) { transform: scale(.99); }
+  #authShell .btn.block:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
+  #authShell .btn.block:disabled { opacity: .72; cursor: progress; box-shadow: none; }
+  /* Spinner ::after — JS btn.textContent yozadi, ichki element YASHAY OLMAYDI */
+  #authShell .btn.block:disabled::after { content: ''; flex: 0 0 auto; width: 15px; height: 15px; border-radius: 50%; border: 2px solid rgba(250,247,240,.28); border-top-color: #FAF7F0; animation: auSpin .7s linear infinite; }
+  @keyframes auSpin { to { transform: rotate(360deg); } }
+
+  /* --- 8. Xabar bloki (err / ok) --- */
+  /* ⚠️ showMsg() className ni qayta yozadi → qo'shimcha klass BERILMAYDI.
+     Ikonka --au-ic o'zgaruvchisi + mask orqali (rang currentColor'dan). */
+  #authShell .msg {
+    --au-ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 8v4'/%3E%3Cpath d='M12 16h.01'/%3E%3C/svg%3E");
+    margin-top: 16px; padding: 11px 13px; border: 1px solid transparent; border-radius: 11px; font-size: 13px; line-height: 1.5;
+  }
+  #authShell .msg.show { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 9px; align-items: start; }
+  #authShell .msg.show::before { content: ''; width: 16px; height: 16px; margin-top: 1px; background: currentColor; -webkit-mask: var(--au-ic) center / 16px 16px no-repeat; mask: var(--au-ic) center / 16px 16px no-repeat; }
+  #authShell .msg.err { background: #FEF2F2; color: #B42318; border-color: #FECDCA; }
+  #authShell .msg.ok {
+    background: #ECFDF5; color: #047857; border-color: #A7F3D0;
+    --au-ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/%3E%3Cpath d='m9 11 3 3L22 4'/%3E%3C/svg%3E");
+  }
+
+  /* --- 9. Havolalar --- */
+  #authShell .link-btn { font-size: 12.5px; font-weight: 600; color: var(--muted); padding: 2px 4px; border-radius: 6px; transition: color .14s ease; }
+  #authShell .link-btn:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+  #authShell .link-btn:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 1px; color: var(--ink); }
+  .au-alt { text-align: center; margin-top: 14px; }
+  .au-back { text-align: center; margin-top: 16px; }
+
+  /* --- 10. Moslashuv --- */
+  /* 1180 gacha: brend paneli qisqaradi, karta joyi kengayadi */
+  @media (max-width: 1180px) {
+    #authShell .brand { padding: 36px 34px; gap: 22px; }
+    #authShell .brand-hero h1 { font-size: clamp(26px, 3vw, 34px); }
+    #authShell .brand-hero p { font-size: 14.5px; }
+    #authShell .auth { padding: 32px 20px; }
+  }
+  /* ≤880: bitta ustun. Brend — ixcham sarlavha lentasi (joy yemasin). */
+  @media (max-width: 880px) {
+    #authShell { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+    #authShell .brand { display: block; padding: 20px 20px 22px; }
+    #authShell .brand::after { width: 260px; height: 260px; right: -120px; bottom: -150px; }
+    #authShell .brand-hero { max-width: none; margin-top: 12px; }
+    #authShell .brand-hero h1 { font-size: 22px; line-height: 1.2; letter-spacing: -.02em; margin: 0; }
+    #authShell .brand-hero p, #authShell .au-bottom { display: none; }
+    #authShell .auth { padding: 24px 16px 40px; }
+    #authShell .card { max-width: 440px; padding: 26px 22px 24px; border-radius: 16px; box-shadow: 0 1px 2px rgba(28,31,36,.05); }
+    #authShell .field input { font-size: 16px; }   /* iOS: 16px dan kichik bo'lsa sahifani zoom qiladi */
+  }
+  /* ≤480: telefon */
+  @media (max-width: 480px) {
+    #authShell .brand { padding: 16px 16px 18px; }
+    #authShell .wordmark { font-size: 18px; }
+    #authShell .brand-hero h1 { font-size: 19px; }
+    #authShell .card { padding: 22px 18px 22px; }
+    .au-grid2 { grid-template-columns: 1fr; }
+    #authShell .btn.block { height: 48px; }
+    .au-pweye { width: 38px; height: 38px; right: 4px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #authShell .au-anim { animation: none; }
+    #authShell .btn.block:disabled::after { animation-duration: 1.8s; }
+  }
+
   /* APP */
   .app { display: none; min-height: 100vh; min-height: 100dvh; }
   .app.show { display: grid; grid-template-columns: var(--sidebar-w) 1fr; }
@@ -1678,17 +1840,24 @@
 <div class="shell" id="authShell" style="display:none">
   <aside class="brand">
     <div class="wordmark">
-      <svg width="28" height="28" viewBox="0 0 32 32" style="vertical-align:middle;">
+      <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
         <rect width="32" height="32" rx="8" fill="#FEF3C7"/>
         <path d="M 9 16 L 14 21 L 23 11" stroke="#0F1417" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
       </svg>
-      <span style="margin-left:8px;letter-spacing:-.02em;">TaskFix</span>
+      <span>TaskFix</span>
     </div>
     <div class="brand-hero">
-      <h1>Biznesingiz bitta oynada.</h1>
-      <p>Vazifalar, jamoa va bo'limlar — bitta joyda. Telegram boti, org chart, statistika — barchasi sizning kompaniyangiz uchun.</p>
+      <h1>Biznesingiz <span class="au-hl">bitta oynada</span>.</h1>
+      <p>Vazifalar, jamoa va bo'limlar — bitta joyda. Kim nima qilyapti, qachon tugaydi — hammasi ko'rinib turadi.</p>
     </div>
-    <div class="pills"><span class="pill">14 kun bepul</span><span class="pill">Ko'p bo'lim</span><span class="pill">Telegram bot</span><span class="pill">Org Chart</span></div>
+    <div class="au-bottom">
+      <ul class="au-feats">
+        <li class="au-feat"><span class="au-feat-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>Vazifa, bo'lim va loyihalar — bitta oqimda</li>
+        <li class="au-feat"><span class="au-feat-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>Telegram bot: bildirishnoma va hisobot</li>
+        <li class="au-feat"><span class="au-feat-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>Org chart, ish jadvali va statistika</li>
+      </ul>
+      <div class="au-note"><b>14 kun bepul</b> · Karta talab qilinmaydi</div>
+    </div>
   </aside>
   <main class="auth">
     <div class="card">
@@ -1696,43 +1865,90 @@
         <h2>Xush kelibsiz</h2>
         <p class="sub">Hisobingizga kiring yoki yangi hisob oching.</p>
         <div class="tabs-pill">
-          <button class="tab-pill active" id="tabLogin" onclick="setMode('login')">Kirish</button>
-          <button class="tab-pill" id="tabSignup" onclick="setMode('signup')">Ro'yxatdan o'tish</button>
+          <button class="tab-pill active" type="button" id="tabLogin" onclick="setMode('login')">Kirish</button>
+          <button class="tab-pill" type="button" id="tabSignup" onclick="setMode('signup')">Ro'yxatdan o'tish</button>
         </div>
-        <div class="field" id="nameField" style="display:none"><label>Ismingiz</label><input id="fullName" type="text" autocomplete="given-name" placeholder="Asilbek" /></div>
-        <div class="field" id="lastNameField" style="display:none"><label>Familiyangiz</label><input id="suLastName" type="text" autocomplete="family-name" placeholder="Aliyev" /></div>
-        <div class="field" id="phoneField" style="display:none"><label>Telefon</label><input id="suPhone" type="tel" autocomplete="tel" placeholder="+998 90 123 45 67" /></div>
-        <div class="field" id="photoField" style="display:none"><label>Rasm (ixtiyoriy)</label><input id="suPhoto" type="file" accept="image/*" /></div>
-        <div class="field"><label>Email</label><input id="email" type="email" autocomplete="email" placeholder="siz@kompaniya.uz" /></div>
-        <div class="field"><label>Parol</label><input id="password" type="password" autocomplete="current-password" placeholder="Kamida 6 belgi" /></div>
-        <div id="forgotRow" style="text-align:right; margin: -6px 0 10px;"><button class="link-btn" type="button" onclick="goForgot()">Parolni unutdingizmi?</button></div>
-        <button class="btn block" id="authBtn" onclick="submitAuth()">Kirish</button>
-        <div class="msg" id="authMsg"></div>
-        <div id="switchToLogin" style="text-align:center; margin-top:10px; display:none"><button class="link-btn" type="button" onclick="switchToLoginKeepEmail()">→ Kirish formasiga o'tish</button></div>
+        <form id="authForm" novalidate onsubmit="event.preventDefault(); submitAuth();">
+          <div class="au-grid2">
+            <div class="field au-anim" id="nameField" style="display:none"><label for="fullName">Ismingiz</label><input id="fullName" type="text" autocomplete="given-name" placeholder="Asilbek" /></div>
+            <div class="field au-anim" id="lastNameField" style="display:none"><label for="suLastName">Familiyangiz</label><input id="suLastName" type="text" autocomplete="family-name" placeholder="Aliyev" /></div>
+          </div>
+          <div class="field au-anim" id="phoneField" style="display:none"><label for="suPhone">Telefon</label><input id="suPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+998 90 123 45 67" /></div>
+          <div class="field au-anim" id="photoField" style="display:none"><label for="suPhoto">Rasm (ixtiyoriy)</label><input id="suPhoto" type="file" accept="image/*" /></div>
+          <div class="field"><label for="email">Email</label><input id="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="siz@kompaniya.uz" /></div>
+          <div class="field">
+            <div class="au-lblrow">
+              <label for="password">Parol</label>
+              <div id="forgotRow"><button class="link-btn" type="button" onclick="goForgot()">Parolni unutdingizmi?</button></div>
+            </div>
+            <div class="au-pw">
+              <input id="password" type="password" autocomplete="current-password" placeholder="Kamida 6 belgi" />
+              <button class="au-pweye" type="button" aria-pressed="false" aria-label="Parolni ko'rsatish" onclick="auTogglePw('password', this)"><svg class="au-ic-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="au-ic-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c6.4 0 10 7 10 7a17.3 17.3 0 0 1-2.16 3.19M6.61 6.61A17.4 17.4 0 0 0 2 11s3.6 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/></svg></button>
+            </div>
+          </div>
+          <button class="btn block" type="submit" id="authBtn">Kirish</button>
+          <div class="msg" id="authMsg" role="alert" aria-live="assertive" aria-atomic="true"></div>
+          <div class="au-alt" id="switchToLogin" style="display:none"><button class="link-btn" type="button" onclick="switchToLoginKeepEmail()">Kirish formasiga o'tish →</button></div>
+        </form>
       </div>
+
       <div id="forgotStep" style="display:none">
-        <h2>Parolni tiklash</h2><p class="sub">Emailingizni yozing — havola yuboramiz.</p>
-        <div class="field"><label>Email</label><input id="fEmail" type="email" /></div>
-        <button class="btn block" id="fBtn" onclick="sendReset()">Havola yuborish</button>
-        <div class="msg" id="fMsg"></div>
-        <div style="text-align:center; margin-top:14px;"><button class="link-btn" type="button" onclick="backToLogin()">← Kirishga qaytish</button></div>
+        <h2>Parolni tiklash</h2>
+        <p class="sub">Emailingizni yozing — tiklash havolasini yuboramiz.</p>
+        <form id="forgotForm" novalidate onsubmit="event.preventDefault(); sendReset();">
+          <div class="field"><label for="fEmail">Email</label><input id="fEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="siz@kompaniya.uz" /></div>
+          <button class="btn block" type="submit" id="fBtn">Havola yuborish</button>
+          <div class="msg" id="fMsg" role="alert" aria-live="assertive" aria-atomic="true"></div>
+          <div class="au-back"><button class="link-btn" type="button" onclick="backToLogin()">← Kirishga qaytish</button></div>
+        </form>
       </div>
+
       <div id="resetStep" style="display:none">
-        <h2>Yangi parol</h2><p class="sub">Yangi parolingizni kiriting.</p>
-        <div class="field"><label>Yangi parol</label><input id="rPwd" type="password" /></div>
-        <div class="field"><label>Takror</label><input id="rPwd2" type="password" /></div>
-        <button class="btn block" id="rBtn" onclick="saveNewPassword()">Saqlash va kirish</button>
-        <div class="msg" id="rMsg"></div>
+        <h2>Yangi parol</h2>
+        <p class="sub">Yangi parolingizni kiriting — kamida 6 belgi.</p>
+        <form id="resetForm" novalidate onsubmit="event.preventDefault(); saveNewPassword();">
+          <div class="field">
+            <label for="rPwd">Yangi parol</label>
+            <div class="au-pw">
+              <input id="rPwd" type="password" autocomplete="new-password" placeholder="Kamida 6 belgi" />
+              <button class="au-pweye" type="button" aria-pressed="false" aria-label="Parolni ko'rsatish" onclick="auTogglePw('rPwd', this)"><svg class="au-ic-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="au-ic-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c6.4 0 10 7 10 7a17.3 17.3 0 0 1-2.16 3.19M6.61 6.61A17.4 17.4 0 0 0 2 11s3.6 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/></svg></button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="rPwd2">Takror</label>
+            <div class="au-pw">
+              <input id="rPwd2" type="password" autocomplete="new-password" placeholder="Parolni takrorlang" />
+              <button class="au-pweye" type="button" aria-pressed="false" aria-label="Parolni ko'rsatish" onclick="auTogglePw('rPwd2', this)"><svg class="au-ic-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="au-ic-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c6.4 0 10 7 10 7a17.3 17.3 0 0 1-2.16 3.19M6.61 6.61A17.4 17.4 0 0 0 2 11s3.6 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/></svg></button>
+            </div>
+          </div>
+          <button class="btn block" type="submit" id="rBtn">Saqlash va kirish</button>
+          <div class="msg" id="rMsg" role="alert" aria-live="assertive" aria-atomic="true"></div>
+        </form>
       </div>
+
       <div id="inviteSetPwStep" style="display:none">
-        <h2>Xush kelibsiz! 👋</h2>
+        <h2>Xush kelibsiz!</h2>
         <p class="sub" id="invWelcomeSub">Hisobingizni faollashtirish uchun parol o'rnating.</p>
-        <div class="field"><label>Ism</label><input id="invName" type="text" readonly style="background:var(--surface-2);cursor:not-allowed;" /></div>
-        <div class="field"><label>Email</label><input id="invEmail" type="email" readonly style="background:var(--surface-2);cursor:not-allowed;" /></div>
-        <div class="field"><label>Parol o'rnating</label><input id="invPwd" type="password" placeholder="Kamida 6 belgi" /></div>
-        <div class="field"><label>Parolni takrorlang</label><input id="invPwd2" type="password" /></div>
-        <button class="btn block" id="invBtn" onclick="saveInvitePassword()">Parol o'rnatib, kirish →</button>
-        <div class="msg" id="invPwMsg"></div>
+        <form id="inviteForm" novalidate onsubmit="event.preventDefault(); saveInvitePassword();">
+          <div class="field"><label for="invName">Ism</label><input id="invName" type="text" readonly /></div>
+          <div class="field"><label for="invEmail">Email</label><input id="invEmail" type="email" readonly /></div>
+          <div class="field">
+            <label for="invPwd">Parol o'rnating</label>
+            <div class="au-pw">
+              <input id="invPwd" type="password" autocomplete="new-password" placeholder="Kamida 6 belgi" />
+              <button class="au-pweye" type="button" aria-pressed="false" aria-label="Parolni ko'rsatish" onclick="auTogglePw('invPwd', this)"><svg class="au-ic-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="au-ic-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c6.4 0 10 7 10 7a17.3 17.3 0 0 1-2.16 3.19M6.61 6.61A17.4 17.4 0 0 0 2 11s3.6 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/></svg></button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="invPwd2">Parolni takrorlang</label>
+            <div class="au-pw">
+              <input id="invPwd2" type="password" autocomplete="new-password" placeholder="Parolni takrorlang" />
+              <button class="au-pweye" type="button" aria-pressed="false" aria-label="Parolni ko'rsatish" onclick="auTogglePw('invPwd2', this)"><svg class="au-ic-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="au-ic-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c6.4 0 10 7 10 7a17.3 17.3 0 0 1-2.16 3.19M6.61 6.61A17.4 17.4 0 0 0 2 11s3.6 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/></svg></button>
+            </div>
+          </div>
+          <button class="btn block" type="submit" id="invBtn">Parol o'rnatib, kirish →</button>
+          <div class="msg" id="invPwMsg" role="alert" aria-live="assertive" aria-atomic="true"></div>
+        </form>
       </div>
     </div>
   </main>
@@ -6402,6 +6618,20 @@ function dofCreateHint() {
 }
 
 // ============ AUTH ============
+// Parolni ko'rsatish/yashirish (au*) — inline onclick chaqiradi, shuning uchun GLOBAL
+function auTogglePw(id, btn) {
+  const el = document.getElementById(id);
+  if (!el || !btn) return;
+  const show = el.type === 'password';
+  el.type = show ? 'text' : 'password';
+  btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+  btn.setAttribute('aria-label', show ? 'Parolni yashirish' : "Parolni ko'rsatish");
+  try {
+    el.focus();
+    const n = el.value.length;
+    el.setSelectionRange(n, n);   // kursor oxirida qolsin
+  } catch (e) { console.debug('auTogglePw: selection API', e); }  // bo'sh catch TAQIQLANGAN (6-qoida)
+}
 function setMode(m) {
   mode = m;
   $('tabLogin').classList.toggle('active', m === 'login');
@@ -6433,11 +6663,16 @@ function showBootErr(msg) {
   const m = $('bootErrMsg'); if (m) m.textContent = msg || 'Kutilmagan xatolik.';
   const b = $('bootErrView'); if (b) b.style.display = 'flex';
 }
-function showAuth() { _hideBootViews(); $('loadingView').style.display = 'none'; $('authShell').style.display = 'grid'; $('appView').classList.remove('show'); $('authStep').style.display = 'block'; $('forgotStep').style.display = 'none'; $('resetStep').style.display = 'none'; }
+// Taklif qadami — 4 auth qadamidan faqat bittasi ko'rinishi kerak.
+// ⚠️ showInviteSetPassword() qolgan 3 tasini yashiradi, lekin teskarisi YO'Q edi:
+//    showAuth/goForgot/showResetStep uni yashirmay, ikki qadam birdan ko'rinishi
+//    mumkin edi (masalan invite tokeni eskirib SIGNED_OUT kelganda).
+function _authHideInvite() { const el = $('inviteSetPwStep'); if (el) el.style.display = 'none'; }
+function showAuth() { _hideBootViews(); $('loadingView').style.display = 'none'; $('authShell').style.display = 'grid'; $('appView').classList.remove('show'); $('authStep').style.display = 'block'; $('forgotStep').style.display = 'none'; $('resetStep').style.display = 'none'; _authHideInvite(); }
 function showApp() { _hideBootViews(); $('loadingView').style.display = 'none'; $('authShell').style.display = 'none'; $('appView').classList.add('show'); }
-function goForgot() { $('loadingView').style.display='none'; $('authShell').style.display='grid'; $('appView').classList.remove('show'); $('authStep').style.display='none'; $('forgotStep').style.display='block'; $('resetStep').style.display='none'; $('fEmail').value = $('email').value.trim(); hideMsg($('fMsg')); }
+function goForgot() { $('loadingView').style.display='none'; $('authShell').style.display='grid'; $('appView').classList.remove('show'); $('authStep').style.display='none'; $('forgotStep').style.display='block'; $('resetStep').style.display='none'; _authHideInvite(); $('fEmail').value = $('email').value.trim(); hideMsg($('fMsg')); }
 function backToLogin() { setMode('login'); showAuth(); }
-function showResetStep() { $('loadingView').style.display='none'; $('authShell').style.display='grid'; $('appView').classList.remove('show'); $('authStep').style.display='none'; $('forgotStep').style.display='none'; $('resetStep').style.display='block'; hideMsg($('rMsg')); }
+function showResetStep() { $('loadingView').style.display='none'; $('authShell').style.display='grid'; $('appView').classList.remove('show'); $('authStep').style.display='none'; $('forgotStep').style.display='none'; $('resetStep').style.display='block'; _authHideInvite(); hideMsg($('rMsg')); }
 
 async function submitAuth() {
   const email = $('email').value.trim(); const password = $('password').value; const btn = $('authBtn');
