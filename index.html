@@ -1350,6 +1350,15 @@
   .intg-status.err { background: var(--danger-soft); color: var(--danger); }
   .intg-foot { margin-top: auto; display: flex; gap: 8px; }
 
+  /* HR muharrir lavozimlari — HR kartasi ichidagi qator (hrEd*) */
+  .hred-row { border-top: 1px solid var(--line); padding-top: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; }
+  .hred-t { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .hred-d { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .hred-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .hred-chip { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); }
+  .hred-none { font-size: 12px; color: var(--muted); }
+  .hred-warn { font-size: 12px; color: var(--danger); line-height: 1.5; }
+
   /* SETUP WIZARD */
   .step-num { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 12.5px; color: var(--accent-ink); background: var(--accent-soft); display: inline-block; padding: 4px 11px; border-radius: 999px; margin-bottom: 14px; letter-spacing: .01em; }
   .step-list { padding-left: 22px; margin: 0; font-size: 14px; line-height: 1.75; color: var(--ink-soft); }
@@ -7736,7 +7745,18 @@ async function loadCurrentContext() {
   // tekshiruvi bor — eski ws natijasi yangisining ustiga yozilmasin.
   if (isOrg) {
     loadHrData().then(function (ok) {
-      if (!ok) { console.error('loadHrData (fon):', _hrError); return; }
+      if (!ok) {
+        console.error('loadHrData (fon):', _hrError);
+        // ⚠️ Yiqilganda ham Org Schema tugmalar panelini QAYTA CHIZAMIZ.
+        //    Busiz boot poygasi yuz berardi: `#/orgschema` ga to'g'ridan-to'g'ri
+        //    kirilsa oscRenderActions() _hrError to'lishidan OLDIN ishlaydi
+        //    (panel bo'sh), keyin bu shox darrov return qilib qayta chizmasdi —
+        //    HR muharriri na tugmani, na sababni ko'rardi.
+        try {
+          if (currentPage === 'orgschema' && !_oscLoading) oscRenderActions();
+        } catch (e) { console.error('loadHrData → oscRenderActions:', e); }
+        return;
+      }
       // Lavozim/rasm endi bor — ekrandagini yangilaymiz (ma'lumot o'zgarmaydi)
       try { refreshActiveView(); } catch (e) { console.error('loadHrData → refreshActiveView:', e); }
       try { if (currentPage === 'team') renderTeam(); } catch (e) { console.error('loadHrData → renderTeam:', e); }
@@ -7745,6 +7765,24 @@ async function loadCurrentContext() {
         const cb = document.getElementById('createBd');
         if (cb && cb.classList.contains('show')) msFilter();
       } catch (e) { console.error('loadHrData → msFilter:', e); }
+      // 🔴 Org Schema ochiq bo'lsa — MAJBURIY qayta chizish. HR muharriri
+      //    ruxsati (positions.hr_editor + employee_details.position_id) AYNAN
+      //    shu fon so'rovidan keladi; usiz oscCanEdit() sahifa ochilganda
+      //    false qaytarib, ruxsati BOR odamga tahrir tugmalari umuman
+      //    ko'rinmasdi ("menda tugma yo'q"). refreshActiveView() orgschema'ni
+      //    qamramaydi, shuning uchun alohida.
+      // ⚠️ _oscLoading bo'lsa tegmaymiz — loadOrgSchema o'zi chizadi
+      //    (bo'sh holat bir zumga miltillab ketmasin).
+      try {
+        if (currentPage === 'orgschema' && !_oscLoading) {
+          oscRenderActions(); oscRenderFolders(); oscRenderChart();
+        }
+      } catch (e) { console.error('loadHrData → orgschema:', e); }
+      // "Qo'shimcha service" ochiq bo'lsa — HR kartasidagi "HR muharrir
+      // lavozimlari" qatori lavozim nomlarini shu keshdan oladi.
+      try {
+        if (currentPage === 'integrations') renderIntegrations();
+      } catch (e) { console.error('loadHrData → renderIntegrations:', e); }
     }).catch(function (e) { console.error('loadHrData (fon):', e); });
   }
 
@@ -8228,7 +8266,8 @@ function renderSidebar() {
     //
     // ⚠️ canManage SHART EMAS: tashkiliy sxemani har a'zo KO'RA oladi
     // (RLS ham shunday: select = is_ws_member). O'zgartirish tugmalari
-    // sahifaning o'zida isOwnerLike() bilan yopiladi.
+    // sahifaning o'zida oscCanEdit() bilan yopiladi = owner/admin YOKI
+    // HR muharriri (positions.hr_editor — TASKFIX_HR_EDITORS.sql).
     if (hrsvEnabled()) {
       const inHrSection = ['orgschema'].includes(currentPage);
       // Default — YOPIQ (Telegram naqshi). Foydalanuvchi ochsa localStorage'da qoladi.
@@ -15777,7 +15816,13 @@ async function loadHrData(force) {
   const isOrg = currentWs.kind === 'organization';
   try {
     const [posR, rolesR, detR, brR, dmR] = await Promise.all([
-      sb.from('positions').select('id, name').eq('workspace_id', wsId),
+      // ⚠️ select('*') ATAYLAB: jadval kichik (id, workspace_id, name,
+      //    created_at, hr_editor). `hr_editor` ni nomma-nom so'rasak
+      //    TASKFIX_HR_EDITORS.sql ishga tushirilmagan bazada BUTUN so'rov
+      //    42703 bilan yiqilib, lavozimlar ILOVANING HAMMA joyidan
+      //    yo'qolardi. `*` bilan ustun yo'q bo'lsa kalit shunchaki kelmaydi
+      //    (undefined → hrIsEditor() false — xavfsiz sukut).
+      sb.from('positions').select('*').eq('workspace_id', wsId),
       sb.from('employee_roles').select('id, code, label').eq('workspace_id', wsId),
       sb.from('employee_details').select('*').eq('workspace_id', wsId),
       sb.from('employee_branches').select('user_id, branch_id').eq('workspace_id', wsId),
@@ -19269,9 +19314,13 @@ async function loadIntegrations() {
   }
   // HR holati alohida jadvalda (hr_settings) — sahifa ochilganda yangilaymiz,
   // shunda "Qayta urinish" tugmasi ham haqiqatan qayta o'qiydi.
+  // ⚠️ loadHrData() ham shu yerda: HR kartasidagi "HR muharrir lavozimlari"
+  //    qatori positionsCache'dan o'qiydi, u esa boot'da FONDA to'ladi.
+  //    Keshlangan (_hrLoadedWs) — odatda tarmoqqa chiqmaydi va throw qilmaydi.
   const [{ data, error }] = await Promise.all([
     sb.from('integrations_safe').select('*').eq('workspace_id', currentWs.id),
     loadHrSvcSettings(),
+    loadHrData(),
   ]);
   if (error) { toast(translateErr(error.message), 'err'); renderIntegrations(); return; }
   integrationsCache = data || [];
@@ -19287,6 +19336,146 @@ const TOOL_META = {
   n8n:      { name: 'n8n',      desc: 'Vazifa hodisalarini sizning n8n instance\'ingizga webhook orqali yuborish.', logo: 'n', cls: 'n8n', available: true },
   gdrive:   { name: 'Google Drive', desc: 'Vazifa fayllarini Drive\'ga saqlash (tez orada).', logo: 'D', cls: 'gdrive', available: false },
 };
+
+// ============ HR MUHARRIR LAVOZIMLARI (hrEd*) ============
+// Ruxsat lavozimga bog'lanadi: positions.hr_editor = true bo'lgan lavozimdagi
+// har kim Org Schema'ni tahrirlaydi (oscCanEdit → hrIsEditor).
+//
+// 🔴 Faqat isOwnerLike() KO'RADI va O'ZGARTIRADI. HR muharririning o'zi bu
+//    ro'yxatga tega olmasligi SHART — aks holda o'zini abadiylashtirardi.
+//    Server tomonda ham shunday: positions_write policy'si = is_ws_manager.
+// 🔴 HR Service'ni yoqish/o'chirish OWNER-ONLY qoladi (hrsvSetEnabled) —
+//    bu qator unga tegmaydi.
+// ⚠️ Inline onclick chaqiradi → top-level function (2026-07-28 saboqi).
+
+// SQL ishga tushirilganmi? loadHrData `positions.select('*')` qiladi, shuning
+// uchun ustun yo'q bo'lsa `hr_editor` KALITI umuman kelmaydi (nmz* naqshi:
+// "kalit yo'q" ≠ "qiymat false"). Lavozim umuman bo'lmasa aniqlab bo'lmaydi →
+// true deb hisoblaymiz, saqlashda aniq xato beriladi.
+function hrEdColReady() {
+  const p = (positionsCache || [])[0];
+  if (!p) return true;
+  return Object.prototype.hasOwnProperty.call(p, 'hr_editor');
+}
+
+function hrEdList() {
+  return (positionsCache || []).filter(function (p) { return !!p.hr_editor; });
+}
+
+// Ustun yo'qligini xatodan aniqlash (PostgREST bir necha shaklda aytadi).
+function hrEdColMissing(err) {
+  if (!err) return false;
+  const c = String(err.code || '');
+  if (c === '42703' || c === 'PGRST204') return true;
+  return String(err.message || '').toLowerCase().indexOf('hr_editor') !== -1;
+}
+
+// HR kartasi ichidagi qator.
+function hrEdRowHtml() {
+  if (!isOwnerLike()) return '';
+  const ready = hrEdColReady();
+  let body, btn;
+  if (!ready) {
+    body = '<div class="hred-warn">Sozlanmagan — Supabase SQL Editor\'da ' +
+           '<code>TASKFIX_HR_EDITORS.sql</code> ni bajaring.</div>';
+    btn = '<button class="btn secondary sm" disabled title="Avval TASKFIX_HR_EDITORS.sql ni ishga tushiring">Lavozimlarni tanlash</button>';
+  } else {
+    const list = hrEdList();
+    body = '<div class="hred-chips">' + (list.length
+      ? list.map(function (p) { return '<span class="hred-chip">' + escapeHtml(p.name || '') + '</span>'; }).join('')
+      : '<span class="hred-none">— tanlanmagan —</span>') + '</div>';
+    btn = '<button class="btn secondary sm" onclick="hrEdOpen()">Lavozimlarni tanlash</button>';
+  }
+  return '<div class="hred-row">' +
+    '<div class="hred-t">HR muharrir lavozimlari</div>' +
+    '<div class="hred-d">Bu lavozimdagi xodimlar Org Schema\'ni tahrirlay oladi (owner/admin\'dan tashqari).</div>' +
+    body + btn +
+  '</div>';
+}
+
+// Tanlash oynasi. 🔴 7-qoida: xom <select> emas, `msearch` (qidiruv majburiy).
+async function hrEdOpen() {
+  if (!isOwnerLike()) { toast('Bu amalga ruxsatingiz yo\'q', 'err'); return; }
+  // Fon yuklash tugamagan bo'lishi mumkin — lavozimlar ro'yxati bo'sh chiqmasin.
+  await loadHrData();
+  if (!hrEdColReady()) {
+    toast('Avval TASKFIX_HR_EDITORS.sql ni ishga tushiring (positions.hr_editor ustuni yo\'q)', 'err');
+    return;
+  }
+  const items = (positionsCache || []).map(function (p) { return { value: p.id, label: p.name || '' }; });
+  if (!items.length) { toast('Avval Jamoa sahifasida lavozim qo\'shing', 'err'); return; }
+  const cur = hrEdList().map(function (p) { return p.id; });
+  const v = await uiForm('HR muharrir lavozimlari', [
+    { id: 'pos', label: 'Qaysi lavozim Org Schema\'ni tahrirlay oladi?', type: 'msearch',
+      value: cur, items: items, placeholder: 'Lavozimni qidiring…',
+      hint: 'Faqat Org Schema tahriri beriladi. Boshqa hamma joyda xodim oddiy a\'zo bo\'lib qoladi.' }
+  ], { okText: 'Saqlash' });
+  if (!v) return;
+  await hrEdSave(v.pos || []);
+}
+
+// Farqni hisoblab yozadi. 🔴 .select() + qator soni — RLS jimgina to'ssa
+// "Saqlandi" YOLG'ON chiqmasin (6-qoida).
+async function hrEdSave(next) {
+  if (!currentWs) return;
+  if (!isOwnerLike()) { toast('Bu amalga ruxsatingiz yo\'q', 'err'); return; }
+  const wsId = currentWs.id;
+  const sel = new Set(next || []);
+  const on = [], off = [];
+  (positionsCache || []).forEach(function (p) {
+    const want = sel.has(p.id);
+    const have = !!p.hr_editor;
+    if (want && !have) on.push(p.id);
+    else if (!want && have) off.push(p.id);
+  });
+  if (!on.length && !off.length) { toast('O\'zgarish yo\'q', 'ok'); return; }
+  try {
+    if (on.length) {
+      const { data, error } = await sb.from('positions').update({ hr_editor: true })
+        .eq('workspace_id', wsId).in('id', on).select('id');
+      if (error) throw error;
+      if (!data || data.length !== on.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    }
+    if (off.length) {
+      const { data, error } = await sb.from('positions').update({ hr_editor: false })
+        .eq('workspace_id', wsId).in('id', off).select('id');
+      if (error) throw error;
+      if (!data || data.length !== off.length) throw new Error('Saqlanmadi — ruxsat yo\'q (RLS)');
+    }
+    // Kesh sinxron (qayta so'rov shart emas)
+    (positionsCache || []).forEach(function (p) { p.hr_editor = sel.has(p.id); });
+    toast('✅ Saqlandi — ' + sel.size + ' lavozim HR muharriri', 'ok');
+    logActivity('hr_editors_changed', {
+      entityType: 'workspace', entityId: wsId, entityTitle: currentWs.name,
+      details: { yoqildi: on.length, ochirildi: off.length, jami: sel.size }
+    });
+    renderIntegrations();
+    // O'z lavozimim o'zgargan bo'lsa Org Schema tugmalari darrov moslashsin.
+    if (currentPage === 'orgschema' && !_oscLoading) {
+      oscRenderActions(); oscRenderFolders(); oscRenderChart();
+    }
+  } catch (e) {
+    console.error('hrEdSave:', e);
+    // ⚠️ QISMAN MUVAFFAQIYAT: ikkita UPDATE ketma-ket ketadi (tranzaksiya YO'Q).
+    //    Birinchisi o'tib ikkinchisi yiqilsa DB o'zgargan, kesh esa eski —
+    //    chiplar yolg'on ko'rsatardi. Shuning uchun xatoda keshni SERVERDAN
+    //    qayta o'qiymiz. Ustun yo'q holatida ma'nosiz (hech narsa yozilmagan).
+    if (!hrEdColMissing(e)) {
+      try {
+        await loadHrData(true);
+        if (currentPage === 'integrations') renderIntegrations();
+        if (currentPage === 'orgschema' && !_oscLoading) {
+          oscRenderActions(); oscRenderFolders(); oscRenderChart();
+        }
+      } catch (e2) { console.error('hrEdSave: keshni tiklab bo\'lmadi:', e2); }
+    }
+    if (hrEdColMissing(e)) {
+      toast('Avval TASKFIX_HR_EDITORS.sql ni ishga tushiring (positions.hr_editor ustuni yo\'q)', 'err');
+      return;
+    }
+    toast(translateErr(e.message || String(e)), 'err');
+  }
+}
 
 // HR kartasining holati + tugmasi. integrations jadvalidan EMAS — hrsv* dan.
 function intgHrParts() {
@@ -19308,6 +19497,8 @@ function intgHrParts() {
   if (hrsvEnabled()) {
     return {
       status: '<span class="intg-status on">●  Yoqilgan</span>',
+      // HR muharrir lavozimlari — faqat HR yoqilgan bo'lsa ma'noga ega.
+      extra: hrEdRowHtml(),
       action: '<button class="btn secondary sm" onclick="goPage(\'orgschema\')">Org Schema</button>' +
               '<button class="btn sm" style="background: transparent; color: var(--danger); border: 1px solid var(--danger-soft);" onclick="hrsvToggle(false)">O\'chirish</button>'
     };
@@ -19339,6 +19530,7 @@ function renderIntegrations() {
             '<div style="margin-top:8px;">' + statusHtml + '</div>' +
           '</div>' +
         '</div>' +
+        (p.extra || '') +
         '<div class="intg-foot">' + action + '</div>' +
       '</div>';
     }
@@ -19722,7 +19914,31 @@ let _oscMissing = false;      // TASKFIX_HR.sql ishga tushirilmagan
 let _oscErr = null;           // oxirgi yuklash xatosi
 let _oscLoading = false;
 
-function oscCanEdit() { return isOwnerLike(); }
+// ── HR muharriri (positions.hr_editor) ──────────────────────────────────────
+// Owner/admin BO'LMAGAN xodim ham Org Schema'ni tahrirlay olsin: ruxsat
+// lavozim NOMIGA emas, BAYROQQA bog'langan (TASKFIX_HR_EDITORS.sql). Owner
+// "HR" lavozimini bir marta belgilaydi → o'sha lavozimdagi har kim tahrirlaydi.
+//
+// ⚠️ SQL ishga tushirilmagan bo'lsa `hr_editor` KALITI umuman kelmaydi →
+//    undefined → false. Xavfsiz sukut: hech kimga yangi ruxsat berilmaydi.
+// ⚠️ Manba — loadHrData() keshi (empDetails + positionsCache), 0 qo'shimcha
+//    so'rov. Oddiy a'zo employee_details dan FAQAT o'z qatorini ko'radi (RLS),
+//    bizga esa aynan O'ZIMNING lavozimim kerak — yetarli.
+// ⚠️ Bu FAQAT ko'rsatish qatlami. Haqiqiy himoya — server RLS'idagi
+//    org_*_{insert,update,delete}_hr policy'lari (hr_is_editor()).
+// ⚠️ loadHrData FONDA ishlaydi → boot tugamasdan chaqirilsa false qaytadi;
+//    ma'lumot kelgach ochiq sahifa qayta chiziladi (loadCurrentContext .then).
+function hrIsEditor() {
+  try {
+    if (!me || !currentWs) return false;
+    const d = (typeof empDetails === 'object' && empDetails) ? empDetails[me.id] : null;
+    if (!d || !d.position_id) return false;
+    const p = (positionsCache || []).find(function (x) { return x.id === d.position_id; });
+    return !!(p && p.hr_editor);
+  } catch (e) { console.error('hrIsEditor:', e); return false; }
+}
+
+function oscCanEdit() { return isOwnerLike() || hrIsEditor(); }
 
 function oscTableMissing(err) {
   if (!err) return false;
@@ -19961,12 +20177,30 @@ function oscMgrBadge(person, tree) {
 // ── Chizish ─────────────────────────────────────────────────────────────────
 function oscRenderActions() {
   const box = $('oscActions'); if (!box) return;
-  if (!oscCanEdit()) { box.innerHTML = ''; return; }
+  if (!oscCanEdit()) {
+    // ⚠️ HR muharriri ruxsati lavozimdan (positionsCache + empDetails) o'qiladi.
+    //    loadHrData yiqilgan bo'lsa hrIsEditor() abadiy false qaytaradi va odam
+    //    "tugmalarim yo'q" deb sababsiz qolardi — sababni ochiq aytamiz.
+    box.innerHTML = (!isOwnerLike() && _hrError)
+      ? '<span style="font-size:12.5px;color:var(--muted)">HR ma\'lumoti yuklanmadi — tahrir huquqingiz aniqlanmadi. ' +
+        '<button class="btn secondary sm" onclick="oscRetryHr()">Qayta urinish</button></span>'
+      : '';
+    return;
+  }
   box.innerHTML =
     '<button class="btn secondary sm" onclick="oscExpandAll(true)">Hammasini yoyish</button>' +
     '<button class="btn secondary sm" onclick="oscExpandAll(false)">Yig\'ish</button>' +
     '<button class="btn secondary sm" onclick="oscAddPerson(\'\',\'\')">' + icon('userPlus', 14) + ' Xodim</button>' +
     '<button class="btn sm" onclick="oscNewFolder(\'\',\'\')">' + icon('plus', 14) + ' Papka</button>';
+}
+
+// HR ma'lumotini qayta yuklab, Org Schema tugmalarini qayta baholash.
+// 🔴 top-level function — inline onclick global scope'da baholanadi.
+async function oscRetryHr() {
+  const ok = await loadHrData(true);
+  if (!ok) { toast(translateErr(_hrError || 'Yuklanmadi'), 'err'); return; }
+  oscRenderActions(); oscRenderFolders(); oscRenderChart();
+  if (!oscCanEdit()) toast('Sizda Org Schema tahriri huquqi yo\'q', 'err');
 }
 
 function oscRenderCount() {
@@ -20125,7 +20359,8 @@ function oscParentLabel(kind, id) {
 }
 
 async function oscNewFolder(parentKind, parentId) {
-  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  // ⚠️ Endi HR muharriri ham tahrirlaydi — matn "faqat owner/admin" demaydi.
+  if (!oscCanEdit()) { toast('Bu amalga ruxsatingiz yo\'q', 'err'); return; }
   const pname = oscParentLabel(parentKind, parentId);
   const vals = await uiForm(pname ? ('"' + pname + '" ostiga papka') : 'Yangi papka', [
     { id: 'name', label: 'Papka nomi', type: 'text', placeholder: 'Masalan: Sotuv bo\'limi' }
@@ -20156,7 +20391,8 @@ async function oscNewFolder(parentKind, parentId) {
 }
 
 async function oscRenameFolder(id) {
-  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  // ⚠️ Endi HR muharriri ham tahrirlaydi — matn "faqat owner/admin" demaydi.
+  if (!oscCanEdit()) { toast('Bu amalga ruxsatingiz yo\'q', 'err'); return; }
   const f = oscFolders.find(function (x) { return x.id === id; });
   if (!f) { toast('Papka topilmadi', 'err'); return; }
 
@@ -20190,7 +20426,8 @@ async function oscRenameFolder(id) {
 // ⚠️ O'zini va butun avlodini tanlab bo'lmaydi (sikl). Server ham to'sadi
 //    (org_check_ancestor), lekin ro'yxatda ko'rsatmaslik tushunarliroq.
 async function oscMoveNode(kind, id) {
-  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  // ⚠️ Endi HR muharriri ham tahrirlaydi — matn "faqat owner/admin" demaydi.
+  if (!oscCanEdit()) { toast('Bu amalga ruxsatingiz yo\'q', 'err'); return; }
   const isF = kind === 'f';
   const row = isF ? oscFolderById(id) : oscPersonById(id);
   if (!row) { toast('Tugun topilmadi', 'err'); return; }
@@ -20257,7 +20494,8 @@ async function oscMoveNode(kind, id) {
 }
 
 async function oscDeleteFolder(id) {
-  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  // ⚠️ Endi HR muharriri ham tahrirlaydi — matn "faqat owner/admin" demaydi.
+  if (!oscCanEdit()) { toast('Bu amalga ruxsatingiz yo\'q', 'err'); return; }
   const f = oscFolders.find(function (x) { return x.id === id; });
   if (!f) { toast('Papka topilmadi', 'err'); return; }
 
@@ -20889,7 +21127,8 @@ function oscManualCount() {
 
 // Bitta tugunni avtomatik joyiga qaytarish (kartadagi ↺).
 async function oscResetNode(kind, id) {
-  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  // ⚠️ Endi HR muharriri ham tahrirlaydi — matn "faqat owner/admin" demaydi.
+  if (!oscCanEdit()) { toast('Bu amalga ruxsatingiz yo\'q', 'err'); return; }
   const row = kind === 'p' ? oscPersonById(id) : oscFolderById(id);
   if (!row) { toast('Tugun topilmadi', 'err'); return; }
   const prev = { x: oscNum(row.node_x), y: oscNum(row.node_y) };
@@ -20914,7 +21153,8 @@ async function oscResetNode(kind, id) {
 // ⚠️ Mahalliy kesh MUVAFFAQIYATDAN KEYIN tozalanadi — server rad etsa
 //    ekranda "qaytarilgandek" ko'rinib qolmasin.
 async function oscResetLayout() {
-  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  // ⚠️ Endi HR muharriri ham tahrirlaydi — matn "faqat owner/admin" demaydi.
+  if (!oscCanEdit()) { toast('Bu amalga ruxsatingiz yo\'q', 'err'); return; }
   const cnt = oscManualCount();
   if (!cnt) { toast('Qo\'lda surilgan karta yo\'q', 'err'); return; }
   const ok = await uiConfirm('Avto joylashuv',
@@ -21028,7 +21268,8 @@ function oscNodeOptions(tree, bannedKeys, rootLabel) {
 //    bo'lganlar OLIB TASHLANMAYDI — faqat AYNI O'SHA o'ringa ikkinchi
 //    marta qo'shish to'siladi (DB'da ham qisman UNIQUE indekslar bor).
 async function oscAddPerson(parentKind, parentId) {
-  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  // ⚠️ Endi HR muharriri ham tahrirlaydi — matn "faqat owner/admin" demaydi.
+  if (!oscCanEdit()) { toast('Bu amalga ruxsatingiz yo\'q', 'err'); return; }
   if (!wsMembers || !wsMembers.length) { toast('Jamoada xodim yo\'q', 'err'); return; }
 
   // Hamma a'zo ko'rsatiladi; kimda allaqachon o'rin bor bo'lsa — nechta
@@ -21102,7 +21343,8 @@ async function oscAddPerson(parentKind, parentId) {
 function oscMovePerson(personId) { return oscMoveNode('p', personId); }
 
 async function oscRemovePerson(personId) {
-  if (!oscCanEdit()) { toast('Faqat owner/admin o\'zgartira oladi', 'err'); return; }
+  // ⚠️ Endi HR muharriri ham tahrirlaydi — matn "faqat owner/admin" demaydi.
+  if (!oscCanEdit()) { toast('Bu amalga ruxsatingiz yo\'q', 'err'); return; }
   const p = oscPersonById(personId);
   if (!p) { toast('Xodim topilmadi', 'err'); return; }
 
