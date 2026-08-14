@@ -1367,6 +1367,10 @@ body.pwa-bar-on { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
     try { window.localStorage.setItem(k, v); return true; }
     catch (e) { console.error('[pwa] localStorage yozilmadi:', e); return false; }
   }
+  function lsRemove(k) {
+    try { window.localStorage.removeItem(k); return true; }
+    catch (e) { console.error('[pwa] localStorage tozalanmadi:', e); return false; }
+  }
 
   /* ── 1) Service worker ─────────────────────────────────────────────── */
   window.addEventListener('load', function () {
@@ -1408,7 +1412,11 @@ body.pwa-bar-on { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
     if (window.innerWidth > MAX_W) return false;                  /* 2 */
     if (!deferred && !IS_IOS) return false;                       /* 3 */
     if (!lsOk) return false;                                      /* xotira yo'q — bezovta qilmaymiz */
-    if (lsGet(LS_INSTALLED)) return false;                        /* 5 */
+    /* 🔴 `deferred` bor = brauzer "ilova o'rnatilmagan" dedi → saqlangan
+       bayroqqa qaralmaydi (u foydalanuvchi ilovani o'chirgach eskirgan
+       bo'lishi mumkin). Bayroq faqat iOS uchun — u yerda aniqlashning
+       boshqa yo'li yo'q. */
+    if (!deferred && lsGet(LS_INSTALLED)) return false;            /* 5 */
     var d = lsGet(LS_DISMISS);                                    /* 4 */
     if (d) {
       var t = parseInt(d, 10);
@@ -1446,6 +1454,10 @@ body.pwa-bar-on { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
   window.addEventListener('beforeinstallprompt', function (e) {
     e.preventDefault();          /* brauzerning o'z mini-infobar'i chiqmasin */
     deferred = e;
+    /* 🔴 Bu hodisa = "ilova hozir o'rnatilmagan" degan rasmiy xabar. Demak
+       saqlangan bayroq eskirgan (foydalanuvchi ilovani o'chirgan) — tozalaymiz,
+       aks holda u boshqa hech qachon o'chmasdi. */
+    if (lsGet(LS_INSTALLED)) lsRemove(LS_INSTALLED);
     update();
   });
 

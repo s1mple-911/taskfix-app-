@@ -9907,6 +9907,10 @@ function pwaLsSet(k, v) {
   try { window.localStorage.setItem(k, v); return true; }
   catch (e) { console.error('[pwa] localStorage yozilmadi:', e); return false; }
 }
+function pwaLsRemove(k) {
+  try { window.localStorage.removeItem(k); return true; }
+  catch (e) { console.error('[pwa] localStorage tozalanmadi:', e); return false; }
+}
 
 function pwaMq(q) {
   try { return !!(window.matchMedia && window.matchMedia(q).matches); }
@@ -9930,7 +9934,16 @@ function pwaIsIos() {
 // O'rnatish umuman mumkinmi (drawer punkti shu bilan boshqariladi).
 function pwaCanInstall() {
   if (pwaStandalone()) return false;
-  if (!_pwaPrompt && !pwaIsIos()) return false;   // prompt yo'q va iOS emas
+  // 🔴 `_pwaPrompt` — ENG ISHONCHLI dalil: brauzer `beforeinstallprompt` ni
+  //    FAQAT ilova hozir o'rnatilmagan va o'rnatilishi mumkin bo'lganda otadi.
+  //    Shuning uchun u bor bo'lsa `pwa_installed_v1` bayrog'iga UMUMAN
+  //    qaralmaydi. Busiz: foydalanuvchi ilovani o'rnatib, keyin telefonidan
+  //    o'chirsa, bayroq localStorage'da QOLIB KETARDI va "Ilovani o'rnatish"
+  //    tugmasi abadiy yo'qolardi — odam Chrome menyusidan qidirishga majbur.
+  if (_pwaPrompt) return true;
+  if (!pwaIsIos()) return false;                  // prompt yo'q va iOS emas
+  // iOS: `beforeinstallprompt` ham, `appinstalled` ham yo'q — o'rnatilganini
+  // aniqlashning yagona yo'li shu bayroq (standalone tekshiruvidan tashqari).
   if (pwaLsGet(PWA_LS_INSTALLED)) return false;
   return true;
 }
@@ -10096,6 +10109,11 @@ function pwaInit() {
   window.addEventListener('beforeinstallprompt', function (e) {
     e.preventDefault();          // brauzerning o'z mini-infobar'i chiqmasin
     _pwaPrompt = e;
+    // 🔴 Bu hodisa = "ilova hozir o'rnatilmagan" degan RASMIY xabar. Demak
+    //    saqlangan `pwa_installed_v1` eskirgan (foydalanuvchi ilovani
+    //    o'chirgan) — tozalaymiz, aks holda u boshqa hech qachon o'chmasdi
+    //    va banner ham qaytmasdi.
+    if (pwaLsGet(PWA_LS_INSTALLED)) pwaLsRemove(PWA_LS_INSTALLED);
     pwaSyncUi();
   });
   window.addEventListener('appinstalled', function () {
