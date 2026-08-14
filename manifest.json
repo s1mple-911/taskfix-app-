@@ -1,0 +1,42 @@
+{
+  "id": "/",
+  "name": "TaskFix — Vazifa va jamoa boshqaruvi",
+  "short_name": "TaskFix",
+  "description": "Vazifalar, jamoa, bo'limlar va loyihalar — bitta oynada.",
+  "lang": "uz",
+  "dir": "ltr",
+  "start_url": "index.html?app=1",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "any",
+  "theme_color": "#FAF7F0",
+  "background_color": "#FAF7F0",
+  "categories": ["business", "productivity"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Barcha vazifalar",
+      "short_name": "Vazifalar",
+      "url": "index.html?app=1#/tasks",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Rejalashtirgich",
+      "short_name": "Reja",
+      "url": "index.html?app=1#/planner",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Loyihalar",
+      "short_name": "Loyihalar",
+      "url": "index.html?app=1#/projects",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

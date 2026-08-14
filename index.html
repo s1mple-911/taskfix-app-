@@ -37,6 +37,23 @@
   } catch (e) { /* shubha bo'lsa — ilovada qolamiz */ }
 })();
 </script>
+<!-- ============ PWA ============
+     🔴 Landing DARVOZASIDAN KEYIN turadi — darvoza sinxron va birinchi
+        bo'lishi shart (yuqoridagi izoh). Bu qatorlar faqat metadata.
+     ⚠️ Fayl nomi `manifest.json` (`.webmanifest` EMAS) — GitHub Pages uni
+        to'g'ri MIME bilan beradi; `landing.html` da ham AYNAN shu nom.
+     ⚠️ `beforeinstallprompt` faqat manifest SHU sahifaga ulangan bo'lsa keladi.
+        Manifest bitta (`start_url: index.html?app=1`) — ikkala fayl ham unga
+        ishora qiladi, ya'ni ikkita alohida PWA paydo bo'lmaydi.
+     ⚠️ 6–8-qatorlardagi `Cache-Control: no-store` HTML uchun — service worker
+        (sw.js) HTML'ni network-first oladi, ziddiyat yo'q. -->
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#FAF7F0" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="TaskFix" />
+<meta name="mobile-web-app-capable" content="yes" />
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230F1417'/%3E%3Cpath d='M 9 16 L 14 21 L 23 11' stroke='%23FEF3C7' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -411,7 +428,8 @@
 
   .list { display: flex; flex-direction: column; gap: 8px; }
   .item { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: border-color .12s, transform .05s; display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; }
-  .item:hover { border-color: var(--line-strong); }
+  /* hover:hover — sensorli ekranda tegingandan keyin "yopishib qolgan hover" bo'lmasin */
+  @media (hover: hover) { .item:hover { border-color: var(--line-strong); } }
   .item:active { transform: translateY(1px); }
   .item.static { cursor: default; }
   .item.static:active { transform: none; }
@@ -446,7 +464,7 @@
   .kan-count { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; font-size: 11px; font-weight: 600; color: var(--muted); }
   .kan-list { display: flex; flex-direction: column; gap: 8px; min-height: 50px; flex: 1; overflow-y: auto; padding-right: 4px; padding-bottom: 6px; }
   .kan-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: grab; transition: border-color .12s, transform .05s, opacity .15s; flex-shrink: 0; }
-  .kan-card:hover { border-color: var(--line-strong); }
+  @media (hover: hover) { .kan-card:hover { border-color: var(--line-strong); } }
   .kan-card:active { cursor: grabbing; }
   .kan-card.dragging { opacity: .4; }
   .kan-card-title { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px; line-height: 1.35; }
@@ -892,7 +910,7 @@
   .kan-col-head { display: flex; align-items: center; gap: 8px; }
   .kan-col-color { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   .kan-col-name { font-weight: 600; font-size: 13px; cursor: grab; padding: 2px 6px; border-radius: 4px; user-select: none; }
-  .kan-col-name:hover { background: #F4F3EF; }
+  @media (hover: hover) { .kan-col-name:hover { background: #F4F3EF; } }
   .kan-col-name.editing { background: var(--surface); border: 1px solid var(--accent); outline: none; cursor: text; user-select: text; }
 
   /* ===== Jadval (Excel-uslubi) ===== */
@@ -972,7 +990,7 @@
   .pln-side-hint { font-size:11.5px; color:var(--muted); margin-bottom:12px; }
   .pln-side-list { display:flex; flex-direction:column; gap:8px; max-height:calc(100vh - 220px); overflow:auto; }
   .pln-task { background:var(--surface-2); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:9px; padding:9px 11px; cursor:grab; font-size:13px; transition:box-shadow .12s,transform .12s; }
-  .pln-task:hover { box-shadow:0 3px 10px rgba(0,0,0,.08); transform:translateY(-1px); }
+  @media (hover: hover) { .pln-task:hover { box-shadow:0 3px 10px rgba(0,0,0,.08); transform:translateY(-1px); } }
   .pln-task:active { cursor:grabbing; }
   .pln-task .pt-title { font-weight:600; color:var(--ink); display:block; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .pln-task .pt-meta { font-size:11px; color:var(--muted); }
@@ -1291,7 +1309,7 @@
     box-shadow: 0 1px 2px rgba(28,31,36,.05); box-sizing: border-box;
     transition: transform .16s cubic-bezier(.32,.72,0,1), box-shadow .16s ease, border-color .16s ease; }
   .osc-card.person { cursor: pointer; }
-  .osc-card.person:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(28,31,36,.13); border-color: var(--line-strong); }
+  @media (hover: hover) { .osc-card.person:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(28,31,36,.13); border-color: var(--line-strong); } }
   /* Surish (drag): surilayotgan karta "ko'tariladi", qolganlari joyida turadi.
      ⚠️ transition o'chadi — aks holda karta kursor ortidan sudralib kelardi. */
   .osc-stage.dragging .osc-card { transition: none; cursor: grabbing; }
@@ -1432,7 +1450,7 @@
   .prj-line { flex: 1; width: 2px; background: var(--line); min-height: 20px; }
   .prj-line.done { background: var(--success); opacity: .45; }
   .prj-task { --st: var(--line-strong); position: relative; flex: 1; min-width: 0; border: 1px solid var(--line-soft); background: var(--surface); border-radius: 13px; padding: 13px 15px 13px 17px; margin-bottom: 12px; cursor: pointer; box-shadow: inset 3px 0 0 var(--st), 0 1px 2px rgba(15,20,23,.06); transition: border-color .14s, box-shadow .14s, transform .14s, background .14s; }
-  .prj-task:hover { border-color: var(--line); box-shadow: inset 3px 0 0 var(--st), 0 6px 18px rgba(15,20,23,.09); transform: translateY(-1px); }
+  @media (hover: hover) { .prj-task:hover { border-color: var(--line); box-shadow: inset 3px 0 0 var(--st), 0 6px 18px rgba(15,20,23,.09); transform: translateY(-1px); } }
   .prj-task:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
   .prj-task.done { --st: var(--success); border-color: #D5F0E3; background: #FAFEFC; }
   .prj-task.cur { --st: #3B82F6; border-color: #CFE0FB; background: #F7FAFF; }
@@ -1541,7 +1559,7 @@
        320px dan tor bo'lsa ustun idishga tenglashadi, gorizontal scroll yo'q. */
   .prjc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 14px; align-items: start; }
   .prjc-card { --pst: var(--line-strong); display: flex; flex-direction: column; gap: 10px; min-width: 0; background: var(--surface); border: 1px solid var(--line-soft); border-radius: 14px; padding: 15px 16px 15px 18px; cursor: pointer; box-shadow: inset 3px 0 0 var(--pst), 0 1px 2px rgba(15,20,23,.06); transition: border-color .14s, box-shadow .14s, transform .14s; }
-  .prjc-card:hover { border-color: var(--line); box-shadow: inset 3px 0 0 var(--pst), 0 6px 18px rgba(15,20,23,.09); transform: translateY(-1px); }
+  @media (hover: hover) { .prjc-card:hover { border-color: var(--line); box-shadow: inset 3px 0 0 var(--pst), 0 6px 18px rgba(15,20,23,.09); transform: translateY(-1px); } }
   .prjc-card:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
   /* Holat ranglari PRJ_STATE bilan BIR XIL (prj-state.* bilan qiymatma-qiymat) */
   .prjc-card.st-upcoming { --pst: #64748b; }
@@ -1622,11 +1640,11 @@
        880px dan tor ekranda .sb-collapsed ni qo'ymaydi; bu — zaxira. */
     .app.show, .app.show.sb-collapsed { grid-template-columns: 1fr; }
     .sb-toggle { display: none; }
-    .sidebar { position: relative; height: auto; min-height: auto; flex-direction: row; align-items: center; padding: 10px 12px; gap: 8px; overflow-x: auto; overflow-y: visible; }
-    .ws-switch { margin: 0; flex-shrink: 0; min-width: 180px; }
-    .side-nav { flex-direction: row; gap: 4px; }
-    .side-section, .side-spacer, .side-bottom { display: none; }
-    .side-link { padding: 7px 11px; font-size: 12.5px; }
+    /* ⚠️ 2026-08-14: bu yerdagi 5 qator O'CHIRILDI (sidebar gorizontal lenta,
+       .side-section/.side-spacer/.side-bottom { display:none }). Ular mobilda
+       menyuning yarmini — Bo'limlar sarlavhasi/+, profil, 🔔, Chiqish — butunlay
+       yo'q qilardi. O'rniga stylesheet OXIRIDAGI "MOBIL KARKAS (mob-*)" bloki:
+       sidebar off-canvas drawer bo'ladi va HAR punkt joyida qoladi. */
     .notif-panel { left: 8px; right: 8px; width: auto; bottom: auto; top: 60px; }
     .modal { max-height: 100vh; border-radius: 0; }
     .modal.modal-wide { max-width: 100%; }
@@ -1718,9 +1736,9 @@
 
   /* Kartochka/qator: hover'da nozik ko'tarilish (avval faqat chegara rangi) */
   .item { transition: border-color .14s ease, box-shadow .14s ease, transform .06s ease; }
-  .item:hover { box-shadow: 0 2px 10px rgba(28,31,36,.06); }
+  @media (hover: hover) { .item:hover { box-shadow: 0 2px 10px rgba(28,31,36,.06); } }
   .kan-card { transition: border-color .14s ease, box-shadow .14s ease, transform .06s ease; }
-  .kan-card:hover { box-shadow: 0 2px 10px rgba(28,31,36,.07); }
+  @media (hover: hover) { .kan-card:hover { box-shadow: 0 2px 10px rgba(28,31,36,.07); } }
   .stat { transition: border-color .14s ease, box-shadow .14s ease; }
   .stat:hover { border-color: var(--line-strong); }
 
@@ -1847,6 +1865,1243 @@
     /* Org chart: min-height 420px past ekranda butun sahifani scrollga
        majburlardi — kanban/jadval bilan bir xil yechim. */
     .osc-viewport { height: calc(100vh - 250px); min-height: 300px; }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     MOBIL KARKAS (mob-*) — 1-BOSQICH: navigatsiya   [2026-08-14]
+     ═══════════════════════════════════════════════════════════════════════
+     ⚠️ Blok ATAYLAB stylesheet OXIRIDA: media query o'ziga xoslik
+        (specificity) QO'SHMAYDI — bir xil selektorlar teng kuchda bo'ladi va
+        OXIRGISI g'alaba qozonadi. Ya'ni bu qoidalar 1611/1617-dagi eski mobil
+        bloklardan HAM keyin turishi shart.
+     🔴 `transform` FAQAT `.sidebar` ning O'ZIGA beriladi. `#appView`/`body` ga
+        BERILMAYDI — transform containing block yaratadi va ilovadagi barcha
+        `position:fixed` panellar (.ss-panel 9100, .ui-modal-bd 9000, .gs-drop 90,
+        .toast 9500, .modal-backdrop 100, .tbl-filter-pop 250, .tsk-chip 8000,
+        .notif-panel) noto'g'ri joyga chiqib ketardi (CLAUDE.md invarianti).
+     🔴 `#topSearchWrap` HECH QACHON `display:none` QILINMAYDI — gsPosition()
+        uning getBoundingClientRect() iga tayanadi; display:none da rect 0 bo'lib
+        qidiruv JIMGINA ishlamay qolardi. Yashirish `visibility` bilan (layout
+        qutisi saqlanadi → rect to'g'ri).
+     🔴 `#topbarNewBtn` (FAB) ga `display` BERILMAYDI — renderSidebar() unga
+        inline `display` yozadi (canEditWorkspace()). Inline stil CSS'dan kuchli,
+        va ruxsatsiz foydalanuvchida FAB ko'rinmasligi shu orqali saqlanadi.
+     Z-INDEX: 90 FAB (sabab pastda) · 8500 .mob-scrim · 8600 .sidebar(drawer) ·
+        8700/8710 notif scrim/sheet. Mavjud raqamlar (8000, 9000, 9100, 9500)
+        O'ZGARMAYDI.                                                          */
+
+  /* 1) Yangi elementlar — desktopda (≥881px) UMUMAN yo'q */
+  .mob-burger, .mob-title, .mob-iconbtn, .mob-scrim, .mob-drawer-x,
+  .mob-search-back, .mob-notif-scrim { display: none; }
+
+  /* Drawer/sheet ochiq bo'lganda orqa fon scroll qilmasin */
+  html.mob-lock, html.mob-lock body { overflow: hidden; }
+
+  @keyframes mobToast { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  /* Modal varaq pastdan chiqadi. ⚠️ Kichik siljish (24px) — `.modal` ichida
+     sticky head/foot bor, katta translate ularni "sakratardi". */
+  @keyframes mobSheetUp { from { transform: translateY(24px); opacity: .6; } to { transform: none; opacity: 1; } }
+
+  @media (max-width: 880px) {
+    /* ── OFF-CANVAS DRAWER (mavjud <aside class="sidebar"> qayta ishlatiladi) ── */
+    .sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0;
+      z-index: 8600;
+      width: min(84vw, 300px);
+      height: 100vh; height: 100dvh;
+      min-height: 0;
+      flex-direction: column;
+      padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
+      padding-left: calc(12px + env(safe-area-inset-left));
+      overflow-y: auto; overflow-x: hidden;
+      overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+      box-shadow: none;
+      transform: translateX(-100%);
+      visibility: hidden;              /* 🔴 SHART: yopiq drawer tugmalari fokusga/skrinriderga tushmasin */
+      transition: transform .2s cubic-bezier(.4, 0, 1, 1), visibility 0s linear .2s;
+    }
+    .mob-nav-open .sidebar {
+      transform: translateX(0);
+      visibility: visible;
+      transition: transform .26s cubic-bezier(.32, .72, 0, 1), visibility 0s;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.06), 24px 0 60px rgba(0,0,0,.45);
+    }
+    /* Barmoq ortidan surilayotganda animatsiya bo'lmasin (JS inline transform yozadi) */
+    .sidebar.mob-dragging { transition: none; }
+
+    .mob-scrim {
+      display: block; position: fixed; inset: 0; z-index: 8500;
+      background: rgba(15,20,23,.45);
+      -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+      opacity: 0; visibility: hidden;
+      transition: opacity .2s ease, visibility 0s linear .2s;
+    }
+    .mob-nav-open .mob-scrim { opacity: 1; visibility: visible; transition: opacity .2s ease, visibility 0s; }
+
+    /* Drawer ichi — teginish o'lchamlari (44px+) */
+    .brand-top { min-height: 44px; padding: 2px 4px 14px; }
+    .mob-drawer-x {
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-left: auto; flex: 0 0 auto; width: 40px; height: 40px; padding: 0;
+      border: none; border-radius: 10px; cursor: pointer;
+      background: rgba(255,255,255,.06); color: var(--side-ink); font-family: inherit;
+    }
+    .mob-drawer-x:active { background: rgba(255,255,255,.12); }
+    .ws-switch { min-width: 0; margin-bottom: 12px; min-height: 52px; }
+    .ws-item { min-height: 46px; }
+    .side-nav { flex-direction: column; gap: 2px; }
+    .side-section { display: flex; font-size: 11px; padding: 16px 12px 6px; }
+    .side-section .add-mini { width: 34px; height: 34px; justify-content: center; }
+    .side-spacer { display: block; flex: 1; }
+    .side-bottom { display: block; }
+    .side-link { min-height: 46px; padding: 11px 12px; font-size: 14.5px; gap: 12px; }
+    .side-link.side-sub { min-height: 44px; padding-left: 46px; font-size: 14px; }
+    .side-user { min-height: 52px; }
+    .profile-menu-item { min-height: 46px; }
+
+    /* ── MOBIL TOPBAR ────────────────────────────────────────────────── */
+    .topbar {
+      height: 56px; gap: 4px;
+      padding: 0 calc(8px + env(safe-area-inset-right)) 0 calc(8px + env(safe-area-inset-left));
+    }
+    .mob-burger, .mob-iconbtn {
+      display: inline-flex; align-items: center; justify-content: center;
+      position: relative; flex: 0 0 44px; width: 44px; height: 44px; padding: 0;
+      border: none; border-radius: 10px; background: transparent;
+      color: var(--ink-soft); cursor: pointer; font-family: inherit;
+    }
+    .mob-burger:active, .mob-iconbtn:active { background: rgba(28,31,36,.10); transform: scale(.94); }
+    .mob-burger:focus-visible, .mob-iconbtn:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
+    .mob-title {
+      display: block; flex: 1 1 auto; min-width: 0;
+      font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 15.5px;
+      letter-spacing: -.02em; color: var(--ink);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    /* Topbar bell nuqtasi — fon krem (sidebar emas) */
+    .mob-iconbtn .bell-dot { top: 9px; right: 10px; width: 9px; height: 9px; border: 2px solid var(--bg); }
+
+    /* ── QIDIRUV ──────────────────────────────────────────────────────
+       Yopiq holat: element DOM'da va layout qutisi bilan qoladi (rect to'g'ri),
+       faqat ko'rinmaydi. `.topbar` sticky = joylashuv ajdodi.               */
+    .topbar-search {
+      position: absolute; left: 8px; right: 8px; top: 6px;
+      width: auto; max-width: none; margin: 0; height: 44px;
+      visibility: hidden; opacity: 0; pointer-events: none;
+    }
+    body.mob-search-open .topbar-search {
+      position: fixed; top: env(safe-area-inset-top); left: 0; right: 0;
+      width: auto; max-width: none; height: 56px; margin: 0; padding: 0 8px;
+      border: 0; border-bottom: 1px solid var(--line); border-radius: 0;
+      /* ⚠️ 92 `.gs-drop` (90) ni BOSMAYDI: `.topbar` (position:sticky; z-index:20)
+         o'z stacking kontekstini yaratadi, `.gs-drop` esa gsOpen() da <body> ga
+         ko'chiriladi — ildizda topbar 20, drop 90 → drop baribir ustun (va shunday
+         bo'lishi KERAK). Bu raqam faqat topbar ICHIDAGI tartib uchun. */
+      background: var(--surface); z-index: 92;
+      visibility: visible; opacity: 1; pointer-events: auto;
+    }
+    body.mob-search-open .topbar-search .kbd { display: none; }
+    body.mob-search-open .topbar-search input { font-size: 16px !important; }  /* iOS zoom qilmasin */
+    .mob-search-back {
+      align-items: center; justify-content: center;
+      flex: 0 0 40px; width: 40px; height: 40px; margin-left: -6px; padding: 0;
+      border: none; border-radius: 10px; background: transparent;
+      color: var(--muted); cursor: pointer; font-family: inherit;
+    }
+    body.mob-search-open .mob-search-back { display: inline-flex; }
+    .mob-search-back svg { transform: rotate(180deg); }
+    body.mob-search-open .gs-drop {
+      /* ⚠️ gsPosition() `top/left/width` ni INLINE yozadi. `top` — dinamik
+         (maydon ostidan boshlanadi, o'zi to'g'ri). `left/width` esa mobil
+         to'liq ekran uchun chekkada 8px bo'shliq qoldirardi → `!important`
+         bilan butun kenglikka yoyamiz (funksiyaga tegilmaydi). */
+      left: 0 !important; right: 0; width: auto !important;
+      /* ⚠️ `bottom: 0` EMAS: iOS Safari klaviatura ochilganda layout oynasini
+         QISQARTIRMAYDI, ya'ni fixed panel klaviatura OSTIDA qolardi va
+         natijalar ro'yxatining yarmi ko'rinmasdi. `--mob-kb` ni mvvApply()
+         visualViewport'dan hisoblaydi (.ss-panel.sheet bilan bir xil naqsh). */
+      bottom: var(--mob-kb, 0px); max-height: none;
+      border-radius: 0; border-left: 0; border-right: 0; border-bottom: 0;
+      box-shadow: none;
+    }
+    body.mob-search-open .gs-drop.show { display: flex; flex-direction: column; }
+    body.mob-search-open .gs-drop .cmd-list { max-height: none; flex: 1 1 auto; }
+    body.mob-search-open .tsk-chip { display: none; }
+    .gs-drop .cmd-foot { display: none; }
+    .cmd-item { min-height: 56px; padding: 12px; }
+    .cmd-item .cmd-ic { width: 34px; height: 34px; }
+    .gs-act { min-height: 36px; padding: 8px 12px; }
+
+    /* ── FAB ("Yangi vazifa") — `display` BERILMAYDI (yuqoridagi izoh) ── */
+    .topbar-new {
+      position: fixed;
+      right: calc(16px + env(safe-area-inset-right));
+      bottom: calc(16px + env(safe-area-inset-bottom));
+      width: 56px; height: 56px; padding: 0;
+      align-items: center; justify-content: center;
+      border-radius: 18px; font-size: 0;
+      /* 🔴 z-index 90 (spec'dagi 8300 EMAS): `.modal-backdrop` 100 da —
+         8300 bo'lsa FAB ochiq katta modal (yaratish/detal) USTIDA qalqib
+         turardi. Qolaversa tugma `.topbar` ICHIDA, `.topbar` esa
+         `position:sticky; z-index:20` bilan O'Z STACKING KONTEKSTINI
+         yaratadi → FAB baribir ildizda 20-daraja sifatida chiziladi
+         (modal 100, qidiruv 90, drawer scrim 8500, ui-modal 9000 — hammasi
+         uni qoplaydi; oddiy kontent ustida esa qolaveradi).
+         ⚠️ `sticky` fixed uchun containing block YARATMAYDI (faqat
+         transform/filter yaratadi) — shuning uchun FAB ekranga nisbatan
+         to'g'ri joylashadi. */
+      z-index: 90;
+      box-shadow: 0 6px 20px rgba(15,20,23,.28), 0 1px 2px rgba(15,20,23,.14);
+    }
+    .topbar-new > span { display: none; }                       /* "N" kbd */
+    .topbar-new > svg { width: 24px; height: 24px; margin-right: 0 !important; }
+    .topbar-new:active { transform: scale(.93); box-shadow: 0 3px 10px rgba(15,20,23,.24); }
+    .topbar-new:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 3px; }
+
+    /* ── Suzuvchi elementlar FAB bilan to'qnashmasin ── */
+    .tsk-chip { right: 12px; bottom: calc(84px + env(safe-area-inset-bottom)); font-size: 12px; padding: 7px 12px; }
+    .toast {
+      left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom));
+      min-width: 0; max-width: none;
+    }
+    .toast.show { animation-name: mobToast; }
+
+    /* ── BILDIRISHNOMA — pastdan chiqadigan panel ──────────────────────
+       Scrim `.notif-panel` DAN KEYIN turadi → sof CSS (`~`) bilan
+       boshqariladi, toggleNotif() ga tegilmaydi. Bosilganda mavjud
+       document-click listener panelni yopadi.                            */
+    .notif-panel {
+      left: 0; right: 0; bottom: 0; top: auto; width: auto;
+      max-height: min(72dvh, 560px);
+      border-radius: 20px 20px 0 0; border-bottom: 0;
+      box-shadow: 0 -12px 40px rgba(15,20,23,.22);
+      padding-bottom: env(safe-area-inset-bottom);
+      z-index: 8710;
+    }
+    /* 🔴 Chiqish animatsiyasi: base `.notif-panel{display:none}` → `.show{display:block}`
+       da transform O'TMAYDI (display o'zgarishi animatsiya qilinmaydi). Shuning
+       uchun mobilda panel DOIM `display:block`, ko'rinishi esa
+       visibility+opacity+transform bilan — `.sidebar` drawer bilan bir xil naqsh.
+       ⚠️ `visibility:hidden` SHART: yopiq panel tugmalari fokusga/skrinriderga
+       tushmasin. toggleNotif() ga tegilmagan — u faqat `.show` ni almashtiradi. */
+    .notif-panel {
+      display: block; visibility: hidden; opacity: 0;
+      transform: translateY(100%);
+      transition: transform .26s cubic-bezier(.32,.72,0,1), opacity .2s ease, visibility 0s linear .26s;
+    }
+    .notif-panel.show {
+      display: block; visibility: visible; opacity: 1;
+      transform: translateY(0);
+      transition: transform .26s cubic-bezier(.32,.72,0,1), opacity .2s ease, visibility 0s;
+    }
+    /* 🔴 Sudrash dastagi `.notif-panel::before` DAN `.notif-head::before` GA ko'chirildi:
+       `.notif-head` — `position:sticky; top:0`, ya'ni ro'yxat scroll qilinganda u
+       yuqoriga yopishadi va oqimda turgan dastakni matni bilan bosib ketardi.
+       Endi dastak sticky sarlavhaning O'ZIDA (absolute — flex qatorida element
+       bo'lib qolmasin, aks holda chapga tushib markazlashmasdi). Faqat bezak. */
+    .notif-head { position: sticky; top: 0; background: var(--surface); z-index: 1; min-height: 52px; padding: 20px 18px 12px; font-size: 15px; }
+    .notif-head::before {
+      content: ''; position: absolute; top: 7px; left: 50%;
+      transform: translateX(-50%);
+      width: 36px; height: 4px; border-radius: 99px; background: var(--line);
+    }
+    .notif-item { padding: 14px 18px; }
+    .notif-actions .btn { min-height: 40px; }
+    .mob-notif-scrim {
+      display: block; position: fixed; inset: 0; z-index: 8700;
+      background: rgba(15,20,23,.35);
+      opacity: 0; visibility: hidden;
+      transition: opacity .18s ease, visibility 0s linear .18s;
+    }
+    .notif-panel.show ~ .mob-notif-scrim { opacity: 1; visibility: visible; transition: opacity .18s ease, visibility 0s; }
+
+    /* ── KANBAN: oxirgi karta FAB ostida qolmasin ──────────────────────
+       ≤980 da `.kanban` vertikal (flex-direction:column, height:auto) →
+       oxirgi ustunning tagi FAB (56px + 16px chekka) bilan qoplanardi.
+       ⚠️ FAQAT `padding-bottom` — `.kan-col { max-height: 60vh }` va ichki
+       scroll mantiqiga TEGILMAYDI.                                        */
+    .kanban { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+
+    /* ── KATTA MODALLAR (.modal) → pastdan chiqadigan varaq (sheet) ─────
+       🔴 KLAVIATURA: `100vh`/`100dvh` virtual klaviaturani HISOBGA OLMAYDI —
+          "Saqlash" tugmasi klaviatura ostida qolardi. Yechim: backdrop
+          balandligi `--mob-vh` (mvvApply() `visualViewport.height` dan px
+          yozadi), yuqori chekkasi `--mob-vvtop` (iOS klaviatura ochilganda
+          vizual oynani siljitadi). Varaq `align-items:flex-end` bilan shu
+          qisqargan maydonning TAGIGA yopishadi → foot doim ko'rinadi.
+          `dvh` — JS ishlamaguncha/`visualViewport` yo'q brauzerda zaxira.
+       ⚠️ `transform` backdrop'ga BERILMAYDI (top/height bilan siljitamiz) —
+          CLAUDE.md invarianti: fixed farzandlar buzilmasin.                */
+    .modal-backdrop {
+      align-items: flex-end; justify-content: stretch; padding: 0;
+      background: rgba(20,22,28,.5);
+      top: var(--mob-vvtop, 0px); bottom: auto;
+      height: 100vh;                    /* zaxira (dvh yo'q eski brauzer) */
+      height: var(--mob-vh, 100dvh);
+    }
+    .modal {
+      width: 100%;
+      /* !important — 12 ta modalda HTML'da inline `style="max-width:600px"` bor,
+         inline stil CSS'dan kuchli; mobilda varaq butun kenglikda bo'lishi shart. */
+      max-width: none !important;
+      border-radius: 20px 20px 0 0;
+      /* % — backdrop balandligiga nisbatan (klaviatura ochilganda ham to'g'ri) */
+      max-height: 94%;
+      box-shadow: 0 -14px 44px rgba(15,20,23,.28);
+      animation: mobSheetUp .28s cubic-bezier(.32,.72,0,1);
+    }
+    .modal.modal-wide { height: 94%; }          /* #createBd, #detailBd — doim to'la */
+    /* `.modal-head` — `position:sticky` (positioned) → ::before dastagi unga
+       nisbatan absolute joylashadi va scroll'da ham sarlavha bilan birga qoladi. */
+    .modal-head { min-height: 56px; padding: 20px 16px 14px; border-radius: 20px 20px 0 0; }
+    .modal-head::before {
+      content: ''; position: absolute; top: 7px; left: 50%;
+      transform: translateX(-50%);
+      width: 38px; height: 4px; border-radius: 99px; background: var(--line);
+    }
+    .modal-head h3 { font-size: 16.5px; }
+    .modal-body { padding: 16px; }
+    .modal-foot { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); gap: 10px; }
+    .modal-foot .btn { min-height: 48px; flex: 1; }
+    .modal-foot .btn.danger { flex: 0 0 auto; }   /* "O'chirish" tor qolsin — xato bosilmasin */
+    .x-btn {
+      width: 44px; height: 44px; display: flex; align-items: center;
+      justify-content: center; border-radius: 50%; background: var(--surface-2);
+    }
+  }
+
+  /* ── uiForm / uiConfirm (.ui-modal) → varaq ─────────────────────────
+     Chegara 880 EMAS, 640 (spec 3.5): 641–880px planshetda markazdagi
+     440px oyna yaxshi ko'rinadi va o'zgartirishga hojat yo'q.
+     🔴 `.ui-modal` mobilda flex-ustun bo'ladi: head/actions qotadi, faqat
+        `.ui-modal-body` scroll bo'ladi → "OK/Saqlash" HAR DOIM ko'rinadi.
+        (Avval `.ui-modal { overflow:hidden }` edi va uzun forma shunchaki
+        KESILARDI.) Balandlik `--mob-vh` orqali klaviaturaga moslashadi.
+     ⚠️ `.ui-modal-bd` da `backdrop-filter` bor = containing block; ichida
+        `position:fixed` element YO'Q (`.ss-panel` ssOpen() da <body> ga
+        ko'chiriladi) — tekshirildi, muammo tug'ilmaydi.                    */
+  @media (max-width: 640px) {
+    .ui-modal-bd {
+      align-items: flex-end; padding: 0;
+      top: var(--mob-vvtop, 0px); bottom: auto;
+      height: 100vh;
+      height: var(--mob-vh, 100dvh);
+    }
+    .ui-modal {
+      width: 100%;
+      max-width: none !important;   /* rmx-modal da inline `max-width:680px` bor */
+      border-radius: 22px 22px 0 0;
+      max-height: 92%;
+      display: flex; flex-direction: column;
+      transform: translateY(12px);  /* scale(.94) EMAS — varaq pastdan suriladi */
+    }
+    .ui-modal-bd.show .ui-modal { transform: translateY(0); }
+    .ui-modal-sm { max-width: none !important; }
+    .ui-modal-head { flex: 0 0 auto; min-height: 54px; padding: 18px 18px 6px; }
+    .ui-modal-title { font-size: 17px; }
+    .ui-x { width: 40px; height: 40px; font-size: 20px; }
+    .ui-modal-body {
+      flex: 1 1 auto; min-height: 0;
+      overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+      padding: 12px 18px 4px;
+    }
+    .ui-modal-sm .ui-modal-body { padding: 22px 18px 6px; }
+    .ui-modal-actions { flex: 0 0 auto; padding: 12px 18px calc(18px + env(safe-area-inset-bottom)); gap: 10px; }
+    .ui-btn { min-height: 50px; font-size: 15px; }
+    .ui-input { font-size: 16px; padding: 13px 14px; border-radius: 12px; }  /* 16px — iOS zoom qilmasin */
+    .ui-choice-card { min-height: 56px; padding: 13px 14px; }
+    .ui-toggle-track { width: 52px; height: 32px; }
+    .ui-toggle-dot { width: 26px; height: 26px; }
+    .ui-toggle input:checked + .ui-toggle-track .ui-toggle-dot { transform: translateX(20px); }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     MOBIL 3c-BOSQICH: ss varag'i · ms-panel · teginish · iOS zoom · hover
+     ═══════════════════════════════════════════════════════════════════════ */
+
+  /* ── 3.6: `ss*` QIDIRUVLI TANLASH → pastdan chiqadigan varaq ─────────
+     🔴 JS SHART EDI: `ssPosition()` `left/top/bottom/width/maxHeight` ni INLINE
+        yozadi, inline stil CSS'dan kuchli. Endi funksiya boshida ≤640 uchun
+        erta qaytish bor va u AVVAL o'sha inline qiymatlarni TOZALAYDI (desktopda
+        ochilib, keyin telefon kengligiga o'tilganda varaq eski koordinatada
+        osilib qolmasin).
+     🔴 KLAVIATURA: `bottom: 0` bo'lsa varaq klaviatura OSTIDA qolardi va
+        7-qoidadagi MAJBURIY qidiruv maydoni ko'rinmasdi. `--mob-kb` (mvvApply,
+        `innerHeight − vv.offsetTop − vv.height`) varaqni klaviatura USTIGA
+        ko'taradi; `max-height` esa `--mob-vh` bilan cheklanadi → qidiruv qatori
+        (`.ss-search`, `flex-shrink:0`) DOIM tepada ko'rinib turadi.
+     ⚠️ z-index 9100 O'ZGARMADI (uiForm 9000 ustida turishi shart).
+     ⚠️ `ssPosition()` scroll(capture)/resize da qayta chaqiriladi — varaq
+        rejimida darrov qaytadi, ya'ni varaq SAKRAMAYDI.
+     ⚠️ Scrim — alohida DOM element emas, `body.mob-ss-open::before` (klassni
+        `ssSheetSync()` qo'yadi). Unga bosilganda hodisa nishoni `<body>` bo'ladi
+        → mavjud "tashqariga bosish" listeneri panelni odatdagidek yopadi.  */
+  @media (max-width: 640px) {
+    .ss-panel.sheet {
+      left: 0; right: 0; top: auto;
+      bottom: var(--mob-kb, 0px);
+      width: auto; max-width: none;
+      max-height: 76vh;                                              /* zaxira */
+      max-height: min(76dvh, 620px, calc(var(--mob-vh, 100dvh) - 8px));
+      border-radius: 20px 20px 0 0; border-bottom: 0;
+      box-shadow: 0 -14px 44px rgba(15,20,23,.30);
+      /* Pastki bo'shliq: faqat panelda (`.ss-foot` da TAKRORLANMAYDI — ikki
+         joyda bo'lsa iPhone'da 34px ikki marta qo'shilardi). */
+      padding-bottom: env(safe-area-inset-bottom);
+      animation: mobSheetUp .26s cubic-bezier(.32,.72,0,1);
+    }
+    /* Sudrash dastagi — FAQAT bezak (sudrab yopish qilinmaydi). Flex ustunning
+       birinchi elementi bo'lib turadi. */
+    .ss-panel.sheet::before {
+      content: ''; display: block; flex: 0 0 auto;
+      width: 38px; height: 4px; margin: 8px auto 2px;
+      border-radius: 99px; background: var(--line);
+    }
+    .ss-panel.sheet .ss-search { min-height: 52px; padding: 12px 16px; }
+    .ss-panel.sheet .ss-search input { font-size: 16px; }   /* 🔴 iOS zoom qilmasin */
+    .ss-panel.sheet .ss-list { padding: 6px 8px 8px; }
+    .ss-panel.sheet .ss-opt { min-height: 52px; padding: 11px 14px; gap: 12px; border-radius: 10px; }
+    .ss-panel.sheet .ss-lbl { font-size: 15px; }
+    .ss-panel.sheet .ss-sub { font-size: 12.5px; }
+    .ss-panel.sheet .ss-box { width: 20px; height: 20px; }
+    .ss-panel.sheet .ss-av .avatar.sm { width: 28px; height: 28px; font-size: 11px; }
+    .ss-panel.sheet .ss-empty { padding: 28px 14px; font-size: 14px; }
+    /* `msearch` (ko'p tanlov) pastki paneli — varaqda ham ko'rinib turadi
+       (`display` ni ssPaint() beradi, biz faqat o'lchamni kattalashtiramiz). */
+    .ss-panel.sheet .ss-foot { min-height: 60px; padding: 10px 16px; }
+    .ss-panel.sheet .ss-count { font-size: 13px; }
+    .ss-panel.sheet .ss-fbtn { min-height: 44px; padding: 0 18px; font-size: 14px; }
+
+    /* Scrim — panel (9100) va uiForm oynasi (9000) ORASIDA */
+    body.mob-ss-open::before {
+      content: ''; position: fixed; inset: 0; z-index: 9090;
+      background: rgba(15,20,23,.35);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ss-panel.sheet { animation: none; }
+  }
+
+  @media (max-width: 880px) {
+    /* ── 3.7: `.ms-panel` (vazifa yaratishdagi ko'p tanlov, doim ochiq) ── */
+    .ms-panel-list { max-height: 260px; min-height: 100px; }
+    .ms-panel-search { padding: 10px; }
+    .ms-panel-search input { font-size: 16px; padding: 11px 12px; }
+    .ms-panel-clear { min-height: 40px; padding: 0 12px; }
+    .ms-opt { min-height: 52px; padding: 11px 12px; gap: 12px; }
+    .ms-check { width: 22px; height: 22px; }
+
+    /* ── 4.2: TEGINISH NISHONLARI (≥44×44; zich panelda ≥40) ──────────── */
+    .btn { min-height: 46px; }
+    .btn.sm { min-height: 40px; padding: 9px 14px; font-size: 13.5px; }
+    .bell-btn {
+      width: 44px; height: 44px; padding: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    /* `.add-mini` 34×34 (yuqoridagi drawer blokida) — `::after` bilan bosiladigan
+       maydon 44px ga yetkaziladi (vizual o'lcham o'zgarmaydi). */
+    .side-section .add-mini { position: relative; }
+    .side-section .add-mini::after { content: ''; position: absolute; inset: -5px; }
+    .plf-chip, .prjf-chip { min-height: 40px; padding: 9px 14px; }
+    .filter-btn { min-height: 40px; }
+    .view-tab { min-height: 42px; }
+    .tbl-sv { min-height: 44px; }
+    .tab-pill { min-height: 44px; }
+    .done-toggle { min-height: 40px; }
+    .nmz-toggle, .nmz-reg { min-height: 40px; }
+    .nmz-x { width: 32px; height: 32px; }
+    .dl-chip { min-height: 38px; }
+    .prj-ord-btn { width: 36px; height: 36px; font-size: 13px; }
+    .emp-chip .emp-chip-x { position: relative; width: 24px; height: 24px; font-size: 14px; }
+    .emp-chip .emp-chip-x::after { content: ''; position: absolute; inset: -8px; }
+    .pln-block .pb-x {
+      width: 26px; height: 26px; top: 0; right: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 14px;
+    }
+    .pln-block .pb-resize { height: 12px; }
+    /* `.ss-opt` — varaq bo'lmagan (641–880px) kengliklarda ham barmoqqa mos */
+    .ss-opt { min-height: 44px; }
+    .gs-clear { padding: 0; border-radius: 10px; }
+    .gs-clear.on { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; }
+    /* Jadval (`.xtbl`) — qator balandligi td padding'idan chiqadi */
+    .xtbl th .th-inner { min-height: 44px; padding: 11px 12px; }
+    .xtbl th .th-filter {
+      min-width: 32px; min-height: 32px; padding: 6px;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .xtbl th .th-resize { display: none; }     /* ustun kengligini barmoq bilan sozlab bo'lmaydi */
+    .xtbl tbody td { padding: 11px 12px; }
+    .cell-asg-btn { min-height: 40px; font-size: 14px; }
+    .plf-c { height: 36px; }
+    .plf-nav { width: 38px; height: 38px; }
+    .plf-pre { min-height: 38px; }
+    .dept-pick-item input[type=checkbox] { width: 22px; height: 22px; }
+    .sub-item input[type=checkbox] { width: 22px; height: 22px; }
+    .team-flt { min-height: 44px; }
+    /* 🔴 `#appView` bilan skoplangan: `#authShell .link-btn` — kirish sahifasidagi
+       "Parolni unutdingizmi?" qatori, unga tegilmaydi (o'z mobil dizayni bor). */
+    #appView .link-btn { min-height: 40px; padding: 8px 6px; }
+    .emp-filter-btn { min-height: 42px; }
+    .hr-pick label { min-height: 42px; }
+
+    /* ── 4.3: iOS avtomatik zoom (fokusda sahifa kattalashib ketishi) ────
+       🔴 `!important` MAJBURIY va boshqa yo'l yo'q: ilovada ~30 ta maydonda
+          `font-size` INLINE `style=` da (masalan `#topSearchInp` 13px,
+          `#cAcceptor`, `#tasksAsgFilter`, `#hsMonth`…), inline stil esa
+          oddiy CSS'dan kuchli. Ularning bir qismi JS shablonlarida generatsiya
+          qilinadi (`tblAsgSearch`, `teamPosSearch`) — HTML'dan qo'lda o'chirish
+          ularni QAYTA tiklanishidan saqlamaydi. Tekshirildi: birorta ham
+          input/textarea/select da inline `font-size` ≥16px YO'Q, ya'ni bu qoida
+          hech qanday ataylab kattalashtirilgan matnni bosmaydi.
+          (Aynan shu naqsh 1986-qatorda allaqachon ishlatilgan.)
+       ⚠️ Faqat matn kiritiladigan maydonlar; checkbox/radio/range/rang tanlash
+          hech qachon zoom sababi emas va o'lchamlari yuqorida alohida berilgan. */
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+    textarea, select { font-size: 16px !important; }
+  }
+
+  /* ── 4.4: HOVER'GA BOG'LIQ UI (sensorli ekranda hover YO'Q) ───────────
+     ⚠️ `.osc-card-acts` (1337) va `.osc-acts` (1345) allaqachon bor —
+        TAKRORLANMAYDI. Bu yerda faqat qolganlari.
+     ⚠️ `.item/.kan-card/.prjc-card/.prj-task/.osc-card.person/.pln-task/
+        .kan-col-name` hover'lari o'z joyida `@media (hover: hover)` ichiga
+        olindi (aniq va desktopga ta'sirsiz) — pastda takrorlanmaydi. */
+  @media (hover: none) {
+    .kan-col-actions { opacity: 1; }
+    .kan-col-action-btn {
+      width: 34px; height: 34px; padding: 0; font-size: 15px;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .cmt-item .cmt-delete { opacity: .65; }
+    .sub-item .sub-del { opacity: .65; padding: 6px 10px; }
+    .att-del { opacity: 1; width: 28px; height: 28px; font-size: 14px; }
+    /* Org Schema amallari — hover yo'q, shuning uchun BARMOQQA mos o'lcham
+       (ko'rinishi 1337/1345-qatorlarda allaqachon doimiy qilingan). */
+    .osc-tw { width: 34px; height: 34px; }
+    .osc-act { width: 38px; height: 38px; }
+    .osc-cact { width: 34px; height: 34px; }
+    /* Tahrirlash mumkinligi hover'siz ham bilinsin (tooltip/hover yo'q) */
+    .xtbl .cell-edit, .inline-edit-text { border-bottom: 1px dashed var(--line); }
+  }
+
+  /* Harakatni kamaytirish: 1638-qatordagi qoida faqat `transition` ni o'chiradi,
+     `animation` ni emas — yangi varaq animatsiyasi ham bo'ysunsin. */
+  @media (prefers-reduced-motion: reduce) {
+    .modal { animation: none; }
+  }
+
+  @media (max-width: 480px) {
+    .sidebar { width: 88vw; }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     MOBIL 4a-BOSQICH: ro'yxat · kanban · jadval · chip qatorlari · statistika
+     ═══════════════════════════════════════════════════════════════════════
+     ⚠️ Blok ATAYLAB stylesheet OXIRIDA (avvalgi mobil bloklardan HAM keyin):
+        media query o'ziga xoslik (specificity) QO'SHMAYDI — teng kuchli
+        selektorlarda OXIRGISI g'alaba qozonadi. Shuning uchun 1612 (≤980
+        kanban) va 1618 (≤880) bloklaridagi qoidalar bu yerdan qayta yoziladi.
+     🔴 DESKTOP TEGILMAGAN: bu blokda faqat 880/640/480 chegaralari bor
+        (kanban gorizontal ko'rinishi avval 980 edi — 2026-08-15 da 880 ga
+        tushirildi, 881–980 = noutbukning tor oynasi, telefon emas).
+        Mavjud `min-width: 881/981` bloklari (1811/1817/1830 — kan-col 252/236,
+        pln-grid, stat-grid 158, dashSplit) mobil kenglikda umuman qo'llanmaydi,
+        ya'ni to'qnashuv yo'q.
+     🔴 Gorizontal scroll HAR DOIM o'z idishida (.kanban / .tbl-wrap / chip
+        qatorlari) — `.main { min-width: 0 }` (1808) buzilmagan, sahifa
+        darajasida gorizontal scroll paydo bo'lmaydi.                        */
+
+  /* ── 3.2 KANBAN: vertikal stack → GORIZONTAL SNAP-SCROLL ───────────────
+     QAROR (spec 3.2): telefonda bitta ekran = bitta ustun.
+     Nega: 1613-qator ≤980 da ustunlarni USTMA-UST qo'yardi — foydalanuvchi
+     5 ta ichma-ich vertikal scroll konteynerini kesib o'tardi, `.kan-cards`
+     scroll'i sahifa scroll'i bilan kurashardi va "doska" metaforasi
+     yo'qolardi. Gorizontal snap'da yo'nalishlar AJRALADI: gorizontal =
+     ustunlar, vertikal = kartalar (Trello/Jira/Linear naqshi) — qarama-
+     qarshilik yo'q.
+     ⚠️ Drag&drop mantiqiga TEGILMAGAN (.kan-col.drop-over, .col-drop-target-*,
+        .col-dragging). HTML5 DnD sensorli ekranda avvaldan ishlamaydi —
+        bu regressiya EMAS; mobilda holat vazifa detalidan o'zgartiriladi.
+     ⚠️ `mask-image` bilan o'ng chekka fade QILINMADI (spec uni "sinab
+        ko'rilsin" degan edi): u butun doska balandligi bo'ylab karta matnini
+        DOIMIY so'ldirardi. O'rniga ustun kengligi 78vw — keyingi ustunning
+        chekkasi ko'rinib turadi, bu arzonroq va aniqroq "davomi bor" signali.
+     ⚠️ ≤880 dagi `.kanban { padding-bottom: calc(80px + safe-area) }`
+        (FAB uchun, 1-bosqich) SAQLANDI — endi u doska tagida FAB uchun
+        bo'sh yo'lak qoldiradi, oxirgi karta tugma ostida qolmaydi.          */
+  /* ⚠️ Chegara ATAYLAB 880, 980 EMAS (Asilbek qarori 2026-08-15): 881–980px —
+     bu telefon emas, noutbukning toraytirilgan oynasi. 980 bo'lganda o'sha
+     oraliqda doska mavjud VERTIKAL ko'rinishdan (1629-blok) gorizontalga
+     o'tib ketardi, ya'ni ishlab turgan tizimning desktop xatti-harakati
+     so'ralmagan holda o'zgarardi. 881–980 endi eskicha qoladi. */
+  @media (max-width: 880px) {
+    .kanban {
+      flex-direction: row;                    /* 1613-qatorni bekor qiladi */
+      height: calc(100vh - 250px);            /* zaxira: dvh yo'q eski brauzer */
+      height: calc(100dvh - 250px);
+      min-height: 420px;
+      overflow-x: auto; overflow-y: hidden;
+      overscroll-behavior-x: contain;         /* sahifa "orqaga" jestiga o'tmasin */
+      scrollbar-width: none;
+    }
+    .kanban::-webkit-scrollbar { display: none; }
+    .kan-col {
+      flex: 0 0 min(78vw, 300px);
+      min-width: 0;                           /* base'dagi 280px ni bekor qiladi */
+      max-height: 100%;
+    }
+    /* Ustunni sudrab tartibini o'zgartirish sensorli ekranda ishlamaydi —
+       "grab" kursori yolg'on va'da bermasin (faqat kursor, DnD atributlari joyida) */
+    .kan-head { min-height: 44px; cursor: default; }
+    /* Ustun ichidagi vertikal scroll oxiriga yetganda sahifani sudramasin */
+    .kan-cards, .kan-list { overscroll-behavior-y: contain; }
+    .kan-card { padding: 12px 13px; min-height: 56px; }
+    .kan-card-title { font-size: 14px; }
+    .kan-add-task { min-height: 44px; }
+  }
+  /* Snap FAQAT ≤880 (telefon): "bitta ekran = bitta ustun".
+     881–980 (planshet / kichik oyna, odatda sichqoncha) da snap BERILMAYDI —
+     u yerda HTML5 drag&drop ISHLAYDI va kartani sudrab ustundan ustunga
+     olib o'tishda idish avto-scroll qiladi; `mandatory` snap o'sha paytda
+     scroll'ni ortga tortib, sudrashni buzishi mumkin. Telefonda esa DnD
+     baribir ishlamaydi → xavf yo'q, foyda katta. */
+  @media (max-width: 880px) {
+    .kanban { scroll-snap-type: x mandatory; }
+    .kan-col { scroll-snap-align: start; }
+  }
+  @media (max-width: 640px) {
+    .kan-col { flex: 0 0 min(86vw, 320px); }
+  }
+  @media (max-width: 880px) {
+    /* ── 3.1 VAZIFA RO'YXATI (.item) ────────────────────────────────────
+       O'ng ustun (muddat/status/badge) 360px da siqilib o'qilmasdi.
+       Sarlavha endi ellipsis emas — 2 qator (bitta qatorda 25 belgi ham
+       sig'maydi).                                                          */
+    .item { padding: 13px 14px; gap: 11px; border-radius: 12px; min-height: 60px; }
+    .item-title {
+      font-size: 15px; white-space: normal;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .item-meta { font-size: 12px; gap: 8px; row-gap: 4px; }
+
+    /* ── 3.3 JADVAL (.tbl-wrap / .xtbl) ─────────────────────────────────
+       QAROR (spec 3.3): karta ko'rinishiga AYLANTIRILMAYDI —
+       gorizontal scroll + yopishqoq 1-ustun + kattalashtirilgan nishonlar.
+       Nega: 3 ta mustaqil renderer (renderTasksTable / renderTeamTable /
+       renderHodimStats) <table> quradi va ustun tartibi/kengligi/filtri/
+       inline tahriri (tblUpdate, cell-inp, th-resize, col-freeze, grp-row)
+       shu strukturaga bog'langan — karta ko'rinishi = 3 renderer'ni qayta
+       yozish + inline tahrirni yo'qotish = yuqori regressiya xavfi.
+       Vazifalar sahifasida mobilga mos MUQOBIL bor (Ro'yxat/Kanban/Kalendar).
+       🔴 Scroll FAQAT `.tbl-wrap` ichida — `.main { min-width: 0 }` (1808)
+          buzilmagan, sahifa surilmaydi.
+       ⚠️ Z-QATLAM (o'zgarmadi, faqat qayd): thead th 5 · thead .col-freeze 6 ·
+          tbody .col-freeze 4 → kesishgan yacheyka (thead .col-freeze) eng
+          ustida, ya'ni sarlavha muzlatilgan ustun ustidan sirg'alib o'tmaydi.
+       ⚠️ th-inner/th-filter/th-resize/td padding va cell-inp 16px —
+          3c-bosqichda (2306–2313, 2338) allaqachon berilgan, takrorlanmaydi. */
+    .tbl-wrap {
+      max-height: calc(100vh - 260px);            /* zaxira: dvh yo'q brauzer */
+      /* 🔴 `!important` — ikkita `.tbl-wrap` da HTML'da INLINE
+         `style="max-height:calc(100vh - 300px)"` bor (Jamoa jadvali va
+         Hodim statistikasi); inline stil oddiy CSS'dan kuchli. */
+      max-height: calc(100dvh - 260px) !important;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+      border-radius: 12px;
+    }
+    .xtbl { font-size: 13.5px; }
+    .xtbl tbody td { max-width: 220px; }          /* desktop 340px */
+    /* 🔴 `!important` — renderTasksTable <th> ga INLINE `width/min-width`
+       yozadi (Nomi ustuni uchun 300px). CSS'da `min-width` `max-width` dan
+       kuchli (ishlatiladigan qiymat algoritmi), shuning uchun inline
+       min-width ni bosmasak muzlatilgan ustun 360px ekranning 300px ini
+       egallardi va qolgan ustunlar uchun joy qolmasdi. */
+    .xtbl th.col-freeze, .xtbl td.col-freeze,
+    .xtbl th.tm-c-name, .xtbl td.tm-c-name {
+      min-width: 120px !important; max-width: 150px !important;
+      box-shadow: 3px 0 6px -2px rgba(15,20,23,.12);   /* suzayotgani ko'rinsin */
+      overflow: hidden; text-overflow: ellipsis;        /* nowrap + 150px → kesilsin */
+    }
+    /* Jamoa jadvali: № va avatar ustunlari telefonda joy yeydi va muzlatilgan
+       "To'liq ism" ustuni (3-o'rinda) `left:0` bilan ular USTIGA chiqib
+       ketardi. Ikkalasini yashiramiz — ism birinchi ko'rinadigan ustun bo'ladi.
+       Desktopda ikkovi ham joyida qoladi (bu blok faqat ≤880). */
+    .xtbl th.tm-c-num, .xtbl td.tm-c-num,
+    .xtbl th.tm-c-av,  .xtbl td.tm-c-av { display: none; }
+    /* 🔴 Yopishish FAQAT shu yerda — `.col-freeze` (961) global bo'lgani uchun
+       jamoa jadvaliga u berilsa desktop ham o'zgarardi. Qatlam raqamlari
+       961/962 dagi bilan bir xil: sarlavha 6, tana 4 → kesishgan yacheyka ustda.
+       Fon `.xtbl tbody td`/`thead th` dan keladi (shaffof emas — shart). */
+    .xtbl th.tm-c-name, .xtbl td.tm-c-name { position: sticky; left: 0; z-index: 4; }
+    .xtbl thead th.tm-c-name { z-index: 6; }
+    /* Jadval asboblar qatori: maydonlar gorizontal scrollga TUSHMAYDI —
+       kiritish maydonini surib qidirish noqulay, shuning uchun o'raladi. */
+    .tbl-toolbar { flex-wrap: wrap; gap: 8px; }
+    .tbl-toolbar .search-input, .kanban-toolbar .search-input {
+      flex: 1 1 100%;
+      max-width: none !important;   /* HTML'da inline max-width: 260/280px */
+    }
+    .kanban-toolbar { gap: 8px; }
+    .kanban-toolbar select { flex: 1 1 calc(50% - 4px); min-height: 44px; }
+
+    /* ── 3.11 CHIP / TAB QATORLARI → gorizontal scroller ────────────────
+       Sig'maydigan qatorlar o'ralib 2–3 qator bo'lib ketardi (ekranning
+       yarmi filtrga ketardi). Endi bitta qator + o'ng chekkada "davomi bor"
+       fade'i.
+       ⚠️ Bu 4 konteynerning ICHIDA absolute/fixed popover YO'Q (tekshirildi:
+          faqat <button> lar) — shuning uchun `overflow-x` xavfsiz.          */
+    .view-tabs, .tbl-subviews, .filter-row, .prjf-bar {
+      flex-wrap: nowrap;
+      overflow-x: auto; overflow-y: hidden;
+      scrollbar-width: none; -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+      -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 22px), transparent);
+              mask-image: linear-gradient(to right, #000 calc(100% - 22px), transparent);
+    }
+    .view-tabs::-webkit-scrollbar, .tbl-subviews::-webkit-scrollbar,
+    .filter-row::-webkit-scrollbar, .prjf-bar::-webkit-scrollbar { display: none; }
+    .view-tabs { max-width: none; }                     /* desktop max-width: 460px */
+    /* `flex: 0 0 auto` — base'dagi `.view-tab { flex: 1 }` ni bekor qiladi
+       (nowrap konteynerda `flex:1` tugmalarni nolgacha siqib yuborardi) */
+    .view-tabs > .view-tab { flex: 0 0 auto; padding: 10px 16px; }
+    .view-tabs > .done-toggle { flex: 0 0 auto; }
+    .filter-row > .filter-btn { flex: 0 0 auto; padding: 9px 14px; }
+    /* `margin-bottom: -1px` konteyner chegarasidan chiqib turardi va
+       `overflow-y: hidden` uni KESARDI (faol tab tagidagi chiziq yo'qolardi) */
+    .tbl-subviews > .tbl-sv { flex: 0 0 auto; padding: 11px 14px; margin-bottom: 0; }
+    /* `.prjf-count` ("3 / 7 ta") nowrap qatorda siqilib ketmasin */
+    .prjf-bar > .prjf-chip, .prjf-bar > .prjf-count { flex: 0 0 auto; }
+
+    /* 🔴 `.plf-bar` VA `.emp-filter-bar` GA `overflow-x` BERILMAYDI!
+       Ular ichida `position: absolute` popover bor (`.plf-pop` → `.plf-wrap`,
+       `.emp-filter-panel` → `.emp-filter-wrap`). `overflow` li ota element
+       absolute farzandni KESADI → ikki oylik kalendar va xodim filtri paneli
+       ko'rinmay qolardi (jimgina buzilish — xato ham chiqmaydi).
+       Yechim: bu ikkisi `flex-wrap: wrap` bilan QOLADI (bazada shunday),
+       faqat qatorlar orasi nafas oladi; popoverlarning o'zi esa ≤640 da
+       ekranga yopishgan fixed varaqqa aylanadi (pastda).                    */
+    .plf-bar, .emp-filter-bar { row-gap: 8px; }
+
+    /* ── 3.12 STATISTIKA / DASHBOARD ───────────────────────────────────
+       `.stat-grid` 2 ustun (1635) va `#dashSplit` 1 ustun (1616) allaqachon
+       bor — bu yerda faqat ichki zichlik.                                   */
+    .stat { padding: 14px; }
+    .stat .v { font-size: 20px; }
+    .stat-card { padding: 13px 14px; }
+    .stat-card .val { font-size: 24px; }
+    /* 🔴 `!important` — HTML'da inline grid:
+       `#statsKpiRow style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))"`
+       (360px ekranda 1 ustun bo'lib ketardi-yu, gap 14px qolardi). */
+    #statsKpiRow { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+    #statsStatusLegend { gap: 10px !important; font-size: 11.5px !important; }  /* inline gap:14px/font:12px */
+    .settings-section { padding: 16px; border-radius: 12px; }
+  }
+
+  @media (max-width: 640px) {
+    /* 3.1: o'ng blok 2-qatorga tushadi.
+       ⚠️ `:empty` SHART — `taskItemHtml` da `.item-right` muddati o'tmagan
+          vazifada BO'SH bo'ladi; busiz har qatorga 6px bo'sh joy qo'shilardi. */
+    .item { grid-template-columns: auto 1fr; }
+    .item-right { grid-column: 2; justify-content: flex-start; flex-wrap: wrap; margin-top: 6px; }
+    .item-right:empty { display: none; }
+
+    /* 3.3: Jamoa jadvali sahifalagichi — tugmalar barmoqqa mos.
+       `order` bilan: 1-qator "Sahifada: [25]", 2-qator sahifa raqami,
+       3-qator ‹ Oldingi / Keyingi ›. Busiz uchalasi bitta qatorga sig'masdi. */
+    .team-pager { flex-wrap: wrap; row-gap: 8px; }
+    .team-pager #teamPageInfo {
+      order: 2; flex: 1 1 100%;
+      min-width: 0 !important;   /* inline min-width: 120px */
+      text-align: center;
+    }
+    .team-pager #teamPrev { order: 3; flex: 1 1 45%; min-height: 44px; }
+    .team-pager #teamNext { order: 4; flex: 1 1 45%; min-height: 44px; }
+    .tbl-toolbar .team-flt { flex: 1 1 calc(50% - 4px); }
+
+    /* ── 3.11 POPOVERLAR → ekranga yopishgan varaq ──────────────────────
+       Bar'lar (yuqorida) `overflow` siz qoldirilgani uchun popover kesilmaydi;
+       bu yerda ular 290px/absolute o'rniga to'liq kenglikdagi pastki varaqqa
+       aylanadi — barmoq bilan bosiladigan o'lchamda va ekrandan chiqib
+       ketmaydigan joyda.
+       ⚠️ `position: fixed` — 1082-qatordagi `left:auto; right:0` ni bekor
+          qiladi. `.plf-wrap`/`.emp-filter-wrap` dagi `position: relative`
+          qoladi (zarar yo'q). JS'ga TEGILMAGAN: `plfPopPaint`/
+          `empFilterTogglePanel` faqat `display` yozadi, joylashuvni EMAS.
+       ⚠️ z-index 70 O'ZGARMADI: topbar (20) va FAB (topbar stacking
+          kontekstida) ustida, `.modal-backdrop` (100) ostida.               */
+    .plf-pop {
+      position: fixed; left: 8px; right: 8px; top: auto; bottom: 8px;
+      max-height: 80dvh; overflow-y: auto; overscroll-behavior: contain;
+      border-radius: 18px; padding: 14px;
+    }
+    .plf-c { font-size: 14px; }          /* height: 36px — 2314-qatorda */
+    .plf-m { width: auto; }
+    .plf-btn { min-height: 44px; flex: 1; }
+    .plf-pop-act { gap: 10px; }
+    .emp-filter-panel {
+      /* ⚠️ bottom da `--mob-kb`: panel ichida qidiruv maydoni bor va
+         empFilterTogglePanel() uni AVTOMAT fokuslaydi → klaviatura darrov
+         ochiladi va iOS'da panelni butunlay bosardi. */
+      position: fixed; left: 8px; right: 8px; top: auto;
+      bottom: calc(8px + var(--mob-kb, 0px));
+      width: auto; max-width: none;      /* base: 290px / 80vw */
+      /* 🔴 `--mob-vh` bilan cheklash SHART: iOS'da `dvh` klaviatura ochilganda
+         QISQARMAYDI, ya'ni 72dvh balandlik + `bottom` dagi klaviatura balandligi
+         panel TEPASINI ekrandan chiqarib yuborardi. Aros'da (126 xodim) ro'yxat
+         doim to'la → aynan avtofokus qilinadigan qidiruv maydoni ko'rinmasdi.
+         `.emp-filter-panel` da `overflow` yo'q, ya'ni kesilgan qism yo'qoladi. */
+      max-height: min(72dvh, calc(var(--mob-vh, 100dvh) - 16px));
+      border-radius: 18px; padding: 12px;
+    }
+    /* Ro'yxat ham O'SHA min() dan hisoblanadi — faqat panelga qo'yilsa ichidagi
+       ro'yxat uni to'ldirib baribir toshib ketardi. */
+    .emp-filter-list { max-height: calc(min(72dvh, calc(var(--mob-vh, 100dvh) - 16px)) - 90px); }
+    .emp-filter-opt { min-height: 48px; padding: 10px; }
+    .emp-filter-search { min-height: 46px; }
+    .emp-chip { min-height: 34px; }
+
+    /* 3.12: grafik balandligi (inline `height:200px`) */
+    #statsTrend { height: 160px !important; }
+  }
+
+  @media (max-width: 480px) {
+    /* 2 ustun 360px da 160px ga tushadi — `.stat-card .val` (24px) raqami
+       "Muddati o'tgan" kabi uzun yorliq ostida kesilardi. */
+    .stat-grid { grid-template-columns: 1fr; }
+    #statsKpiRow { grid-template-columns: 1fr !important; }
+  }
+
+  /* ── Telefon LANDSCAPE (tor VA past ekran) ────────────────────────────
+     `.kanban { min-height: 420px }` va `calc(100dvh - 250px)` past ekranda
+     butun sahifani vertikal scrollga majburlardi; jadval esa 340px joydan
+     ~100px ini yo'qotardi. 1843-dagi `max-height: 780px` bloki bizdan OLDIN
+     turgani uchun buni o'zi hal qila olmaydi — shuning uchun qoida 4a
+     blokining ENG OXIRIDA (keyingi g'alaba qozonadi).
+     ⚠️ `max-width: 880` — desktop (881+) ga umuman tegmaydi.               */
+  /* 880: yuqoridagi kanban bloki bilan bir xil sabab — desktop tegilmasin. */
+  @media (max-width: 880px) and (max-height: 620px) {
+    .kanban { height: calc(100dvh - 140px); min-height: 240px; }
+    .tbl-wrap { max-height: calc(100dvh - 150px) !important; }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     MOBIL 4b-BOSQICH: planner · org chart · loyihalar · qolgan sahifalar
+     ═══════════════════════════════════════════════════════════════════════
+     ⚠️ Blok stylesheet OXIRIDA (4a dan HAM keyin) — media query o'ziga xoslik
+        QO'SHMAYDI, teng kuchli selektorlarda oxirgisi g'alaba qozonadi.
+        Shuning uchun 1598 (≤640 .prj-*), 1615 (≤980 .cal-cell), 1634
+        (≤880 .att-grid) va 1843 (max-height:780) bloklaridagi qoidalar shu
+        yerdan qayta yozilishi mumkin.
+     🔴 DESKTOP TEGILMAGAN: faqat 880/640/620/480 chegaralari + bitta
+        (min-width:641)and(max-width:880) guard. Mavjud `min-width: 881/981`
+        bloklari (1811/1817/1830) mobil kenglikda umuman qo'llanmaydi.
+     🔴 Gorizontal scroll HAR DOIM o'z idishida (.pln-cal / .osc-viewport /
+        .osc-chart-bar) — `.main { min-width: 0 }` (1808) buzilmagan.
+     🔴 TOAST (spec 3.13) shu yerda YO'Q — u 1-bosqichdagi mobil karkasda
+        (2041–2046) allaqachon bor: `.toast` chapdan-o'ngga 12px, pastda
+        safe-area, `mobToast` animatsiyasi; `.tsk-chip` esa FAB ustiga
+        (bottom: 84px + safe-area) ko'chirilgan. Takrorlash zarar keltirardi
+        (bir xil qiymatlar ikki joyda — keyingi tahrirda ajralib ketardi).  */
+
+  /* Planner maslahati: sukut bo'yicha desktop matni ko'rinadi (media
+     query'siz — eski brauzerda ham to'g'ri matn qoladi). */
+  .pln-hint-m { display: none; }
+
+  @media (max-width: 880px) {
+    /* Sensorli ekranda sudrab qo'yish ishlamaydi → matn almashadi */
+    .pln-hint-d { display: none; }
+    .pln-hint-m { display: inline; }
+
+    /* ── 3.8 REJALASHTIRGICH (.pln-*) ───────────────────────────────────
+       QAROR (spec 3.8): 7 KUNLIK SETKA SAQLANADI + gorizontal scroll +
+       yopishqoq vaqt ustuni. "Kunlik ko'rinish" QILINMADI.
+       Nega: (1) `.pln-cal` da `overflow:auto` va `.pln-timecol` da
+       `position:sticky; left:0` ALLAQACHON bor — yechim bir necha qator CSS,
+       JS'ga umuman tegilmaydi; (2) kunlik rejim = JS'da yangi ko'rinish,
+       yangi navigatsiya (kun tanlash) va `plnLanes` ni qayta hisoblash =
+       yuqori regressiya xavfi; (3) hafta metaforasi saqlanadi — foydalanuvchi
+       kunlarni yonma-yon solishtira oladi.
+       ⚠️ `plnLanes` blok `left`/`width` ini FOIZDA inline hisoblaydi
+          (`calc(lane*w% + 2px)`) → ustun kengligining o'zgarishi uni
+          BUZMAYDI, foizlar yangi kenglikka nisbatan qayta hisoblanadi.
+          112px ustunda 3 lane ≈ 35px bo'lib matn o'qilmaydi — bu desktopda
+          ham shunday, `title` atributi va `.pln-block.narrow` qoladi.
+       ⚠️ Blok yaratish/surish/o'lchash JS'iga (plnGetSchedule, drag,
+          `.pln-cell.slot` bosilishi) TEGILMAGAN.
+       ⚠️ Namoz bloklari (.nmz-*) `pointer-events:none; z-index:1` bilan
+          qoladi — planner mexanikasiga aralashmasligi SAQLANDI.             */
+    .pln-side { position: static; padding: 12px; }   /* sticky — 1 ustunda ma'nosiz */
+    /* `calc(100vh - 220px)` ro'yxatni butun ekran bo'yi cho'zardi va kalendar
+       "ekran ostiga" tushib ketardi — qat'iy 280px. */
+    .pln-side-list { max-height: 280px; overscroll-behavior-y: contain; }
+    .pln-task { min-height: 56px; padding: 11px 12px; font-size: 14px; }
+    .pln-cal {
+      max-height: calc(100vh - 230px);       /* zaxira: dvh yo'q eski brauzer */
+      max-height: calc(100dvh - 230px);
+      overscroll-behavior-x: contain;        /* sahifa "orqaga" jestiga o'tmasin */
+      -webkit-overflow-scrolling: touch;
+    }
+    /* `width: max-content` — 44 + 7×112 = 828px; `min-width: 100%` esa
+       kengroq planshetda setka idishni to'ldirsin (1fr ishlayveradi). */
+    .pln-grid {
+      grid-template-columns: 44px repeat(7, minmax(112px, 1fr));
+      width: max-content; min-width: 100%;
+    }
+    .pln-cell { min-height: 46px; }          /* teginish uchun 44+ */
+    .pln-dayhead { padding: 9px 4px; font-size: 12px; }
+    .pln-timecol { font-size: 10px; padding: 2px 4px 0 0; }
+    .pln-block { padding: 5px 7px; font-size: 12px; }
+    /* `.pb-x` (26×26) va `.pb-resize` (12px) — 3c-bosqichda (2296–2300)
+       allaqachon berilgan, takrorlanmaydi. */
+
+    /* ── 3.9 ORG CHART (.osc-*) ─────────────────────────────────────────
+       QAROR (spec 3.9): PAN = viewport'ning TABIIY scroll'i (bir barmoq),
+       ZOOM = tugmalar + ikki barmoq pinch (JS, oscBindPan ichida).
+       🔴 `touch-action: pan-x pan-y` SHART: busiz brauzerning sahifa-zoom'i
+          chart ustida ishlab, butun ilovani kattalashtirib yuborardi
+          (`oscWheel` ning `preventDefault` i bilan bir xil maqsad, faqat
+          sensorli ekran uchun). `none` BERILMAYDI — u bir barmoqli pan'ni
+          ham o'ldirardi.
+       ⚠️ Kartani SURISH (oscBindPan `mousedown`) sensorli ekranda ishlamaydi
+          — bu regressiya EMAS, hozir ham ishlamaydi; mobilda karta bosiladi
+          (`oscCardOpen`). JS'ning sichqoncha shoxiga tegilmagan.
+       ⚠️ `.osc-card-acts` (top:-13px) qo'shni kartaga TUSHMAYDI: qatlamlar
+          orasi `OSC_VGAP = 46px`, tabletka esa atigi 13px yuqoriga chiqadi
+          (34px tugma + 2px padding + chegara ≈ 40px balandlik, qolgani
+          kartaning o'z ichida). Shu sababli `OSC_VGAP` ga ham,
+          `.osc-card-acts` joyiga ham TEGILMADI.                            */
+    .osc-viewport {
+      height: calc(100vh - 250px);           /* zaxira: dvh yo'q eski brauzer */
+      height: calc(100dvh - 250px);
+      min-height: 380px;                     /* base 420px */
+      border-radius: 12px;
+      touch-action: pan-x pan-y;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+    /* Zoom tugmalari doim ko'z oldida tursin: chart uzun bo'lsa sahifa
+       scroll qilinadi va bar tepaga yopishadi.
+       ⚠️ `--mob-topbar-h` = MOBIL topbar balandligi (sukut 56px, desktopda 60px
+          — 1946-qator). 🔴 Qattiq 56px EMAS: PWA standalone rejimida topbar
+          `env(safe-area-inset-top)` ga o'sadi (5-bosqich bloki, stylesheet
+          oxiri) va bar topbar ostiga kirib qolardi.
+       ⚠️ z-index 3: `.osc-stage` da `transform` bor → u o'z stacking
+          konteksti; kartalar viewport'ning `overflow:auto` i bilan kesiladi,
+          ya'ni bar ustidan chiqmaydi. Topbar (20) esa bardan yuqori. */
+    .osc-chart-bar {
+      position: sticky; top: var(--mob-topbar-h, 56px); z-index: 3;
+      background: var(--bg); padding: 8px 0; margin: 0 0 8px;
+      gap: 6px; flex-wrap: nowrap;
+      overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    }
+    .osc-chart-bar::-webkit-scrollbar { display: none; }
+    .osc-chart-bar > * { flex: 0 0 auto; }
+    /* Bar ichidagi tugmalar barmoqqa mos (3c dagi umumiy `.btn.sm` — 40px) */
+    .osc-chart-bar .btn.sm { min-height: 44px; min-width: 44px; }
+    .osc-zoom { min-width: 52px; font-size: 13px; }
+    .osc-hint { display: none; }   /* «g'ildirak bilan zoom» — mobilda yolg'on */
+
+    /* ── 3.10 LOYIHALAR (.prjc-* / .prj-*) ──────────────────────────────
+       ⚠️ `.prjc-grid` `minmax(min(320px,100%), 1fr)` bilan media query'siz
+          moslashadi — TEGILMAYDI (spec 3.10).                              */
+    .prjc-card { padding: 14px 15px 14px 17px; gap: 9px; }
+    .prjc-name { font-size: 15.5px; }
+    .prjc-foot { padding-top: 10px; }
+    .prj-hero { padding: 14px; }
+    .prj-hero-top { gap: 10px; }
+    .prj-hero-stat { gap: 16px; }
+    /* Progress bar raqamlar bilan bir qatorda 200px ga siqilardi — o'z qatori */
+    .prj-hero-bar { flex: 1 1 100%; min-width: 0; }
+    .prj-add { min-height: 52px; }
+
+    /* ── 3.14 HR / hodim detali ─────────────────────────────────────────
+       (`.hr-pick label` — 3c, 2324-qator; takrorlanmaydi) */
+    .hr-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+    .hr-card { padding: 14px; }
+    .hr-in { padding: 11px 12px; min-height: 46px; }   /* font-size 16px — 3c (iOS zoom) */
+    .hr-link-row { min-height: 46px; }
+
+    /* ── 3.14 IZOH / SUBTASK / FAYL (vazifa detali ichida) ───────────── */
+    .cmt-input-row { flex-wrap: wrap; }
+    .cmt-input { flex: 1 1 100%; min-height: 46px; }
+    .cmt-input-row .btn { flex: 1; min-height: 44px; }
+    .cmt-item { padding: 12px; }
+    .cmt-text { font-size: 14px; }
+    .sub-item { min-height: 46px; padding: 9px 8px; }
+    .sub-add input { min-height: 44px; }
+    .att-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }  /* 1634: 100px */
+    .upload-btn { min-height: 44px; padding: 10px 14px; }
+    /* `lbl` 110px + qiymat = 360px ekranda qiymatga 200px qolardi */
+    .detail-row { flex-direction: column; gap: 4px; }
+    .detail-row .lbl { width: auto; font-size: 12px; }
+    .dept-picker { max-height: 260px; }
+    .dept-pick-item { min-height: 48px; }
+
+    /* ── 3.14 QIDIRUV QATORI ────────────────────────────────────────────
+       `.search-row` allaqachon 1636-da ustun bo'ladi; bu yerda o'lchamlar.
+       (`.tbl-toolbar`/`.kanban-toolbar` ichidagi qidiruv — 4a, 2500.) */
+    .search-row .search-input { min-height: 46px; padding: 11px 12px 11px 38px; }
+    .search-row select, .search-row .btn { min-height: 46px; width: 100%; }
+  }
+
+  @media (max-width: 640px) {
+    /* ── 3.9 ORG SCHEMA — papka daraxti ────────────────────────────────
+       360px da "ism + lavozim + rahbar + tugmalar" bitta qatorga sig'maydi;
+       lavozim/rahbar yorliqlari yashiriladi (kartochka ko'rinishida bor). */
+    .osc-kids { margin-left: 8px; padding-left: 9px; }
+    .osc-row { min-height: 48px; padding: 8px 6px 8px 2px; }
+    .osc-nm { font-size: 14.5px; }
+    .osc-pos, .osc-mgr { display: none; }
+
+    /* ── 3.10 LOYIHA BOSQICHI ───────────────────────────────────────────
+       (1598-qatordagi ≤640 bloki KENGAYTIRILADI: `.prj-rail`/`.prj-node`/
+        `.prj-step`/`.prj-asg-*`/`.prj-par` o'sha yerda qoladi, takrorlanmaydi;
+        `.prj-ord-btn` 36×36 — 3c, 2293-qator.) */
+    .prj-ord { gap: 6px; }
+    .prj-task { padding: 12px 13px 12px 15px; }
+    .prj-task-title { font-size: 15px; }
+    .prj-meta { gap: 8px; row-gap: 6px; }
+    .prj-unlock .btn { min-height: 44px; width: 100%; }
+    .prj-state { min-height: 26px; padding: 4px 10px; }
+
+    /* ── 3.14 BO'LIM DETALI ─────────────────────────────────────────── */
+    .row-head { flex-direction: column; align-items: stretch; gap: 10px; }
+    .row-head > div:last-child { display: flex; gap: 8px; }
+    .row-head .btn { flex: 1; min-height: 46px; }
+    .crumbs { font-size: 13.5px; min-height: 40px; }   /* «← Bo'limlar» bosiladi */
+    .crumbs a { padding: 8px 4px; }
+
+    /* ── 3.14 KALENDAR ──────────────────────────────────────────────────
+       ⚠️ 7 ustun × 360px ≈ 51px/kun — `.cal-task` matni deyarli o'qilmaydi.
+          QABUL QILINDI: kun bosilganda vazifa detali ochiladi. Mobil "agenda"
+          ko'rinishi JS'da yangi renderer talab qiladi (spec: 2-bosqich).    */
+    .cal-grid { gap: 3px; }
+    .cal-cell { min-height: 54px; padding: 3px 4px; font-size: 11px; border-radius: 8px; }
+    .cal-day { font-size: 12px; }
+    .cal-task { font-size: 10px; padding: 2px 4px; min-height: 18px; }
+    .cal-dow { font-size: 10px; padding: 4px 0; }
+
+    /* ── 3.14 QORALAMA BANNERI (.dft-bar) ──────────────────────────────
+       Tugmalar matn bilan bitta qatorda 60px ga siqilardi — o'z qatoriga. */
+    .dft-bar { padding: 10px; gap: 8px; }
+    .dft-bar-acts { flex: 1 1 100%; }
+    .dft-btn { flex: 1; min-height: 40px; }
+
+    /* ── 3.14 SOZLAMALAR: email togglelari ─────────────────────────── */
+    .esn-row { gap: 12px; padding: 14px 0; }
+    .esn-lbl { font-size: 14px; }
+    .esn-row .ui-toggle { margin-top: 0; }
+
+    /* ── 3.8 NAMOZ LENTASI ──────────────────────────────────────────────
+       `.nmz-chips` ga `overflow-x` BERILMAYDI — u `flex-wrap: wrap` bilan
+       o'raladi (chiplar soni qat'iy: 5 namoz + countdown).
+       (`.nmz-x` 32×32, `.nmz-toggle`/`.nmz-reg` 40px — 3c, 2290–2291.)     */
+    .nmz-panel { padding: 8px 10px; }
+  }
+
+  @media (max-width: 620px) {
+    /* 3.14: `.rmx-*` mobil bloki 768-qatorda allaqachon bor — bu qo'shimcha.
+       ⚠️ `.rmx-acts .ui-btn { min-height: 48px }` ATAYLAB QO'SHILMADI:
+          `.ui-btn` ≤640 da allaqachon 50px (2189) va bu blok undan KEYIN
+          turgani uchun 48px tugmani KICHRAYTIRARDI. */
+    .rmx-item { min-height: 64px; }
+  }
+
+  @media (max-width: 480px) {
+    /* 3.10: `.prj-task-act` (↑↓ + holat) o'ngda turganda 360px da sarlavhaga
+       ~100px qolardi — amallar sarlavha ostiga tushadi. */
+    .prj-task-top { flex-direction: column; align-items: stretch; }
+    .prj-task-act { justify-content: flex-end; margin-top: 8px; }
+  }
+
+  /* ── 7.4: `.rmx-modal` balandligi — dvh (faqat 641–880) ────────────────
+     🔴 `min-width: 641px` GUARD SHART: ≤640 da `.ui-modal { max-height: 92% }`
+        (2173) klaviatura ochilganda qisqargan `--mob-vh` backdrop'iga
+        NISBATAN hisoblanadi; bu blok undan KEYIN turgani uchun guard'siz
+        `92dvh` o'sha aqlli qoidani bosib, "Saqlash" tugmasi yana klaviatura
+        ostida qolardi. 641–880 (planshet) da esa klaviatura oynani deyarli
+        qisqartirmaydi va `.rmx-modal { max-height: 88vh }` (725) kuchda. */
+  @media (min-width: 641px) and (max-width: 880px) {
+    .rmx-modal { max-height: 92vh; max-height: 92dvh; }
+  }
+
+  /* ── Telefon LANDSCAPE (tor VA past ekran) ────────────────────────────
+     4a dagi kanban/jadval qoidasining planner + org chart uchun davomi:
+     `calc(100dvh - 230/250px)` past ekranda (≈400px) manfiy qiymatga
+     yaqinlashib idishni yo'q qilardi, `min-height` esa butun sahifani
+     vertikal scrollga majburlardi.
+     ⚠️ 1843-dagi `max-height: 780px` bloki bizdan OLDIN turadi → uni shu
+        yerda qayta yozamiz (keyingi g'alaba qozonadi).                     */
+  /* 880: desktop (881+) tegilmasin — yuqoridagi bloklar bilan bir xil sabab. */
+  @media (max-width: 880px) and (max-height: 620px) {
+    .pln-cal { max-height: calc(100dvh - 120px); }
+    .pln-side-list { max-height: 180px; }
+    .osc-viewport { height: calc(100dvh - 130px); min-height: 220px; }
+  }
+
+  /* ═════════════════════════════════════════════════════════════════════
+     📱 MOBIL 5-BOSQICH: PWA — "Ilovani o'rnatish" (.pwa-*)   [2026-08-15]
+     Spec: MOBILE_SPEC 5.5 / 5.7 / 5.8. Namuna: landing.html (bir xil uslub,
+     bir xil localStorage kalitlari — landing'da "keyinroq" bosgan odam
+     ilovada qayta bezovta bo'lmaydi).
+
+     Blok ATAYLAB stylesheet OXIRIDA: yuqoridagi media query'lar (≤880,
+     ≤980, ≤620…) uni bosib ketmasin. `.pwa-` prefiksi ilovada band emas.
+
+     Z-INDEX (mavjud xaritaga mos):
+       19  .pwa-inapp   — topbar (20) DAN PAST, ustiga chiqmaydi
+       8800 .pwa-ios-bd / 8810 .pwa-ios  — landing bilan bir xil
+     ═════════════════════════════════════════════════════════════════════ */
+
+  /* Mobil topbar balandligi — BITTA manba.
+     ⚠️ `.osc-chart-bar { top: … }` va `.pwa-inapp { top: … }` shunga bog'lanadi.
+        Standalone rejimda topbar `safe-area-inset-top` ga o'sadi — o'zgaruvchi
+        pastda qayta yoziladi, sticky elementlar o'zi moslashadi. */
+  :root { --mob-topbar-h: 56px; }
+
+  /* ── A) Drawer punkti — YANGI CSS YO'Q ───────────────────────────────
+     `#pwaDrawerBtn` `.side-link` uslubini to'liq oladi: base qoida (332-qator)
+     allaqachon `display:flex; border:none; background:transparent; width:100%;
+     text-align:left`, shrift esa global `button { font-family: inherit }`
+     (101-qator) dan keladi.
+     🔴 `.side-link.pwa-drawer-item { background: … }` YOZILMAYDI: uning
+        spetsifikligi `.side-link:hover` bilan TENG (0,2,0) va bu blok
+        stylesheet oxirida turgani uchun hover/active fonini o'ldirardi.
+     Ko'rinishi faqat JS bilan (`pwaSyncUi` → `style.display`).
+     `.pwa-drawer-item` klassi — standalone media query'sida yashirish uchun. */
+
+  /* ── B) Mobil banner — topbar ostida yopishgan lenta ─────────────────── */
+  .pwa-inapp {
+    display: none;
+    position: sticky; top: var(--mob-topbar-h, 56px); z-index: 19;
+    align-items: center; gap: 10px;
+    margin: 0; padding: 10px 14px;
+    background: var(--accent-soft);
+    border-bottom: 1px solid var(--accent);
+    color: var(--accent-ink);
+    font-size: 13px;
+  }
+  .pwa-inapp.show { display: flex; }
+  .pwa-inapp-ic {
+    flex: 0 0 30px; width: 30px; height: 30px; border-radius: 9px;
+    background: var(--side); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pwa-inapp-txt {
+    flex: 1; min-width: 0; line-height: 1.35;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .pwa-btn {
+    flex: 0 0 auto; min-height: 44px; padding: 0 18px;
+    border: none; border-radius: 11px; cursor: pointer;
+    background: var(--side); color: var(--side-ink);
+    font: 600 14px 'Inter', system-ui, sans-serif;
+    transition: transform .14s ease;
+  }
+  .pwa-btn:active { transform: scale(.97); }
+  .pwa-inapp .pwa-btn {
+    min-height: 36px; padding: 0 14px; font-size: 13px;
+    background: var(--accent-ink); color: #fff; border-radius: 9px;
+  }
+  .pwa-x {
+    flex: 0 0 auto; width: 32px; height: 32px; padding: 0;
+    border: none; border-radius: 50%; cursor: pointer;
+    background: transparent; color: var(--accent-ink);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pwa-x:active { background: rgba(133,77,14,.14); }
+
+  /* ── C) iOS: «Bosh ekranga qo'shish» varag'i (bottom sheet) ──────────── */
+  .pwa-ios-bd {
+    display: none;
+    position: fixed; inset: 0; z-index: 8800;
+    background: rgba(15,20,23,.45);
+    -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  }
+  .pwa-ios-bd.show { display: block; }
+  .pwa-ios {
+    display: none;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 8810;
+    background: var(--surface);
+    border-radius: 22px 22px 0 0;
+    padding: 8px 20px calc(20px + env(safe-area-inset-bottom));
+    box-shadow: 0 -14px 44px rgba(15,20,23,.28);
+  }
+  /* `mobSheetUp` — 1886-qatordagi mavjud keyframes (takrorlanmaydi) */
+  .pwa-ios.show { display: block; animation: mobSheetUp .3s cubic-bezier(.32,.72,0,1); }
+  .pwa-ios::before {
+    content: ''; display: block; width: 38px; height: 4px;
+    border-radius: 99px; background: var(--line); margin: 0 auto 16px;
+  }
+  .pwa-ios-h {
+    font-family: 'Space Grotesk', sans-serif; font-weight: 600;
+    font-size: 17px; line-height: 1.3; letter-spacing: -.02em;
+    color: var(--ink); margin: 0 0 4px; text-align: center;
+  }
+  .pwa-ios-s {
+    font-size: 13px; line-height: 1.5; color: var(--muted);
+    text-align: center; margin: 0 0 18px;
+  }
+  .pwa-step {
+    display: flex; align-items: center; gap: 13px; min-height: 56px;
+    padding: 10px 0; border-top: 1px solid var(--line-soft);
+  }
+  .pwa-step:first-of-type { border-top: 0; }
+  .pwa-step-n {
+    flex: 0 0 26px; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--accent); color: var(--accent-ink);
+    font-weight: 700; font-size: 12.5px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pwa-step-t { flex: 1; font-size: 14.5px; color: var(--ink); line-height: 1.4; }
+  .pwa-step-ic {
+    flex: 0 0 32px; width: 32px; height: 32px; border-radius: 9px;
+    background: var(--surface-2); color: var(--ink-soft);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pwa-ios .pwa-btn {
+    width: 100%; min-height: 48px; margin-top: 18px;
+    background: var(--surface-2); color: var(--ink);
+  }
+
+  /* ── D) Desktop (≥881px): banner YO'Q ────────────────────────────────
+     Drawer punkti (#pwaDrawerBtn) ham desktopda ko'rinmaydi — spec 5.7-A uni
+     ruxsat bergan edi (Chrome/Edge desktop PWA'ni qo'llaydi), lekin Asilbek
+     qarori (2026-08-15): so'ralgani MOBIL, ishlab turgan desktop menyusiga
+     yangi punkt qo'shilmasin. Sharti CSS'da emas — `pwaSyncUi()` da
+     (`innerWidth <= MOB_W`), chunki `display` ni JS boshqaradi.
+     iOS varag'i faqat iOS'da ochiladi. */
+  @media (min-width: 881px) {
+    .pwa-inapp { display: none !important; }
+  }
+
+  /* ── E) Standalone (o'rnatilgan ilova) — spec 5.5 ─────────────────────
+     🟢 Hech qanday o'rnatish UI'si ko'rinmaydi (CSS qatlami; JS qatlami ham
+        bor — `pwaStandalone()`, iOS Safari `display-mode` ni to'liq
+        qo'llamaydi va u yerda faqat `navigator.standalone` ishlaydi). */
+  @media (display-mode: standalone), (display-mode: minimal-ui) {
+    .pwa-inapp, .pwa-ios, .pwa-ios-bd, .pwa-drawer-item { display: none !important; }
+    /* "pull-to-refresh" 1.2 MB ilovani qaytadan yuklamasin */
+    body { overscroll-behavior-y: none; }
+  }
+  /* Standalone + mobil: status bar ostiga kirmaydigan topbar.
+     🔴 `--mob-topbar-h` shu yerda qayta yoziladi → `.osc-chart-bar` (sticky)
+        topbar ostida qoladi, ustiga kirmaydi (4b-bosqich ogohlantirishi). */
+  @media (display-mode: standalone) and (max-width: 880px),
+         (display-mode: minimal-ui) and (max-width: 880px) {
+    :root { --mob-topbar-h: calc(56px + env(safe-area-inset-top)); }
+    .topbar {
+      height: var(--mob-topbar-h);
+      padding-top: env(safe-area-inset-top);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pwa-ios.show { animation: none; }
+    .pwa-btn { transition: none; }
+    .pwa-btn:active { transform: none; }
   }
 </style>
 </head>
@@ -2000,11 +3255,14 @@
 
 <!-- APP -->
 <div class="app" id="appView">
-  <aside class="sidebar">
+  <!-- Mobil drawer orqa fon (≤880px). Desktopda display:none. -->
+  <div class="mob-scrim" id="mobScrim" onclick="mobNavClose()" aria-hidden="true"></div>
+  <aside class="sidebar" id="appSidebar">
     <div class="brand-top">
       <svg class="brand-logo" width="20" height="20" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#FEF3C7"/><path d="M 9 16 L 14 21 L 23 11" stroke="#0F1417" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
       <span class="brand-txt">TaskFix</span>
       <button class="sb-toggle" id="sbToggleBtn" type="button" onclick="sbToggle()" title="Menyuni yig'ish (Ctrl+B)" aria-label="Menyuni yig'ish"></button>
+      <button class="mob-drawer-x" id="mobDrawerX" type="button" onclick="mobNavClose()" title="Menyuni yopish" aria-label="Menyuni yopish"></button>
     </div>
     <div class="ws-switch" onclick="toggleWsDrop(event)">
       <div class="ws-avatar" id="wsAvatar">P</div>
@@ -2015,6 +3273,14 @@
     <nav class="side-nav" id="sideNav"></nav>
     <div class="side-spacer"></div>
     <div class="side-bottom">
+      <!-- 📱 PWA: "Ilovani o'rnatish" (spec 5.7-A). Sukut bo'yicha YASHIRIN —
+           `pwaSyncUi()` prompt kelganda yoki iOS Safari'da ko'rsatadi.
+           ⚠️ `.side-link` klassi ATAYLAB: drawer bilan bir xil ko'rinadi VA
+              `mobNavOnClick` (capture) uni tanib drawer'ni yopadi. -->
+      <!-- ⚠️ `title` STATIK: `sbTitles()` faqat #sideNav ni skanerlaydi, biz esa
+           .side-bottom dagimiz → yig'ilgan menyuda (`.sb-collapsed`, font-size:0)
+           tugma matnsiz qolardi. -->
+      <button class="side-link pwa-drawer-item" id="pwaDrawerBtn" type="button" style="display:none" title="Ilovani o'rnatish" onclick="pwaInstall()"></button>
       <div class="side-user" id="sideUserBar" onclick="toggleProfileMenu(event)" style="cursor:pointer;position:relative;">
         <div class="side-user-avatar" id="userAv">?</div>
         <div class="side-user-info"><div class="side-user-name" id="userNm">—</div><div class="side-user-mail" id="userMl">—</div></div>
@@ -2031,19 +3297,29 @@
 
   <main class="main">
     <div class="topbar">
+      <!-- Mobil (≤880px) topbar elementlari — desktopda display:none -->
+      <button class="mob-burger" id="mobBurger" type="button" onclick="mobNavToggle()" aria-label="Menyu" aria-expanded="false" aria-controls="appSidebar"></button>
+      <div class="mob-title" id="mobTitle">TaskFix</div>
       <div class="topbar-search" id="topSearchWrap" title="Qidiruv (Ctrl+K)" onclick="gsFocus()">
+        <button class="mob-search-back" id="mobSearchBack" type="button" onclick="event.stopPropagation();mobSearchClose()" aria-label="Qidiruvni yopish"></button>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
         <input id="topSearchInp" type="text" placeholder="Qidiruv: xodim, vazifa, loyiha, bo'lim…" oninput="gsOnInput()" onkeydown="gsKey(event)" onfocus="gsOpen()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="flex:1;border:none;background:transparent;outline:none;font-family:inherit;font-size:13px;color:var(--ink);min-width:0;" />
         <div id="gsSpin" class="gs-spin"></div>
         <button id="gsClear" class="gs-clear" type="button" title="Tozalash" onclick="event.stopPropagation();gsClearInput()">×</button>
         <span class="kbd">⌘K</span>
       </div>
-      <button class="btn topbar-new" onclick="openCreate()" id="topbarNewBtn" style="display:none;">
+      <button class="mob-iconbtn" id="mobSearchBtn" type="button" onclick="mobSearchOpen()" aria-label="Qidiruv"></button>
+      <button class="mob-iconbtn" id="mobBellBtn" type="button" onclick="event.stopPropagation();toggleNotif(event)" aria-label="Bildirishnomalar"><span class="bell-dot" id="mobBellDot" style="display:none"></span></button>
+      <button class="btn topbar-new" onclick="openCreate()" id="topbarNewBtn" style="display:none;" aria-label="Yangi vazifa">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M12 5v14M5 12h14"></path></svg>
         Yangi vazifa
         <span style="font-family:'JetBrains Mono',monospace;font-size:10px;opacity:.6;border:1px solid rgba(255,255,255,.25);border-radius:4px;padding:1px 4px;margin-left:6px;">N</span>
       </button>
     </div>
+    <!-- 📱 PWA banneri (spec 5.7-B) — topbar OSTIDA yopishadi, faqat ≤880px.
+         Ko'rsatish/yashirish `pwaSyncUi()` da (`.show` klassi); shartlar
+         `pwaBannerEligible()` da. Ichi `pwaInit()` da to'ldiriladi (icon()). -->
+    <div class="pwa-inapp" id="pwaInapp" role="region" aria-label="Ilovani o'rnatish"></div>
     <!-- Dashboard -->
     <section id="page-planner" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap;">
@@ -2074,7 +3350,11 @@
         <div class="pln-layout">
           <div class="pln-side">
             <div class="pln-side-head" id="plnSideHead">Bajarishim kerak</div>
-            <div class="pln-side-hint">Vazifani kalendarga sudrab olib boring →</div>
+            <!-- Maslahat ekranga qarab: sudrash (drag&drop) sensorli ekranda
+                 ISHLAMAYDI, shuning uchun mobilda "bo'sh joyni bosing" deyiladi
+                 (.pln-cell.slot bosilganda blok yaratiladi). Almashish sof CSS —
+                 JS'ga tegilmagan, bu qator statik HTML. -->
+            <div class="pln-side-hint"><span class="pln-hint-d">Vazifani kalendarga sudrab olib boring →</span><span class="pln-hint-m">Kalendarda bo'sh joyni bosing</span></div>
             <div id="plnUnscheduled" class="pln-side-list"></div>
           </div>
           <div class="pln-cal-wrap">
@@ -3531,8 +4811,42 @@
   <div class="notif-head">Bildirishnomalar <button class="link-btn" onclick="markAllRead()">Hammasini o'qildi</button></div>
   <div id="notifList"></div>
 </div>
+<!-- Mobil (≤880px) bildirishnoma paneli ortidagi qatlam. ⚠️ #notifPanel DAN KEYIN
+     turishi SHART: ko'rinishi sof CSS bilan (`.notif-panel.show ~ .mob-notif-scrim`)
+     boshqariladi, toggleNotif() ga tegilmaydi. Bosilganda mavjud document-click
+     listener panelni yopadi. -->
+<div class="mob-notif-scrim" id="mobNotifScrim" aria-hidden="true"></div>
 
 <div class="toast" id="toast"></div>
+
+<!-- ============ 📱 PWA: iOS «Bosh ekranga qo'shish» varag'i (spec 5.8) ============
+     iOS Safari'da `beforeinstallprompt` YO'Q → dasturiy o'rnatish imkonsiz,
+     faqat ko'rsatma. Format — bottom sheet: ko'rsatma Safari'ning PASTKI
+     panelidagi «Ulashish» tugmasiga ishora qiladi.
+     ⚠️ `<body>` ning bevosita farzandi (position:fixed to'g'ri ishlashi uchun),
+        matn statik — foydalanuvchi kiritmasi yo'q, escapeHtml kerak emas.
+     Qadam ikonkalari `pwaInit()` da `icon()` bilan qo'yiladi. -->
+<div class="pwa-ios-bd" id="pwaIosBd"></div>
+<div class="pwa-ios" id="pwaIos" role="dialog" aria-modal="true" aria-labelledby="pwaIosH">
+  <h3 class="pwa-ios-h" id="pwaIosH">Bosh ekranga qo'shish</h3>
+  <p class="pwa-ios-s">Safari'da 3 qadam — TaskFix alohida ilova bo'lib ochiladi.</p>
+  <div class="pwa-step">
+    <span class="pwa-step-n">1</span>
+    <span class="pwa-step-t">Pastdagi «Ulashish» tugmasini bosing</span>
+    <span class="pwa-step-ic" id="pwaStepIc1" aria-hidden="true"></span>
+  </div>
+  <div class="pwa-step">
+    <span class="pwa-step-n">2</span>
+    <span class="pwa-step-t">Ro'yxatdan «Bosh ekranga qo'shish» ni tanlang</span>
+    <span class="pwa-step-ic" id="pwaStepIc2" aria-hidden="true"></span>
+  </div>
+  <div class="pwa-step">
+    <span class="pwa-step-n">3</span>
+    <span class="pwa-step-t">O'ng yuqoridagi «Qo'shish» ni bosing</span>
+    <span class="pwa-step-ic" id="pwaStepIc3" aria-hidden="true"></span>
+  </div>
+  <button type="button" class="pwa-btn" id="pwaIosOk" onclick="pwaIosClose()">Tushunarli</button>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -3770,11 +5084,46 @@ function ssEnsurePanel() {
 // ⚠️ Balandlik OCHILGANDA bir marta hisoblanadi (hamma variant soniga qarab).
 //    Qidiruv paytida qayta hisoblansa panel "sakrab" turardi.
 const SS_MAX_H = 360, SS_GAP = 6, SS_EDGE = 8, SS_ROW_H = 35;
+// 📱 Telefonda panel "varaq" (bottom sheet) bo'ladi — chegara 640 (spec 3.6),
+//    MOB_W (880) EMAS: 641–880px planshetda tugma yonidagi panel yaxshi ishlaydi.
+const SS_SHEET_W = 640;
+
+// Varaq holati → <body class="mob-ss-open"> (CSS scrim'i shu klassda) + orqa
+// fon scroll qulfi.
+// 🔴 Qulf YAGONA joydan boshqariladi (`mobLockSync`): drawer / qidiruv overlay'i /
+//    varaq bir vaqtda ochilib-yopilishi mumkin, har biri o'zicha
+//    `mob-lock` ni olib tashlasa sahifa QOTIB qolardi (yoki teskarisi — qulf
+//    erta yechilardi).
+function ssSheetSync() {
+  const p = document.getElementById('ssPanel');
+  const on = !!(p && p.classList.contains('sheet') && p.classList.contains('show'));
+  document.body.classList.toggle('mob-ss-open', on);
+  mobLockSync();
+}
 
 function ssPosition() {
   const p = document.getElementById('ssPanel');
   const t = document.getElementById('sstrig_' + _ssOpenId);
   if (!p || !t) return;
+
+  // ── 📱 MOBIL: varaq (sheet) — joylashuv TO'LIQ CSS'da ───────────────────
+  // 🔴 Inline stil CSS'dan kuchli, shuning uchun oldingi (desktop) ochilishdan
+  //    qolgan `left/top/bottom/width/maxHeight` MAJBURIY tozalanadi — aks holda
+  //    ekran aylantirilganda yoki desktopdan telefon kengligiga o'tilganda
+  //    varaq eski koordinatada osilib qolardi.
+  // ⚠️ Bu funksiya `scroll` (capture) va `resize` da qayta chaqiriladi; sheet
+  //    rejimida u darrov qaytadi → klaviatura ochilganda varaq SAKRAMAYDI.
+  if (window.innerWidth <= SS_SHEET_W) {
+    p.classList.add('sheet');
+    p.classList.remove('up');
+    p.style.left = ''; p.style.top = ''; p.style.bottom = '';
+    p.style.width = ''; p.style.maxHeight = '';
+    ssSheetSync();
+    return;
+  }
+  p.classList.remove('sheet');
+  ssSheetSync();
+
   const r = t.getBoundingClientRect();
   const reg = _ssReg[_ssOpenId];
 
@@ -3833,6 +5182,7 @@ function ssOpen(id) {
 function ssClose() {
   const p = document.getElementById('ssPanel');
   if (p) p.classList.remove('show');
+  ssSheetSync();          // scrim + scroll qulfini yechish (varaq rejimi)
   if (_ssOpenId) {
     const t = document.getElementById('sstrig_' + _ssOpenId);
     if (t) t.setAttribute('aria-expanded', 'false');
@@ -3987,6 +5337,9 @@ function ssMemberItems(list) {
 function ssForget(ids) {
   (ids || []).forEach(function (id) { delete _ssReg[id]; });
   if (_ssOpenId && ids && ids.indexOf(_ssOpenId) !== -1) ssClose();
+  // Qorovul: oyna yopilganda varaq holati (scrim + scroll qulfi) HAR HOLDA
+  // qayta hisoblanadi — `mob-lock` qotib qolib sahifa scroll bo'lmay qolmasin.
+  ssSheetSync();
 }
 
 function uiForm(title, fields, opts) {
@@ -5038,6 +6391,9 @@ async function loadProjectDetail() {
   }
   window._curProject = project;
   prjStartSync([project]);   // start_at yangi qiymati darvozaga ham yetib borsin
+  // Mobil sarlavha: openProject() → goPage('project') → renderSidebar() zanjiri
+  // loyiha nomi hali YUKLANMAGANDA ishlaydi va "Loyiha" bo'lib qotib qolardi.
+  if (typeof mobSetTitle === 'function') mobSetTitle();
 
   // 2) Bosqichlar
   const { data: ts, error: tErr } = await sb.from('tasks').select('*').eq('project_id', currentProjectId).order('flow_order', { ascending: true });
@@ -8075,7 +9431,15 @@ const ICON_PATHS = {
   unlock:    '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>',
   link:      '<path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><path d="M8 12h8"/>',
   play:      '<path d="M6 4.5a1 1 0 0 1 1.5-.87l11 7.5a1 1 0 0 1 0 1.74l-11 7.5A1 1 0 0 1 6 19.5z"/>',
-  x:         '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'
+  x:         '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  // Mobil karkas (mob*) — hamburger va qo'ng'iroq (Lucide menu / bell)
+  menu:      '<path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/>',
+  bell:      '<path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/>',
+  // PWA (pwa*) — "Ilovani o'rnatish" + iOS ko'rsatmasi (Lucide: download,
+  // share, square-plus). `check` va `x` allaqachon bor — takrorlanmaydi.
+  download:  '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>',
+  share:     '<path d="M12 3v12"/><path d="m8 7 4-4 4 4"/><path d="M20 14v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6"/>',
+  plusSquare: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/>'
 };
 
 // Ikonka SVG matni. Noma'lum nom — bo'sh (ilova yiqilmasin, joy ham egallamasin).
@@ -8165,6 +9529,590 @@ function sbTitles() {
                    .map(function (n) { return n.textContent; }).join(' ').trim();
     if (t) b.title = t;
   });
+}
+
+// ============ 📱 MOBIL KARKAS (mob*) — drawer + topbar ============
+// ≤880px da chap menu OFF-CANVAS DRAWER bo'ladi: mavjud <aside class="sidebar">
+// AYNAN o'zi ishlatiladi (renderSidebar() HTML'i 1 belgi ham o'zgarmaydi) —
+// shuning uchun HAR punkt (Bo'limlar +, Loyihalar, Boshqaruv, Telegram, HR,
+// profil, 🔔, Chiqish) joyida qoladi.
+//
+// ⚠️ Inline handler (onclick="mobNavToggle()") GLOBAL scope'da baholanadi —
+//    shuning uchun bu funksiyalar top-level (init() ichida EMAS).
+// 🔴 `transform` FAQAT `.sidebar` da (CSS). `#appView`/`body` ga BERILMAYDI —
+//    aks holda barcha `position:fixed` panellar (ss/ui-modal/gs/toast/…) buziladi.
+// 🔴 Holat faqat KLASS bilan boshqariladi, `transitionend` ga TAYANMAYDI:
+//    `prefers-reduced-motion: reduce` da transition umuman bo'lmaydi.
+// ⚠️ MOB_W = SB_MOBILE_W (880) — bitta chegara. Boshqa raqam tanlansa
+//    oraliqda "hech kimniki bo'lmagan zona" paydo bo'lardi.
+const MOB_W = 880;
+const MOB_SWIPE_DX = 60;    // px — shundan ko'p chapga surilsa yopiladi
+const MOB_SWIPE_V = 0.5;    // px/ms — tez surish ham yopadi
+let _mobNavOpen = false;
+let _mobBound = false;
+let _mobRestoreFocus = null;
+
+function mobIsMobile() { return window.innerWidth <= MOB_W; }
+
+// ── Orqa fon scroll qulfi — YAGONA egasi ───────────────────────────────
+// 🔴 Uchta mustaqil qoplama `html.mob-lock` ni birga ishlatadi: drawer,
+//    qidiruv overlay'i va `ss*` varag'i (bottom sheet). Har biri o'zicha
+//    `remove('mob-lock')` qilsa, ikkitasi birga ochilib bittasi yopilganda
+//    qulf ERTA yechilardi (yoki teskari holatda sahifa qotib qolardi).
+//    Shuning uchun qulf DOIM shu funksiyada uchala bayroqdan qayta hisoblanadi.
+function mobLockSync() {
+  const on = _mobNavOpen ||
+    document.body.classList.contains('mob-search-open') ||
+    document.body.classList.contains('mob-ss-open');
+  document.documentElement.classList.toggle('mob-lock', on);
+}
+
+function mobNavToggle() { if (_mobNavOpen) mobNavClose(); else mobNavOpen(); }
+
+// ── Orqa fonni ekran o'quvchidan yashirish ────────────────────────────
+// 🔴 `aria-modal="true"` ni brauzerlar TO'LIQ hurmat qilmaydi — VoiceOver/
+//    TalkBack swipe bilan drawer ortidagi kontentga bemalol o'tib ketadi.
+//    Shuning uchun `<main>` ga `inert` (+ eski brauzerlar uchun `aria-hidden`).
+// ⚠️ TUZOQ: #mobBurger `<main>` ICHIDA (topbarda), ya'ni u ham o'chadi. Bu
+//    ATAYLAB qabul qilindi va hech qanday amalni yo'qotmaydi: drawer ochiq
+//    turganda `.mob-scrim` (z 8500) butun ekranni qoplaydi → burger allaqachon
+//    BOSILMAYDI. Yopish yo'llarining HAMMASI <main> dan tashqarida:
+//    drawer ichidagi × (ochilganda fokus aynan unga boradi), scrim, Escape,
+//    chapga surish. Muqobil variant (burgerdan boshqa har bir bolani alohida
+//    inert qilish) DOM'ga bog'lanib qolardi va topbar tartibi o'zgarsa buzilardi.
+// ⚠️ mobNavClose() fokusni burgerga qaytarishdan OLDIN buni o'chiradi — aks
+//    holda inert element `focus()` ni jimgina rad etadi va fokus yo'qolardi.
+function mobMainInert(on) {
+  const app = document.getElementById('appView');
+  const m = app ? app.querySelector('main.main') : null;
+  if (!m) return;
+  if (on) { m.setAttribute('inert', ''); m.setAttribute('aria-hidden', 'true'); }
+  else { m.removeAttribute('inert'); m.removeAttribute('aria-hidden'); }
+  m.inert = !!on;   // `inert` ni qo'llab-quvvatlaydigan brauzerlarda xossa = atribut
+}
+
+function mobNavOpen() {
+  const app = document.getElementById('appView');
+  const side = document.getElementById('appSidebar');
+  if (!app || !side || !mobIsMobile()) return;
+  _mobNavOpen = true;
+  app.classList.add('mob-nav-open');
+  mobLockSync();
+  side.setAttribute('role', 'dialog');
+  side.setAttribute('aria-modal', 'true');
+  side.setAttribute('aria-label', 'Asosiy menyu');
+  const b = document.getElementById('mobBurger');
+  if (b) b.setAttribute('aria-expanded', 'true');
+  _mobRestoreFocus = b || null;
+  const x = document.getElementById('mobDrawerX');
+  if (x) { try { x.focus(); } catch (e) { console.error('mobNavOpen focus:', e); } }
+  // Fokus drawer ichiga ko'chgandan KEYIN — inert fokusdagi elementni blur qiladi
+  mobMainInert(true);
+}
+
+// `noFocus` — havola bosilib sahifa almashganda fokus qaytarilmaydi
+// (modal/yangi sahifa o'z fokusini o'zi qo'yadi, biz uni tortib olmaymiz).
+function mobNavClose(noFocus) {
+  const app = document.getElementById('appView');
+  if (!app) return;
+  if (!_mobNavOpen && !app.classList.contains('mob-nav-open')) return;
+  _mobNavOpen = false;
+  app.classList.remove('mob-nav-open');
+  mobMainInert(false);   // 🔴 fokus qaytarishdan OLDIN (inert element focus() ni rad etadi)
+  mobLockSync();         // qidiruv/varaq ochiq bo'lsa qulf ularga hali kerak
+  const side = document.getElementById('appSidebar');
+  if (side) {
+    side.classList.remove('mob-dragging');
+    side.style.transform = '';
+    side.removeAttribute('role');
+    side.removeAttribute('aria-modal');
+    side.removeAttribute('aria-label');
+  }
+  const b = document.getElementById('mobBurger');
+  if (b) b.setAttribute('aria-expanded', 'false');
+  const rf = _mobRestoreFocus; _mobRestoreFocus = null;
+  if (!noFocus && rf) { try { rf.focus(); } catch (e) { console.error('mobNavClose focus:', e); } }
+}
+
+// Drawer ichida bosish: sahifa o'zgaradigan har punkt drawer'ni yopadi.
+// ⚠️ Guruh tugmalari (Telegram / HR) ISTISNO — ular faqat guruhni ochadi,
+//    yopilsa foydalanuvchi ochilgan sub-punktlarni ko'rmay qolardi.
+// 🔴 CAPTURE fazasida bog'lanadi (mobNavInit), bubble EMAS. Sabab: drawer ichidagi
+//    bir necha tugmada inline `onclick="event.stopPropagation(); …"` bor
+//    (#tgConnBtn, 🔔, .profile-menu-item) — ular bubble'ni to'xtatadi va
+//    #appSidebar dagi delegatsiya HECH QACHON ishlamasdi. Capture'da biz inline
+//    handler'dan OLDIN ishlaymiz; klik baribir nishoniga yetib boradi (dispatch
+//    yo'li hodisa boshlanishida hisoblanadi, drawer yopilishi uni uzmaydi).
+function mobNavOnClick(e) {
+  if (!_mobNavOpen) return;
+  const t = e.target;
+  if (!t || typeof t.closest !== 'function') return;
+  if (t.closest('.side-link.side-group')) return;                      // guruh — faqat ochadi
+  if (t.closest('.mob-drawer-x') || t.closest('.sb-toggle')) return;   // o'z handleri bor
+  // 🔔 Bildirishnoma ISTISNO: paneli 8710 = drawer (8600) USTIDA ochiladi,
+  //    drawer ochiq turishi kerak. ✈ (#tgConnBtn) esa modal ochadi (z-index 100)
+  //    → drawer ortida ko'rinmay qolardi, shuning uchun u YOPADI.
+  if (t.closest('.bell-btn') && !t.closest('#tgConnBtn')) return;
+  // Workspace tanlagichning o'zi faqat dropdown ochadi; yopish — element tanlanganda.
+  if (t.closest('.ws-switch') && !t.closest('.ws-item')) return;
+  // Profil qatorining o'zi menyuni ochadi; yopish — menyu punkti bosilganda.
+  if (t.closest('.side-user') && !t.closest('.profile-menu-item') && !t.closest('.bell-btn')) return;
+  if (t.closest('.side-link') || t.closest('.profile-menu-item') || t.closest('.ws-item') ||
+      t.closest('.add-mini') ||        // "Bo'limlar +" → openNewDept() modali
+      t.closest('#tgConnBtn')) {       // ✈ → openTgConnect() modali
+    mobNavClose(true);
+  }
+}
+
+// Escape + fokus tuzog'i (Tab drawer ichida aylanadi)
+function mobNavKey(e) {
+  if (!_mobNavOpen) return;
+  // 🔴 stopImmediatePropagation: init() dagi global Escape handler HAM `document` da
+  //    turadi — oddiy stopPropagation bir xil tugundagi ikkinchi listener'ni to'smaydi.
+  //    Busiz Escape drawer'ni yopish bilan birga 15 ta modalning `show` klassini
+  //    olib tashlab, `currentDetailId` ni ham null qilardi.
+  if (e.key === 'Escape') { e.stopImmediatePropagation(); mobNavClose(); return; }
+  if (e.key !== 'Tab') return;
+  const side = document.getElementById('appSidebar');
+  if (!side) return;
+  const all = side.querySelectorAll('button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  const vis = Array.prototype.filter.call(all, function (el) {
+    return !el.disabled && el.offsetParent !== null;
+  });
+  if (!vis.length) return;
+  const first = vis[0], last = vis[vis.length - 1];
+  if (!side.contains(document.activeElement)) { e.preventDefault(); first.focus(); return; }
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+}
+
+// ── Chapga surish (swipe) ──────────────────────────────────────────────
+// 🔴 Chetdan surib OCHISH qilinmaydi — iOS'da chap chekka "orqaga" jesti.
+let _mobX0 = 0, _mobY0 = 0, _mobT0 = 0, _mobTx = 0, _mobAxis = '';
+function mobTouchStart(e) {
+  if (!_mobNavOpen || !e.touches || e.touches.length !== 1) return;
+  _mobX0 = e.touches[0].clientX; _mobY0 = e.touches[0].clientY;
+  _mobT0 = Date.now(); _mobTx = 0; _mobAxis = '';
+}
+function mobTouchMove(e) {
+  if (!_mobNavOpen || !e.touches || e.touches.length !== 1) return;
+  const dx = e.touches[0].clientX - _mobX0;
+  const dy = e.touches[0].clientY - _mobY0;
+  if (!_mobAxis) {
+    if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+    _mobAxis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';   // o'q qulfi: vertikal scroll buzilmasin
+    if (_mobAxis === 'x') {
+      const s0 = document.getElementById('appSidebar');
+      if (s0) s0.classList.add('mob-dragging');
+    }
+  }
+  if (_mobAxis !== 'x') return;
+  if (e.cancelable) e.preventDefault();
+  _mobTx = Math.min(0, dx);
+  const s = document.getElementById('appSidebar');
+  if (s) s.style.transform = 'translateX(' + _mobTx + 'px)';
+}
+function mobTouchEnd() {
+  const s = document.getElementById('appSidebar');
+  if (s) { s.classList.remove('mob-dragging'); s.style.transform = ''; }
+  if (_mobAxis === 'x') {
+    const v = Math.abs(_mobTx) / Math.max(1, Date.now() - _mobT0);
+    if (_mobTx < -MOB_SWIPE_DX || (v > MOB_SWIPE_V && _mobTx < -10)) mobNavClose();
+  }
+  _mobAxis = ''; _mobTx = 0;
+}
+
+// ── Klaviatura / vizual oyna (mvv*) ───────────────────────────────────
+// 🔴 MUAMMO: mobil klaviatura ochilganda `100vh` ham, `100dvh` ham QISQARMAYDI
+//    → varaq-modalning "Saqlash"/"OK" tugmalari klaviatura ostida qolib,
+//    foydalanuvchi formani saqlay olmasdi.
+// YECHIM: `visualViewport` dan HAQIQIY ko'rinadigan balandlik (`height`) va
+//    siljish (`offsetTop` — iOS klaviatura ochilganda vizual oynani suradi)
+//    o'qilib, `--mob-vh` / `--mob-vvtop` CSS o'zgaruvchilariga yoziladi.
+//    Ular FAQAT mobil media bloklarida (`.modal-backdrop`, `.ui-modal-bd`)
+//    ishlatiladi — desktop CSS bu o'zgaruvchilarni umuman ko'rmaydi.
+// ⚠️ `transform` EMAS, `top`/`height` — CLAUDE.md invarianti (transform
+//    ichidagi `position:fixed` elementlarni buzardi).
+// ⚠️ Faqat `resize` da yangilanadi ('scroll' EMAS): iOS'da odatiy scroll ham
+//    `offsetTop` ni o'zgartiradi va varaq titrab turardi; klaviatura ochilishi
+//    esa doim `resize` bilan keladi.
+function mvvApply() {
+  const el = document.documentElement;
+  if (!el) return;
+  if (window.innerWidth > MOB_W) {          // desktopda o'zgaruvchi kerak emas
+    el.style.removeProperty('--mob-vh');
+    el.style.removeProperty('--mob-vvtop');
+    el.style.removeProperty('--mob-kb');
+    return;
+  }
+  const vv = window.visualViewport;
+  const h = vv ? vv.height : window.innerHeight;
+  if (!h) {
+    // 0 kelsa (kam uchraydigan holat) eski qiymatlar OSILIB qolmasin —
+    // klaviaturali `--mob-kb` qolsa panel havoda turib qolardi. Tozalaymiz,
+    // CSS `dvh` / `0px` zaxirasiga qaytadi.
+    el.style.removeProperty('--mob-vh');
+    el.style.removeProperty('--mob-vvtop');
+    el.style.removeProperty('--mob-kb');
+    return;
+  }
+  const top = Math.round(vv ? vv.offsetTop : 0);
+  el.style.setProperty('--mob-vh', Math.round(h) + 'px');
+  el.style.setProperty('--mob-vvtop', top + 'px');
+  // `--mob-kb` — layout oynasining PASTIDA yashiringan balandlik (amalda
+  // klaviatura). `position:fixed; bottom:0` element klaviatura OSTIDA qolib
+  // ketadi; `bottom: var(--mob-kb)` bilan u klaviatura USTIGA ko'tariladi.
+  // ⚠️ Layout oynasi o'zi qisqaradigan brauzerda (eski Android) qiymat 0 bo'ladi
+  //    va `bottom:0` allaqachon to'g'ri — ikkala holat ham ishlaydi.
+  el.style.setProperty('--mob-kb', Math.max(0, Math.round(window.innerHeight - top - h)) + 'px');
+}
+
+// Ekran kengaysa (planshet aylantirilsa) drawer/qidiruv osilib qolmasin
+function mobOnResize() {
+  mvvApply();                                 // 🔴 mobilda ham kerak (pastdagi return'dan OLDIN)
+  if (window.innerWidth <= MOB_W) return;
+  if (_mobNavOpen) mobNavClose(true);
+  mobSearchOff();
+}
+
+// ── Qidiruv: to'liq ekran overlay ──────────────────────────────────────
+// 🔴 #topSearchWrap DOM'da qoladi va display:none QILINMAYDI — gsPosition()
+//    uning rect'iga tayanadi. Overlay'da u fixed bo'lib tepaga ko'chadi,
+//    gsPosition() esa hech qanday o'zgarishsiz to'g'ri hisoblaydi.
+function mobSearchArm() {
+  if (window.innerWidth > MOB_W) return;
+  document.body.classList.add('mob-search-open');
+  mobLockSync();
+}
+function mobSearchOff() {
+  if (!document.body.classList.contains('mob-search-open')) return;
+  document.body.classList.remove('mob-search-open');
+  mobLockSync();
+  const inp = document.getElementById('topSearchInp');
+  if (inp) { try { inp.blur(); } catch (e) { console.error('mobSearchOff blur:', e); } }
+}
+function mobSearchOpen() { mobNavClose(true); mobSearchArm(); gsFocus(); }
+function mobSearchClose() { mobSearchOff(); gsClose(); }
+
+// ── Topbar sarlavhasi ──────────────────────────────────────────────────
+const MOB_TITLES = {
+  dashboard: 'Bosh sahifa', planner: 'Rejalashtirgich', tasks: 'Vazifalar',
+  departments: 'Bo\'limlar', team: 'Jamoa', projects: 'Loyihalar',
+  integrations: 'Qo\'shimcha service', tgusers: 'Telegram', branches: 'Filiallar',
+  positions: 'Lavozimlar', settings: 'Sozlamalar', logs: 'Loglar',
+  stats: 'Statistika', botsettings: 'Bot sozlamalari', botcommands: 'Bot komandalari',
+  profile: 'Mening profilim', orgschema: 'Org Schema', orgchart: 'Tashkilot tuzilmasi',
+  // ⚠️ `employee` zaxira sifatida SHART: mobPageTitle'ning `employee` shoxi
+  //    `_empDtlUid` bo'sh bo'lsa ishlamaydi va sarlavha "TaskFix" bo'lib qolardi
+  //    (department/project da zaxira bor edi, bunda yo'q edi).
+  employee: 'Xodim', department: 'Bo\'lim', project: 'Loyiha'
+};
+function mobPageTitle() {
+  const p = (typeof currentPage === 'string' && currentPage) ? currentPage : '';
+  try {
+    if (p === 'tasks') {
+      const t = { mine: 'Mening vazifalarim', assigned: 'Men topshirganlar', all: 'Barcha vazifalar' };
+      return t[taskScope] || 'Vazifalar';
+    }
+    if (p === 'department') {
+      const d = (departments || []).find(function (x) { return x.id === currentDeptId; });
+      return (d && d.name) || 'Bo\'lim';
+    }
+    if (p === 'project') {
+      const c = window._curProject || (projectsCache || []).find(function (x) { return x.id === currentProjectId; });
+      return (c && c.name) || 'Loyiha';
+    }
+    if (p === 'employee' && _empDtlUid && typeof tblMemberName === 'function') {
+      return tblMemberName(_empDtlUid) || 'Xodim';
+    }
+  } catch (e) { console.error('mobPageTitle:', e); }
+  return MOB_TITLES[p] || 'TaskFix';
+}
+// textContent — HTML sifatida talqin qilinmaydi (escapeHtml kerak emas)
+function mobSetTitle() {
+  const el = document.getElementById('mobTitle');
+  if (!el) return;
+  const t = mobPageTitle();
+  if (el.textContent !== t) el.textContent = t;
+}
+
+// Topbar qo'ng'irog'idagi qizil nuqta (#bellDot bilan yonma-yon)
+function mobBellSync(unread) {
+  const d = document.getElementById('mobBellDot');
+  if (d) d.style.display = unread > 0 ? 'block' : 'none';
+}
+
+// init() da BIR MARTA chaqiriladi (sbInit yonida)
+function mobNavInit() {
+  if (_mobBound) return;
+  _mobBound = true;
+  const burger = document.getElementById('mobBurger'); if (burger) burger.innerHTML = icon('menu', 20);
+  const sBtn = document.getElementById('mobSearchBtn'); if (sBtn) sBtn.innerHTML = icon('search', 19);
+  // ⚠️ insertAdjacentHTML — innerHTML emas: ichidagi #mobBellDot saqlanishi kerak
+  const bell = document.getElementById('mobBellBtn'); if (bell) bell.insertAdjacentHTML('afterbegin', icon('bell', 19));
+  const back = document.getElementById('mobSearchBack'); if (back) back.innerHTML = icon('chevron', 18);
+  const x = document.getElementById('mobDrawerX'); if (x) x.innerHTML = icon('x', 18);
+  const side = document.getElementById('appSidebar');
+  if (side) {
+    // ⚠️ capture: true — pastdagi izohga qara (inline stopPropagation bizni to'sardi)
+    side.addEventListener('click', mobNavOnClick, true);
+    side.addEventListener('touchstart', mobTouchStart, { passive: true });
+    side.addEventListener('touchmove', mobTouchMove, { passive: false });
+    side.addEventListener('touchend', mobTouchEnd);
+    side.addEventListener('touchcancel', mobTouchEnd);
+  }
+  document.addEventListener('keydown', mobNavKey);
+  window.addEventListener('resize', mobOnResize);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', mvvApply);
+  mvvApply();
+  mobSetTitle();
+}
+
+// ============ 📱 PWA — "Ilovani o'rnatish" (pwa*) ============
+// Spec: MOBILE_SPEC 5.5 / 5.7 / 5.8. Namuna: landing.html — uslub, matn va
+// mantiq AYNAN o'sha (ikki sahifa bir xil ishlasin).
+//
+// 🔴 Nega ilova ichida ham kerak: tizimga kirgan foydalanuvchi landing
+//    darvozasi (<head>, 16–39) tufayli `landing.html` ni UMUMAN ko'rmaydi —
+//    ya'ni mavjud jamoa uchun landing'dagi PWA oqimi hech qachon ishlamaydi.
+//
+// 🔴 Inline handler (onclick="pwaInstall()") GLOBAL scope'da baholanadi →
+//    bu funksiyalar top-level (init() ichida EMAS). 2026-07-28 saboqi.
+//
+// 🔴 localStorage KALITLARI landing.html BILAN BIR XIL (`pwa_dismiss_v1`,
+//    `pwa_installed_v1`) — landing'da "keyinroq" bosgan odam ilovada qayta
+//    bezovta bo'lmaydi. Yangi kalit faqat bitta: `pwa_seen` (hisoblagich).
+const PWA_LS_DISMISS  = 'pwa_dismiss_v1';
+const PWA_LS_INSTALLED = 'pwa_installed_v1';
+const PWA_LS_SEEN     = 'pwa_seen';
+const PWA_DISMISS_MS  = 14 * 24 * 60 * 60 * 1000;   // 14 kun
+const PWA_SEEN_MIN    = 2;    // 1-tanishuvda bezovta qilmaymiz
+const PWA_MAX_W       = 880;  // = MOB_W; banner faqat mobilda
+
+let _pwaPrompt  = null;    // beforeinstallprompt hodisasi
+let _pwaClosed  = false;   // shu sessiyada yopilgan/o'rnatilgan
+let _pwaLsOk    = true;    // localStorage ishlayaptimi (private rejim)
+let _pwaBound   = false;
+let _pwaUpdShown = false;  // 'tf-updated' xabari — sessiyada BIR MARTA
+let _pwaIosOpen = false;
+let _pwaIosRestore = null;
+
+// localStorage private rejimda THROW qiladi — hammasi o'ralgan; xato bo'lsa
+// UI shunchaki ko'rsatilmaydi, ilova buzilmaydi (bo'sh catch YO'Q).
+function pwaLsGet(k) {
+  try { return window.localStorage.getItem(k); }
+  catch (e) { _pwaLsOk = false; console.error('[pwa] localStorage o\'qilmadi:', e); return null; }
+}
+function pwaLsSet(k, v) {
+  try { window.localStorage.setItem(k, v); return true; }
+  catch (e) { console.error('[pwa] localStorage yozilmadi:', e); return false; }
+}
+
+function pwaMq(q) {
+  try { return !!(window.matchMedia && window.matchMedia(q).matches); }
+  catch (e) { console.error('[pwa] matchMedia:', e); return false; }
+}
+// 🟢 O'rnatilgan bo'lsa — hech qanday o'rnatish UI'si ko'rinmaydi (spec 5.5).
+// ⚠️ iOS Safari `display-mode` ni to'liq qo'llamaydi → `navigator.standalone`.
+function pwaStandalone() {
+  return pwaMq('(display-mode: standalone)') || pwaMq('(display-mode: minimal-ui)') ||
+         window.navigator.standalone === true;
+}
+// ⚠️ iPad "desktop rejim"da Macintosh deb ko'rinadi → maxTouchPoints bilan.
+// ⚠️ Chrome/Firefox/Edge/Opera iOS'da «Bosh ekranga qo'shish» YO'Q →
+//    ko'rsatma noto'g'ri bo'lardi, shuning uchun ular chiqarib tashlanadi.
+function pwaIsIos() {
+  const ua = navigator.userAgent || '';
+  return (/iPad|iPhone|iPod/.test(ua) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua))) &&
+         !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+}
+
+// O'rnatish umuman mumkinmi (drawer punkti shu bilan boshqariladi).
+function pwaCanInstall() {
+  if (pwaStandalone()) return false;
+  if (!_pwaPrompt && !pwaIsIos()) return false;   // prompt yo'q va iOS emas
+  if (pwaLsGet(PWA_LS_INSTALLED)) return false;
+  return true;
+}
+
+// Banner shartlari: yuqoridagilar + mobil + sessiyada yopilmagan +
+// `pwa_dismiss_v1` eskirgan + kamida 2-marta ochilgan (spec 5.7-B).
+function pwaBannerEligible() {
+  if (!pwaCanInstall() || _pwaClosed) return false;
+  if (window.innerWidth > PWA_MAX_W) return false;
+  if (!_pwaLsOk) return false;                     // xotira yo'q — bezovta qilmaymiz
+  const d = pwaLsGet(PWA_LS_DISMISS);
+  if (d) {
+    const t = parseInt(d, 10);
+    if (t && (Date.now() - t) < PWA_DISMISS_MS) return false;
+  }
+  const seen = parseInt(pwaLsGet(PWA_LS_SEEN) || '0', 10) || 0;
+  if (seen < PWA_SEEN_MIN) return false;
+  return true;
+}
+
+// Yagona ko'rsatish/yashirish nuqtasi — har holat o'zgarishida chaqiriladi.
+function pwaSyncUi() {
+  const btn = document.getElementById('pwaDrawerBtn');
+  // ⚠️ Kenglik sharti ATAYLAB (Asilbek qarori 2026-08-15): Chrome/Edge desktop
+  //    ham PWA'ni qo'llaydi, lekin bu punkt desktop chap menyusida YANGI element
+  //    bo'lib paydo bo'lardi — so'ralgani mobil. `resize` da pwaSyncUi
+  //    allaqachon qayta chaqiriladi, ya'ni oyna toraysa punkt o'zi chiqadi.
+  if (btn) btn.style.display = (pwaCanInstall() && window.innerWidth <= MOB_W) ? 'flex' : 'none';
+  const bar = document.getElementById('pwaInapp');
+  if (bar) bar.classList.toggle('show', pwaBannerEligible());
+}
+
+// Drawer punkti VA banner tugmasi shu yerga keladi.
+// 🔴 top-level function — inline onclick global scope'da baholanadi.
+function pwaInstall() {
+  if (_pwaPrompt) {
+    const dp = _pwaPrompt;
+    _pwaPrompt = null;              // prompt() faqat BIR MARTA ishlaydi
+    let choice = null;
+    try { choice = dp.prompt(); } catch (e) { console.error('[pwa] prompt() ishlamadi:', e); }
+    // Yangi brauzerlarda prompt() promise qaytaradi, eskilarida — undefined.
+    // Ikkalasida ham natija `userChoice` da.
+    const uc = dp.userChoice;
+    if (uc && typeof uc.then === 'function') {
+      uc.then(function (res) {
+        if (res && res.outcome === 'accepted') pwaLsSet(PWA_LS_INSTALLED, '1');
+        _pwaClosed = true; pwaSyncUi();
+      }, function (err) {
+        console.error('[pwa] O\'rnatish dialogi xatosi:', err);
+        _pwaClosed = true; pwaSyncUi();
+      });
+    } else {
+      if (choice && typeof choice.catch === 'function') {
+        choice.catch(function (err) { console.error('[pwa] prompt() rad etildi:', err); });
+      }
+      _pwaClosed = true; pwaSyncUi();
+    }
+    return;
+  }
+  if (pwaIsIos()) { pwaIosOpen(); return; }
+  // Bu yerga tushish — prompt ham yo'q, iOS ham emas (tugma ko'rinmasligi kerak edi)
+  console.error('[pwa] O\'rnatish imkoni yo\'q: prompt kelmagan va iOS emas.');
+  pwaSyncUi();
+}
+
+// Banner «×» — 14 kun ko'rinmaydi (landing bilan bir xil kalit).
+function pwaDismiss() {
+  pwaLsSet(PWA_LS_DISMISS, String(Date.now()));
+  _pwaClosed = true;
+  pwaSyncUi();
+}
+
+// ── iOS varag'i (bottom sheet) ────────────────────────────────────────
+function pwaIosOpen() {
+  if (_pwaIosOpen) return;
+  const bd = document.getElementById('pwaIosBd');
+  const sh = document.getElementById('pwaIos');
+  const ok = document.getElementById('pwaIosOk');
+  if (!bd || !sh || !ok) { console.error('[pwa] iOS varag\'i DOM\'da yo\'q'); return; }
+  _pwaIosOpen = true;
+  _pwaIosRestore = document.activeElement;
+  bd.classList.add('show');
+  sh.classList.add('show');
+  try { ok.focus(); } catch (e) { console.error('[pwa] fokus berilmadi:', e); }
+}
+
+function pwaIosClose() {
+  if (!_pwaIosOpen) return;
+  _pwaIosOpen = false;
+  const bd = document.getElementById('pwaIosBd');
+  const sh = document.getElementById('pwaIos');
+  if (bd) bd.classList.remove('show');
+  if (sh) sh.classList.remove('show');
+  const rf = _pwaIosRestore; _pwaIosRestore = null;
+  if (rf && rf.focus) { try { rf.focus(); } catch (e) { console.error('[pwa] fokus qaytmadi:', e); } }
+}
+
+// Escape yopadi; Tab varaqdan chiqmaydi (ichida bitta fokuslanadigan element).
+// ⚠️ `stopImmediatePropagation` QILINMAYDI: init() dagi global Escape handler
+//    faqat `.modal`/`.ui-modal` larni yopadi, `.pwa-ios` ga tegmaydi.
+function pwaIosKey(e) {
+  if (!_pwaIosOpen) return;
+  if (e.key === 'Escape') { pwaIosClose(); return; }
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const ok = document.getElementById('pwaIosOk');
+    if (ok) { try { ok.focus(); } catch (err) { console.error('[pwa] fokus ushlanmadi:', err); } }
+  }
+}
+
+// ── Service worker ────────────────────────────────────────────────────
+// landing.html bilan bir xil: `load` da, faqat https/localhost.
+function pwaRegisterSw() {
+  if (!('serviceWorker' in navigator)) return;
+  const h = location.hostname;
+  const secure = location.protocol === 'https:' || h === 'localhost' || h === '127.0.0.1' || h === '[::1]';
+  if (!secure) return;
+  navigator.serviceWorker.register('sw.js').catch(function (err) {
+    console.error('[pwa] Service worker ro\'yxatdan o\'tmadi:', err);
+  });
+  // sw.js sekin tarmoqda keshdan xizmat qilsa {type:'tf-updated'} yuboradi.
+  // ⚠️ Fon hodisasi — sessiyada BIR MARTA (takror-takror chiqmasin).
+  navigator.serviceWorker.addEventListener('message', function (ev) {
+    const d = ev && ev.data;
+    if (!d || d.type !== 'tf-updated' || _pwaUpdShown) return;
+    _pwaUpdShown = true;
+    try { toast('Yangi versiya yuklandi — sahifani qayta oching', 'ok'); }
+    catch (e) { console.error('[pwa] yangilanish xabari:', e); }
+  });
+}
+
+// init() da BIR MARTA (mobNavInit yonida)
+function pwaInit() {
+  if (_pwaBound) return;
+  _pwaBound = true;
+
+  // Drawer punkti (ikonka + matn). textContent EMAS — ikonka SVG kerak.
+  const btn = document.getElementById('pwaDrawerBtn');
+  if (btn) btn.innerHTML = sideIcon('download') + ' Ilovani o\'rnatish';
+
+  // Banner ichi (spec 5.7-B). Matn statik — foydalanuvchi kiritmasi yo'q.
+  const bar = document.getElementById('pwaInapp');
+  if (bar) {
+    bar.innerHTML =
+      '<span class="pwa-inapp-ic" aria-hidden="true">' + icon('download', 17) + '</span>' +
+      '<span class="pwa-inapp-txt">TaskFix\'ni bosh ekranga qo\'shing</span>' +
+      '<button type="button" class="pwa-btn" onclick="pwaInstall()">O\'rnatish</button>' +
+      '<button type="button" class="pwa-x" onclick="pwaDismiss()" aria-label="Yopish">' + icon('x', 16) + '</button>';
+  }
+  const s1 = document.getElementById('pwaStepIc1'); if (s1) s1.innerHTML = icon('share', 18);
+  const s2 = document.getElementById('pwaStepIc2'); if (s2) s2.innerHTML = icon('plusSquare', 18);
+  const s3 = document.getElementById('pwaStepIc3'); if (s3) s3.innerHTML = icon('check', 18);
+  const bd = document.getElementById('pwaIosBd');
+  if (bd) bd.addEventListener('click', pwaIosClose);
+
+  // Ochilish hisoblagichi — banner 2-ochilishdan boshlab chiqadi.
+  // ⚠️ Standalone'da o'stirilmaydi: o'rnatilgan ilovada ma'nosi yo'q.
+  if (!pwaStandalone()) {
+    const n = parseInt(pwaLsGet(PWA_LS_SEEN) || '0', 10) || 0;
+    if (n < 99) pwaLsSet(PWA_LS_SEEN, String(n + 1));
+  }
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();          // brauzerning o'z mini-infobar'i chiqmasin
+    _pwaPrompt = e;
+    pwaSyncUi();
+  });
+  window.addEventListener('appinstalled', function () {
+    pwaLsSet(PWA_LS_INSTALLED, '1');
+    _pwaPrompt = null;
+    _pwaClosed = true;
+    pwaIosClose();
+    pwaSyncUi();
+  });
+  window.addEventListener('resize', pwaSyncUi);
+  document.addEventListener('keydown', pwaIosKey);
+
+  // ⚠️ Skript <body> oxirida → `load` hali otilmagan. Baribir qorovul bor.
+  if (document.readyState === 'complete') pwaRegisterSw();
+  else window.addEventListener('load', pwaRegisterSw);
+
+  pwaSyncUi();
 }
 
 function renderSidebar() {
@@ -8288,6 +10236,7 @@ function renderSidebar() {
   }
   $('sideNav').innerHTML = html;
   sbTitles();   // yig'iq menyuda ikonka ustiga kelganda matn ko'rinsin
+  mobSetTitle();   // mobil topbar sarlavhasi (har navigatsiyada renderSidebar chaqiriladi)
 
   // Viewer'dan yaratish tugmalarini yashiramiz
   const editable = canEditWorkspace();
@@ -16189,9 +18138,18 @@ function renderTeamTable() {
   // Harajat kassa (Provodka) ustuni — faqat Aros workspace uchun (Aros'ga xos integratsiya).
   const showHk = isArosWs();
   $('teamTblHead').innerHTML = '<tr>' +
-    '<th style="' + th + '">№</th>' +
-    '<th style="' + th + '"></th>' +
-    '<th style="' + th + 'cursor:pointer;" onclick="teamToggleSort()" title="Saralash">To\'liq ism' + sortArrow + '</th>' +
+    // ⚠️ tm-c-num / tm-c-av / tm-c-name — MOBIL uchun (≤880): № va avatar
+    //    ustunlari yashiriladi, "To'liq ism" esa chapda yopishib qoladi.
+    //    Busiz telefonda jadvalni yon surganda kim kimligi bilinmasdi.
+    //    Muzlatish 3-ustunga berilgani uchun oldingi ikkitasi yashirilishi SHART
+    //    (`left:0` aks holda ular ustiga chiqib ketardi).
+    // 🔴 Ataylab `col-freeze` EMAS: `.xtbl .col-freeze{position:sticky}` (961)
+    //    media query'dan TASHQARIDA — u klass berilsa jadval DESKTOPDA ham
+    //    yopishib qolardi va surilganda № bilan avatar ism yacheykasi ostiga
+    //    kirib ketardi. `tm-c-name` sticky'ni faqat ≤880 blokida oladi.
+    '<th style="' + th + '" class="tm-c-num">№</th>' +
+    '<th style="' + th + '" class="tm-c-av"></th>' +
+    '<th style="' + th + 'cursor:pointer;" class="tm-c-name" onclick="teamToggleSort()" title="Saralash">To\'liq ism' + sortArrow + '</th>' +
     '<th style="' + th + '">Ism</th>' +
     '<th style="' + th + '">Familiya</th>' +
     '<th style="' + th + '">Telefon</th>' +
@@ -16294,9 +18252,9 @@ function renderTeamTable() {
       : (hkOn ? '💵' : '<span style="color:var(--muted)">—</span>');
 
     return '<tr class="team-row-link" onclick="teamRowClick(event,\'' + m.user_id + '\')">' +
-      '<td style="' + td + 'color:var(--muted);">' + (start + i + 1) + '</td>' +
-      '<td style="' + td + '">' + avatarHtml(nm.full, null, empAvatarUrl(m.user_id, d, p)) + '</td>' +
-      '<td style="' + td + 'font-weight:500;">' + escapeHtml(nm.full) + (isMe ? ' <span style="color:var(--muted);font-weight:400;">(siz)</span>' : '') + '</td>' +
+      '<td style="' + td + 'color:var(--muted);" class="tm-c-num">' + (start + i + 1) + '</td>' +
+      '<td style="' + td + '" class="tm-c-av">' + avatarHtml(nm.full, null, empAvatarUrl(m.user_id, d, p)) + '</td>' +
+      '<td style="' + td + 'font-weight:500;" class="tm-c-name">' + escapeHtml(nm.full) + (isMe ? ' <span style="color:var(--muted);font-weight:400;">(siz)</span>' : '') + '</td>' +
       '<td style="' + td + '">' + (nm.first ? escapeHtml(nm.first) : '<span style="color:var(--muted)">—</span>') + '</td>' +
       '<td style="' + td + '">' + (nm.last ? escapeHtml(nm.last) : '<span style="color:var(--muted)">—</span>') + '</td>' +
       '<td style="' + td + 'color:var(--muted);">' + phoneCell + '</td>' +
@@ -18831,6 +20789,7 @@ async function loadNotifs() {
   notifs = data || [];
   const unread = notifs.filter(n => !n.read_at).length;
   $('bellDot').style.display = unread > 0 ? 'block' : 'none';
+  mobBellSync(unread);   // 📱 topbar qo'ng'irog'i (drawer yopiq bo'lsa ham ko'rinsin)
   renderNotifs();
 }
 const NOTIF_ICONS = {
@@ -21199,6 +23158,51 @@ function oscBindPan() {
   // (eskisi element bilan birga yo'qoladi — to'planib qolmaydi).
   vp.addEventListener('wheel', oscWheel, { passive: false });
 
+  // ── MOBIL: IKKI BARMOQ PINCH-ZOOM ────────────────────────────────────
+  // Bir barmoqli PAN'ga TEGILMAYDI — u viewport'ning tabiiy scroll'i
+  // (CSS: `touch-action: pan-x pan-y`).
+  // 🔴 Nega JS shart (CSS yetmaydi): o'sha `touch-action` brauzerning
+  //    sahifa-zoom'ini chart ustida o'chiradi (oscWheel'dagi preventDefault
+  //    bilan bir xil maqsad, faqat sensorli ekran uchun) — ya'ni pinch'ni
+  //    O'ZIMIZ bajarmasak ikki barmoq umuman ishlamas edi. `touch-action: none`
+  //    esa pan'ni ham o'ldirardi.
+  // ⚠️ Sichqoncha mantiqiga (mousedown / oscDragStart / _oscPanBound window
+  //    listener'lari) BIR BELGI HAM tegilmagan.
+  // ⚠️ Listener'lar viewport'ga bog'lanadi — u har chizishda YANGI element,
+  //    ya'ni eskisi bilan birga o'z listener'lari ham yo'qoladi (to'planmaydi).
+  // ⚠️ Langar (ikki barmoq o'rtasi) va API — oscWheel bilan AYNAN bir xil:
+  //    oscZoomSet(z, ax, ay, true).
+  let pinch = null;                     // {d, cx, cy} — oxirgi o'lchov
+  function pinchOf(t) {
+    const rc = vp.getBoundingClientRect();
+    const dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY;
+    return {
+      d: Math.sqrt(dx * dx + dy * dy),
+      cx: (t[0].clientX + t[1].clientX) / 2 - rc.left,
+      cy: (t[0].clientY + t[1].clientY) / 2 - rc.top
+    };
+  }
+  vp.addEventListener('touchstart', function (e) {
+    if (e.touches.length !== 2) { pinch = null; return; }
+    pinch = pinchOf(e.touches);
+    // Gestni brauzerdan OLAMIZ: busiz u 2 barmoqli surishni scroll deb
+    // boshlab yuboradi va keyingi touchmove'dagi preventDefault e'tiborsiz
+    // qolardi. Bir barmoqli teginish HECH QACHON to'silmaydi (pan ishlaydi).
+    e.preventDefault();
+  }, { passive: false });
+  vp.addEventListener('touchmove', function (e) {
+    if (!pinch || e.touches.length !== 2) return;
+    const now = pinchOf(e.touches);
+    if (!now.d || !pinch.d) return;
+    e.preventDefault();               // `passive:false` SHART
+    oscZoomSet(oscZoom * (now.d / pinch.d), now.cx, now.cy, true);
+    pinch = now;
+  }, { passive: false });
+  vp.addEventListener('touchend', function (e) {
+    if (e.touches.length < 2) pinch = null;
+  }, { passive: true });
+  vp.addEventListener('touchcancel', function () { pinch = null; }, { passive: true });
+
   // Viewport har chizishda YANGI element — mousedown har safar unga bog'lanadi
   // (eski element bilan birga o'z listener'i ham yo'qoladi).
   vp.addEventListener('mousedown', function (e) {
@@ -22190,6 +24194,7 @@ function gsOpen() {
 function gsClose() {
   const drop = $('gsDrop');
   if (drop) drop.classList.remove('show');
+  mobSearchOff();              // 📱 mobil to'liq-ekran overlay'i ham yopiladi (Esc / tashqariga bosish)
   _gsShown = false;
   gsUnbindWatch();
   if (_gsTimer) { clearTimeout(_gsTimer); _gsTimer = null; }
@@ -22211,6 +24216,7 @@ function gsDone() {
 function gsFocus() {
   const inp = $('topSearchInp');
   if (!inp) return;
+  mobSearchArm();   // 📱 ≤880px: avval to'liq ekran rejimiga o'tadi (maydon ko'rinadigan bo'lsin), keyin fokus
   try { inp.focus(); inp.select(); } catch (e) {}
   gsOpen();
 }
@@ -22710,6 +24716,8 @@ async function init() {
   }
   try { window.hideCompleted = localStorage.getItem('hideCompleted') === '1'; } catch (e) { window.hideCompleted = false; }
   sbInit();   // chap menu yig'iq/ochiq holati (localStorage + ekran kengligi)
+  mobNavInit();   // 📱 mobil drawer + topbar (≤880px); desktopda hech narsa o'zgarmaydi
+  pwaInit();      // 📱 PWA: service worker + "Ilovani o'rnatish" (drawer/banner/iOS)
   // MUHIM: hash'ni createClient'dan OLDIN o'qiymiz — detectSessionInUrl uni tozalaydi
   const _rawHash = window.location.hash || '';
   const _rawSearch = window.location.search || '';
