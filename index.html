@@ -12745,12 +12745,31 @@ function renderDetailBody() {
 
   let acceptorLine = '';
   if (t.acceptor_id) {
-    // Qabul qiluvchi
-    acceptorLine += '<div class="detail-row"><div class="lbl">Qabul qiluvchi</div><div class="val">' + escapeHtml(_nm(t.acceptor_id)) + (t.acceptor_id === me.id ? ' <span style="color:var(--muted)">(siz)</span>' : '') + '</div></div>';
-    // Qabul qilingan vaqt
+    // ⚠️ "Qabul qiluvchi" qatori peopleRows blokiga ko'chdi (descHtml ostida).
+    // Bu yerda FAQAT "Qabul qilindi" (accepted_at) qoladi — u boshqa ma'lumot.
     if (t.accepted_at) {
       acceptorLine += '<div class="detail-row"><div class="lbl">Qabul qilindi</div><div class="val">✅ ' + escapeHtml(_nm(t.acceptor_id)) + ' · ' + fmtDeadline(t.accepted_at) + '</div></div>';
     }
+  }
+
+  // ============ Odamlar bloki (ppl*) — descHtml ostida, ketma-ket 3 qator ============
+  // Yaratgan odam — DOIM. Bajaruvchi — DOIM (yo'q bo'lsa "—", chunki
+  // "biriktirilmagan" ma'noli holat). Qabul qiluvchi — FAQAT acceptor_id bo'lsa.
+  const _pplMe = ' <span style="color:var(--muted);font-weight:400;">(siz)</span>';
+  let peopleRows = '';
+  // 1) Yaratgan odam
+  peopleRows += '<div class="detail-row"><div class="lbl">Yaratgan odam</div><div class="val">' +
+    (t.created_by ? escapeHtml(_nm(t.created_by)) + (t.created_by === me.id ? _pplMe : '') : '—') +
+    '</div></div>';
+  // 2) Bajaruvchi — asgLine mantiqi (Telegram bot useri uchun ✈ belgisi ham shunda)
+  peopleRows += '<div class="detail-row"><div class="lbl">Bajaruvchi</div><div class="val">' +
+    (asgLine ? escapeHtml(asgLine) + (t.assigned_to && t.assigned_to === me.id ? _pplMe : '') : '—') +
+    '</div></div>';
+  // 3) Qabul qiluvchi — yo'q bo'lsa qator UMUMAN chizilmaydi
+  if (t.acceptor_id) {
+    peopleRows += '<div class="detail-row"><div class="lbl">Qabul qiluvchi</div><div class="val">' +
+      escapeHtml(_nm(t.acceptor_id)) + (t.acceptor_id === me.id ? _pplMe : '') +
+      '</div></div>';
   }
   // Qabul qiluvchi uchun action banner (status = qabul kutilyapti)
   let acceptBanner = '';
@@ -12774,10 +12793,10 @@ function renderDetailBody() {
     acceptBanner +
     titleHtml +
     descHtml +
+    peopleRows +
     '<div class="detail-row"><div class="lbl">Holat</div><div class="val"><div class="status-pick">'+statusBtns+'</div></div></div>' +
     bajardiLine +
     deptHtml +
-    (asgLine ? '<div class="detail-row"><div class="lbl">Biriktirildi</div><div class="val">'+escapeHtml(asgLine)+'</div></div>' : '') +
     acceptorLine +
     '<div class="detail-row"><div class="lbl">Deadline</div><div class="val '+(ov?'task-overdue':'')+'"'+(_dofDl?' style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"':'')+'>'+deadlineHtml+_dofDl+'</div></div>' +
     plnLine +
