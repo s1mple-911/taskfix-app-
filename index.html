@@ -728,6 +728,15 @@
   .th-empty { color: var(--muted); font-size: 12.5px; font-style: italic; padding: 10px 0; }
   .th-empty.th-off { font-style: normal; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; }
 
+  /* Deadline zanjiri (dlh*) — task_history'dagi 'deadline' yozuvlaridan quriladi.
+     ⚠️ flex-basis:100% — Deadline .val dam olish nishoni bilan display:flex bo'lganda
+     zanjir yangi qatorga tushsin (nishonsiz holatda oddiy blok bo'lib turadi). */
+  .dlh-chain { flex-basis: 100%; width: 100%; margin-top: 5px; font-size: 11.5px; line-height: 1.6; color: var(--muted); display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px; }
+  .dlh-chain .dlh-n { color: var(--muted); }
+  .dlh-chain .dlh-n.cur { color: var(--ink); font-weight: 600; }
+  .dlh-chain .dlh-arr { color: var(--muted); opacity: .7; }
+  .dlh-chain .dlh-gap { color: var(--muted); opacity: .7; }
+
   /* Vazifalar fonda sahifalab yuklanmoqda — kichik ko'rsatkich */
   .tsk-chip { position: fixed; right: 16px; bottom: 16px; z-index: 8000; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 8px 14px; font-size: 12.5px; color: var(--muted); box-shadow: var(--shadow); pointer-events: none; }
 
@@ -995,6 +1004,13 @@
   .pln-task .pt-title { font-weight:600; color:var(--ink); display:block; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .pln-task .pt-meta { font-size:11px; color:var(--muted); }
   .pln-side-empty { font-size:12.5px; color:var(--muted); text-align:center; padding:20px 8px; }
+  /* Vazifa detalidan "Rejaga qo'shish" bosilganda chipni bir marta yoritish (plnAddFromDetail) */
+  .pln-task.pln-flash { animation: plnFlash 1.2s ease-out 1; }
+  @keyframes plnFlash {
+    0%   { box-shadow:0 0 0 0 rgba(99,102,241,.45); background:#EEF2FF; }
+    60%  { box-shadow:0 0 0 6px rgba(99,102,241,0); background:#EEF2FF; }
+    100% { box-shadow:0 0 0 0 rgba(99,102,241,0); background:var(--surface-2); }
+  }
 
   .pln-cal-wrap { background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
   .pln-cal { overflow:auto; max-height:calc(100vh - 190px); }
@@ -1104,6 +1120,8 @@
   .pln-dtl-dim { font-size:11.5px; color:var(--muted); }
   .pln-dtl-un { background:none; border:none; color:var(--muted); font-size:11.5px; font-family:inherit; cursor:pointer; padding:3px 5px; border-radius:6px; text-decoration:underline; }
   .pln-dtl-un:hover { color:var(--ink); background:var(--surface-2); text-decoration:none; }
+  .pln-dtl-add { display:inline-flex; align-items:center; gap:5px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:4px 10px; font-size:12.5px; font-family:inherit; color:var(--ink); cursor:pointer; }
+  .pln-dtl-add:hover { border-color:var(--accent); color:var(--accent); }
   .kan-add-task { background: none; border: 1px dashed var(--line-strong); border-radius: 8px; padding: 8px; width: 100%; color: var(--muted); font-size: 12.5px; cursor: pointer; margin-top: 6px; }
   .kan-add-task:hover { color: var(--accent-ink); border-color: var(--accent); background: var(--accent-soft); }
   .kan-col-actions { display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
@@ -12544,6 +12562,41 @@ function thListHtml() {
   }).join('') + '</div>';
 }
 
+// ============ Deadline zanjiri (dlh*) — eski → yangi ============
+// MANBA: curDetailHistory (task_history, openDetail allaqachon yuklagan).
+// Yangi so'rov ham, yangi jadval ham YO'Q. curDetailHistory DESC (eng yangisi
+// birinchi) — zanjir uchun teskarisiga o'giramiz.
+// 🔴 _thMissing/_thErr bo'lsa JIM: sababni pastdagi "Tarix" bo'limi aytadi.
+function dlhVal(val, label) {
+  if (val === null || val === undefined || val === '') return 'yo\'q';
+  return label || thLabel('deadline', val);
+}
+function dlhChainHtml() {
+  if (_thMissing || _thErr) return '';
+  const rows = (curDetailHistory || []).filter(function (h) { return h.field === 'deadline'; }).slice().reverse();
+  if (!rows.length) return '';
+  // Tugunlar: eng eskisining old_value → keyin har yozuvning new_value.
+  // ⚠️ Oraliq yozuv yo'q bo'lishi mumkin (limit(200) kesilishi yoki mijozdan
+  // tashqari o'zgarish) — oldingi new_value keyingi old_value ga teng bo'lmasa
+  // uzilishni "…" bilan ko'rsatamiz, YOLG'ON zanjir qurmaymiz.
+  const nodes = [];
+  rows.forEach(function (h, i) {
+    if (i === 0) nodes.push({ txt: dlhVal(h.old_value, h.old_label), gap: false });
+    else if (!thSame('deadline', rows[i - 1].new_value, h.old_value)) {
+      nodes.push({ txt: dlhVal(h.old_value, h.old_label), gap: true });
+    }
+    nodes.push({ txt: dlhVal(h.new_value, h.new_label), gap: false });
+  });
+  if (nodes.length < 2) return '';
+  let out = '';
+  nodes.forEach(function (n, i) {
+    if (i) out += '<span class="dlh-arr">→</span>';
+    if (n.gap) out += '<span class="dlh-gap">…</span><span class="dlh-arr">→</span>';
+    out += '<span class="dlh-n' + (i === nodes.length - 1 ? ' cur' : '') + '">' + escapeHtml(n.txt) + '</span>';
+  });
+  return '<div class="dlh-chain">' + out + '</div>';
+}
+
 async function openDetail(id) {
   let t = tasksCache.find(x => x.id === id);
   if (!t) {
@@ -12684,6 +12737,10 @@ function renderDetailBody() {
   // Dam olish kuni nishoni. ⚠️ Nishon BO'LMASA qator mutlaqo eski holida qoladi
   // (display:flex ham qo'shilmaydi) — mavjud ko'rinishga tegmaslik uchun.
   const _dofDl = dofBadge(t);
+  // Deadline o'zgarishlari zanjiri (dlh*) — mavjud task_history'dan, qo'shimcha so'rovsiz.
+  // 2+ tugun bo'lmasa yoki tarix o'qilmagan bo'lsa — bo'sh satr (jim).
+  let _dlhChain = '';
+  try { _dlhChain = dlhChainHtml(); } catch (e) { console.error('dlhChainHtml:', e); }
 
   // Priority (inline edit)
   const prioHtml = canEditTask
@@ -12727,9 +12784,23 @@ function renderDetailBody() {
   // Rejalashtirgichdagi vaqt — vazifa haftalik jadvalimga qo'yilgan bo'lsa,
   // detalda boshlanish/tugash vaqti ko'rinsin. Manba: plnGetSchedule()
   // (localStorage, faqat o'zimniki) — shuning uchun DB so'rovi shart emas.
+  // Reja YO'Q bo'lsa — "Rejaga qo'shish" tugmasi, LEKIN faqat vazifa chap
+  // "Bajarishim kerak" ro'yxatiga tushsa (plnSideTasks) — aks holda odam
+  // bo'sh ro'yxatga tushib qolardi, shuning uchun qator umuman chizilmaydi.
   let plnLine = '';
   try {
     const _ps = plnGetSchedule()[t.id];
+    if (!_ps || !_ps.date || typeof _ps.start !== 'number') {
+      let _inSide = false;
+      try { _inSide = plnSideTasks().some(function (x) { return x.id === t.id; }); }
+      catch (e) { console.error('plnSideTasks (detal):', e); }
+      if (_inSide) {
+        plnLine = '<div class="detail-row"><div class="lbl">Rejam</div><div class="val pln-dtl">' +
+          '<span class="pln-dtl-dim">Rejaga qo\'yilmagan</span>' +
+          '<button type="button" class="pln-dtl-add" onclick="plnAddFromDetail(' + t.id + ')">🗓 Rejaga qo\'shish</button>' +
+        '</div></div>';
+      }
+    }
     if (_ps && _ps.date && typeof _ps.start === 'number') {
       const _pdur = Math.max(0, _ps.dur || 0);
       const _phh = Math.floor(_pdur / 60), _pmm = _pdur % 60;
@@ -12798,10 +12869,11 @@ function renderDetailBody() {
     bajardiLine +
     deptHtml +
     acceptorLine +
-    '<div class="detail-row"><div class="lbl">Deadline</div><div class="val '+(ov?'task-overdue':'')+'"'+(_dofDl?' style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"':'')+'>'+deadlineHtml+_dofDl+'</div></div>' +
+    // Tartib: Yaratilgan → Deadline (+ o'zgarishlar zanjiri) → Rejam → Prioritet
+    '<div class="detail-row"><div class="lbl">Yaratilgan</div><div class="val">'+new Date(t.created_at).toLocaleString('uz-UZ')+'</div></div>' +
+    '<div class="detail-row"><div class="lbl">Deadline</div><div class="val '+(ov?'task-overdue':'')+'"'+(_dofDl?' style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"':'')+'>'+deadlineHtml+_dofDl+_dlhChain+'</div></div>' +
     plnLine +
     '<div class="detail-row"><div class="lbl">Prioritet</div><div class="val">'+prioHtml+'</div></div>' +
-    '<div class="detail-row"><div class="lbl">Yaratilgan</div><div class="val">'+new Date(t.created_at).toLocaleString('uz-UZ')+'</div></div>' +
 
     '<div class="detail-section">' +
       '<div class="detail-section-head">Subtasks ' + (subTotal ? '<span class="count">' + subDoneCount + '/' + subTotal + '</span>' : '') + '</div>' +
@@ -15767,6 +15839,31 @@ function plnUnscheduleFromDetail(taskId) {
   plnUnschedule(taskId);
   if (currentDetailId === taskId) renderDetailBody();
 }
+// Vazifa detalidagi "Rejaga qo'shish" tugmasi — rejalashtirgichga o'tadi va chap
+// "Bajarishim kerak" ro'yxatidagi o'sha chipni yoritadi (reja QO'YMAYDI: vaqtni
+// odam o'zi sudrab tanlaydi — plnScheduleTask mantiqiga tegilmagan).
+// 🔴 top-level function: inline onclick global scope'da baholanadi.
+const PLN_FLASH_MS = 1200;
+function plnAddFromDetail(taskId) {
+  try {
+    closeDetail();
+    goPage('planner');
+    plnSetTab('schedule');   // chap ro'yxat faqat jadval ko'rinishida bor
+  } catch (e) { console.error('plnAddFromDetail:', e); return; }
+  // renderPlanner sinxron — chip DOM'da tayyor. plf* filtri uni yashirgan bo'lsa
+  // element topilmaydi: JIMGINA chiqamiz (bu xato emas, sahifa baribir ochildi).
+  try {
+    const wrap = $('plnUnscheduled');
+    if (!wrap) return;
+    const el = wrap.querySelector('.pln-task[data-tid="' + taskId + '"]');
+    if (!el) return;
+    try { el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) { el.scrollIntoView(); }
+    el.classList.remove('pln-flash');
+    void el.offsetWidth;   // animatsiya qayta ishga tushsin
+    el.classList.add('pln-flash');
+    setTimeout(function () { el.classList.remove('pln-flash'); }, PLN_FLASH_MS);
+  } catch (e) { console.error('plnAddFromDetail (flash):', e); }
+}
 function plnSaveSchedule(obj) {
   if (!currentWs || !me) return;
   try { localStorage.setItem('planner_' + currentWs.id + '_' + me.id, JSON.stringify(obj)); } catch (e) {}
@@ -15992,7 +16089,8 @@ function renderPlnUnscheduled() {
   wrap.innerHTML = list.map(t => {
     const dl = t.deadline ? tblFmtDate(t.deadline) : '';
     const done = t.status === 'completed';
-    return '<div class="pln-task' + (done ? ' done' : '') + '" draggable="true" ondragstart="plnTaskDragStart(event,' + t.id + ')" ondragend="plnTaskDragEnd(event)" onclick="openDetail(' + t.id + ')">' +
+    // data-tid — vazifa detalidan kelgan plnAddFromDetail chipni shu bilan topadi
+    return '<div class="pln-task' + (done ? ' done' : '') + '" data-tid="' + t.id + '" draggable="true" ondragstart="plnTaskDragStart(event,' + t.id + ')" ondragend="plnTaskDragEnd(event)" onclick="openDetail(' + t.id + ')">' +
       '<span class="pt-title">' + (done ? '✓ ' : '') + escapeHtml(t.title || '(nomsiz)') + '</span>' +
       '<span class="pt-meta">' + escapeHtml(dl ? dl : 'Muddatsiz') + '</span></div>';
   }).join('');
