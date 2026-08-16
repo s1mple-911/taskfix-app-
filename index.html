@@ -737,6 +737,9 @@
   .dlh-chain .dlh-arr { color: var(--muted); opacity: .7; }
   .dlh-chain .dlh-gap { color: var(--muted); opacity: .7; }
 
+  /* 👁 Ko'rish soni (tv*) — bajaruvchi vazifani necha marta ochgani */
+  .tv-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); background: var(--surface-2); border: 1px solid var(--line); border-radius: 99px; padding: 2px 9px; font-variant-numeric: tabular-nums; cursor: default; }
+
   /* Vazifalar fonda sahifalab yuklanmoqda — kichik ko'rsatkich */
   .tsk-chip { position: fixed; right: 16px; bottom: 16px; z-index: 8000; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 8px 14px; font-size: 12.5px; color: var(--muted); box-shadow: var(--shadow); pointer-events: none; }
 
@@ -12438,6 +12441,22 @@ let curDetailHistory = [];
 let _thMissing = false;   // jadval yo'q deb aniqlandi — qayta urinmaymiz
 let _thErr = null;        // oxirgi o'qish xatosi (RLS/tarmoq) — bo'lim JIM qolmasin
 
+// 👁 Ko'rish soni (tv*) — vazifani BAJARUVCHI necha marta ochgani.
+// Manba: public.task_views + RPC task_view_bump (TASKFIX_VIEWS.sql).
+// 🔴 Yozuv nuqtasi YAGONA — openDetail'dagi RPC (renderDetailBody'da EMAS).
+let _tvCount = null;      // joriy vazifa uchun son; null = ko'rsatilmaydi
+let _tvMissing = false;   // jadval/RPC yo'q (SQL ishga tushmagan) — qayta urinmaymiz
+
+// PostgREST: jadval yo'q → 'PGRST205', funksiya yo'q → 'PGRST202', Postgres → '42P01'/'42883'
+function tvNotDeployed(err) {
+  if (!err) return false;
+  const c = String(err.code || '');
+  const m = String(err.message || '').toLowerCase();
+  if (c === '42P01' || c === '42883' || c === 'PGRST202' || c === 'PGRST205') return true;
+  return (m.indexOf('task_views') !== -1 || m.indexOf('task_view_bump') !== -1) &&
+         (m.indexOf('does not exist') !== -1 || m.indexOf('schema cache') !== -1 || m.indexOf('not find') !== -1);
+}
+
 // PostgREST: jadval yo'q → 'PGRST205' (schema cache) yoki Postgres '42P01'
 function thTableMissing(err) {
   if (!err) return false;
@@ -12614,12 +12633,23 @@ async function openDetail(id) {
   currentDetailId = id;
   curDetailHistory = [];   // oldingi vazifaning tarixi ko'rinib qolmasin
   _thErr = null;           // oldingi xato yangi vazifaga o'tib ketmasin
+  _tvCount = null;         // oldingi vazifaning 👁 soni ko'rinib qolmasin
   $('dTitle').textContent = t.title || '—';
   $('dBody').innerHTML = '<div style="text-align:center; padding: 30px; color: var(--muted); font-size: 13px;">⏳ Yuklanmoqda…</div>';
   $('detailBd').classList.add('show');
 
+  // 👁 Ko'rish soni — mavjud to'lqinga QO'SHILADI (yangi to'lqin yaratmaymiz).
+  // 🔴 Ikki qatlamli qorovul: RPC serverda ham tekshiradi, mijozda ham —
+  //    bajaruvchi men bo'lmasam bump so'rovi UMUMAN yuborilmaydi (faqat o'qish).
+  //    Bajaruvchi yo'q / SQL ishga tushmagan → so'rov yo'q.
+  const _tvReq = (_tvMissing || !t.assigned_to)
+    ? Promise.resolve({ data: null })
+    : (t.assigned_to === me.id
+        ? sb.rpc('task_view_bump', { p_task_id: id })
+        : sb.from('task_views').select('view_count').eq('task_id', id).eq('viewer_id', t.assigned_to).maybeSingle());
+
   // Paralel ravishda hammasini yuklaymiz
-  const [subsRes, cmtsRes, attsRes, histRes] = await Promise.all([
+  const [subsRes, cmtsRes, attsRes, histRes, tvRes] = await Promise.all([
     sb.from('task_subtasks').select('*').eq('task_id', id).order('sort_order', { ascending: true }).order('id', { ascending: true }),
     sb.from('task_comments').select('*').eq('task_id', id).order('created_at', { ascending: true }),
     sb.from('task_attachments').select('*').eq('task_id', id).order('uploaded_at', { ascending: true }),
@@ -12627,6 +12657,7 @@ async function openDetail(id) {
     // faqat console'ga chiqadi, detal oynasi baribir ochiladi.
     _thMissing ? Promise.resolve({ data: [] })
                : sb.from('task_history').select('*').eq('task_id', id).order('changed_at', { ascending: false }).limit(200),
+    _tvReq,
   ]);
   curDetailSubs = subsRes.data || [];
   curDetailComments = cmtsRes.data || [];
@@ -12636,6 +12667,20 @@ async function openDetail(id) {
     if (thTableMissing(histRes.error)) _thMissing = true;
     else _thErr = translateErr(histRes.error.message || String(histRes.error));
     console.error('task_history o\'qilmadi:', histRes.error.message);
+  }
+  // 👁 — FON amali: foydalanuvchi bu sonni kutmayapti. Xato bo'lsa nishon
+  // ko'rsatilmaydi, detal oynasi baribir ochiladi (toast/throw YO'Q).
+  if (tvRes && tvRes.error) {
+    if (tvNotDeployed(tvRes.error)) {
+      if (!_tvMissing) console.error('👁 counter o\'chirildi — TASKFIX_VIEWS.sql ishga tushirilmagan:', tvRes.error.message);
+      _tvMissing = true;
+    } else {
+      console.error('task_views:', tvRes.error.message || tvRes.error);
+    }
+  } else if (tvRes && tvRes.data !== null && tvRes.data !== undefined) {
+    // RPC → son; SELECT → { view_count }
+    const _tvN = (typeof tvRes.data === 'number') ? tvRes.data : Number(tvRes.data.view_count);
+    _tvCount = Number.isFinite(_tvN) ? _tvN : null;
   }
 
   renderDetailBody();
@@ -12741,6 +12786,15 @@ function renderDetailBody() {
   // 2+ tugun bo'lmasa yoki tarix o'qilmagan bo'lsa — bo'sh satr (jim).
   let _dlhChain = '';
   try { _dlhChain = dlhChainHtml(); } catch (e) { console.error('dlhChainHtml:', e); }
+
+  // 👁 Ko'rish soni — FAQAT KO'RSATISH. 🔴 Bu yerda RPC chaqirilmaydi:
+  // renderDetailBody realtime/izoh/subtask'da qayta-qayta chaqiriladi, bump
+  // shu yerda bo'lsa son o'z-o'zidan oshib ketardi. Bump — faqat openDetail'da.
+  const tvLine = (typeof _tvCount === 'number' && _tvCount > 0)
+    ? '<div class="detail-row"><div class="lbl">Ko\'rildi</div><div class="val">' +
+        '<span class="tv-badge" title="Bajaruvchi necha marta ochgan">👁 ' + _tvCount + '</span>' +
+      '</div></div>'
+    : '';
 
   // Priority (inline edit)
   const prioHtml = canEditTask
@@ -12874,6 +12928,7 @@ function renderDetailBody() {
     '<div class="detail-row"><div class="lbl">Deadline</div><div class="val '+(ov?'task-overdue':'')+'"'+(_dofDl?' style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"':'')+'>'+deadlineHtml+_dofDl+_dlhChain+'</div></div>' +
     plnLine +
     '<div class="detail-row"><div class="lbl">Prioritet</div><div class="val">'+prioHtml+'</div></div>' +
+    tvLine +
 
     '<div class="detail-section">' +
       '<div class="detail-section-head">Subtasks ' + (subTotal ? '<span class="count">' + subDoneCount + '/' + subTotal + '</span>' : '') + '</div>' +
