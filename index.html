@@ -650,6 +650,29 @@
   .detail-row:last-child { border-bottom: 0; }
   .detail-row .lbl { color: var(--muted); flex-shrink: 0; width: 110px; font-weight: 600; }
   .detail-row .val { color: var(--ink); flex: 1; word-break: break-word; }
+
+  /* Odamlar bloki (ppl*) — "Yaratgan odam / Bajaruvchi / Qabul qiluvchi" BITTA
+     mantiqiy guruh, shuning uchun 3 ta .detail-row emas, bitta guruh kartasi.
+     ⚠️ auto-fit grid: idish torayganda ustunlar o'zi kamayadi (3 → 2 → 1).
+     ≤880px da esa 1 ustunga QOTIRILADI (moslashtirish bloki) — ajratuvchi
+     chiziq faqat aniq bitta ustunda to'g'ri ko'rinadi. */
+  .ppl-card { display: grid; grid-template-columns: repeat(auto-fit, minmax(178px, 1fr)); gap: 4px 20px;
+              background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 12px;
+              padding: 10px 14px; margin: 0 0 16px; }
+  .ppl-item { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 4px 0; }
+  .ppl-av { flex: 0 0 auto; display: inline-flex; }
+  .ppl-av .avatar.sm { width: 28px; height: 28px; font-size: 10.5px; }
+  /* Avatarsiz holatlar: biriktirilmagan (odam ikonkasi) va Telegram bot useri */
+  .ppl-ph { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+            background: var(--surface); border: 1px solid var(--line-soft); color: var(--subtle); flex: 0 0 auto; }
+  .ppl-ph.bot { color: var(--muted); }
+  .ppl-txt { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .ppl-role { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--subtle); line-height: 1.4; }
+  .ppl-name { font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.35; word-break: break-word; }
+  .ppl-none { color: var(--subtle); font-weight: 500; }
+  .ppl-you { display: inline-block; margin-left: 5px; font-size: 10px; font-weight: 600; color: var(--muted);
+             background: var(--surface); border: 1px solid var(--line-soft); border-radius: 99px; padding: 0 6px; line-height: 15px; vertical-align: 1px; }
+
   .status-pick { display: flex; gap: 6px; flex-wrap: wrap; }
   .status-pick .filter-btn { font-size: 12.5px; padding: 6px 10px; }
   .dept-picker { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; border: 1px solid var(--line); border-radius: 10px; padding: 8px; background: #FCFCFB; }
@@ -731,14 +754,23 @@
   /* Deadline zanjiri (dlh*) — task_history'dagi 'deadline' yozuvlaridan quriladi.
      ⚠️ flex-basis:100% — Deadline .val dam olish nishoni bilan display:flex bo'lganda
      zanjir yangi qatorga tushsin (nishonsiz holatda oddiy blok bo'lib turadi). */
-  .dlh-chain { flex-basis: 100%; width: 100%; margin-top: 5px; font-size: 11.5px; line-height: 1.6; color: var(--muted); display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px; }
-  .dlh-chain .dlh-n { color: var(--muted); }
-  .dlh-chain .dlh-n.cur { color: var(--ink); font-weight: 600; }
-  .dlh-chain .dlh-arr { color: var(--muted); opacity: .7; }
-  .dlh-chain .dlh-gap { color: var(--muted); opacity: .7; }
+  .dlh-chain { flex-basis: 100%; width: 100%; margin-top: 7px; font-size: 11.5px; line-height: 1.5; color: var(--muted);
+               display: flex; flex-wrap: wrap; align-items: center; gap: 4px 5px; }
+  .dlh-ic { display: inline-flex; align-items: center; color: var(--subtle); margin-right: 1px; }
+  /* Eski qiymatlar — so'nik va chizilgan; joriysi (oxirgi tugun) pill bo'lib ajralib turadi */
+  .dlh-chain .dlh-n { color: var(--subtle); font-variant-numeric: tabular-nums; text-decoration: line-through;
+                      text-decoration-thickness: 1px; text-decoration-color: rgba(156,163,175,.65); white-space: nowrap; }
+  .dlh-chain .dlh-n.cur { color: var(--ink); font-weight: 600; text-decoration: none;
+                          background: var(--surface); border: 1px solid var(--line-soft); border-radius: 99px; padding: 1px 8px; }
+  .dlh-chain .dlh-arr { display: inline-flex; align-items: center; color: var(--subtle); opacity: .8; }
+  /* Uzilish: oraliq yozuv yo'q — uzuq chegara "bu yerda ma'lumot yetishmaydi" deydi */
+  .dlh-chain .dlh-gap { color: var(--subtle); letter-spacing: .12em; border: 1px dashed var(--line); border-radius: 99px;
+                        padding: 0 6px; line-height: 16px; cursor: help; }
 
-  /* 👁 Ko'rish soni (tv*) — bajaruvchi vazifani necha marta ochgani */
-  .tv-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); background: var(--surface-2); border: 1px solid var(--line); border-radius: 99px; padding: 2px 9px; font-variant-numeric: tabular-nums; cursor: default; }
+  /* Ko'rish soni (tv*) — bajaruvchi vazifani necha marta ochgani.
+     Ataylab eng so'nik element: chegara yo'q, --subtle rang, e'tibor tortmaydi. */
+  .tv-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--subtle); background: var(--surface-2); border-radius: 99px; padding: 3px 9px; font-variant-numeric: tabular-nums; cursor: default; line-height: 1.35; }
+  .tv-badge .ic-svg { opacity: .85; }
 
   /* Vazifalar fonda sahifalab yuklanmoqda — kichik ko'rsatkich */
   .tsk-chip { position: fixed; right: 16px; bottom: 16px; z-index: 8000; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 8px 14px; font-size: 12.5px; color: var(--muted); box-shadow: var(--shadow); pointer-events: none; }
@@ -1116,15 +1148,22 @@
     .plf-nav.next { right:0; }
   }
   @media (max-width:640px){ .plf-pop { left:auto; right:0; } .plf-count { margin-left:0; } }
-  /* Vazifa detalidagi "Rejam" qatori — boshlanish/tugash vaqti */
-  .pln-dtl { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
-  .pln-dtl-chip { display:inline-flex; align-items:center; gap:4px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:3px 9px; font-size:12.5px; }
+  /* Vazifa detalidagi "Rejam" qatori — boshlanish/tugash vaqti.
+     Chip / tugmalar bitta tilda: pill shakl, 1px hairline, ikonka --subtle. */
+  .pln-dtl { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .pln-dtl-chip { display:inline-flex; align-items:center; gap:5px; background:var(--surface-2); border:1px solid var(--line-soft); border-radius:99px; padding:4px 10px; font-size:12.5px; color:var(--ink); line-height:1.3; }
+  .pln-dtl-chip .ic-svg { color:var(--subtle); }
   .pln-dtl-chip.strong { font-weight:600; font-variant-numeric:tabular-nums; }
   .pln-dtl-dim { font-size:11.5px; color:var(--muted); }
-  .pln-dtl-un { background:none; border:none; color:var(--muted); font-size:11.5px; font-family:inherit; cursor:pointer; padding:3px 5px; border-radius:6px; text-decoration:underline; }
-  .pln-dtl-un:hover { color:var(--ink); background:var(--surface-2); text-decoration:none; }
-  .pln-dtl-add { display:inline-flex; align-items:center; gap:5px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:4px 10px; font-size:12.5px; font-family:inherit; color:var(--ink); cursor:pointer; }
-  .pln-dtl-add:hover { border-color:var(--accent); color:var(--accent); }
+  .pln-dtl-un { background:none; border:1px solid transparent; color:var(--muted); font-size:11.5px; font-family:inherit; cursor:pointer; padding:4px 9px; border-radius:99px; line-height:1.3; transition:color .14s, background .14s, border-color .14s; }
+  .pln-dtl-un:hover { color:var(--ink); background:var(--surface-2); border-color:var(--line-soft); }
+  /* "Rejaga qo'shish" — uzuq chegara = "hali bo'sh, bosib to'ldiring"
+     (.kan-add-task / .upload-btn bilan bir xil til). */
+  .pln-dtl-add { display:inline-flex; align-items:center; gap:5px; background:none; border:1px dashed var(--line-strong); border-radius:99px; padding:4px 11px; font-size:12.5px; font-family:inherit; color:var(--muted); cursor:pointer; line-height:1.3; transition:color .14s, background .14s, border-color .14s; }
+  .pln-dtl-add .ic-svg { opacity:.9; }
+  .pln-dtl-add:hover { color:var(--accent-ink); border-color:var(--accent); background:var(--accent-soft); }
+  .pln-dtl-add:active { transform:translateY(1px); }
+  .pln-dtl-add:focus-visible, .pln-dtl-un:focus-visible { outline:2px solid var(--ink); outline-offset:2px; }
   .kan-add-task { background: none; border: 1px dashed var(--line-strong); border-radius: 8px; padding: 8px; width: 100%; color: var(--muted); font-size: 12.5px; cursor: pointer; margin-top: 6px; }
   .kan-add-task:hover { color: var(--accent-ink); border-color: var(--accent); background: var(--accent-soft); }
   .kan-col-actions { display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
@@ -2857,6 +2896,17 @@
     /* `lbl` 110px + qiymat = 360px ekranda qiymatga 200px qolardi */
     .detail-row { flex-direction: column; gap: 4px; }
     .detail-row .lbl { width: auto; font-size: 12px; }
+    /* Odamlar kartasi (ppl*) — mobilda DOIM 1 ustun: auto-fit planshet
+       kengligida 2–3 ustun qoldirardi va ajratuvchi chiziq buzilardi. */
+    .ppl-card { grid-template-columns: 1fr; padding: 6px 12px; gap: 0; }
+    .ppl-item { padding: 7px 0; }
+    .ppl-item + .ppl-item { border-top: 1px solid var(--line); }
+    .ppl-name { font-size: 13.5px; }
+    /* "Rejam" — bosiladigan elementlar teginish uchun ≥44px */
+    .pln-dtl { gap: 8px; }
+    .pln-dtl-add, .pln-dtl-un { min-height: 44px; padding-left: 14px; padding-right: 14px; }
+    .pln-dtl-chip { min-height: 32px; }
+    .dlh-chain { font-size: 12px; }
     .dept-picker { max-height: 260px; }
     .dept-pick-item { min-height: 48px; }
 
@@ -9460,7 +9510,9 @@ const ICON_PATHS = {
   // share, square-plus). `check` va `x` allaqachon bor — takrorlanmaydi.
   download:  '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>',
   share:     '<path d="M12 3v12"/><path d="m8 7 4-4 4 4"/><path d="M20 14v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6"/>',
-  plusSquare: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/>'
+  plusSquare: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/>',
+  // Ko'rish soni (tv*) — vazifa detalidagi "Ko'rildi" nishoni (Lucide eye)
+  eye:       '<path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/>'
 };
 
 // Ikonka SVG matni. Noma'lum nom — bo'sh (ilova yiqilmasin, joy ham egallamasin).
@@ -12607,13 +12659,16 @@ function dlhChainHtml() {
     nodes.push({ txt: dlhVal(h.new_value, h.new_label), gap: false });
   });
   if (nodes.length < 2) return '';
+  // ⚠️ FAQAT KO'RINISH: tugunlar/uzilish mantiqi yuqorida, bu yerda markup.
+  // Strelka — ICON_PATHS.chevron (o'ngga qaraydi), emoji/matn emas.
+  const arrow = '<span class="dlh-arr" aria-hidden="true">' + icon('chevron', 11) + '</span>';
   let out = '';
   nodes.forEach(function (n, i) {
-    if (i) out += '<span class="dlh-arr">→</span>';
-    if (n.gap) out += '<span class="dlh-gap">…</span><span class="dlh-arr">→</span>';
+    if (i) out += arrow;
+    if (n.gap) out += '<span class="dlh-gap" title="Oraliq o\'zgarish yozuvi yo\'q">…</span>' + arrow;
     out += '<span class="dlh-n' + (i === nodes.length - 1 ? ' cur' : '') + '">' + escapeHtml(n.txt) + '</span>';
   });
-  return '<div class="dlh-chain">' + out + '</div>';
+  return '<div class="dlh-chain" title="Muddat o\'zgarishlari"><span class="dlh-ic">' + icon('clock', 12) + '</span>' + out + '</div>';
 }
 
 async function openDetail(id) {
@@ -12792,7 +12847,7 @@ function renderDetailBody() {
   // shu yerda bo'lsa son o'z-o'zidan oshib ketardi. Bump — faqat openDetail'da.
   const tvLine = (typeof _tvCount === 'number' && _tvCount > 0)
     ? '<div class="detail-row"><div class="lbl">Ko\'rildi</div><div class="val">' +
-        '<span class="tv-badge" title="Bajaruvchi necha marta ochgan">👁 ' + _tvCount + '</span>' +
+        '<span class="tv-badge" title="Bajaruvchi necha marta ochgan">' + icon('eye', 12) + '<span>' + _tvCount + '</span></span>' +
       '</div></div>'
     : '';
 
@@ -12851,7 +12906,7 @@ function renderDetailBody() {
       if (_inSide) {
         plnLine = '<div class="detail-row"><div class="lbl">Rejam</div><div class="val pln-dtl">' +
           '<span class="pln-dtl-dim">Rejaga qo\'yilmagan</span>' +
-          '<button type="button" class="pln-dtl-add" onclick="plnAddFromDetail(' + t.id + ')">🗓 Rejaga qo\'shish</button>' +
+          '<button type="button" class="pln-dtl-add" onclick="plnAddFromDetail(' + t.id + ')">' + icon('plus', 13) + 'Rejaga qo\'shish</button>' +
         '</div></div>';
       }
     }
@@ -12860,8 +12915,8 @@ function renderDetailBody() {
       const _phh = Math.floor(_pdur / 60), _pmm = _pdur % 60;
       const _plen = (_phh ? _phh + ' soat' : '') + (_phh && _pmm ? ' ' : '') + (_pmm ? _pmm + ' daq' : '');
       plnLine = '<div class="detail-row"><div class="lbl">Rejam</div><div class="val pln-dtl">' +
-        '<span class="pln-dtl-chip">🗓 ' + escapeHtml(plnFmtDay(new Date(_ps.date + 'T00:00:00'))) + '</span>' +
-        '<span class="pln-dtl-chip strong">⏱ ' + escapeHtml(plnMinLabel(_ps.start) + ' – ' + plnMinLabel(_ps.start + _pdur)) + '</span>' +
+        '<span class="pln-dtl-chip">' + icon('calendar', 13) + escapeHtml(plnFmtDay(new Date(_ps.date + 'T00:00:00'))) + '</span>' +
+        '<span class="pln-dtl-chip strong">' + icon('clock', 13) + escapeHtml(plnMinLabel(_ps.start) + ' – ' + plnMinLabel(_ps.start + _pdur)) + '</span>' +
         (_plen ? '<span class="pln-dtl-dim">' + escapeHtml(_plen) + '</span>' : '') +
         '<button type="button" class="pln-dtl-un" onclick="plnUnscheduleFromDetail(' + t.id + ')">Rejadan olish</button>' +
       '</div></div>';
@@ -12880,22 +12935,39 @@ function renderDetailBody() {
   // ============ Odamlar bloki (ppl*) — descHtml ostida, ketma-ket 3 qator ============
   // Yaratgan odam — DOIM. Bajaruvchi — DOIM (yo'q bo'lsa "—", chunki
   // "biriktirilmagan" ma'noli holat). Qabul qiluvchi — FAQAT acceptor_id bo'lsa.
-  const _pplMe = ' <span style="color:var(--muted);font-weight:400;">(siz)</span>';
+  // ⚠️ VIZUAL: uchala qator BITTA guruh kartasida (.ppl-card) — avatar + rol
+  //    yorlig'i + ism. Shartlar, tartib va ma'lumot manbai o'zgarmagan.
+  const _pplMe = '<span class="ppl-you">siz</span>';
+  const _pplDash = '<span class="ppl-none">—</span>';
+  // Avatarsiz o'rin: biriktirilmagan (odam) / Telegram bot useri (samolyot)
+  const _pplNoAv = '<span class="ppl-ph">' + icon('user', 14) + '</span>';
+  const _pplBotAv = '<span class="ppl-ph bot">' + icon('send', 13) + '</span>';
+  const _pplItem = function (role, av, nm) {
+    return '<div class="ppl-item"><span class="ppl-av">' + av + '</span>' +
+      '<span class="ppl-txt"><span class="ppl-role">' + role + '</span>' +
+      '<span class="ppl-name">' + nm + '</span></span></div>';
+  };
   let peopleRows = '';
   // 1) Yaratgan odam
-  peopleRows += '<div class="detail-row"><div class="lbl">Yaratgan odam</div><div class="val">' +
-    (t.created_by ? escapeHtml(_nm(t.created_by)) + (t.created_by === me.id ? _pplMe : '') : '—') +
-    '</div></div>';
-  // 2) Bajaruvchi — asgLine mantiqi (Telegram bot useri uchun ✈ belgisi ham shunda)
-  peopleRows += '<div class="detail-row"><div class="lbl">Bajaruvchi</div><div class="val">' +
-    (asgLine ? escapeHtml(asgLine) + (t.assigned_to && t.assigned_to === me.id ? _pplMe : '') : '—') +
-    '</div></div>';
+  const _pplCr = t.created_by ? _nm(t.created_by) : '';
+  peopleRows += _pplItem('Yaratgan odam',
+    (t.created_by ? avatarHtml(_pplCr, 'sm', null, t.created_by) : _pplNoAv),
+    (t.created_by ? escapeHtml(_pplCr) + (t.created_by === me.id ? _pplMe : '') : _pplDash));
+  // 2) Bajaruvchi — asgLine mantiqi (Telegram bot useri uchun ✈ belgisi ham shunda).
+  //    ⚠️ FAQAT KO'RINISH: ✈ belgisi avatar ikonkasiga ko'chdi, shuning uchun
+  //    matn boshidagi takroriy ✈ olib tashlanadi (asgLine manbai o'zgarmagan).
+  const _pplAsg = asgLine ? asgLine.replace(/^✈\s*/, '') : '';
+  peopleRows += _pplItem('Bajaruvchi',
+    (t.assigned_to ? avatarHtml(_pplAsg, 'sm', null, t.assigned_to) : (asgLine ? _pplBotAv : _pplNoAv)),
+    (asgLine ? escapeHtml(_pplAsg) + (t.assigned_to && t.assigned_to === me.id ? _pplMe : '') : _pplDash));
   // 3) Qabul qiluvchi — yo'q bo'lsa qator UMUMAN chizilmaydi
   if (t.acceptor_id) {
-    peopleRows += '<div class="detail-row"><div class="lbl">Qabul qiluvchi</div><div class="val">' +
-      escapeHtml(_nm(t.acceptor_id)) + (t.acceptor_id === me.id ? _pplMe : '') +
-      '</div></div>';
+    const _pplAcc = _nm(t.acceptor_id);
+    peopleRows += _pplItem('Qabul qiluvchi',
+      avatarHtml(_pplAcc, 'sm', null, t.acceptor_id),
+      escapeHtml(_pplAcc) + (t.acceptor_id === me.id ? _pplMe : ''));
   }
+  peopleRows = '<div class="ppl-card">' + peopleRows + '</div>';
   // Qabul qiluvchi uchun action banner (status = qabul kutilyapti)
   let acceptBanner = '';
   if (t.acceptor_id === me.id && t.status === 'qabul_kutilyapti') {
