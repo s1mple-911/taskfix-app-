@@ -272,6 +272,7 @@ DECLARE
   v_cnt  int;
   v_pk   text;
   v_src  text;
+  v_norm text;   -- v_src, izohsiz + bo'shliqlar normallashtirilgan + UPPER (5.i)
   v_pols text;
 BEGIN
   -- 5.a) Jadval bor
@@ -315,12 +316,24 @@ BEGIN
     RAISE EXCEPTION 'task_views da RLS yoqilmadi — jadval hammaga ochiq qolardi!';
   END IF;
 
-  -- 5.f) SELECT policy bor
-  SELECT count(*) INTO v_cnt FROM pg_policies
-   WHERE schemaname='public' AND tablename='task_views' AND policyname='task_views_select';
-  IF v_cnt = 0 THEN
-    RAISE EXCEPTION 'task_views_select policy''si yaratilmadi — RLS yoqiq, policy yo''q = hech kim 👁 sonini ko''ra olmasdi.';
+  -- 5.f) SELECT policy bor VA haqiqatan workspace bilan cheklaydi
+  --   ⚠️ Faqat NOM bo'yicha tekshirish yetarli emas: kimdir shu nomdagi
+  --      policy'ni `USING (true)` bilan qayta yozsa, tekshiruv o'tib ketardi va
+  --      boshqa workspace a'zosi ham 👁 sonlarini o'qiy olardi. Shuning uchun
+  --      shartning O'ZI (qual) tekshiriladi.
+  SELECT upper(regexp_replace(qual, '\s+', ' ', 'g')) INTO v_pols
+    FROM pg_policies
+   WHERE schemaname='public' AND tablename='task_views'
+     AND policyname='task_views_select' AND cmd='SELECT';
+  IF v_pols IS NULL THEN
+    RAISE EXCEPTION 'task_views_select policy''si yaratilmadi (yoki cmd SELECT emas) — RLS yoqiq, policy yo''q = hech kim 👁 sonini ko''ra olmasdi.';
   END IF;
+  -- Ikki bo'lak alohida qidiriladi: pg_get_expr ustunni ba'zan jadval nomi
+  -- bilan chiqaradi ("task_views.workspace_id") — yolg'on musbat bo'lmasin.
+  IF strpos(v_pols, 'IS_WS_MEMBER(') = 0 OR strpos(v_pols, 'WORKSPACE_ID') = 0 THEN
+    RAISE EXCEPTION 'task_views_select policy''sida is_ws_member(workspace_id, ...) sharti yo''q — hozirgi shart: %. Begona workspace a''zosi ham 👁 sonlarini ko''rardi. To''xtatildi.', v_pols;
+  END IF;
+  v_pols := NULL;   -- 5.g da qayta ishlatiladi
 
   -- 5.g) 🔴 YOZUV policy'si YO'Qligi (kelajakda kimdir qo'shib qo'ysa —
   --      shu yerda to'xtaydi; sanoqni qo'lda yozish yo'li ochilib ketmasin)
@@ -354,17 +367,37 @@ BEGIN
   IF v_src IS NULL THEN
     RAISE EXCEPTION 'task_view_bump(bigint) tanasi o''qilmadi — funksiya yaratilmadimi?';
   END IF;
-  IF v_src NOT LIKE '%auth.uid()%' THEN
-    RAISE EXCEPTION 'task_view_bump() KODIDA auth.uid() yo''q (izoh hisobga olinmaydi) — kim ko''rgani aniqlanmasdi. To''xtatildi.';
+
+  -- 🔴 YAKKA KALIT SO'Z BILAN TEKSHIRILMAYDI — BIRLASHGAN NAQSH bilan.
+  --   Sabab: "assigned_to" tanada IKKI joyda uchraydi — haqiqiy qorovulda VA
+  --   oddiy `SELECT t.assigned_to ... INTO v_asg` qatorida. Yakka kalit so'z
+  --   qidirilsa, kimdir qorovul IF blokini BUTUNLAY o'chirsa ham tekshiruv
+  --   o'tib ketardi (sanoq har kim uchun oshadigan bo'lib qolardi — jimgina).
+  --   Shuning uchun butun qorovul IFODASI qidiriladi.
+  -- Normallashtirish: izohlar allaqachon olib tashlangan (yuqorida), endi
+  --   ketma-ket bo'shliq/qator uzilishi BITTA probelga aylantiriladi va UPPER
+  --   qilinadi → qatorga bo'lib yozish yoki qo'shimcha probel naqshni buzmaydi
+  --   (yolg'on musbat bo'lmasin), lekin KOD o'chirilsa darrov ushlanadi.
+  -- strpos() ishlatiladi (LIKE emas): naqshlarda `_` bor va u LIKE'da
+  --   "istalgan bitta belgi" degani — tekshiruv bo'shashib ketmasin.
+  v_norm := upper(regexp_replace(v_src, '\s+', ' ', 'g'));
+
+  IF strpos(v_norm, 'V_UID := (SELECT AUTH.UID())') = 0 THEN
+    RAISE EXCEPTION 'task_view_bump() KODIDA "v_uid := (SELECT auth.uid())" topilmadi (izoh hisobga olinmaydi) — kim ko''rayotgani aniqlanmasdi. To''xtatildi.';
   END IF;
-  IF v_src NOT LIKE '%assigned_to%' THEN
-    RAISE EXCEPTION 'task_view_bump() KODIDA assigned_to qorovuli yo''q (izoh hisobga olinmaydi) — istalgan odam istalgan vazifaning sonini oshirardi. To''xtatildi.';
+
+  IF strpos(v_norm, 'T.ASSIGNED_TO, T.WORKSPACE_ID INTO V_ASG, V_WS') = 0 THEN
+    RAISE EXCEPTION 'task_view_bump() KODIDA "SELECT t.assigned_to, t.workspace_id INTO v_asg, v_ws" topilmadi (izoh hisobga olinmaydi) — qorovul solishtiradigan v_asg endi tasks.assigned_to dan olinmayapti. To''xtatildi.';
   END IF;
-  IF upper(v_src) NOT LIKE '%IS DISTINCT FROM%' THEN
-    RAISE EXCEPTION 'task_view_bump() KODIDA "IS DISTINCT FROM" solishtiruvi yo''q (izoh hisobga olinmaydi) — assigned_to NULL bo''lganda qorovul ishlamasdi. To''xtatildi.';
+
+  -- 🔴 ASOSIY QOROVUL — butun ifoda: IF + solishtiruv + THEN
+  IF strpos(v_norm, 'IF V_ASG IS DISTINCT FROM V_UID THEN') = 0 THEN
+    RAISE EXCEPTION 'task_view_bump() KODIDA "IF v_asg IS DISTINCT FROM v_uid THEN" qorovuli topilmadi (izoh hisobga olinmaydi) — bajaruvchi bo''lmagan istalgan odam istalgan vazifaning sonini oshirardi. To''xtatildi.';
   END IF;
-  IF v_src NOT LIKE '%is_ws_member%' THEN
-    RAISE EXCEPTION 'task_view_bump() KODIDA is_ws_member() yo''q (izoh hisobga olinmaydi) — jamoadan chiqarilgan xodim sanoqni oshira olardi. To''xtatildi.';
+
+  -- 🔴 IKKINCHI QOROVUL — butun ifoda (yakka "is_ws_member" YETARLI EMAS)
+  IF strpos(v_norm, 'IF NOT IS_WS_MEMBER(V_WS, V_UID) THEN') = 0 THEN
+    RAISE EXCEPTION 'task_view_bump() KODIDA "IF NOT is_ws_member(v_ws, v_uid) THEN" qorovuli topilmadi (izoh hisobga olinmaydi) — jamoadan chiqarilgan xodim sanoqni oshira olardi. To''xtatildi.';
   END IF;
 
   -- 5.j) Huquqlar: authenticated EXECUTE qila oladi, anon YO'Q

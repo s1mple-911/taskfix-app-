@@ -4226,7 +4226,7 @@
         <div class="field"><label>To'liq ism</label><input id="setProfName" type="text" /></div>
         <div class="field"><label>Telefon</label><input id="setProfPhone" type="text" /></div>
         <div style="display:flex; gap:10px;">
-          <button class="btn" onclick="saveProfile()">Saqlash</button>
+          <button class="btn" onclick="settingsSaveProfile()">Saqlash</button>
         </div>
       </div>
 
@@ -8654,9 +8654,15 @@ async function saveWsName() {
     toast('✓ Saqlandi', 'ok');
   } catch (e) { toast(translateErr(e.message), 'err'); }
 }
-async function saveProfile() {
+// ⚠️ Sozlamalar sahifasidagi profil bloki (#setProfName/#setProfPhone).
+// Avval bu ham `saveProfile` deb atalardi va Profil sahifasidagi bir xil
+// nomli funksiya (pastda) uni BOSIB ketardi — natijada Sozlamalarda ism/telefon
+// o'zgartirilsa jimgina Profil sahifasining eski qiymatlari yozilardi
+// (6-qoidaga zid). Nom ajratildi, ikkovi ham o'z maydonlarini o'qiydi.
+async function settingsSaveProfile() {
   const n = ($('setProfName').value || '').trim();
   const p = ($('setProfPhone').value || '').trim();
+  if (!n) { toast('Ism kerak', 'err'); return; }
   try {
     const { data, error } = await sb.from('profiles').update({ full_name: n || null, phone: p || null }).eq('id', me.id).select().single();
     if (error) throw error;
