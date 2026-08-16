@@ -3173,6 +3173,8 @@
     .pwa-ios.show { animation: none; }
     .pwa-btn { transition: none; }
     .pwa-btn:active { transform: none; }
+    /* Rejalashtirgich chipining "yoritish" animatsiyasi (plnAddFromDetail) */
+    .pln-task.pln-flash { animation: none; }
   }
 </style>
 </head>
@@ -9068,6 +9070,9 @@ async function loadCurrentContext() {
   // Tarix bayroqlarini tozalaymiz — SQL sessiya davomida ishga tushirilgan bo'lsa
   // workspace almashtirish kifoya (to'liq F5 shart emas).
   _thMissing = false; _thErr = null;
+  // 👁 ko'rish soni bayrog'i ham — TASKFIX_VIEWS.sql sessiya davomida ishga
+  // tushirilsa, ws almashtirish kifoya (F5 shart emas).
+  _tvMissing = false;
   // Loyiha muddati bayroqlari ham — TASKFIX_LOYIHA.sql / TASKFIX_PROJECT.sql
   // sessiya davomida ishga tushirilsa, F5 siz tuzalsin.
   _prjLoyihaMissing = false; _prjLoyihaWarned = false; _prjFlowWarned = false;
@@ -12642,7 +12647,7 @@ function dlhVal(val, label) {
   if (val === null || val === undefined || val === '') return 'yo\'q';
   return label || thLabel('deadline', val);
 }
-function dlhChainHtml() {
+function dlhChainHtml(t) {
   if (_thMissing || _thErr) return '';
   const rows = (curDetailHistory || []).filter(function (h) { return h.field === 'deadline'; }).slice().reverse();
   if (!rows.length) return '';
@@ -12650,28 +12655,48 @@ function dlhChainHtml() {
   // ⚠️ Oraliq yozuv yo'q bo'lishi mumkin (limit(200) kesilishi yoki mijozdan
   // tashqari o'zgarish) — oldingi new_value keyingi old_value ga teng bo'lmasa
   // uzilishni "…" bilan ko'rsatamiz, YOLG'ON zanjir qurmaymiz.
+  // Har tugunda XOM qiymat ham saqlanadi (raw) — oxirida joriy deadline bilan
+  // solishtirish uchun kerak.
   const nodes = [];
   rows.forEach(function (h, i) {
-    if (i === 0) nodes.push({ txt: dlhVal(h.old_value, h.old_label), gap: false });
+    if (i === 0) nodes.push({ txt: dlhVal(h.old_value, h.old_label), raw: h.old_value, gap: false });
     else if (!thSame('deadline', rows[i - 1].new_value, h.old_value)) {
-      nodes.push({ txt: dlhVal(h.old_value, h.old_label), gap: true });
+      nodes.push({ txt: dlhVal(h.old_value, h.old_label), raw: h.old_value, gap: true });
     }
-    nodes.push({ txt: dlhVal(h.new_value, h.new_label), gap: false });
+    nodes.push({ txt: dlhVal(h.new_value, h.new_label), raw: h.new_value, gap: false });
   });
+  // 🔴 Oxirgi tugun "joriy qiymat" EMAS bo'lishi mumkin: TG bot / Edge Function /
+  // SQL to'g'ridan `tasks` ni yangilasa tarixga yozilmaydi (trigger ataylab yo'q).
+  // Shunda zanjir tepadagi Deadline maydonidan farq qilib turadi — uzilish qo'yib,
+  // joriy qiymatni oxiriga qo'shamiz va FAQAT o'sha ".cur" bo'ladi.
+  const _curDl = t ? (t.deadline === undefined ? null : t.deadline) : undefined;
+  if (_curDl !== undefined && nodes.length &&
+      !thSame('deadline', nodes[nodes.length - 1].raw, _curDl)) {
+    nodes.push({ txt: dlhVal(_curDl, null), raw: _curDl, gap: true });
+  }
   if (nodes.length < 2) return '';
   // ⚠️ FAQAT KO'RINISH: tugunlar/uzilish mantiqi yuqorida, bu yerda markup.
   // Strelka — ICON_PATHS.chevron (o'ngga qaraydi), emoji/matn emas.
   const arrow = '<span class="dlh-arr" aria-hidden="true">' + icon('chevron', 11) + '</span>';
+  const gapSpan = '<span class="dlh-gap" title="Oraliq o\'zgarish yozuvi yo\'q" aria-label="oraliq o\'zgarish yozuvi yo\'q">…</span>';
   let out = '';
+  // Tarix kesilgan bo'lishi mumkin (openDetail .limit(200)) — birinchi tugun
+  // "eng birinchi deadline" emasligi ko'rinsin.
+  if ((curDetailHistory || []).length >= 200) out += gapSpan + arrow;
   nodes.forEach(function (n, i) {
     if (i) out += arrow;
-    if (n.gap) out += '<span class="dlh-gap" title="Oraliq o\'zgarish yozuvi yo\'q">…</span>' + arrow;
+    if (n.gap) out += gapSpan + arrow;
     out += '<span class="dlh-n' + (i === nodes.length - 1 ? ' cur' : '') + '">' + escapeHtml(n.txt) + '</span>';
   });
   return '<div class="dlh-chain" title="Muddat o\'zgarishlari"><span class="dlh-ic">' + icon('clock', 12) + '</span>' + out + '</div>';
 }
 
-async function openDetail(id) {
+// opts.bump === false → 👁 ko'rish soni OSHIRILMAYDI (faqat o'qiladi).
+// Avtomatik ochilishlar uchun: vazifa yaratilgan zahoti oyna o'zi ochiladi,
+// odam uni hali "ko'rmagan" — bump bo'lsa har yaratishda "👁 1" chiqardi.
+// ⚠️ 2-argumentsiz chaqiruvlar (~28 joy) avvalgidek ishlaydi: default = bump.
+async function openDetail(id, opts) {
+  const _tvBump = !(opts && opts.bump === false);
   let t = tasksCache.find(x => x.id === id);
   if (!t) {
     // Cache'da yo'q (masalan belgilangan, lekin biriktirilmagan) — bevosita o'qiymiz
@@ -12699,7 +12724,7 @@ async function openDetail(id) {
   //    Bajaruvchi yo'q / SQL ishga tushmagan → so'rov yo'q.
   const _tvReq = (_tvMissing || !t.assigned_to)
     ? Promise.resolve({ data: null })
-    : (t.assigned_to === me.id
+    : ((t.assigned_to === me.id && _tvBump)
         ? sb.rpc('task_view_bump', { p_task_id: id })
         : sb.from('task_views').select('view_count').eq('task_id', id).eq('viewer_id', t.assigned_to).maybeSingle());
 
@@ -12714,6 +12739,9 @@ async function openDetail(id) {
                : sb.from('task_history').select('*').eq('task_id', id).order('changed_at', { ascending: false }).limit(200),
     _tvReq,
   ]);
+  // 🔴 Eskirgan javob qorovuli: A → B tez ochilsa, A ning kechikkan javobi
+  // B oynasining ma'lumotini (izoh/subtask/fayl/tarix/👁) bosib ketardi.
+  if (currentDetailId !== id) return;
   curDetailSubs = subsRes.data || [];
   curDetailComments = cmtsRes.data || [];
   curDetailAttachments = attsRes.data || [];
@@ -12840,7 +12868,7 @@ function renderDetailBody() {
   // Deadline o'zgarishlari zanjiri (dlh*) — mavjud task_history'dan, qo'shimcha so'rovsiz.
   // 2+ tugun bo'lmasa yoki tarix o'qilmagan bo'lsa — bo'sh satr (jim).
   let _dlhChain = '';
-  try { _dlhChain = dlhChainHtml(); } catch (e) { console.error('dlhChainHtml:', e); }
+  try { _dlhChain = dlhChainHtml(t); } catch (e) { console.error('dlhChainHtml:', e); }
 
   // 👁 Ko'rish soni — FAQAT KO'RSATISH. 🔴 Bu yerda RPC chaqirilmaydi:
   // renderDetailBody realtime/izoh/subtask'da qayta-qayta chaqiriladi, bump
@@ -12898,10 +12926,14 @@ function renderDetailBody() {
   // bo'sh ro'yxatga tushib qolardi, shuning uchun qator umuman chizilmaydi.
   let plnLine = '';
   try {
-    const _ps = plnGetSchedule()[t.id];
+    // ⚠️ TEZLIK: jadval BIR MARTA parse qilinadi va plnSideTasks'ga uzatiladi;
+    //    ro'yxat sifatida faqat shu vazifa beriladi (butun tasksCache emas).
+    //    Shart o'sha funksiyaning O'ZIDAN o'tadi — mantiq nusxalanmagan.
+    const _sched = plnGetSchedule();
+    const _ps = _sched[t.id];
     if (!_ps || !_ps.date || typeof _ps.start !== 'number') {
       let _inSide = false;
-      try { _inSide = plnSideTasks().some(function (x) { return x.id === t.id; }); }
+      try { _inSide = plnSideTasks([t], _sched).length > 0; }
       catch (e) { console.error('plnSideTasks (detal):', e); }
       if (_inSide) {
         plnLine = '<div class="detail-row"><div class="lbl">Rejam</div><div class="val pln-dtl">' +
@@ -12956,7 +12988,11 @@ function renderDetailBody() {
   // 2) Bajaruvchi — asgLine mantiqi (Telegram bot useri uchun ✈ belgisi ham shunda).
   //    ⚠️ FAQAT KO'RINISH: ✈ belgisi avatar ikonkasiga ko'chdi, shuning uchun
   //    matn boshidagi takroriy ✈ olib tashlanadi (asgLine manbai o'zgarmagan).
-  const _pplAsg = asgLine ? asgLine.replace(/^✈\s*/, '') : '';
+  //    🔴 A'zo shoxida ism `_nm()` dan olinadi: `asgLine` da email zaxirasi YO'Q
+  //    ("A'zo"), `_nm` da bor — profilida faqat email bo'lgan xodim bitta kartada
+  //    "Yaratgan odam: a@b.c" va "Bajaruvchi: A'zo" bo'lib ikki xil ko'rinardi.
+  const _pplAsg = t.assigned_to ? _nm(t.assigned_to)
+                                : (asgLine ? asgLine.replace(/^✈\s*/, '') : '');
   peopleRows += _pplItem('Bajaruvchi',
     (t.assigned_to ? avatarHtml(_pplAsg, 'sm', null, t.assigned_to) : (asgLine ? _pplBotAv : _pplNoAv)),
     (asgLine ? escapeHtml(_pplAsg) + (t.assigned_to && t.assigned_to === me.id ? _pplMe : '') : _pplDash));
@@ -16183,10 +16219,15 @@ function plnTaskColor(t) {
 // Chap paneldagi manba ro'yxat — kalendarga sudraladigan vazifalar.
 // Filtr o'chiq: eski xatti-harakat (meniki, tugallanmagan, rejaga qo'yilmagan).
 // Filtr yoniq: rol bo'yicha (plfApply), baribir rejaga qo'yilganlar chiqmaydi.
-function plnSideTasks() {
+// ⚠️ Ikkala argument ham IXTIYORIY va faqat tezlik uchun (mantiq o'zgarmaydi):
+//    srcList — tekshiriladigan ro'yxat (default: butun tasksCache), schedIn —
+//    allaqachon parse qilingan reja. Argumentsiz chaqiruvlar avvalgidek ishlaydi.
+//    Vazifa detali "shu vazifa ro'yxatga tushadimi?" deb [t] bilan chaqiradi —
+//    shart nusxalanmasin, yagona manba shu funksiya bo'lsin.
+function plnSideTasks(srcList, schedIn) {
   if (!me) return [];
-  const sched = plnGetSchedule();
-  let list = (tasksCache || []).filter(t => !t.is_locked && !taskHiddenByStart(t) && !sched[t.id]);
+  const sched = schedIn || plnGetSchedule();
+  let list = (srcList || tasksCache || []).filter(t => !t.is_locked && !taskHiddenByStart(t) && !sched[t.id]);
   if (plfActive()) {
     list = plfApply(list);
     // "Bajarilganlar" filtridan tashqari — tugallangan/bekor qilinganlar chiqmaydi
@@ -21436,8 +21477,10 @@ async function quickAssignTg(tgBotUserId) {
     toast('✅ Vazifa yaratildi va botda yuborildi', 'ok');
     tgNotifyAssignment(data.id, { tg_bot_user_id: tgBotUserId });
     refreshActiveView();
-    // Detail modal'ni ochaylik tafsilotlar uchun
-    setTimeout(() => openDetail(data.id), 100);
+    // Detail modal'ni ochaylik tafsilotlar uchun.
+    // ⚠️ bump:false — bu AVTOMATIK ochilish (vazifa hozir yaratildi), 👁 sanog'i
+    // oshmasin: "bajaruvchi ochib ko'rdi" degani emas.
+    setTimeout(() => openDetail(data.id, { bump: false }), 100);
   } catch (e) { toast(translateErr(e.message), 'err'); }
 }
 
