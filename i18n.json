@@ -5849,6 +5849,11 @@
     "ru": "Где разместить?",
     "en": "Where should it go?"
   },
+  "osc.person_not_found": {
+    "uz": "Xodim topilmadi",
+    "ru": "Сотрудник не найден",
+    "en": "Employee not found"
+  },
   "osc.person_search_ph": {
     "uz": "Ism, lavozim, telefon…",
     "ru": "Имя, должность, телефон…",
@@ -5863,6 +5868,11 @@
     "uz": "Kamida bitta xodimni tanlang",
     "ru": "Выберите хотя бы одного сотрудника",
     "en": "Select at least one employee"
+  },
+  "osc.pick_person": {
+    "uz": "Xodimni tanlang",
+    "ru": "Выберите сотрудника",
+    "en": "Pick an employee"
   },
   "osc.pos_not_saved": {
     "uz": "Joylashuv saqlanmaydi — TASKFIX_ORGCHART.sql ishga tushirilmagan",
@@ -5913,6 +5923,46 @@
     "uz": "Papka nomini o'zgartirish",
     "ru": "Переименовать папку",
     "en": "Rename folder"
+  },
+  "osc.replace_hint_kids": {
+    "uz": "Pastdagi {0} ta tugun o'z joyida qoladi va yangi xodimga bo'ysunadi.",
+    "ru": "{0} нижестоящих узлов останутся на месте и перейдут в подчинение новому сотруднику.",
+    "en": "The {0} nodes below stay in place and will report to the new employee."
+  },
+  "osc.replace_hint_none": {
+    "uz": "Bu o'rin ostida hech kim yo'q.",
+    "ru": "Под этим местом никого нет.",
+    "en": "There is no one below this seat."
+  },
+  "osc.replace_label": {
+    "uz": "Yangi xodim",
+    "ru": "Новый сотрудник",
+    "en": "New employee"
+  },
+  "osc.replace_ok": {
+    "uz": "Almashtirish",
+    "ru": "Заменить",
+    "en": "Replace"
+  },
+  "osc.replace_person": {
+    "uz": "Xodimni almashtirish",
+    "ru": "Заменить сотрудника",
+    "en": "Replace employee"
+  },
+  "osc.replace_title": {
+    "uz": "\"{0}\" o'rniga kim?",
+    "ru": "Кто вместо «{0}»?",
+    "en": "Who replaces \"{0}\"?"
+  },
+  "osc.replaced": {
+    "uz": "✅ Almashtirildi",
+    "ru": "✅ Заменено",
+    "en": "✅ Replaced"
+  },
+  "osc.replaced_with_kids": {
+    "uz": "✅ Almashtirildi — pastdagi {0} ta tugun yangi xodimga o'tdi",
+    "ru": "✅ Заменено — {0} нижестоящих узлов перешли к новому сотруднику",
+    "en": "✅ Replaced — {0} nodes below moved to the new employee"
   },
   "osc.reports_to": {
     "uz": "Bo'ysunadi:",
@@ -5973,6 +6023,11 @@
     "uz": "ni bajaring, so'ng sahifani yangilang.",
     "ru": "— выполните, затем обновите страницу.",
     "en": "— run it, then refresh the page."
+  },
+  "osc.save_denied_rls": {
+    "uz": "Saqlanmadi — ruxsat yo'q (RLS)",
+    "ru": "Не сохранено — нет прав (RLS)",
+    "en": "Not saved — no permission (RLS)"
   },
   "osc.seat_badge": {
     "uz": "{0} o'rin",
