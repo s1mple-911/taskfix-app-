@@ -656,22 +656,22 @@
      ⚠️ auto-fit grid: idish torayganda ustunlar o'zi kamayadi (3 → 2 → 1).
      ≤880px da esa 1 ustunga QOTIRILADI (moslashtirish bloki) — ajratuvchi
      chiziq faqat aniq bitta ustunda to'g'ri ko'rinadi. */
-  .ppl-card { display: grid; grid-template-columns: repeat(auto-fit, minmax(178px, 1fr)); gap: 4px 20px;
-              background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 12px;
-              padding: 10px 14px; margin: 0 0 16px; }
-  .ppl-item { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 4px 0; }
+  .ppl-card { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 2px 14px;
+              background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 10px;
+              padding: 6px 10px; margin: 0 0 11px; }
+  .ppl-item { display: flex; align-items: center; gap: 7px; min-width: 0; padding: 2px 0; }
   .ppl-av { flex: 0 0 auto; display: inline-flex; }
-  .ppl-av .avatar.sm { width: 28px; height: 28px; font-size: 10.5px; }
+  .ppl-av .avatar.sm { width: 22px; height: 22px; font-size: 9px; }
   /* Avatarsiz holatlar: biriktirilmagan (odam ikonkasi) va Telegram bot useri */
-  .ppl-ph { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  .ppl-ph { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
             background: var(--surface); border: 1px solid var(--line-soft); color: var(--subtle); flex: 0 0 auto; }
   .ppl-ph.bot { color: var(--muted); }
-  .ppl-txt { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-  .ppl-role { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--subtle); line-height: 1.4; }
-  .ppl-name { font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.35; word-break: break-word; }
+  .ppl-txt { min-width: 0; display: flex; flex-direction: column; gap: 0; }
+  .ppl-role { font-size: 9px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--subtle); line-height: 1.3; }
+  .ppl-name { font-size: 12.5px; font-weight: 600; color: var(--ink); line-height: 1.3; word-break: break-word; }
   .ppl-none { color: var(--subtle); font-weight: 500; }
-  .ppl-you { display: inline-block; margin-left: 5px; font-size: 10px; font-weight: 600; color: var(--muted);
-             background: var(--surface); border: 1px solid var(--line-soft); border-radius: 99px; padding: 0 6px; line-height: 15px; vertical-align: 1px; }
+  .ppl-you { display: inline-block; margin-left: 4px; font-size: 9px; font-weight: 600; color: var(--muted);
+             background: var(--surface); border: 1px solid var(--line-soft); border-radius: 99px; padding: 0 5px; line-height: 13px; vertical-align: 1px; }
 
   .status-pick { display: flex; gap: 6px; flex-wrap: wrap; }
   .status-pick .filter-btn { font-size: 12.5px; padding: 6px 10px; }
@@ -2898,10 +2898,10 @@
     .detail-row .lbl { width: auto; font-size: 12px; }
     /* Odamlar kartasi (ppl*) — mobilda DOIM 1 ustun: auto-fit planshet
        kengligida 2–3 ustun qoldirardi va ajratuvchi chiziq buzilardi. */
-    .ppl-card { grid-template-columns: 1fr; padding: 6px 12px; gap: 0; }
-    .ppl-item { padding: 7px 0; }
+    .ppl-card { grid-template-columns: 1fr; padding: 4px 10px; gap: 0; }
+    .ppl-item { padding: 5px 0; }
     .ppl-item + .ppl-item { border-top: 1px solid var(--line); }
-    .ppl-name { font-size: 13.5px; }
+    .ppl-name { font-size: 13px; }
     /* "Rejam" — bosiladigan elementlar teginish uchun ≥44px */
     .pln-dtl { gap: 8px; }
     .pln-dtl-add, .pln-dtl-un { min-height: 44px; padding-left: 14px; padding-right: 14px; }
@@ -12978,8 +12978,8 @@ function renderDetailBody() {
   const _pplMe = '<span class="ppl-you">siz</span>';
   const _pplDash = '<span class="ppl-none">—</span>';
   // Avatarsiz o'rin: biriktirilmagan (odam) / Telegram bot useri (samolyot)
-  const _pplNoAv = '<span class="ppl-ph">' + icon('user', 14) + '</span>';
-  const _pplBotAv = '<span class="ppl-ph bot">' + icon('send', 13) + '</span>';
+  const _pplNoAv = '<span class="ppl-ph">' + icon('user', 12) + '</span>';
+  const _pplBotAv = '<span class="ppl-ph bot">' + icon('send', 11) + '</span>';
   const _pplItem = function (role, av, nm) {
     return '<div class="ppl-item"><span class="ppl-av">' + av + '</span>' +
       '<span class="ppl-txt"><span class="ppl-role">' + role + '</span>' +
