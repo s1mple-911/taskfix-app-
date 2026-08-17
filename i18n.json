@@ -64,10 +64,40 @@
     "ru": "Редактировать",
     "en": "Edit"
   },
+  "common.add_btn": {
+    "uz": "+ Qo'shish",
+    "ru": "+ Добавить",
+    "en": "+ Add"
+  },
+  "common.add_task_btn": {
+    "uz": "+ Vazifa",
+    "ru": "+ Задача",
+    "en": "+ Task"
+  },
+  "common.add_to_org": {
+    "uz": "Tashkilotga qo'shish",
+    "ru": "Добавить в организацию",
+    "en": "Add to the organization"
+  },
   "common.added_ok": {
     "uz": "✅ Qo'shildi",
     "ru": "✅ Добавлено",
     "en": "✅ Added"
+  },
+  "common.ago_days": {
+    "uz": "kun oldin",
+    "ru": "дн назад",
+    "en": "days ago"
+  },
+  "common.ago_hours": {
+    "uz": "soat oldin",
+    "ru": "ч назад",
+    "en": "hours ago"
+  },
+  "common.ago_min": {
+    "uz": "daq oldin",
+    "ru": "мин назад",
+    "en": "min ago"
   },
   "common.ago_seconds": {
     "uz": "{0} soniya oldin",
@@ -109,6 +139,11 @@
     "ru": "Удалить файл?",
     "en": "Delete this file?"
   },
+  "common.back_to_departments": {
+    "uz": "← Bo'limlar",
+    "ru": "← Отделы",
+    "en": "← Departments"
+  },
   "common.badge_disabled": {
     "uz": "O'chirilgan",
     "ru": "Отключено",
@@ -128,6 +163,21 @@
     "uz": "Ilova kutubxonasi yuklanmadi. Internet aloqasini tekshirib, sahifani qayta yuklang.",
     "ru": "Библиотека приложения не загрузилась. Проверьте интернет-соединение и перезагрузите страницу.",
     "en": "The app library failed to load. Check your internet connection and reload the page."
+  },
+  "common.boot_err_cdn": {
+    "uz": "supabase-js kutubxonasi yuklanmadi (CDN).",
+    "ru": "Библиотека supabase-js не загрузилась (CDN).",
+    "en": "The supabase-js library failed to load (CDN)."
+  },
+  "common.boot_err_profile": {
+    "uz": "Profil ma'lumotini o'qishda xatolik:",
+    "ru": "Ошибка при чтении профиля:",
+    "en": "Failed to read the profile:"
+  },
+  "common.boot_err_ws_list": {
+    "uz": "Workspace ro'yxatini o'qishda xatolik:",
+    "ru": "Ошибка при чтении списка воркспейсов:",
+    "en": "Failed to read the workspace list:"
   },
   "common.boot_error": {
     "uz": "Ishga tushirishda xato: {0}",
@@ -334,6 +384,11 @@
     "ru": "✓ Отменено",
     "en": "✓ Cancelled"
   },
+  "common.cancelled_word": {
+    "uz": "bekor qilindi",
+    "ru": "отменено",
+    "en": "cancelled"
+  },
   "common.changed_ok": {
     "uz": "✓ O'zgartirildi",
     "ru": "✓ Изменено",
@@ -343,6 +398,11 @@
     "uz": "Tekshirib bo'lmadi: {0}",
     "ru": "Не удалось проверить: {0}",
     "en": "Could not verify: {0}"
+  },
+  "common.click_to_review": {
+    "uz": "Ko'rish va tasdiqlash uchun bosing",
+    "ru": "Нажмите, чтобы посмотреть и подтвердить",
+    "en": "Click to review and approve"
   },
   "common.closed_late": {
     "uz": "Kechikib yopilgan",
@@ -383,6 +443,16 @@
     "uz": "Bu — tizim komandasi. Boshqa nom tanlang.",
     "ru": "Это системная команда. Выберите другое имя.",
     "en": "This is a system command. Choose another name."
+  },
+  "common.cnt_tasks_created": {
+    "uz": "ta vazifa yaratildi",
+    "ru": "задач создано",
+    "en": "tasks created"
+  },
+  "common.cnt_tasks_suffix": {
+    "uz": "ta vazifa",
+    "ru": "задач",
+    "en": "tasks"
   },
   "common.col_assignee": {
     "uz": "Bajaruvchi",
@@ -1044,6 +1114,26 @@
     "ru": "Имя обязательно.",
     "en": "First name is required."
   },
+  "common.flt_all_assignees": {
+    "uz": "Hamma biriktirilganlar",
+    "ru": "Все исполнители",
+    "en": "All assignees"
+  },
+  "common.flt_all_priorities": {
+    "uz": "Hamma prioritetlar",
+    "ru": "Все приоритеты",
+    "en": "All priorities"
+  },
+  "common.flt_only_me": {
+    "uz": "Faqat menga",
+    "ru": "Только мне",
+    "en": "Only me"
+  },
+  "common.flt_overdue": {
+    "uz": "⏰ Muddati o'tgan",
+    "ru": "⏰ Просроченные",
+    "en": "⏰ Overdue"
+  },
   "common.folder": {
     "uz": "Papka",
     "ru": "Папка",
@@ -1269,6 +1359,16 @@
     "ru": "В работе",
     "en": "In progress"
   },
+  "common.in_supabase_sql_editor": {
+    "uz": "Supabase SQL Editor'da",
+    "ru": "в Supabase SQL Editor",
+    "en": "in the Supabase SQL Editor"
+  },
+  "common.init_error": {
+    "uz": "init xatosi:",
+    "ru": "ошибка инициализации:",
+    "en": "init error:"
+  },
   "common.intg_gdrive_desc": {
     "uz": "Vazifa fayllarini Drive'ga saqlash (tez orada).",
     "ru": "Сохранение файлов задач в Drive (скоро).",
@@ -1343,6 +1443,11 @@
     "uz": "Rad etildi",
     "ru": "Отклонено",
     "en": "Declined"
+  },
+  "common.invite_employee_btn": {
+    "uz": "+ Xodim taklif qilish",
+    "ru": "+ Пригласить сотрудника",
+    "en": "+ Invite an employee"
   },
   "common.invite_link_person_info": {
     "uz": "{0} — parol o'rnatish havolasi",
@@ -1419,10 +1524,30 @@
     "ru": "Колонку по умолчанию удалить нельзя",
     "en": "The default column cannot be deleted"
   },
+  "common.last_30_days": {
+    "uz": "Oxirgi 30 kun",
+    "ru": "Последние 30 дней",
+    "en": "Last 30 days"
+  },
+  "common.last_7_days": {
+    "uz": "Oxirgi 7 kun",
+    "ru": "Последние 7 дней",
+    "en": "Last 7 days"
+  },
+  "common.last_90_days": {
+    "uz": "Oxirgi 90 kun",
+    "ru": "Последние 90 дней",
+    "en": "Last 90 days"
+  },
   "common.late_inline": {
     "uz": "kechikkan",
     "ru": "просрочено",
     "en": "late"
+  },
+  "common.limit_reached_rest": {
+    "uz": "chegarasiga yetildi, qolgani yuklanmadi",
+    "ru": "достигнут предел, остальное не загружено",
+    "en": "limit reached, the rest was not loaded"
   },
   "common.load_error": {
     "uz": "❌ Yuklash xatosi: {0}",
@@ -1503,6 +1628,11 @@
     "uz": "Belgilanmadi: {0}",
     "ru": "Не отмечено: {0}",
     "en": "Not marked: {0}"
+  },
+  "common.members_load_failed": {
+    "uz": "⚠️ A'zolar ro'yxati yuklanmadi:",
+    "ru": "⚠️ Список участников не загрузился:",
+    "en": "⚠️ The member list failed to load:"
   },
   "common.mentions_notified": {
     "uz": "🔔 {0} kishi belgilandi",
@@ -2044,6 +2174,11 @@
     "ru": "Пароли не совпадают.",
     "en": "Passwords do not match."
   },
+  "common.past_paren": {
+    "uz": "(o'tgan)",
+    "ru": "(прошло)",
+    "en": "(past)"
+  },
   "common.pending_approve_confirm": {
     "uz": "\"{0}\" ni tasdiqlashni xohlaysizmi?",
     "ru": "Подтвердить «{0}»?",
@@ -2194,6 +2329,11 @@
     "ru": "{0} сотр.",
     "en": "{0} employees"
   },
+  "common.prev_page": {
+    "uz": "‹ Oldingi",
+    "ru": "‹ Назад",
+    "en": "‹ Previous"
+  },
   "common.prj_add_first_stage": {
     "uz": "+ Birinchi bosqichni qo'shish",
     "ru": "+ Добавить первый этап",
@@ -2338,6 +2478,11 @@
     "uz": "👁 Ko'ruvchi",
     "ru": "👁 Наблюдатель",
     "en": "👁 Viewer"
+  },
+  "common.pw_email_sent": {
+    "uz": "📧 Parol o'rnatish emaili yuborildi:",
+    "ru": "📧 Письмо для установки пароля отправлено:",
+    "en": "📧 Password setup email sent:"
   },
   "common.readonly_badge": {
     "uz": "👁 faqat ko'rish",
@@ -2549,10 +2694,20 @@
     "ru": "Владелец",
     "en": "Owner"
   },
+  "common.rows_not_updated": {
+    "uz": "qator yangilanmadi",
+    "ru": "строк не обновлено",
+    "en": "rows were not updated"
+  },
   "common.run_migration_28": {
     "uz": "28-migratsiyani ishga tushiring",
     "ru": "Выполните 28-ю миграцию",
     "en": "Run migration 28"
+  },
+  "common.run_sql_file": {
+    "uz": "SQL faylni Supabase SQL Editor'da ishga tushiring.",
+    "ru": "Запустите SQL-файл в Supabase SQL Editor.",
+    "en": "Run the SQL file in the Supabase SQL Editor."
   },
   "common.save_and_login": {
     "uz": "Saqlash va kirish",
@@ -2679,6 +2834,21 @@
     "ru": "Начало (необязательно)",
     "en": "Start (optional)"
   },
+  "common.stats_by_dept": {
+    "uz": "Bo'lim bo'yicha",
+    "ru": "По отделам",
+    "en": "By department"
+  },
+  "common.stats_by_emp": {
+    "uz": "Xodim bo'yicha (top 10)",
+    "ru": "По сотрудникам (топ-10)",
+    "en": "By employee (top 10)"
+  },
+  "common.stats_by_status": {
+    "uz": "Holat bo'yicha (jami)",
+    "ru": "По статусам (всего)",
+    "en": "By status (total)"
+  },
   "common.stats_col_efficiency": {
     "uz": "Samaradorlik",
     "ru": "Эффективность",
@@ -2703,6 +2873,11 @@
     "uz": "Jami",
     "ru": "Всего",
     "en": "Total"
+  },
+  "common.stats_daily_created": {
+    "uz": "Kunlik vazifa yaratilishi",
+    "ru": "Создание задач по дням",
+    "en": "Tasks created per day"
   },
   "common.stats_days_value": {
     "uz": "{0} kun",
@@ -2779,6 +2954,11 @@
     "ru": "Синтетический email не подходит — введите настоящий",
     "en": "Synthetic email is not allowed — enter a real one"
   },
+  "common.tab_employees": {
+    "uz": "👥 Hodimlar",
+    "ru": "👥 Сотрудники",
+    "en": "👥 Employees"
+  },
   "common.task_created": {
     "uz": "✅ Vazifa yaratildi",
     "ru": "✅ Задача создана",
@@ -2853,6 +3033,11 @@
     "uz": "Vazifalarni yuklab bo'lmadi",
     "ru": "Не удалось загрузить задачи",
     "en": "Could not load the tasks"
+  },
+  "common.tasks_loaded_partial": {
+    "uz": "ta vazifa yuklandi — qolgani ko'rsatilmadi. Filtr yoki qidiruvdan foydalaning.",
+    "ru": "задач загружено — остальные не показаны. Воспользуйтесь фильтром или поиском.",
+    "en": "tasks loaded — the rest are not shown. Use a filter or search."
   },
   "common.tasks_loading_chip": {
     "uz": "⏳ Vazifalar yuklanmoqda… {0}",
@@ -3109,6 +3294,11 @@
     "ru": "сегодня {0}",
     "en": "today {0}"
   },
+  "common.total_label": {
+    "uz": "Jami:",
+    "ru": "Всего:",
+    "en": "Total:"
+  },
   "common.try_other_filters": {
     "uz": "Boshqa filter'larni sinab ko'ring.",
     "ru": "Попробуйте другие фильтры.",
@@ -3163,6 +3353,11 @@
     "uz": "Foydalanuvchi topilmadi",
     "ru": "Пользователь не найден",
     "en": "User not found"
+  },
+  "common.users_awaiting_approval": {
+    "uz": "ta foydalanuvchi tasdiqlashga kutmoqda",
+    "ru": "пользователей ждут подтверждения",
+    "en": "users are awaiting approval"
   },
   "common.value_empty": {
     "uz": "(bo'sh)",
@@ -3303,6 +3498,16 @@
     "uz": "Excel o'qishda xato: {0}",
     "ru": "Ошибка чтения Excel: {0}",
     "en": "Excel read error: {0}"
+  },
+  "dft.chars_only_first": {
+    "uz": "belgi — qoralamada faqat birinchi",
+    "ru": "символов — в черновике сохранены только первые",
+    "en": "characters — the draft kept only the first"
+  },
+  "dft.chars_saved": {
+    "uz": "belgi saqlandi.",
+    "ru": "символов.",
+    "en": "characters."
   },
   "dft.copied": {
     "uz": "✓ Nusxalandi",
@@ -3614,10 +3819,30 @@
     "ru": "<b>{0}</b> — выходной день для {1}. Срок не меняется, при желании выберите другую дату.",
     "en": "<b>{0}</b> is a day off for {1}. The deadline is not changed; pick another date if you want."
   },
+  "dof.day_off_for": {
+    "uz": "uchun dam olish kuni.",
+    "ru": "— выходной день.",
+    "en": "— day off."
+  },
+  "dof.deadline_kept": {
+    "uz": "Muddat o'zgartirilmaydi, xohlasangiz sanani almashtiring.",
+    "ru": "Срок не меняется, при желании выберите другую дату.",
+    "en": "The deadline is not changed; pick another date if you like."
+  },
   "dof.title": {
     "uz": "Bajaruvchining dam olish kuni — muddat o'zgarmadi",
     "ru": "Выходной день исполнителя — срок не изменён",
     "en": "The assignee's day off — the deadline was not changed"
+  },
+  "emailSet.all_on": {
+    "uz": "hamma bildirishnoma yoniq",
+    "ru": "все уведомления включены",
+    "en": "all notifications are on"
+  },
+  "emailSet.desc_head": {
+    "uz": "Qaysi amalda xodimlarga email xat ketishini shu yerdan boshqaring. Sukut bo'yicha",
+    "ru": "Здесь вы решаете, при каком действии сотрудникам уходит письмо. По умолчанию",
+    "en": "Choose here which actions send employees an email. By default"
   },
   "emailSet.last_change": {
     "uz": "Oxirgi o'zgarish: {0}",
@@ -3678,6 +3903,11 @@
     "uz": "Manzil kiriting yoki \"Manzilsiz\"ni belgilang",
     "ru": "Укажите адрес или отметьте «Без адреса»",
     "en": "Enter an address or check \"No address\""
+  },
+  "emp.assigned_to_employees": {
+    "uz": "hodimga biriktirildi)",
+    "ru": "сотрудникам назначено)",
+    "en": "assigned to employees)"
   },
   "emp.contract_end_before_start": {
     "uz": "Shartnoma tugashi boshlanishidan oldin bo'la olmaydi",
@@ -3744,6 +3974,11 @@
     "ru": "Ссылка на Google Drive",
     "en": "Google Drive link"
   },
+  "emp.migration_29_needed": {
+    "uz": "(29-migratsiya kerak)",
+    "ru": "(нужна миграция 29)",
+    "en": "(migration 29 required)"
+  },
   "emp.monthly_off_range": {
     "uz": "Dam olish kunlari hajmi 0–31 oralig'ida butun son bo'lishi kerak",
     "ru": "Количество выходных дней должно быть целым числом от 0 до 31",
@@ -3784,6 +4019,11 @@
     "ru": "Некорректная ссылка на фото — должна начинаться с http:// или https://",
     "en": "Invalid photo link — it must start with http:// or https://"
   },
+  "emp.position_add_failed": {
+    "uz": "Lavozim qo'shilmadi:",
+    "ru": "Должность не добавлена:",
+    "en": "The position was not added:"
+  },
   "emp.position_added": {
     "uz": "✓ Lavozim qo'shildi — biriktirish uchun \"Saqlash\"ni bosing",
     "ru": "✓ Должность добавлена — нажмите «Сохранить», чтобы назначить",
@@ -3799,10 +4039,25 @@
     "ru": "Новая должность",
     "en": "New position"
   },
+  "emp.positions_move_failed": {
+    "uz": "Lavozimlarni ko'chirib bo'lmadi:",
+    "ru": "Не удалось перенести должности:",
+    "en": "Could not move the positions:"
+  },
+  "emp.positions_moved": {
+    "uz": "lavozim DB'ga ko'chirildi (",
+    "ru": "должностей перенесено в БД (",
+    "en": "positions moved to the database ("
+  },
   "emp.radius_invalid": {
     "uz": "Radius musbat butun son bo'lishi kerak",
     "ru": "Радиус должен быть положительным целым числом",
     "en": "Radius must be a positive whole number"
+  },
+  "emp.resend_password_email": {
+    "uz": "ga parol o'rnatish emailini qayta yuboraymi?",
+    "ru": "— отправить письмо для установки пароля повторно?",
+    "en": "— resend the password setup email?"
   },
   "emp.role_added": {
     "uz": "✓ Rol qo'shildi — biriktirish uchun \"Saqlash\"ni bosing",
@@ -3914,6 +4169,11 @@
     "ru": "По запросу «{0}» ничего не найдено. Попробуйте другое слово или номер телефона.",
     "en": "No results for “{0}”. Try another word or a phone number."
   },
+  "gs.no_results_hint": {
+    "uz": "» bo'yicha natija yo'q. Boshqa so'z yoki telefon raqami bilan urinib ko'ring.",
+    "ru": "» — ничего не найдено. Попробуйте другое слово или номер телефона.",
+    "en": "» — nothing found. Try another word or a phone number."
+  },
   "gs.position_untitled": {
     "uz": "(nomsiz lavozim)",
     "ru": "(должность без названия)",
@@ -3984,6 +4244,11 @@
     "ru": "Ошибка синхронизации с Provodka: {0}",
     "en": "Provodka sync error: {0}"
   },
+  "hr.load_failed_warn": {
+    "uz": "⚠ HR ma'lumoti yuklanmadi —",
+    "ru": "⚠ Данные HR не загрузились —",
+    "en": "⚠ HR data failed to load —"
+  },
   "hr.migrate_failed": {
     "uz": "Lavozimlarni ko'chirib bo'lmadi: {0}",
     "ru": "Не удалось перенести должности: {0}",
@@ -3993,6 +4258,11 @@
     "uz": "✓ {0} lavozim DB'ga ko'chirildi ({1} hodimga biriktirildi)",
     "ru": "✓ {0} должностей перенесено в базу (привязано к {1} сотрудникам)",
     "en": "✓ {0} positions migrated to the database ({1} employees linked)"
+  },
+  "hr.run_migrations_38_39": {
+    "uz": "38 va 39-migratsiyani ishga tushiring",
+    "ru": "запустите миграции 38 и 39",
+    "en": "run migrations 38 and 39"
   },
   "hrEd.add_position_first": {
     "uz": "Avval Jamoa sahifasida lavozim qo'shing",
@@ -4089,10 +4359,20 @@
     "ru": "● Не прочитано",
     "en": "● Could not be read"
   },
+  "hrImport.all_will_be_created": {
+    "uz": "ta (hammasi yaratiladi)",
+    "ru": "(будут созданы все)",
+    "en": "(all will be created)"
+  },
   "hrImport.and_more": {
     "uz": "…va yana {0} ta",
     "ru": "…и ещё {0}",
     "en": "…and {0} more"
+  },
+  "hrImport.and_more_2": {
+    "uz": "…va yana",
+    "ru": "…и ещё",
+    "en": "…and"
   },
   "hrImport.array_not_found": {
     "uz": "Massiv topilmadi — {\"employees\": [...]} yoki [...] kutilgan",
@@ -4103,6 +4383,11 @@
     "uz": "🛑 {0} bloker — hech narsa yozilmaydi.",
     "ru": "🛑 Блокеров: {0} — ничего не будет записано.",
     "en": "🛑 {0} blockers — nothing will be written."
+  },
+  "hrImport.branch_manager_missing": {
+    "uz": "Filial manageri topilmadi (",
+    "ru": "Менеджер филиала не найден (",
+    "en": "Branch manager not found ("
   },
   "hrImport.btn_photo_progress": {
     "uz": "Rasm… {0}/{1}",
@@ -4124,6 +4409,11 @@
     "ru": "Импортировать ({0})",
     "en": "Import ({0})"
   },
+  "hrImport.create_n_tasks": {
+    "uz": "ta vazifa yaratish",
+    "ru": "задач — создать",
+    "en": "tasks — create"
+  },
   "hrImport.data_written": {
     "uz": "Ma'lumot yozildi",
     "ru": "Данные записаны",
@@ -4143,6 +4433,16 @@
     "uz": "<b>Ma'lumot yozishda {0} xato</b> — import idempotent, tuzatib qayta yurgizing:",
     "ru": "<b>Ошибок при записи данных: {0}</b> — импорт идемпотентен, исправьте и запустите снова:",
     "en": "<b>{0} errors while writing data</b> — the import is idempotent, fix and run it again:"
+  },
+  "hrImport.each_gets_task": {
+    "uz": "ta xodimga (har biriga alohida vazifa) beriladi",
+    "ru": "сотрудникам (каждому отдельная задача)",
+    "en": "employees (a separate task for each)"
+  },
+  "hrImport.employee_cards": {
+    "uz": "hodim kartasi",
+    "ru": "карточек сотрудников",
+    "en": "employee cards"
   },
   "hrImport.err_contract_end": {
     "uz": "contract_end: {0}",
@@ -4229,10 +4529,20 @@
     "ru": "недопустимая дата рабочего дня: {0}",
     "en": "invalid work day date: {0}"
   },
+  "hrImport.excel_read_err": {
+    "uz": "Excel o'qishda xato:",
+    "ru": "Ошибка чтения Excel:",
+    "en": "Failed to read the Excel file:"
+  },
   "hrImport.file_read_fail": {
     "uz": "Faylni o'qib bo'lmadi: {0}",
     "ru": "Не удалось прочитать файл: {0}",
     "en": "Could not read the file: {0}"
+  },
+  "hrImport.file_read_failed": {
+    "uz": "Faylni o'qib bo'lmadi:",
+    "ru": "Не удалось прочитать файл:",
+    "en": "Could not read the file:"
   },
   "hrImport.file_too_big": {
     "uz": "Fayl juda katta: {0} MB ({1} MB gacha)",
@@ -4244,10 +4554,20 @@
     "ru": "Исправьте источник и попробуйте снова. Импорт идемпотентен — повторный запуск безопасен.",
     "en": "Fix the source and try again. The import is idempotent — re-running is safe."
   },
+  "hrImport.import_btn": {
+    "uz": "Import qilish (",
+    "ru": "Импортировать (",
+    "en": "Import ("
+  },
   "hrImport.json_parse_fail": {
     "uz": "JSON o'qib bo'lmadi: {0}",
     "ru": "Не удалось разобрать JSON: {0}",
     "en": "Could not parse JSON: {0}"
+  },
+  "hrImport.json_read_failed": {
+    "uz": "JSON o'qib bo'lmadi:",
+    "ru": "Не удалось прочитать JSON:",
+    "en": "Could not read the JSON:"
   },
   "hrImport.lbl_position": {
     "uz": "Lavozim",
@@ -4259,10 +4579,20 @@
     "ru": "Роль",
     "en": "Role"
   },
+  "hrImport.linked": {
+    "uz": "bog'landi",
+    "ru": "связано",
+    "en": "linked"
+  },
   "hrImport.managers_unresolved": {
     "uz": "<b>Filial manageri topilmadi ({0})</b> — xato emas, NULL qoldi:",
     "ru": "<b>Руководитель филиала не найден ({0})</b> — это не ошибка, осталось NULL:",
     "en": "<b>Branch manager not found ({0})</b> — not an error, left as NULL:"
+  },
+  "hrImport.moved": {
+    "uz": "ko'chirildi",
+    "ru": "перенесено",
+    "en": "moved"
   },
   "hrImport.n_branch_links": {
     "uz": "{0} filial biriktirish",
@@ -4294,6 +4624,21 @@
     "ru": "В файле нет сотрудников",
     "en": "No employees in the file"
   },
+  "hrImport.no_phone_digits": {
+    "uz": "telefonda raqam yo'q:",
+    "ru": "в телефоне нет цифр:",
+    "en": "the phone has no digits:"
+  },
+  "hrImport.not_an_error_null": {
+    "uz": "— xato emas, NULL qoldi:",
+    "ru": "— это не ошибка, осталось NULL:",
+    "en": "— not an error, left as NULL:"
+  },
+  "hrImport.null_initials": {
+    "uz": "NULL, initsiallar ko'rsatiladi",
+    "ru": "NULL, показываются инициалы",
+    "en": "NULL, initials are shown"
+  },
   "hrImport.only_owner_admin": {
     "uz": "Faqat owner yoki admin import qila oladi",
     "ru": "Импортировать может только владелец или админ",
@@ -4303,6 +4648,11 @@
     "uz": "E.164 ga keltirib bo'lmadi: \"{0}\" ({1} raqam)",
     "ru": "не удалось привести к E.164: «{0}» (цифр: {1})",
     "en": "could not convert to E.164: \"{0}\" ({1} digits)"
+  },
+  "hrImport.phone_matches_bot_users": {
+    "uz": "ta telefon mavjud Telegram bot foydalanuvchisiga mos keldi — bir odam ikki marta bo'lishi mumkin:",
+    "ru": "телефонов совпали с пользователями Telegram-бота — один человек может задвоиться:",
+    "en": "phone numbers matched existing Telegram bot users — one person may be duplicated:"
   },
   "hrImport.photos_failed": {
     "uz": "{0} tasi olinmadi (manba havolasi o'lik) — <code>photo_path</code> NULL, initsiallar ko'rsatiladi",
@@ -4323,6 +4673,11 @@
     "uz": "✓ <b>{0}</b> yangi yaratiladi &nbsp;·&nbsp; ↻ <b>{1}</b> yangilanadi (avval import qilingan)",
     "ru": "✓ Будет создано: <b>{0}</b> &nbsp;·&nbsp; ↻ Будет обновлено: <b>{1}</b> (импортировано ранее)",
     "en": "✓ <b>{0}</b> will be created &nbsp;·&nbsp; ↻ <b>{1}</b> will be updated (imported earlier)"
+  },
+  "hrImport.preview_note": {
+    "uz": "Quyidagi vazifalar yaratiladi. Bajaruvchi/Bo'lim/Status nomlar bo'yicha avtomatik moslashtirildi.",
+    "ru": "Будут созданы следующие задачи. Исполнитель/Отдел/Статус сопоставлены по названиям автоматически.",
+    "en": "These tasks will be created. Assignee/Department/Status were matched by name automatically."
   },
   "hrImport.reading": {
     "uz": "O'qilmoqda…",
@@ -4364,6 +4719,16 @@
     "ru": "⚠ Пропущено сотрудников: {0} (учётная запись не создана)",
     "en": "⚠ {0} employees skipped (identity not created)"
   },
+  "hrImport.skipped_no_identity": {
+    "uz": "hodim o'tkazib yuborildi (identitet yaratilmagan)",
+    "ru": "сотрудников пропущено (учётная запись не создана)",
+    "en": "employees skipped (no identity created)"
+  },
+  "hrImport.some_not_fetched": {
+    "uz": "tasi olinmadi (manba havolasi o'lik) —",
+    "ru": "не получено (ссылка на источник недоступна) —",
+    "en": "were not fetched (the source link is dead) —"
+  },
   "hrImport.step_branch": {
     "uz": "filial {0} \"{1}\"",
     "ru": "филиал {0} «{1}»",
@@ -4383,6 +4748,11 @@
     "uz": "Jami: {0} qator",
     "ru": "Всего: {0} строк",
     "en": "Total: {0} rows"
+  },
+  "hrImport.users_count": {
+    "uz": "ta foydalanuvchi:",
+    "ru": "пользователей:",
+    "en": "users:"
   },
   "hrImport.warn_header": {
     "uz": "⚠ Ogohlantirish (bloklamaydi)",
@@ -4404,20 +4774,45 @@
     "ru": "импорт создаст и свяжет — при первом запуске это нормально",
     "en": "the import will create and link them — normal on the first run"
   },
+  "hrImport.will_update": {
+    "uz": "yangilanadi (avval import qilingan)",
+    "ru": "будет обновлено (импортировано ранее)",
+    "en": "will be updated (imported earlier)"
+  },
+  "hrImport.write_error": {
+    "uz": "Ma'lumot yozishda",
+    "ru": "При записи данных",
+    "en": "While writing the data"
+  },
   "hrsv.disabled": {
     "uz": "HR Service o'chirildi",
     "ru": "HR Service отключён",
     "en": "HR Service disabled"
+  },
+  "hrsv.enable_hint": {
+    "uz": "Qo'shimcha xizmatlarni yoqing — bildirishnoma, HR, ish jarayonlarini avtomatlashtirish va boshqalar.",
+    "ru": "Включите дополнительные сервисы — уведомления, HR, автоматизацию процессов и другое.",
+    "en": "Turn on extra services — notifications, HR, workflow automation and more."
   },
   "hrsv.enabled": {
     "uz": "✅ HR Service yoqildi",
     "ru": "✅ HR Service включён",
     "en": "✅ HR Service enabled"
   },
+  "hrsv.error_dot": {
+    "uz": "●  Xato",
+    "ru": "●  Ошибка",
+    "en": "●  Error"
+  },
   "hrsv.hr_sql_missing": {
     "uz": "TASKFIX_HR.sql hali ishga tushirilmagan — avval uni Supabase SQL Editor'da bajaring",
     "ru": "TASKFIX_HR.sql ещё не выполнен — сначала запустите его в Supabase SQL Editor",
     "en": "TASKFIX_HR.sql hasn't been run yet — run it in the Supabase SQL Editor first"
+  },
+  "hrsv.not_configured": {
+    "uz": "Sozlanmagan — Supabase SQL Editor'da",
+    "ru": "Не настроено — в Supabase SQL Editor",
+    "en": "Not configured — in the Supabase SQL Editor"
   },
   "hrsv.perf_boot_label": {
     "uz": "boot (login → ilova)",
@@ -4433,6 +4828,11 @@
     "uz": "Profil ma'lumotini o'qishda xatolik: {0}",
     "ru": "Ошибка при чтении профиля: {0}",
     "en": "Error reading profile: {0}"
+  },
+  "hrsv.read_failed_dot": {
+    "uz": "●  O'qilmadi",
+    "ru": "●  Не прочитано",
+    "en": "●  Not read"
   },
   "hrsv.save_denied_rls": {
     "uz": "Saqlanmadi — ruxsat yo'q (RLS)",
@@ -4763,6 +5163,11 @@
     "uz": "Xush kelibsiz!",
     "ru": "Добро пожаловать!",
     "en": "Welcome!"
+  },
+  "kan.add_column": {
+    "uz": "+ Yangi ustun",
+    "ru": "+ Новая колонка",
+    "en": "+ New column"
   },
   "kan.task_locked": {
     "uz": "🔒 Bu vazifa hali qulflangan — oldingi bosqich tugashi kerak",
@@ -5319,10 +5724,30 @@
     "ru": "Сотрудник внутри «{0}»",
     "en": "Employee inside \"{0}\""
   },
+  "osc.already_here": {
+    "uz": "— bu yerda allaqachon bor",
+    "ru": "— уже здесь",
+    "en": "— already here"
+  },
+  "osc.already_here_skipped": {
+    "uz": "— bu yerda allaqachon bor, o'tkazib yuborildi",
+    "ru": "— уже здесь, пропущено",
+    "en": "— already here, skipped"
+  },
   "osc.auto_layout": {
     "uz": "Avto joylashuv",
     "ru": "Авторасположение",
     "en": "Auto layout"
+  },
+  "osc.below_itself": {
+    "uz": "o'zidan pastdagi",
+    "ru": "нижестоящие",
+    "en": "those below"
+  },
+  "osc.cards_reset": {
+    "uz": "ta karta avtomatik joyiga qaytarildi",
+    "ru": "карточек возвращены на автоматические места",
+    "en": "cards returned to their automatic positions"
   },
   "osc.chart_empty_hint": {
     "uz": "Shu yerdan boshlashingiz mumkin — qo'shilgani papka ko'rinishida ham chiqadi.",
@@ -5373,6 +5798,11 @@
     "uz": "Xodimlar",
     "ru": "Сотрудники",
     "en": "Employees"
+  },
+  "osc.employees_move_to_root": {
+    "uz": "ta xodim sxemada qoladi, lekin ildizga ko'chadi (o'chmaydi).",
+    "ru": "сотрудников останутся в схеме, но перейдут в корень (не удалятся).",
+    "en": "employees stay in the chart but move to the root (they are not deleted)."
   },
   "osc.empty_hint_editor": {
     "uz": "Yuqoridagi <b>+ Papka</b> yoki <b>+ Xodim</b> bilan boshlang — tuzilmani noldan o'zingiz qurasiz.",
@@ -5454,6 +5884,11 @@
     "ru": "Не загрузилось",
     "en": "Didn't load"
   },
+  "osc.in_seats": {
+    "uz": "o'rinda bor",
+    "ru": "на местах",
+    "en": "in seats"
+  },
   "osc.inner_folders": {
     "uz": "Ichki papkalar",
     "ru": "Вложенные папки",
@@ -5519,6 +5954,11 @@
     "ru": "Узел не найден",
     "en": "Node not found"
   },
+  "osc.nodes_count": {
+    "uz": "ta tugun",
+    "ru": "узлов",
+    "en": "nodes"
+  },
   "osc.parent_label": {
     "uz": "Qayerda tursin?",
     "ru": "Где разместить?",
@@ -5579,6 +6019,11 @@
     "ru": "Убрать это место",
     "en": "Remove this seat"
   },
+  "osc.removed_from_chart": {
+    "uz": "sxemadan olib tashlanadi.",
+    "ru": "будет убран из схемы.",
+    "en": "will be removed from the chart."
+  },
   "osc.rename": {
     "uz": "Nomini o'zgartirish",
     "ru": "Переименовать",
@@ -5589,6 +6034,11 @@
     "ru": "Переименовать папку",
     "en": "Rename folder"
   },
+  "osc.reports_to": {
+    "uz": "Bo'ysunadi:",
+    "ru": "Подчиняется:",
+    "en": "Reports to:"
+  },
   "osc.reset_layout_msg": {
     "uz": "{0} ta qo'lda surilgan karta avtomatik joyiga qaytariladi. Sxemaning o'zi (kim kimga bo'ysunadi) o'zgarmaydi.",
     "ru": "{0} перемещённых вручную карточек вернутся на автоматические места. Сама схема (кто кому подчиняется) не изменится.",
@@ -5598,6 +6048,11 @@
     "uz": "Qo'lda surilgan kartalarni avtomatik joyiga qaytarish",
     "ru": "Вернуть перемещённые вручную карточки на автоматические места",
     "en": "Reset manually moved cards to their automatic positions"
+  },
+  "osc.reset_manual_warn": {
+    "uz": "ta qo'lda surilgan karta avtomatik joyiga qaytariladi. Sxemaning o'zi (kim kimga bo'ysunadi) o'zgarmaydi.",
+    "ru": "вручную передвинутых карточек вернутся на автоматические места. Сама схема (кто кому подчиняется) не изменится.",
+    "en": "manually moved cards will return to their automatic positions. The chart itself (who reports to whom) does not change."
   },
   "osc.reset_node_ok": {
     "uz": "✅ Avtomatik joyiga qaytarildi",
@@ -5614,6 +6069,11 @@
     "ru": "Вернуть",
     "en": "Reset"
   },
+  "osc.right_icons": {
+    "uz": "O'ng tarafdagi ikonalar",
+    "ru": "Иконки справа",
+    "en": "The icons on the right"
+  },
   "osc.root": {
     "uz": "Ildiz",
     "ru": "Корень",
@@ -5629,6 +6089,16 @@
     "ru": "— Корень (без папки) —",
     "en": "— Root (no folder) —"
   },
+  "osc.run_then_refresh": {
+    "uz": "ni bajaring, so'ng sahifani yangilang.",
+    "ru": "— выполните, затем обновите страницу.",
+    "en": "— run it, then refresh the page."
+  },
+  "osc.seat": {
+    "uz": "o'rin",
+    "ru": "место",
+    "en": "seat"
+  },
   "osc.seat_badge": {
     "uz": "{0} o'rin",
     "ru": "{0} мест",
@@ -5638,6 +6108,11 @@
     "uz": "{0} o'rin: {1}",
     "ru": "Мест: {0} — {1}",
     "en": "{0} seats: {1}"
+  },
+  "osc.seat_colon": {
+    "uz": "o'rin:",
+    "ru": "место:",
+    "en": "seat:"
   },
   "osc.seats_added": {
     "uz": "✅ {0} o'rin qo'shildi",
@@ -5649,10 +6124,20 @@
     "ru": "уже на {0} местах",
     "en": "already in {0} seats"
   },
+  "osc.start_with": {
+    "uz": "bilan boshlang — tuzilmani noldan o'zingiz qurasiz.",
+    "ru": "— начните с него: структуру вы строите с нуля сами.",
+    "en": "— start there: you build the structure from scratch yourself."
+  },
   "osc.tables_missing_body": {
     "uz": "Supabase SQL Editor'da <code>TASKFIX_HR.sql</code> ni bajaring, so'ng sahifani yangilang.",
     "ru": "Выполните <code>TASKFIX_HR.sql</code> в Supabase SQL Editor, затем обновите страницу.",
     "en": "Run <code>TASKFIX_HR.sql</code> in the Supabase SQL Editor, then refresh the page."
+  },
+  "osc.tables_missing_short": {
+    "uz": "org_folders/org_people topilmadi — TASKFIX_HR.sql ishga tushirilmagan.",
+    "ru": "org_folders/org_people не найдены — TASKFIX_HR.sql не запущен.",
+    "en": "org_folders/org_people not found — TASKFIX_HR.sql has not been run."
   },
   "osc.tables_missing_title": {
     "uz": "Sxema jadvallari topilmadi",
@@ -5729,6 +6214,16 @@
     "ru": "После подключения при регистрации новых пользователей <b>вы сразу получите уведомление в Telegram</b> и сможете нажать в боте кнопки «Подтвердить»/«Отклонить».",
     "en": "Once connected, when new users sign up <b>you get an instant Telegram notification</b> and can press the Approve/Reject buttons in the bot."
   },
+  "page-botsettings.after_press": {
+    "uz": "tugmasini bosgach, bog'lanish tugaydi va siz xabarlar ola boshlaysiz.",
+    "ru": "— после этого привязка завершится и вы начнёте получать сообщения.",
+    "en": "— after that the link is complete and you will start receiving messages."
+  },
+  "page-botsettings.already_linked": {
+    "uz": "botiga allaqachon bog'langan.",
+    "ru": "— уже привязан к боту.",
+    "en": "— already linked to the bot."
+  },
   "page-botsettings.approval_hint": {
     "uz": "(yangi foydalanuvchi avval admin tomonidan tasdiqlanishi kerak)",
     "ru": "(нового пользователя сначала должен подтвердить админ)",
@@ -5769,6 +6264,11 @@
     "ru": "Какие данные запрашивать при регистрации?",
     "en": "What information should be collected at sign-up?"
   },
+  "page-botsettings.connect_failed": {
+    "uz": "Bot ulashda xatolik:",
+    "ru": "Ошибка при подключении бота:",
+    "en": "Failed to connect the bot:"
+  },
   "page-botsettings.copy_btn": {
     "uz": "📋 Nusxalash",
     "ru": "📋 Копировать",
@@ -5794,6 +6294,11 @@
     "ru": "Можно использовать HTML-форматирование: <b>bold</b>, <i>italic</i>, <code>code</code>",
     "en": "HTML formatting is allowed: <b>bold</b>, <i>italic</i>, <code>code</code>"
   },
+  "page-botsettings.link_15min": {
+    "uz": "⏱ Havola 15 daqiqa amal qiladi. Bot ichida",
+    "ru": "⏱ Ссылка действует 15 минут. В боте нажмите",
+    "en": "⏱ The link is valid for 15 minutes. In the bot, press"
+  },
   "page-botsettings.link_ttl": {
     "uz": "ℹ Link 1 soat davomida amal qiladi va faqat bir marta ishlatiladi.",
     "ru": "ℹ Ссылка действует 1 час и используется только один раз.",
@@ -5803,6 +6308,11 @@
     "uz": "Linkni Telegram'da oching:",
     "ru": "Откройте ссылку в Telegram:",
     "en": "Open the link in Telegram:"
+  },
+  "page-botsettings.open_link_to_link": {
+    "uz": "botiga bog'lash uchun quyidagi havolani oching:",
+    "ru": "— откройте ссылку ниже, чтобы привязать к боту:",
+    "en": "— open the link below to link it to the bot:"
   },
   "page-botsettings.pending_label": {
     "uz": "Kutish xabari (foydalanuvchi tasdiq kutayotgan paytda)",
@@ -5854,10 +6364,20 @@
     "ru": "Настройте сообщения бота и процесс регистрации. Изменения вступают в силу сразу.",
     "en": "Configure your bot's messages and the sign-up flow. Changes take effect immediately."
   },
+  "page-botsettings.tg_name": {
+    "uz": "Telegram nomi:",
+    "ru": "Имя в Telegram:",
+    "en": "Telegram name:"
+  },
   "page-botsettings.title": {
     "uz": "Bot sozlamalari",
     "ru": "Настройки бота",
     "en": "Bot settings"
+  },
+  "page-botsettings.token_invalid": {
+    "uz": "Bot token noto'g'ri:",
+    "ru": "Неверный токен бота:",
+    "en": "Invalid bot token:"
   },
   "page-botsettings.webhook_hint": {
     "uz": "Agar bot javob bermayotgan bo'lsa yoki webhook adresi adashgan bo'lsa, qayta o'rnating.",
@@ -5868,6 +6388,11 @@
     "uz": "Salom xabar (/start javobi — birinchi marta keluvchilar uchun)",
     "ru": "Приветственное сообщение (ответ на /start — для новых пользователей)",
     "en": "Welcome message (reply to /start — for first-time users)"
+  },
+  "page-botsettings.you_get_tg_msg": {
+    "uz": "siz Telegram'da darrov xabar olasiz",
+    "ru": "вы сразу получите сообщение в Telegram",
+    "en": "you get a Telegram message right away"
   },
   "page-branches.empty_hint": {
     "uz": "— \"+ Yangi filial\" tugmasi bilan birinchi filialingizni yarating.",
@@ -5899,6 +6424,11 @@
     "ru": "Филиалы",
     "en": "Branches"
   },
+  "page-dashboard.emp_load": {
+    "uz": "Xodim yuklamasi",
+    "ru": "Загрузка сотрудников",
+    "en": "Employee workload"
+  },
   "page-dashboard.near_deadlines": {
     "uz": "Yaqin deadline'lar",
     "ru": "Ближайшие дедлайны",
@@ -5928,6 +6458,11 @@
     "uz": "jami",
     "ru": "всего",
     "en": "total"
+  },
+  "page-departments.add": {
+    "uz": "+ Yangi bo'lim",
+    "ru": "+ Новый отдел",
+    "en": "+ New department"
   },
   "page-departments.search_ph": {
     "uz": "Bo'lim nomi yoki tavsif bo'yicha qidirish...",
@@ -6038,6 +6573,16 @@
     "uz": "Bajarilganlarni yashirish",
     "ru": "Скрыть выполненные",
     "en": "Hide completed"
+  },
+  "page-planner.hint_click": {
+    "uz": "Kalendarda bo'sh joyni bosing",
+    "ru": "Нажмите на свободное место в календаре",
+    "en": "Click an empty slot in the calendar"
+  },
+  "page-planner.hint_drag": {
+    "uz": "Vazifani kalendarga sudrab olib boring →",
+    "ru": "Перетащите задачу в календарь →",
+    "en": "Drag a task onto the calendar →"
   },
   "page-planner.namoz_show": {
     "uz": "☾ Vaqtlar",
@@ -6233,6 +6778,11 @@
     "uz": "Yangi xodim qo'shish",
     "ru": "Добавить нового сотрудника",
     "en": "Add new employee"
+  },
+  "page-settings.add_ws_member": {
+    "uz": "Workspace a'zosi qo'shish",
+    "ru": "Добавить участника воркспейса",
+    "en": "Add a workspace member"
   },
   "page-settings.attach_paste_hint": {
     "uz": "💡 Yoki <b>Ctrl+V</b> (Mac: <b>⌘+V</b>) — clipboard'dan paste qiling",
@@ -7249,6 +7799,11 @@
     "ru": "Пусть отправят {0} вашему боту — список появится здесь.",
     "en": "Have them send {0} to your bot, and the list will appear here."
   },
+  "page-tgusers.press_hint": {
+    "uz": "bossin, ro'yxat shu yerda paydo bo'ladi.",
+    "ru": "— и список появится здесь.",
+    "en": "— and the list will appear here."
+  },
   "page-tgusers.search_ph": {
     "uz": "Ism, telefon, lavozim, filial bo'yicha qidirish...",
     "ru": "Поиск по имени, телефону, должности, филиалу...",
@@ -7554,6 +8109,11 @@
     "ru": "Моё расписание",
     "en": "My schedule"
   },
+  "pln.will_be_planned": {
+    "uz": "🗓 Rejaga qo'shiladi:",
+    "ru": "🗓 Будет добавлено в план:",
+    "en": "🗓 Will be added to the plan:"
+  },
   "ppl.accept_btn": {
     "uz": "✅ Qabul qildim",
     "ru": "✅ Принимаю",
@@ -7568,6 +8128,11 @@
     "uz": "📤 Bu vazifa bajarildi va sizning qabulingizni kutmoqda",
     "ru": "📤 Задача выполнена и ждёт вашей приёмки",
     "en": "📤 This task is done and waiting for you to accept it"
+  },
+  "ppl.awaiting_acceptance": {
+    "uz": "qabul qilishini kutmoqda",
+    "ru": "ожидает приёмки",
+    "en": "is awaiting acceptance"
   },
   "ppl.check_hint": {
     "uz": "Tekshiring: ish to'g'ri bajarilgan bo'lsa qabul qiling, aks holda bajaruvchiga qaytaring.",
@@ -8049,6 +8614,11 @@
     "ru": "⚠️ Новый повтор сохранён, но старая настройка не удалена — попробуйте ещё раз",
     "en": "⚠️ The new recurrence was saved, but the old setting wasn't cleared — please try again"
   },
+  "prj.locks_not_updated": {
+    "uz": "ta qulf yangilanmadi",
+    "ru": "блокировок не обновлено",
+    "en": "locks were not updated"
+  },
   "prj.member_removed": {
     "uz": "Olib tashlandi",
     "ru": "Удалено",
@@ -8164,6 +8734,16 @@
     "ru": "Исполнитель не назначен",
     "en": "No assignee"
   },
+  "prj.no_flow_col": {
+    "uz": "flow_type ustuni yo'q (TASKFIX_PROJECT.sql):",
+    "ru": "Нет колонки flow_type (TASKFIX_PROJECT.sql):",
+    "en": "The flow_type column is missing (TASKFIX_PROJECT.sql):"
+  },
+  "prj.no_loyiha_cols": {
+    "uz": "Loyiha muddati ustunlari yo'q (TASKFIX_LOYIHA.sql):",
+    "ru": "Нет колонок сроков проекта (TASKFIX_LOYIHA.sql):",
+    "en": "Project date columns are missing (TASKFIX_LOYIHA.sql):"
+  },
   "prj.no_stages_card": {
     "uz": "Bosqich qo'shilmagan",
     "ru": "Этапы не добавлены",
@@ -8268,6 +8848,11 @@
     "uz": "Boshlanish: {0}",
     "ru": "Начало: {0}",
     "en": "Start: {0}"
+  },
+  "prj.recur_created": {
+    "uz": "🔁 Takror vazifa yaratildi (",
+    "ru": "🔁 Повторная задача создана (",
+    "en": "🔁 Recurring task created ("
   },
   "prj.recur_daily": {
     "uz": "Har kuni",
@@ -8599,6 +9184,11 @@
     "ru": "Суббота",
     "en": "Saturday"
   },
+  "pwa.add_to_home": {
+    "uz": "Bosh ekranga qo'shish",
+    "ru": "Добавить на главный экран",
+    "en": "Add to Home Screen"
+  },
   "pwa.inapp_text": {
     "uz": "TaskFix'ni bosh ekranga qo'shing",
     "ru": "Добавьте TaskFix на главный экран",
@@ -8629,6 +9219,16 @@
     "ru": "Задача",
     "en": "Task"
   },
+  "rmx.confirm_no_tasks": {
+    "uz": "ni jamoadan chiqaramizmi? Unga biriktirilgan vazifa yo'q.",
+    "ru": "— убрать из команды? Задач на нём нет.",
+    "en": "— remove from the team? They have no assigned tasks."
+  },
+  "rmx.no_assignee_chosen": {
+    "uz": "ta vazifa uchun xodim tanlanmadi — ular biriktirilmagan holatga o'tadi. Davom etamizmi?",
+    "ru": "для задач исполнитель не выбран — они останутся без исполнителя. Продолжить?",
+    "en": "tasks have no assignee chosen — they will be left unassigned. Continue?"
+  },
   "rmx.no_deadline": {
     "uz": "Deadline yo'q",
     "ru": "Без срока",
@@ -8654,6 +9254,11 @@
     "ru": "Не удалено — возможно, у вас нет прав (RLS).",
     "en": "Not removed — you may not have permission (RLS)."
   },
+  "rmx.remove_stopped": {
+    "uz": "— o'chirish to'xtatildi",
+    "ru": "— удаление остановлено",
+    "en": "— removal stopped"
+  },
   "rmx.remove_without_assign": {
     "uz": "Biriktirmasdan o'chirish",
     "ru": "Удалить без переназначения",
@@ -8663,6 +9268,11 @@
     "uz": "✓ {0} jamoadan chiqarildi",
     "ru": "✓ {0} удалён(а) из команды",
     "en": "✓ {0} was removed from the team"
+  },
+  "rmx.tasks_read_failed": {
+    "uz": "Vazifalar ro'yxati o'qilmadi:",
+    "ru": "Список задач не прочитан:",
+    "en": "Could not read the task list:"
   },
   "rmx.title": {
     "uz": "Xodimni o'chirish",
@@ -8743,6 +9353,11 @@
     "uz": "Ism kerak",
     "ru": "Укажите имя",
     "en": "Name is required"
+  },
+  "rt.no_such_page": {
+    "uz": "bunday sahifa yo'q:",
+    "ru": "такой страницы нет:",
+    "en": "no such page:"
   },
   "rt.password_updated": {
     "uz": "✓ Parol yangilandi",
@@ -8904,6 +9519,11 @@
     "ru": "Пересчитывает рабочие дни по шаблону выбранного режима (employee_schedule_days).",
     "en": "Recalculates working days from the selected mode's pattern (employee_schedule_days)."
   },
+  "sch.selected_off_days": {
+    "uz": "Tanlangan dam kunlari:",
+    "ru": "Выбранные выходные:",
+    "en": "Selected days off:"
+  },
   "sch.type_label": {
     "uz": "Jadval turi",
     "ru": "Тип графика",
@@ -8929,6 +9549,11 @@
     "ru": "Начало рабочего дня",
     "en": "Work start time"
   },
+  "sch.workday_suffix": {
+    "uz": "ish kuni",
+    "ru": "рабочих дней",
+    "en": "working days"
+  },
   "ss.nothing_found": {
     "uz": "Hech narsa topilmadi",
     "ru": "Ничего не найдено",
@@ -8953,6 +9578,11 @@
     "uz": "Siz",
     "ru": "Вы",
     "en": "You"
+  },
+  "tbl.accept_col_failed": {
+    "uz": "Qabul kutilyapti ustuni qo'shilmadi:",
+    "ru": "Колонка «Ожидает приёмки» не добавлена:",
+    "en": "The \"Awaiting acceptance\" column was not added:"
   },
   "tbl.assignee_none": {
     "uz": "— (bo'sh qoldirish)",
@@ -9029,6 +9659,11 @@
     "ru": "✓ Задача добавлена",
     "en": "✓ Task added"
   },
+  "tg.added_by": {
+    "uz": "qo'shdi:",
+    "ru": "добавил:",
+    "en": "added:"
+  },
   "tg.assign_title": {
     "uz": "Yangi vazifa biriktirildi",
     "ru": "Назначена новая задача",
@@ -9053,6 +9688,16 @@
     "uz": "⚙️ Jarayonda",
     "ru": "⚙️ В работе",
     "en": "⚙️ In progress"
+  },
+  "tg.changed_by": {
+    "uz": "O'zgartirgan:",
+    "ru": "Изменил:",
+    "en": "Changed by:"
+  },
+  "tg.dept_label": {
+    "uz": "📂 Bo'lim:",
+    "ru": "📂 Отдел:",
+    "en": "📂 Department:"
   },
   "tg.field_assignee_tg": {
     "uz": "Mas'ul (Telegram)",
@@ -9079,6 +9724,21 @@
     "ru": "🔥 Приоритет: P{0}",
     "en": "🔥 Priority: P{0}"
   },
+  "tg.new_comment": {
+    "uz": "Yangi izoh:",
+    "ru": "Новый комментарий:",
+    "en": "New comment:"
+  },
+  "tg.new_file": {
+    "uz": "Yangi fayl:",
+    "ru": "Новый файл:",
+    "en": "New file:"
+  },
+  "tg.new_status": {
+    "uz": "Yangi holat:",
+    "ru": "Новый статус:",
+    "en": "New status:"
+  },
   "tg.section_added": {
     "uz": "✈ Telegram bo'limi qo'shildi — chapdagi menyudan oching",
     "ru": "✈ Раздел Telegram добавлен — откройте его в меню слева",
@@ -9088,6 +9748,11 @@
     "uz": "Tekshiruvda",
     "ru": "На проверке",
     "en": "In review"
+  },
+  "tg.task_status": {
+    "uz": "Vazifa holati:",
+    "ru": "Статус задачи:",
+    "en": "Task status:"
   },
   "tg.token_format_invalid": {
     "uz": "Token formati noto'g'ri. BotFather bergan tokendan nusxa olganingizga ishonch hosil qiling.",
@@ -9119,14 +9784,29 @@
     "ru": "История не включена — <b>TASKFIX_HISTORY.sql</b> не запущен в Supabase.",
     "en": "History is not enabled — <b>TASKFIX_HISTORY.sql</b> has not been run in Supabase."
   },
+  "th.not_run_in_supabase": {
+    "uz": "Supabase'da ishga tushirilmagan.",
+    "ru": "не запущен в Supabase.",
+    "en": "has not been run in Supabase."
+  },
   "th.read_failed": {
     "uz": "Tarixni o'qib bo'lmadi: {0}",
     "ru": "Не удалось прочитать историю: {0}",
     "en": "Could not read the history: {0}"
   },
+  "th.read_failed_label": {
+    "uz": "Tarixni o'qib bo'lmadi:",
+    "ru": "Не удалось прочитать историю:",
+    "en": "Could not read the history:"
+  },
   "th.section_title": {
     "uz": "Tarix",
     "ru": "История",
     "en": "History"
+  },
+  "th.table_missing_toast": {
+    "uz": "task_history jadvali yo'q — TASKFIX_HISTORY.sql ishga tushirilmagan",
+    "ru": "Таблицы task_history нет — TASKFIX_HISTORY.sql не запущен",
+    "en": "The task_history table is missing — TASKFIX_HISTORY.sql has not been run"
   }
 }
