@@ -2944,6 +2944,11 @@
     "ru": "📤 Передано принимающему",
     "en": "📤 Submitted to the acceptor"
   },
+  "common.status_submitted_short": {
+    "uz": "Qabul kutilyapti",
+    "ru": "Ожидает приёмки",
+    "en": "Awaiting acceptance"
+  },
   "common.status_updated": {
     "uz": "✅ Holat yangilandi",
     "ru": "✅ Статус обновлён",
@@ -3654,6 +3659,16 @@
     "ru": "Изменить это может только автор задачи или админ/владелец",
     "en": "Only the task author or an admin/owner can change this"
   },
+  "dft.prj_kinds_intro": {
+    "uz": "Loyiha ikki xil bo'ladi:",
+    "ru": "Проекты бывают двух типов:",
+    "en": "Projects come in two kinds:"
+  },
+  "dft.prj_par_desc": {
+    "uz": "— hamma vazifa birdan ochiq. Qaysi bosqichda ekanini va kim ushlab turganini shu yerdan ko'ring.",
+    "ru": "— все задачи открыты сразу. Здесь видно, на каком этапе проект и кто его держит.",
+    "en": "— all tasks are open at once. See here which stage the project is at and who is holding it up."
+  },
   "dft.prj_parallel": {
     "uz": "Parallel",
     "ru": "Параллельный",
@@ -3663,6 +3678,11 @@
     "uz": "Hamma vazifa birdan ochiq. Istalgan tartibda bajariladi.",
     "ru": "Все задачи открыты сразу. Выполняются в любом порядке.",
     "en": "All tasks are open at once. They can be done in any order."
+  },
+  "dft.prj_seq_desc": {
+    "uz": "— bosqichlar navbatma-navbat ochiladi;",
+    "ru": "— этапы открываются по очереди;",
+    "en": "— stages open one after another;"
   },
   "dft.prj_sequential": {
     "uz": "Ketma-ket",
@@ -4138,6 +4158,21 @@
     "uz": "(nomsiz filial)",
     "ru": "(филиал без названия)",
     "en": "(untitled branch)"
+  },
+  "gs.hint_close": {
+    "uz": "yopish",
+    "ru": "закрыть",
+    "en": "close"
+  },
+  "gs.hint_move": {
+    "uz": "harakat",
+    "ru": "перемещение",
+    "en": "move"
+  },
+  "gs.hint_open": {
+    "uz": "ochish",
+    "ru": "открыть",
+    "en": "open"
   },
   "gs.hint_start_typing": {
     "uz": "Yozishni boshlang — xodim (ism, email, telefon), vazifa, loyiha, bo'lim, filial yoki lavozim.",
@@ -6959,6 +6994,11 @@
     "ru": "Здесь вы управляете тем, при каких действиях сотрудникам уходит email. По умолчанию <b>всё выключено</b> — нужное включаете сами. При выключенном действии email <b>не отправляется вообще</b>. Настройка действует на всё рабочее пространство.",
     "en": "Control which actions send an email to employees. By default <b>everything is off</b> — you turn on only what you need. For a disabled action no email is sent <b>at all</b>. The setting applies to the whole workspace."
   },
+  "page-settings.email_notif_title": {
+    "uz": "Email bildirishnomalari",
+    "ru": "Email-уведомления",
+    "en": "Email notifications"
+  },
   "page-settings.email_set_cancel": {
     "uz": "Bekor qilish",
     "ru": "Отменить",
@@ -8214,6 +8254,11 @@
     "ru": "Сделать существующие {0} этап(ов) тоже последовательными? (все, кроме первого, будут заблокированы)",
     "en": "Make the existing {0} stages sequential too? (all but the first get locked)"
   },
+  "prj.assignees_count": {
+    "uz": "{0} ta bajaruvchi",
+    "ru": "Исполнителей: {0}",
+    "en": "{0} assignees"
+  },
   "prj.btn_add": {
     "uz": "Qo'shish",
     "ru": "Добавить",
@@ -8973,6 +9018,11 @@
     "uz": "{0}-bosqich",
     "ru": "Этап {0}",
     "en": "Stage {0}"
+  },
+  "prj.stages_progress": {
+    "uz": "{0} / {1} bosqich",
+    "ru": "{0} / {1} этапов",
+    "en": "{0} / {1} stages"
   },
   "prj.stages_reset_denied": {
     "uz": "Bosqichlar yangilanmadi — ruxsat yo'q",
