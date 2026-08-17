@@ -673,6 +673,9 @@
   .ppl-you { display: inline-block; margin-left: 4px; font-size: 9px; font-weight: 600; color: var(--muted);
              background: var(--surface); border: 1px solid var(--line-soft); border-radius: 99px; padding: 0 5px; line-height: 13px; vertical-align: 1px; }
 
+  /* Qidiruv maydonlari type="search" ga o'tkazildi (brauzer email avtofillini to'sish uchun) —
+     native tozalash tugmasi ilova dizayniga kirmaydi, shuning uchun yashiriladi. */
+  input[type="search"]::-webkit-search-cancel-button, input[type="search"]::-webkit-search-decoration { -webkit-appearance: none; appearance: none; }
   .status-pick { display: flex; gap: 6px; flex-wrap: wrap; }
   .status-pick .filter-btn { font-size: 12.5px; padding: 6px 10px; }
   .dept-picker { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; border: 1px solid var(--line); border-radius: 10px; padding: 8px; background: #FCFCFB; }
@@ -3376,7 +3379,7 @@
       <div class="topbar-search" id="topSearchWrap" data-i18n-title="html-shell.search_title" title="Qidiruv (Ctrl+K)" onclick="gsFocus()">
         <button class="mob-search-back" id="mobSearchBack" type="button" onclick="event.stopPropagation();mobSearchClose()" data-i18n-aria="html-shell.search_close" aria-label="Qidiruvni yopish"></button>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
-        <input id="topSearchInp" type="text" data-i18n-ph="html-shell.search_ph" placeholder="Qidiruv: xodim, vazifa, loyiha, bo'lim…" oninput="gsOnInput()" onkeydown="gsKey(event)" onfocus="gsOpen()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="flex:1;border:none;background:transparent;outline:none;font-family:inherit;font-size:13px;color:var(--ink);min-width:0;" />
+        <input data-lpignore="true" data-1p-ignore data-form-type="other" name="tf-q" id="topSearchInp" type="search" data-i18n-ph="html-shell.search_ph" placeholder="Qidiruv: xodim, vazifa, loyiha, bo'lim…" oninput="gsOnInput()" onkeydown="gsKey(event)" onfocus="gsOpen()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="flex:1;border:none;background:transparent;outline:none;font-family:inherit;font-size:13px;color:var(--ink);min-width:0;" />
         <div id="gsSpin" class="gs-spin"></div>
         <button id="gsClear" class="gs-clear" type="button" data-i18n-title="html-shell.clear" title="Tozalash" onclick="event.stopPropagation();gsClearInput()">×</button>
         <span class="kbd">⌘K</span>
@@ -3487,7 +3490,7 @@
             <span>👥</span><span id="empFilterLabel" data-i18n="common.emp_filter_all">Xodim: Barchasi</span><span class="emp-filter-caret">▾</span>
           </button>
           <div class="emp-filter-panel" id="empFilterPanel" style="display:none;">
-            <input type="text" id="empFilterSearch" class="emp-filter-search" data-i18n-ph="page-tasks.ph_search_employee" placeholder="Xodim qidirish…" oninput="empFilterRenderList('tasks')" autocomplete="off" />
+            <input data-lpignore="true" data-1p-ignore data-form-type="other" name="tf-q" type="search" id="empFilterSearch" class="emp-filter-search" data-i18n-ph="page-tasks.ph_search_employee" placeholder="Xodim qidirish…" oninput="empFilterRenderList('tasks')" autocomplete="off" />
             <div class="emp-filter-list" id="empFilterList"></div>
           </div>
         </div>
@@ -3495,7 +3498,7 @@
       </div>
       <div id="tasksView-list">
         <div class="search-row">
-          <input type="text" class="search-input" id="tasksSearch" data-i18n-ph="page-tasks.ph_search_tasks_full" placeholder="Vazifalar bo'yicha qidirish… (nom, tavsif)" oninput="onTasksSearch()" />
+          <input data-lpignore="true" data-1p-ignore data-form-type="other" name="tf-q" autocomplete="off" type="search" class="search-input" id="tasksSearch" data-i18n-ph="page-tasks.ph_search_tasks_full" placeholder="Vazifalar bo'yicha qidirish… (nom, tavsif)" oninput="onTasksSearch()" />
           <select id="tasksAsgFilter" onchange="renderTasksList()" style="padding:9px 12px; border:1px solid var(--line); border-radius:10px; font-size:13px; background: var(--surface); font-family:inherit;">
             <option value="all" data-i18n="common.flt_all_assignees">Hamma biriktirilganlar</option>
             <option value="me" data-i18n="common.flt_only_me">Faqat menga</option>
@@ -3514,7 +3517,7 @@
       </div>
       <div id="tasksView-kanban" style="display:none">
         <div class="kanban-toolbar">
-          <input type="text" class="search-input" id="tkSearch" data-i18n-ph="page-tasks.ph_search_task" placeholder="Vazifa qidirish..." oninput="renderTasksKanban()" style="max-width: 280px;" />
+          <input data-lpignore="true" data-1p-ignore data-form-type="other" name="tf-q" autocomplete="off" type="search" class="search-input" id="tkSearch" data-i18n-ph="page-tasks.ph_search_task" placeholder="Vazifa qidirish..." oninput="renderTasksKanban()" style="max-width: 280px;" />
           <select id="tkAsgFilter" onchange="renderTasksKanban()" style="padding:9px 12px; border:1px solid var(--line); border-radius:10px; font-size:13px; background: var(--surface); font-family:inherit;">
             <option value="all" data-i18n="common.flt_all_assignees">Hamma biriktirilganlar</option>
             <option value="me" data-i18n="common.flt_only_me">Faqat menga</option>
@@ -3549,7 +3552,7 @@
           <button class="tbl-sv"        data-sv="workload"  onclick="tblSetSubview('workload')" data-i18n="page-dashboard.emp_load">Xodim yuklamasi</button>
         </div>
         <div class="tbl-toolbar">
-          <input type="text" class="search-input" id="tblSearch" data-i18n-ph="page-tasks.ph_search" placeholder="Qidirish..." oninput="renderTasksTable()" style="max-width:260px;" />
+          <input data-lpignore="true" data-1p-ignore data-form-type="other" name="tf-q" autocomplete="off" type="search" class="search-input" id="tblSearch" data-i18n-ph="page-tasks.ph_search" placeholder="Qidirish..." oninput="renderTasksTable()" style="max-width:260px;" />
           <button class="btn sm secondary" onclick="tblClearFilters()" id="tblClearBtn" style="display:none;">✕ Filtrlarni tozalash</button>
           <div style="flex:1"></div>
           <span style="font-size:11.5px;color:var(--muted);margin-right:6px;">Shift+Enter = yangi qator</span>
@@ -3568,7 +3571,7 @@
         <button class="btn" id="newDeptBtn" onclick="openNewDept()" style="display:none" data-i18n="page-departments.add">+ Yangi bo'lim</button>
       </div>
       <div class="search-row">
-        <input type="text" class="search-input" id="deptSearch" data-i18n-ph="page-departments.search_ph" placeholder="Bo'lim nomi yoki tavsif bo'yicha qidirish..." oninput="renderDeptsList()" />
+        <input data-lpignore="true" data-1p-ignore data-form-type="other" name="tf-q" autocomplete="off" type="search" class="search-input" id="deptSearch" data-i18n-ph="page-departments.search_ph" placeholder="Bo'lim nomi yoki tavsif bo'yicha qidirish..." oninput="renderDeptsList()" />
       </div>
       <div id="deptsList" class="list"></div>
       <div id="deptsEmpty" class="empty" style="display:none" data-i18n-txt="common.dept_empty_hint"><strong data-i18n="common.dept_empty_title">Hali bo'lim yo'q</strong>Bo'limlar (IT, HR, Savdo, ...) yarating.</div>
@@ -3604,7 +3607,7 @@
             <span>👥</span><span id="deptEmpFilterLabel" data-i18n="common.emp_filter_all">Xodim: Barchasi</span><span class="emp-filter-caret">▾</span>
           </button>
           <div class="emp-filter-panel" id="deptEmpFilterPanel" style="display:none;">
-            <input type="text" id="deptEmpFilterSearch" class="emp-filter-search" data-i18n-ph="page-tasks.ph_search_employee" placeholder="Xodim qidirish…" oninput="empFilterRenderList('dept')" autocomplete="off" />
+            <input data-lpignore="true" data-1p-ignore data-form-type="other" name="tf-q" type="search" id="deptEmpFilterSearch" class="emp-filter-search" data-i18n-ph="page-tasks.ph_search_employee" placeholder="Xodim qidirish…" oninput="empFilterRenderList('dept')" autocomplete="off" />
             <div class="emp-filter-list" id="deptEmpFilterList"></div>
           </div>
         </div>
@@ -3613,7 +3616,7 @@
 
       <div id="deptView-kanban">
         <div class="kanban-toolbar">
-          <input type="text" class="search-input" id="kanSearch" data-i18n-ph="page-tasks.ph_search_task" placeholder="Vazifa qidirish..." oninput="renderKanban()" style="max-width: 280px;" />
+          <input data-lpignore="true" data-1p-ignore data-form-type="other" name="tf-q" autocomplete="off" type="search" class="search-input" id="kanSearch" data-i18n-ph="page-tasks.ph_search_task" placeholder="Vazifa qidirish..." oninput="renderKanban()" style="max-width: 280px;" />
           <select id="kanAsgFilter" onchange="renderKanban()" style="padding:9px 12px; border:1px solid var(--line); border-radius:10px; font-size:13px; background: var(--surface); font-family:inherit;">
             <option value="all" data-i18n="common.flt_all_assignees">Hamma biriktirilganlar</option>
             <option value="me" data-i18n="common.flt_only_me">Faqat menga</option>
@@ -3747,7 +3750,7 @@
       -->
       <div id="teamPaneHodimlar" style="margin-top:16px;">
         <div class="tbl-toolbar" style="flex-wrap:wrap;">
-          <input type="text" class="search-input" id="teamSearch" data-i18n-ph="page-team.search_placeholder" placeholder="🔍 Ism, familiya, telefon yoki email..." oninput="teamOnFilterChange()" style="max-width:280px;" />
+          <input data-lpignore="true" data-1p-ignore data-form-type="other" name="tf-q" autocomplete="off" type="search" class="search-input" id="teamSearch" data-i18n-ph="page-team.search_placeholder" placeholder="🔍 Ism, familiya, telefon yoki email..." oninput="teamOnFilterChange()" style="max-width:280px;" />
           <select class="team-flt" id="teamFltBranch" onchange="teamOnFilterChange()"></select>
           <select class="team-flt" id="teamFltPos" onchange="teamOnFilterChange()"></select>
           <span class="team-flt-lbl">Shartnoma:</span>
@@ -3825,7 +3828,7 @@
       </div>
 
       <div class="search-row">
-        <input type="text" class="search-input" id="tgSearch" data-i18n-ph="page-tgusers.search_ph" placeholder="Ism, telefon, lavozim, filial bo'yicha qidirish..." oninput="renderTgUsersFiltered()" />
+        <input data-lpignore="true" data-1p-ignore data-form-type="other" name="tf-q" autocomplete="off" type="search" class="search-input" id="tgSearch" data-i18n-ph="page-tgusers.search_ph" placeholder="Ism, telefon, lavozim, filial bo'yicha qidirish..." oninput="renderTgUsersFiltered()" />
         <select id="tgBranchFilter" onchange="renderTgUsersFiltered()" style="padding:9px 12px; border:1px solid var(--line); border-radius:10px; font-size:13px; background: var(--surface); font-family:inherit;">
           <option value="all" data-i18n="common.all_branches">Hamma filiallar</option>
         </select>
@@ -3848,7 +3851,7 @@
       </div>
       <div style="margin-bottom: 14px; font-size: 13.5px; color: var(--muted);" data-i18n="page-branches.subtitle">Sizning kompaniya filiallari. Har xodim biror filialga biriktiriladi.</div>
       <div class="search-row">
-        <input type="text" class="search-input" id="branchSearch" data-i18n-ph="page-branches.search_ph" placeholder="Filial nomi yoki manzil bo'yicha qidirish..." oninput="renderBranches()" />
+        <input data-lpignore="true" data-1p-ignore data-form-type="other" name="tf-q" autocomplete="off" type="search" class="search-input" id="branchSearch" data-i18n-ph="page-branches.search_ph" placeholder="Filial nomi yoki manzil bo'yicha qidirish..." oninput="renderBranches()" />
       </div>
       <div id="branchesList" class="list"></div>
       <div id="branchesEmpty" class="empty" style="display:none" data-i18n-txt="page-branches.empty_hint"><strong data-i18n="page-branches.empty_title">Filial yo'q</strong> — "+ Yangi filial" tugmasi bilan birinchi filialingizni yarating.</div>
@@ -3861,7 +3864,7 @@
       </div>
       <div style="margin-bottom: 14px; font-size: 13.5px; color: var(--muted);" data-i18n="page-positions.subtitle">Lavozimlar bo'yicha xodimlar ro'yxati. Lavozim bot user'lari profilidan olinadi.</div>
       <div class="search-row">
-        <input type="text" class="search-input" id="posSearch" data-i18n-ph="page-positions.search_ph" placeholder="Lavozim yoki xodim ismi bo'yicha qidirish..." oninput="filterPositionsList()" />
+        <input data-lpignore="true" data-1p-ignore data-form-type="other" name="tf-q" autocomplete="off" type="search" class="search-input" id="posSearch" data-i18n-ph="page-positions.search_ph" placeholder="Lavozim yoki xodim ismi bo'yicha qidirish..." oninput="filterPositionsList()" />
       </div>
       <div id="positionsList" class="list"></div>
       <div id="positionsEmpty" class="empty" style="display:none" data-i18n-txt="page-positions.empty_hint"><strong data-i18n="page-positions.empty_title">Lavozim ma'lumoti yo'q</strong>Avval bot foydalanuvchilarini import qiling.</div>
@@ -4143,7 +4146,7 @@
       <div class="row-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
         <h2 class="h2" style="margin:0" data-i18n="page-logs.title">Loglar (harakatlar tarixi)</h2>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <input id="logSearch" data-i18n-ph="page-tasks.ph_search" placeholder="Qidirish..." oninput="renderLogs()" style="padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;width:200px;" />
+          <input data-lpignore="true" data-1p-ignore data-form-type="other" name="tf-q" autocomplete="off" type="search" id="logSearch" data-i18n-ph="page-tasks.ph_search" placeholder="Qidirish..." oninput="renderLogs()" style="padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;width:200px;" />
           <select id="logActionFilter" onchange="renderLogs()" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;">
             <option value="" data-i18n="page-logs.all_actions">Barcha harakatlar</option>
             <option value="task_created" data-i18n="common.email_task_create_label">Vazifa yaratildi</option>
@@ -4420,7 +4423,7 @@
   <div class="modal">
     <div class="modal-head"><h3 id="ocPickTitle" data-i18n="page-settings.oc_pick_title">Boshliqni tanlash</h3><button class="x-btn" onclick="closeManagerPick()">×</button></div>
     <div class="modal-body" style="max-height:60vh;overflow-y:auto;">
-      <input type="text" id="ocPickSearch" data-i18n-ph="page-tasks.ph_search" placeholder="Qidirish..." oninput="renderManagerPickList()" style="width:100%;margin-bottom:12px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;" />
+      <input data-lpignore="true" data-1p-ignore data-form-type="other" name="tf-q" autocomplete="off" type="search" id="ocPickSearch" data-i18n-ph="page-tasks.ph_search" placeholder="Qidirish..." oninput="renderManagerPickList()" style="width:100%;margin-bottom:12px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;" />
       <div id="ocPickList"></div>
     </div>
     <div class="modal-foot">
@@ -4476,7 +4479,7 @@
     <div class="modal-body">
       <div class="field">
         <label data-i18n="page-settings.oc_add_person_label">Odam tanlang *</label>
-        <input type="text" id="ocAddSearch" data-i18n-ph="page-settings.ph_oc_add_search" placeholder="Qidirish (ism)..." oninput="renderOcAddList()" style="width:100%;margin-bottom:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;" />
+        <input data-lpignore="true" data-1p-ignore data-form-type="other" name="tf-q" autocomplete="off" type="search" id="ocAddSearch" data-i18n-ph="page-settings.ph_oc_add_search" placeholder="Qidirish (ism)..." oninput="renderOcAddList()" style="width:100%;margin-bottom:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;" />
         <div id="ocAddList" style="max-height:260px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:6px;"></div>
         <div style="font-size:11.5px;color:var(--muted);margin-top:6px;" data-i18n-txt="page-settings.oc_add_selected">Tanlangan: <span id="ocAddSelectedName" style="color:var(--ink);font-weight:600;">—</span></div>
       </div>
@@ -5250,7 +5253,7 @@ function ssEnsurePanel() {
   p.className = 'ss-panel';
   p.innerHTML =
     '<div class="ss-search">' + icon('search', 15) +
-      '<input type="text" id="ssSearch" placeholder="' + tr('ss.search_ph', 'Qidirish…') + '" autocomplete="off" oninput="ssPaint()" onkeydown="ssKey(event)">' +
+      '<input data-lpignore="true" data-1p-ignore data-form-type="other" name="tf-q" type="search" id="ssSearch" placeholder="' + tr('ss.search_ph', 'Qidirish…') + '" autocomplete="off" oninput="ssPaint()" onkeydown="ssKey(event)">' +
     '</div>' +
     '<div class="ss-list" id="ssList" role="listbox"></div>' +
     '<div class="ss-foot" id="ssFoot"></div>';
@@ -15818,7 +15821,7 @@ function tblOpenAsgDrop(ev, taskId) {
   const left = Math.min(r.left, window.innerWidth - 280);
   drop.style.cssText = 'position:fixed;z-index:600;left:' + left + 'px;top:' + (r.bottom + 4) + 'px;width:264px;background:var(--surface);border:1px solid var(--line-strong);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);overflow:hidden;';
   drop.innerHTML =
-    '<div style="padding:8px;border-bottom:1px solid var(--line);"><input id="tblAsgSearch" placeholder="' + tr('tbl.employee_search_ph', 'Xodim qidirish...') + '" oninput="tblAsgFilter()" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-size:13px;box-sizing:border-box;" /></div>' +
+    '<div style="padding:8px;border-bottom:1px solid var(--line);"><input data-lpignore="true" data-1p-ignore data-form-type="other" name="tf-q" autocomplete="off" type="search" id="tblAsgSearch" placeholder="' + tr('tbl.employee_search_ph', 'Xodim qidirish...') + '" oninput="tblAsgFilter()" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-size:13px;box-sizing:border-box;" /></div>' +
     '<div id="tblAsgList" style="max-height:240px;overflow-y:auto;"></div>' +
     '<div style="border-top:1px solid var(--line);"><button onclick="tblAsgAddEmployee()" style="width:100%;text-align:left;padding:11px 12px;background:none;border:none;cursor:pointer;font-size:13px;color:var(--accent-ink);font-weight:600;">' + tr('tbl.invite_new_employee', '＋ Yangi xodim taklif qilish') + '</button></div>';
   document.body.appendChild(drop);
@@ -16654,7 +16657,7 @@ function renderTasksKanban(gridId) {
     const colorDot = '<span class="kan-col-color" style="background:' + (col.color || '#94A3B8') + '"></span>';
     const canMng = canEditWorkspace();
     const nameHtml = (canMng && !isFb)
-      ? '<span class="kan-col-name" ondblclick="event.stopPropagation(); editColName(\'' + colId + '\', this)" title="' + tr('common.kan_dblclick_edit', 'Ikki marta bosing — tahrirlash') + '">' + escapeHtml(col.name) + '</span>'
+      ? '<span class="kan-col-name" ondblclick="event.stopPropagation(); editColName(\'' + colId + '\', this)" title="' + tr('common.kan_dblclick_edit', 'Ikki marta bosing — tahrirlash') + '">' + escapeHtml(kanColLabel(col.name)) + '</span>'
       : '<span class="kan-col-name">' + escapeHtml(kanColLabel(col.name)) + '</span>';
     const actions = (!canMng || col.is_default || isFb)
       ? ''
@@ -17918,6 +17921,9 @@ function editColName(colId, el) {
   if (!col) return;
   const original = col.name;
   const isFb = String(colId).startsWith('fallback-');
+  // 🔴 Ekranda TARJIMA turadi (kanColLabel), tahrir esa DB dagi ASL nom ustida boradi —
+  //    aks holda ru tilida ochib, hech narsa o'zgartirmasdan chiqilsa ham bazaga rus nomi yozilardi.
+  el.textContent = original;
   el.contentEditable = 'true';
   el.classList.add('editing');
   el.focus();
@@ -17928,7 +17934,7 @@ function editColName(colId, el) {
     el.contentEditable = 'false';
     el.classList.remove('editing');
     const newName = (el.textContent || '').trim();
-    if (!newName || newName === original) { el.textContent = original; return; }
+    if (!newName || newName === original) { el.textContent = kanColLabel(original); return; }
     try {
       if (isFb) {
         // Fallback bo'lsa — DBda yo'q, yaratish kerak
@@ -17946,12 +17952,12 @@ function editColName(colId, el) {
         col.name = newName;
       }
       toast(tr('common.changed_ok', '✓ O\'zgartirildi'), 'ok');
-    } catch (e) { el.textContent = original; toast(translateErr(e.message), 'err'); }
+    } catch (e) { el.textContent = kanColLabel(original); toast(translateErr(e.message), 'err'); }
   };
   el.addEventListener('blur', save, { once: true });
   el.addEventListener('keydown', e => {
     if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
-    if (e.key === 'Escape') { el.textContent = original; el.blur(); }
+    if (e.key === 'Escape') { el.textContent = kanColLabel(original); el.blur(); }
   });
 }
 
@@ -18824,7 +18830,7 @@ function teamOpenPosDrop(ev, uid) {
   drop.id = 'teamPosDrop';
   drop.style.cssText = 'position:fixed;z-index:600;left:' + left + 'px;top:' + (r.bottom + 4) + 'px;width:264px;background:var(--surface);border:1px solid var(--line-strong);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);overflow:hidden;';
   drop.innerHTML =
-    '<div style="padding:8px;border-bottom:1px solid var(--line);"><input id="teamPosSearch" placeholder="' + tr('common.pos_search_placeholder', 'Lavozim qidirish yoki yangi...') + '" oninput="teamPosFilter()" onkeydown="if(event.key===\'Enter\')teamPosAddFromSearch()" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-size:13px;box-sizing:border-box;" /></div>' +
+    '<div style="padding:8px;border-bottom:1px solid var(--line);"><input data-lpignore="true" data-1p-ignore data-form-type="other" name="tf-q" autocomplete="off" type="search" id="teamPosSearch" placeholder="' + tr('common.pos_search_placeholder', 'Lavozim qidirish yoki yangi...') + '" oninput="teamPosFilter()" onkeydown="if(event.key===\'Enter\')teamPosAddFromSearch()" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-size:13px;box-sizing:border-box;" /></div>' +
     '<div id="teamPosList" style="max-height:240px;overflow-y:auto;"></div>' +
     '<div style="border-top:1px solid var(--line);"><button onclick="teamPosAddFromSearch()" style="width:100%;text-align:left;padding:11px 12px;background:none;border:none;cursor:pointer;font-size:13px;color:var(--accent-ink);font-weight:600;">' + tr('common.pos_add_new', '＋ Yangi lavozim qo\'shish') + '</button></div>';
   document.body.appendChild(drop);
