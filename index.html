@@ -3219,14 +3219,14 @@
       </a>
     </div>
     <div class="brand-hero">
-      <h1>Biznesingiz <span class="au-hl" data-i18n="html-shell.hero_h1_b">bitta oynada</span>.</h1>
+      <h1 data-i18n-txt="html-shell.hero_h1_a">Biznesingiz <span class="au-hl" data-i18n="html-shell.hero_h1_b">bitta oynada</span>.</h1>
       <p data-i18n="html-shell.hero_p">Vazifalar, jamoa va bo'limlar — bitta joyda. Kim nima qilyapti, qachon tugaydi — hammasi ko'rinib turadi.</p>
     </div>
     <div class="au-bottom">
       <ul class="au-feats">
-        <li class="au-feat"><span class="au-feat-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>Vazifa, bo'lim va loyihalar — bitta oqimda</li>
-        <li class="au-feat"><span class="au-feat-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>Telegram bot: bildirishnoma va hisobot</li>
-        <li class="au-feat"><span class="au-feat-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>Org chart, ish jadvali va statistika</li>
+        <li class="au-feat" data-i18n-txt="html-shell.feat_tasks"><span class="au-feat-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>Vazifa, bo'lim va loyihalar — bitta oqimda</li>
+        <li class="au-feat" data-i18n-txt="html-shell.feat_telegram"><span class="au-feat-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>Telegram bot: bildirishnoma va hisobot</li>
+        <li class="au-feat" data-i18n-txt="html-shell.feat_hr"><span class="au-feat-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>Org chart, ish jadvali va statistika</li>
       </ul>
       <div class="au-note" data-i18n-txt="html-shell.no_card"><b data-i18n="html-shell.free_14_days">14 kun bepul</b> · Karta talab qilinmaydi</div>
     </div>
@@ -3887,7 +3887,7 @@
         <div class="field">
           <label style="display:flex; align-items:center; gap: 10px; cursor: pointer;">
             <input type="checkbox" id="bsApproval" style="width: 18px; height: 18px;" />
-            <span>Tasdiq talab qilinadi <span style="color:var(--muted); font-size:12px;" data-i18n="page-botsettings.approval_hint">(yangi foydalanuvchi avval admin tomonidan tasdiqlanishi kerak)</span></span>
+            <span data-i18n-txt="page-botsettings.approval_label">Tasdiq talab qilinadi <span style="color:var(--muted); font-size:12px;" data-i18n="page-botsettings.approval_hint">(yangi foydalanuvchi avval admin tomonidan tasdiqlanishi kerak)</span></span>
           </label>
         </div>
 
@@ -3905,7 +3905,7 @@
           </label>
           <label style="display:flex; align-items:center; gap: 10px; cursor: pointer; padding: 6px 0;">
             <input type="checkbox" id="bsCollectBranch" style="width: 18px; height: 18px;" />
-            <span>▢ Filial <span style="font-size:11.5px;color:var(--muted);" data-i18n="page-botsettings.branch_hint">(workspace'dagi filiallar ro'yxatidan tanlanadi)</span></span>
+            <span data-i18n-txt="page-botsettings.collect_branch">▢ Filial <span style="font-size:11.5px;color:var(--muted);" data-i18n="page-botsettings.branch_hint">(workspace'dagi filiallar ro'yxatidan tanlanadi)</span></span>
           </label>
         </div>
 
@@ -4115,7 +4115,7 @@
         <button class="btn" id="prjNewBtn" onclick="openCreateProject()" style="display:none" data-i18n="page-projects.new_btn">+ Yangi loyiha</button>
       </div>
       <!-- Emoji o'rniga inline SVG (ICON_PATHS: link / zap) — kartadagi nishonlar bilan bir xil to'plam. -->
-      <div style="font-size:12.5px;color:var(--muted);margin:6px 0 16px;" data-i18n-txt="dft.prj_parallel" data-i18n-txt="dft.prj_sequential">Loyiha ikki xil bo'ladi: <b class="prjc-kind"><svg class="ic-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><path d="M8 12h8"/></svg>Ketma-ket</b> — bosqichlar navbatma-navbat ochiladi; <b class="prjc-kind"><svg class="ic-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>Parallel</b> — hamma vazifa birdan ochiq. Qaysi bosqichda ekanini va kim ushlab turganini shu yerdan ko'ring.</div>
+      <div style="font-size:12.5px;color:var(--muted);margin:6px 0 16px;" data-i18n-txt="dft.prj_parallel" data-i18n-txt="dft.prj_sequential">Loyiha ikki xil bo'ladi: <b class="prjc-kind" data-i18n-txt="dft.prj_sequential"><svg class="ic-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><path d="M8 12h8"/></svg>Ketma-ket</b> — bosqichlar navbatma-navbat ochiladi; <b class="prjc-kind" data-i18n-txt="dft.prj_parallel"><svg class="ic-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>Parallel</b> — hamma vazifa birdan ochiq. Qaysi bosqichda ekanini va kim ushlab turganini shu yerdan ko'ring.</div>
       <div id="projectsList"></div>
     </section>
 
@@ -4208,7 +4208,7 @@
       <!-- Email bildirishnomalari — faqat owner/admin ko'radi (loadSettings ochadi) -->
       <div class="settings-section" id="emailSetSection" style="display:none">
         <h3>Email bildirishnomalari</h3>
-        <p class="esn-sub">Qaysi amalda xodimlarga email xat ketishini shu yerdan boshqaring. Sukut bo'yicha <b>hammasi o'chiq</b> — kerakligini o'zingiz yoqasiz. O'chirilgan amalda email <b>umuman yuborilmaydi</b>. Sozlama butun workspace uchun amal qiladi.</p>
+        <p class="esn-sub" data-i18n-txt="emailSet.desc_head">Qaysi amalda xodimlarga email xat ketishini shu yerdan boshqaring. Sukut bo'yicha <b>hammasi o'chiq</b> — kerakligini o'zingiz yoqasiz. O'chirilgan amalda email <b>umuman yuborilmaydi</b>. Sozlama butun workspace uchun amal qiladi.</p>
         <div id="emailSetNote"></div>
         <div id="emailSetList"></div>
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:16px;">
@@ -4478,7 +4478,7 @@
         <label data-i18n="page-settings.oc_add_person_label">Odam tanlang *</label>
         <input type="text" id="ocAddSearch" data-i18n-ph="page-settings.ph_oc_add_search" data-i18n-ph="page-settings.ph_oc_add_search" placeholder="Qidirish (ism)..." oninput="renderOcAddList()" style="width:100%;margin-bottom:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;" />
         <div id="ocAddList" style="max-height:260px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:6px;"></div>
-        <div style="font-size:11.5px;color:var(--muted);margin-top:6px;">Tanlangan: <span id="ocAddSelectedName" style="color:var(--ink);font-weight:600;">—</span></div>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:6px;" data-i18n-txt="page-settings.oc_add_selected">Tanlangan: <span id="ocAddSelectedName" style="color:var(--ink);font-weight:600;">—</span></div>
       </div>
       <div class="field">
         <label data-i18n="page-settings.label_manager_opt">Boshlig'i (ixtiyoriy)</label>
@@ -4542,7 +4542,7 @@
         </div>
       </div>
       <div class="field">
-        <label>Email <span style="color:var(--danger)">*</span></label>
+        <label data-i18n-txt="common.col_email">Email <span style="color:var(--danger)">*</span></label>
         <input id="empEmail" type="email" placeholder="user@example.com" />
         <div style="font-size: 11.5px; color: var(--muted); margin-top:4px;" data-i18n="page-settings.emp_email_hint">Taklif xati shu emailga yuboriladi</div>
       </div>
@@ -4878,7 +4878,7 @@
 </div>
 
 <div class="notif-panel" id="notifPanel">
-  <div class="notif-head">Bildirishnomalar <button class="link-btn" onclick="markAllRead()" data-i18n="page-settings.notif_mark_all">Hammasini o'qildi</button></div>
+  <div class="notif-head" data-i18n-txt="html-shell.notifications">Bildirishnomalar <button class="link-btn" onclick="markAllRead()" data-i18n="page-settings.notif_mark_all">Hammasini o'qildi</button></div>
   <div id="notifList"></div>
 </div>
 <!-- Mobil (≤880px) bildirishnoma paneli ortidagi qatlam. ⚠️ #notifPanel DAN KEYIN
@@ -4998,8 +4998,13 @@ function i18nApplyDom(root) {
   Array.prototype.forEach.call(r.querySelectorAll('[data-i18n-txt]'), el => {
     const key = el.getAttribute('data-i18n-txt');
     if (!key) return;
-    const nodes = Array.prototype.slice.call(el.childNodes).reverse();
-    const node = nodes.find(x => x.nodeType === 3 && x.nodeValue.trim());
+    // ⚠️ ENG UZUN bevosita matn tuguni tanlanadi (oxirgisi emas): matn ikonkadan KEYIN ham
+    //    (`<span>👤</span> Mening profilim`), ikonkadan OLDIN ham (`Tanlangan: <span>…</span>`)
+    //    kelishi mumkin — ikkala holatda ham ma'noli matn eng uzuni bo'ladi.
+    let node = null;
+    Array.prototype.forEach.call(el.childNodes, x => {
+      if (x.nodeType === 3 && x.nodeValue.trim() && (!node || x.nodeValue.trim().length > node.nodeValue.trim().length)) node = x;
+    });
     if (!node) return;
     if (el.dataset.i18nUz_txt === undefined) el.dataset.i18nUz_txt = node.nodeValue;
     const orig = el.dataset.i18nUz_txt;
@@ -6558,7 +6563,7 @@ async function loadProjectDetail() {
     //    blokni o'chirib, "Bosqichlar yo'q" degan yolg'on xabar qoldirardi.
     _prjDenied = true;
     prjTasks = []; prjMembers = []; prjMembersErr = null; window._curProject = null;
-    const t = $('prjTitle'); if (t) t.textContent = 'Loyiha';
+    const t = $('prjTitle'); if (t) t.textContent = tr('mob.page_project', 'Loyiha');
     const mt = $('prjMeta'); if (mt) mt.innerHTML = '';
     const ac = $('prjActions'); if (ac) ac.innerHTML = '';
     prjShowError(tr('common.prj_no_access', 'Bu loyiha sizga ochiq emas'),
@@ -6617,7 +6622,7 @@ function prjRenderHeader(project) {
     const range = prjRangeHtml(project);
     meta.innerHTML = '<div class="prj-chips" style="margin:0;">' + prjTypeChip(project) + prjStateBadge(project, _prjTasksErr ? null : prjTasks) +
       prjRecurChip(project) +
-      '<span class="prj-chip">' + done + '/' + total + ' bajarildi</span></div>' +
+      '<span class="prj-chip">' + done + '/' + total + ' ' + tr('prj.hero_cap_done', 'bajarildi') + '</span></div>' +
       (range ? '<div class="prj-card-dates">' + range + '</div>' : '') +
       (project.description ? '<div style="margin-top:6px;">' + escapeHtml(project.description) + '</div>' : '');
   }
@@ -6734,7 +6739,7 @@ function prjTaskCardHtml(t, i, list, ft, curId, canEdit) {
     state = '<span class="prj-state cancel">' + icon('x', 12) + '' + tr('prj.state_cancelled', 'Bekor qilingan') + '</span>';
   } else if (isDone) {
     cls += ' done'; nodeCls = ' done';
-    state = '<span class="prj-state done">' + icon('check', 12) + 'Bajarildi</span>';
+    state = '<span class="prj-state done">' + icon('check', 12) + '' + tr('common.done_title', 'Bajarildi') + '</span>';
   } else if (isCur) {
     cls += ' cur'; nodeCls = ' cur';
     state = '<span class="prj-state cur">' + icon('play', 11) + '' + tr('prj.state_current', 'Hozir shu bosqichda') + '</span>';
@@ -7607,7 +7612,7 @@ function renderHodimStats() {
     return '<tr>' +
       '<td style="' + td + 'color:var(--muted);">' + (i + 1) + '</td>' +
       '<td style="' + td + '"><div style="display:flex;align-items:center;gap:9px;">' + avatarHtml(r.name, null, r.avatar, r.uid) + '<span style="font-weight:500;">' + escapeHtml(r.name) + '</span></div></td>' +
-      '<td style="' + td + '">' + clickable(s.jami, r.uid, 'jami', 'var(--ink)') + '</td>' +
+      '<td style="' + td + '">' + clickable(s.jami, r.uid, tr('page-dashboard.stat_sub_total', 'jami'), 'var(--ink)') + '</td>' +
       '<td style="' + td + '">' + clickable(s.jarayonda, r.uid, 'jarayonda', '#3B82F6') + '</td>' +
       '<td style="' + td + '">' + clickable(s.tugatilgan, r.uid, 'tugatilgan', '#10B981') + '</td>' +
       '<td style="' + td + '">' + clickable(s.faol, r.uid, 'faol', '#8B5CF6') + '</td>' +
@@ -12235,7 +12240,7 @@ function xlsParseDate(v) {
 
 // Bitta qatorni task obyektiga aylantirish
 function xlsRowToTask(row) {
-  const title = String(xlsGet(row, ['nomi', 'name', 'vazifa', 'title']) || '').trim();
+  const title = String(xlsGet(row, ['nomi', 'name', tr('page-dashboard.stat_sub_tasks', 'vazifa'), 'title']) || '').trim();
   if (!title) return null;
   const desc = String(xlsGet(row, ['tavsif', 'izoh', 'description', 'desc']) || '').trim() || null;
   const asgRaw = String(xlsGet(row, ['bajaruvchi', 'assignee', 'kim', 'xodim']) || '').trim();
@@ -13970,7 +13975,7 @@ const OC_ICONS = [
   { icon: '📦', label: tr('common.oc_place_warehouse', 'Sklad') },
   { icon: '🚚', label: tr('common.oc_place_transport', 'Transport') },
   { icon: '💼', label: tr('common.col_department', "Bo'lim") },
-  { icon: '🎯', label: 'Loyiha' },
+  { icon: '🎯', label: tr('mob.page_project', 'Loyiha') },
   { icon: '📊', label: tr('common.oc_place_directorate', 'Direktorat') },
   { icon: '🌐', label: tr('common.oc_place_online', 'Online') },
   { icon: '📞', label: tr('common.oc_place_call_center', 'Call markaz') },
@@ -17672,14 +17677,14 @@ async function loadKanbanColumns() {
     // "Bajarildi" (completed) ustuni — protected. Nomi eski bo'lsa yangilaymiz.
     const doneCol = kanbanColumns.find(c => c.status === 'completed');
     if (doneCol && doneCol.name !== 'Bajarildi' && (doneCol.name === 'Tugatilgan' || doneCol.name === 'Tugallangan')) {
-      try { await sb.from('kanban_columns').update({ name: 'Bajarildi', is_default: true }).eq('id', doneCol.id); doneCol.name = 'Bajarildi'; doneCol.is_default = true; } catch (e) {}
+      try { await sb.from('kanban_columns').update({ name: tr('common.done_title', 'Bajarildi'), is_default: true }).eq('id', doneCol.id); doneCol.name = tr('common.done_title', 'Bajarildi'); doneCol.is_default = true; } catch (e) {}
     }
     // Agar completed ustuni umuman yo'q bo'lsa — qo'shamiz (protected)
     if (kanbanColumns.length && !doneCol && currentWs.kind === 'organization') {
       const sortMax = kanbanColumns.reduce((a, c) => Math.max(a, c.sort_order || 0), 0);
       try {
         const { data: dc } = await sb.from('kanban_columns').insert({
-          workspace_id: currentWs.id, name: 'Bajarildi', status: 'completed', color: '#10B981', sort_order: sortMax + 1, is_default: true
+          workspace_id: currentWs.id, name: tr('common.done_title', 'Bajarildi'), status: 'completed', color: '#10B981', sort_order: sortMax + 1, is_default: true
         }).select().single();
         if (dc) kanbanColumns.push(dc);
       } catch (e) {}
@@ -17707,7 +17712,7 @@ async function loadKanbanColumns() {
       const defaults = [
         { workspace_id: currentWs.id, name: tr('common.status_new', 'Yangi'), status: 'new', color: '#94A3B8', sort_order: 1, is_default: true },
         { workspace_id: currentWs.id, name: tr('common.status_in_progress', 'Jarayonda'), status: 'in_progress', color: '#3B82F6', sort_order: 2, is_default: true },
-        { workspace_id: currentWs.id, name: 'Bajarildi', status: 'completed', color: '#10B981', sort_order: 3, is_default: true },
+        { workspace_id: currentWs.id, name: tr('common.done_title', 'Bajarildi'), status: 'completed', color: '#10B981', sort_order: 3, is_default: true },
         { workspace_id: currentWs.id, name: 'Bekor', status: 'cancelled', color: '#EF4444', sort_order: 4, is_default: true },
       ];
       try {
@@ -22206,7 +22211,7 @@ async function tgNotifyTaskEdit(task, field, oldValue, newValue) {
     assigned_to: tr('common.csv_col_assignee', 'Mas\'ul'),
     assigned_to_tg_bot_user: tr('tg.field_assignee_tg', 'Mas\'ul (Telegram)')
   };
-  const STATUS_LBL = { new: tr('common.status_new', 'Yangi'), in_progress: tr('common.status_in_progress', 'Jarayonda'), completed: 'Bajarildi', cancelled: 'Bekor', review: tr('tg.status_review', 'Tekshiruvda') };
+  const STATUS_LBL = { new: tr('common.status_new', 'Yangi'), in_progress: tr('common.status_in_progress', 'Jarayonda'), completed: tr('common.done_title', 'Bajarildi'), cancelled: 'Bekor', review: tr('tg.status_review', 'Tekshiruvda') };
 
   // Qiymat formatlash
   const fmtValue = (f, v) => {
