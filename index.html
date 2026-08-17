@@ -5250,7 +5250,7 @@ function ssEnsurePanel() {
   p.className = 'ss-panel';
   p.innerHTML =
     '<div class="ss-search">' + icon('search', 15) +
-      '<input type="text" id="ssSearch" placeholder="Qidirish…" autocomplete="off" oninput="ssPaint()" onkeydown="ssKey(event)">' +
+      '<input type="text" id="ssSearch" placeholder="' + tr('ss.search_ph', 'Qidirish…') + '" autocomplete="off" oninput="ssPaint()" onkeydown="ssKey(event)">' +
     '</div>' +
     '<div class="ss-list" id="ssList" role="listbox"></div>' +
     '<div class="ss-foot" id="ssFoot"></div>';
@@ -6665,7 +6665,7 @@ function prjRenderHero() {
       '<div class="prj-block-sub">' + tr('prj.hero_before_start_sub', 'Bosqichlar shu vaqtgacha yopiq — bajaruvchilarga ko\'rinmaydi va xabar yuborilmaydi.') + '</div></div></div>';
   } else if (!open.length) {
     block = '<div class="prj-block done"><span style="font-size:20px;">✅</span><div class="prj-block-txt"><b>' + tr('prj.all_stages_done', 'Barcha bosqichlar tugadi') + '</b>' +
-      '<div class="prj-block-sub">' + done + ' / ' + total + ' bajarildi.' + (prjRecurLabel(p) ? tr('prj.hero_recur_sentence', ' Takrorlanish: {0}.', escapeHtml(prjRecurLabel(p))) : '') + '</div></div></div>';
+      '<div class="prj-block-sub">' + tr('prj.hero_done_sentence', '{0} / {1} bajarildi.', done, total) + (prjRecurLabel(p) ? tr('prj.hero_recur_sentence', ' Takrorlanish: {0}.', escapeHtml(prjRecurLabel(p))) : '') + '</div></div></div>';
   } else if (ft === 'parallel') {
     block = '<div class="prj-block par"><span style="font-size:20px;">⚡</span><div class="prj-block-txt"><b>' + open.length + ' ta vazifa ochiq — hammasi birdan bajarilishi mumkin</b>' +
       '<div class="prj-block-sub">Bajaruvchilar: ' + escapeHtml(prjAssigneeSummary(open)) + (locked.length ? ' · ' + locked.length + ' ta bosqich qulflangan (istisno)' : '') + '</div></div></div>';
@@ -6757,10 +6757,10 @@ function prjTaskCardHtml(t, i, list, ft, curId, canEdit) {
 
   // ── Nishonlar qatori ──
   const dep = t.depends_on_prev
-    ? '<span class="prj-tag ic-only" title="Oldingi bosqichga bog\'liq">' + icon('link', 13) + '</span>'
-    : '<span class="prj-tag ic-only" title="Oldingisini kutmaydi (parallel)">' + icon('zap', 13) + '</span>';
+    ? '<span class="prj-tag ic-only" title="' + tr('prj.tag_depends_prev', 'Oldingi bosqichga bog\'liq') + '">' + icon('link', 13) + '</span>'
+    : '<span class="prj-tag ic-only" title="' + tr('prj.tag_no_wait', 'Oldingisini kutmaydi (parallel)') + '">' + icon('zap', 13) + '</span>';
   const recur = t.recur_days
-    ? '<span class="prj-tag" title="Takrorlanish">' + icon('repeat', 12) + escapeHtml(String(t.recur_days)) + ' kun</span>'
+    ? '<span class="prj-tag" title="' + tr('prj.tag_recurrence', 'Takrorlanish') + '">' + icon('repeat', 12) + escapeHtml(String(t.recur_days)) + ' kun</span>'
     : '';
   const tags = '<span class="prj-idx">' + (i + 1) + '-bosqich</span>' + state + dep + recur;
 
@@ -6769,11 +6769,11 @@ function prjTaskCardHtml(t, i, list, ft, curId, canEdit) {
   const doneBy = prjDoneByHtml(t);
   const parts = [];
   if (asgName) parts.push(prjPersonHtml(t.assigned_to, 'user', tr('prj.cap_assignee', 'Bajaruvchi'), true));
-  else if (!isDone && !isCancel) parts.push('<span class="prj-asg none" title="Bajaruvchi biriktirilmagan">' +
+  else if (!isDone && !isCancel) parts.push('<span class="prj-asg none" title="' + tr('prj.no_assignee', 'Bajaruvchi biriktirilmagan') + '">' +
       '<span class="prj-av-none">' + icon('user', 12) + '</span>' +
       '<span class="prj-asg-n">' + tr('prj.unassigned', 'Biriktirilmagan') + '</span></span>');
   if (t.acceptor_id) parts.push(prjPersonHtml(t.acceptor_id, 'badge', tr('prj.cap_acceptor', 'Qabul qiluvchi'), false, tr('prj.cap_acceptor_short', 'Qabul')));
-  if (t.deadline) parts.push('<span class="prj-dl' + (over ? ' over' : '') + '" title="Muddat">' + icon('clock', 13) +
+  if (t.deadline) parts.push('<span class="prj-dl' + (over ? ' over' : '') + '" title="' + tr('prj.deadline_title', 'Muddat') + '">' + icon('clock', 13) +
       fmtDeadline(t.deadline) + (over ? '<span class="prj-late">' + tr('prj.late_badge', 'kechikdi') + '</span>' : '') + '</span>');
   if (dof) parts.push(dof);
   if (doneBy) parts.push(doneBy);
@@ -6781,8 +6781,8 @@ function prjTaskCardHtml(t, i, list, ft, curId, canEdit) {
 
   const ord = canEdit
     ? '<span class="prj-ord">' +
-        '<button class="prj-ord-btn up" title="Yuqoriga" onclick="event.stopPropagation();prjMoveTask(' + t.id + ',-1)"' + (i === 0 ? ' disabled' : '') + '>' + icon('chevron', 13) + '</button>' +
-        '<button class="prj-ord-btn down" title="Pastga" onclick="event.stopPropagation();prjMoveTask(' + t.id + ',1)"' + (i === list.length - 1 ? ' disabled' : '') + '>' + icon('chevron', 13) + '</button>' +
+        '<button class="prj-ord-btn up" title="' + tr('prj.move_up', 'Yuqoriga') + '" onclick="event.stopPropagation();prjMoveTask(' + t.id + ',-1)"' + (i === 0 ? ' disabled' : '') + '>' + icon('chevron', 13) + '</button>' +
+        '<button class="prj-ord-btn down" title="' + tr('prj.move_down', 'Pastga') + '" onclick="event.stopPropagation();prjMoveTask(' + t.id + ',1)"' + (i === list.length - 1 ? ' disabled' : '') + '>' + icon('chevron', 13) + '</button>' +
       '</span>'
     : '';
 
@@ -6854,15 +6854,15 @@ function renderProjectKanban() {
         return '<div class="kan-card prj-kan-card' + (isDone ? ' kan-card-done' : '') + (locked ? ' locked' : '') + '" draggable="' + (locked ? 'false' : 'true') + '"' +
           ' data-id="' + t.id + '" ondragstart="kanDragStart(event, ' + t.id + ')" ondragend="kanDragEnd(event)" onclick="openDetail(' + t.id + ')">' +
           '<div class="kan-card-title' + (isDone ? ' done' : '') + '">' +
-            (isDone ? '<span class="prj-kan-done" title="Bajarildi">' + icon('check', 13) + '</span>'
+            (isDone ? '<span class="prj-kan-done" title="' + tr('common.done_title', 'Bajarildi') + '">' + icon('check', 13) + '</span>'
                     : (locked ? '<span class="prj-kan-lock" title="' + escapeHtml(taskHiddenByStart(t) ? prjTaskStartLabel(t) : tr('common.prj_locked_waiting', 'Qulflangan — oldingi bosqichni kutmoqda')) + '">' + icon('lock', 13) + '</span>' : '')) +
             escapeHtml(t.title || '') + '</div>' +
           '<div class="kan-card-meta">' +
             (asgName ? '<span class="prj-asg" title="' + escapeHtml(memberNamePos(t.assigned_to, asgName)) + '">' + avatarHtml(asgName, 'sm', null, t.assigned_to) +
                        '<span class="prj-asg-n">' + escapeHtml(asgName) + '</span></span>'
-                     : (isDone || isCancel ? '' : '<span class="prj-asg none" title="Bajaruvchi biriktirilmagan">' +
+                     : (isDone || isCancel ? '' : '<span class="prj-asg none" title="' + tr('prj.no_assignee', 'Bajaruvchi biriktirilmagan') + '">' +
                         '<span class="prj-av-none">' + icon('user', 12) + '</span><span class="prj-asg-n">' + tr('prj.unassigned', 'Biriktirilmagan') + '</span></span>')) +
-            (t.deadline ? '<span class="prj-dl' + (over ? ' over' : '') + '" title="Muddat">' + icon('clock', 12) + fmtDeadline(t.deadline) + '</span>' : '') +
+            (t.deadline ? '<span class="prj-dl' + (over ? ' over' : '') + '" title="' + tr('prj.deadline_title', 'Muddat') + '">' + icon('clock', 12) + fmtDeadline(t.deadline) + '</span>' : '') +
             dofBadge(t) +
           '</div></div>';
       }).join('') + '</div></div>';
@@ -8676,7 +8676,7 @@ function emailSetRender() {
     html += '<div class="esn-row">' +
       '<div class="esn-txt">' +
         '<div class="esn-lbl">' + escapeHtml(r.label) +
-          (r.live ? '' : '<span class="esn-tag" title="Ilova hozir bu holatda email yubormaydi — Telegram va ilova ichida bildirishnoma bor. Sozlama saqlanadi va n8n\'ga uzatiladi.">' + tr('emailSet.no_email_tag', 'hozircha email yo\'q') + '</span>') +
+          (r.live ? '' : '<span class="esn-tag" title="' + tr('emailSet.no_email_tag_title', 'Ilova hozir bu holatda email yubormaydi — Telegram va ilova ichida bildirishnoma bor. Sozlama saqlanadi va n8n\'ga uzatiladi.') + '">' + tr('emailSet.no_email_tag', 'hozircha email yo\'q') + '</span>') +
         '</div>' +
         '<div class="esn-desc">' + escapeHtml(r.desc) + '</div>' +
       '</div>' +
@@ -10290,7 +10290,7 @@ function pwaInit() {
       '<span class="pwa-inapp-ic" aria-hidden="true">' + icon('download', 17) + '</span>' +
       '<span class="pwa-inapp-txt">' + tr('pwa.inapp_text', 'TaskFix\'ni bosh ekranga qo\'shing') + '</span>' +
       '<button type="button" class="pwa-btn" onclick="pwaInstall()">' + tr('pwa.install_btn', 'O\'rnatish') + '</button>' +
-      '<button type="button" class="pwa-x" onclick="pwaDismiss()" aria-label="Yopish">' + icon('x', 16) + '</button>';
+      '<button type="button" class="pwa-x" onclick="pwaDismiss()" aria-label="' + tr('page-settings.btn_close', 'Yopish') + '">' + icon('x', 16) + '</button>';
   }
   const s1 = document.getElementById('pwaStepIc1'); if (s1) s1.innerHTML = icon('share', 18);
   const s2 = document.getElementById('pwaStepIc2'); if (s2) s2.innerHTML = icon('plusSquare', 18);
@@ -10376,7 +10376,7 @@ function renderSidebar() {
     html += '<button class="side-link ' + (currentPage === 'stats' ? 'active' : '') + '" onclick="goPage(\'stats\')">' + sideIcon('chart') + ' ' + tr('common.nav_stats', 'Statistika') + '</button>';
   }
   if (isOrg) {
-    html += '<div class="side-section">' + tr('common.nav_departments', 'Bo\'limlar') + '' + (canManage ? '<button class="add-mini" title="Yangi bo\'lim" onclick="openNewDept()">' + icon('plus', 14) + '</button>' : '') + '</div>';
+    html += '<div class="side-section">' + tr('common.nav_departments', 'Bo\'limlar') + '' + (canManage ? '<button class="add-mini" title="' + tr('common.dept_new_title', 'Yangi bo\'lim') + '" onclick="openNewDept()">' + icon('plus', 14) + '</button>' : '') + '</div>';
     if (departments.length) {
       const myDeptIds = new Set(myDepts.map(d => d.department_id));
       // Qattiq xavfsizlik: faqat a'zo bo'lgan bo'limlarni ko'rsatamiz (admin ham bundan mustasno emas)
@@ -11336,10 +11336,10 @@ function plfPopPaint() {
       '<button type="button" class="plf-pre" onclick="plfPreset(\'prev\')">' + tr('plf.preset_prev_month', 'O\'tgan oy') + '</button>' +
     '</div>' +
     '<div class="plf-cal" onmouseleave="plfCalHoverOut()">' +
-      '<button type="button" class="plf-nav prev" onclick="plfCalNav(-1)" title="Oldingi oy">' + icon('chevron', 16) + '</button>' +
+      '<button type="button" class="plf-nav prev" onclick="plfCalNav(-1)" title="' + tr('plf.prev_month_title', 'Oldingi oy') + '">' + icon('chevron', 16) + '</button>' +
       plfMonthHtml(_plfCalMonth) +
       plfMonthHtml(next) +
-      '<button type="button" class="plf-nav next" onclick="plfCalNav(1)" title="Keyingi oy">' + icon('chevron', 16) + '</button>' +
+      '<button type="button" class="plf-nav next" onclick="plfCalNav(1)" title="' + tr('plf.next_month_title', 'Keyingi oy') + '">' + icon('chevron', 16) + '</button>' +
     '</div>' +
     '<div class="plf-pop-act">' +
       (plfMode === 'done'
@@ -12291,7 +12291,7 @@ function xlsShowPreview(rows) {
       const nm = t.assigned_to === me.id ? (myProfile.full_name || tr('ss.you', 'Siz')) : ((wsMembers.find(m => m.user_id === t.assigned_to)?.profile?.full_name) || tr('common.role_member', 'A\'zo'));
       asgCell = escapeHtml(nm);
     } else if (t._asgRaw) {
-      asgCell = '<span style="color:#DC2626;" title="Xodim topilmadi — bo\'sh qoladi">⚠ ' + escapeHtml(t._asgRaw) + '</span>';
+      asgCell = '<span style="color:#DC2626;" title="' + tr('common.xls_member_not_found', 'Xodim topilmadi — bo\'sh qoladi') + '">⚠ ' + escapeHtml(t._asgRaw) + '</span>';
     } else {
       asgCell = '—';
     }
@@ -12818,7 +12818,7 @@ function dlhChainHtml(t) {
   // ⚠️ FAQAT KO'RINISH: tugunlar/uzilish mantiqi yuqorida, bu yerda markup.
   // Strelka — ICON_PATHS.chevron (o'ngga qaraydi), emoji/matn emas.
   const arrow = '<span class="dlh-arr" aria-hidden="true">' + icon('chevron', 11) + '</span>';
-  const gapSpan = '<span class="dlh-gap" title="Oraliq o\'zgarish yozuvi yo\'q" aria-label="oraliq o\'zgarish yozuvi yo\'q">…</span>';
+  const gapSpan = '<span class="dlh-gap" title="' + tr('dlh.gap_title', 'Oraliq o\'zgarish yozuvi yo\'q') + '" aria-label="' + tr('dlh.gap_aria', 'oraliq o\'zgarish yozuvi yo\'q') + '">…</span>';
   let out = '';
   // Tarix kesilgan bo'lishi mumkin (openDetail .limit(200)) — birinchi tugun
   // "eng birinchi deadline" emasligi ko'rinsin.
@@ -12828,7 +12828,7 @@ function dlhChainHtml(t) {
     if (n.gap) out += gapSpan + arrow;
     out += '<span class="dlh-n' + (i === nodes.length - 1 ? ' cur' : '') + '">' + escapeHtml(n.txt) + '</span>';
   });
-  return '<div class="dlh-chain" title="Muddat o\'zgarishlari"><span class="dlh-ic">' + icon('clock', 12) + '</span>' + out + '</div>';
+  return '<div class="dlh-chain" title="' + tr('dlh.deadline_chain_title', 'Muddat o\'zgarishlari') + '"><span class="dlh-ic">' + icon('clock', 12) + '</span>' + out + '</div>';
 }
 
 // opts.bump === false → 👁 ko'rish soni OSHIRILMAYDI (faqat o'qiladi).
@@ -13015,7 +13015,7 @@ function renderDetailBody() {
   // shu yerda bo'lsa son o'z-o'zidan oshib ketardi. Bump — faqat openDetail'da.
   const tvLine = (typeof _tvCount === 'number' && _tvCount > 0)
     ? '<div class="detail-row"><div class="lbl">' + tr('dlh.viewed', 'Ko\'rildi') + '</div><div class="val">' +
-        '<span class="tv-badge" title="Bajaruvchi necha marta ochgan">' + icon('eye', 12) + '<span>' + _tvCount + '</span></span>' +
+        '<span class="tv-badge" title="' + tr('dlh.view_count_title', 'Bajaruvchi necha marta ochgan') + '">' + icon('eye', 12) + '<span>' + _tvCount + '</span></span>' +
       '</div></div>'
     : '';
 
@@ -13036,11 +13036,11 @@ function renderDetailBody() {
       (canEditTask ? '<span class="sub-del" onclick="deleteSubtask('+s.id+')">×</span>' : '') +
     '</div>'
   ).join('') + '</div>' +
-  (canEditTask ? '<div class="sub-add"><input type="text" id="newSubInput" placeholder="Yangi subtask…" onkeydown="if (event.key === \'Enter\') addSubtask()" /><button class="btn sm" onclick="addSubtask()">+</button></div>' : '');
+  (canEditTask ? '<div class="sub-add"><input type="text" id="newSubInput" placeholder="' + tr('dlh.ph_new_subtask', 'Yangi subtask…') + '" onkeydown="if (event.key === \'Enter\') addSubtask()" /><button class="btn sm" onclick="addSubtask()">+</button></div>' : '');
 
   // Comments
   const cmtsHtml = '<div class="cmt-list">' + curDetailComments.map(c => renderCommentItem(c, canEditTask)).join('') + '</div>' +
-    '<div class="cmt-input-row" style="position:relative;"><input class="cmt-input" id="newCmtInput" placeholder="Izoh yozish… (@ — odam belgilash, Ctrl+Enter — yuborish)" autocomplete="off" oninput="cmtMentionInput(this)" onkeydown="cmtInputKey(event)" /><button class="btn" onclick="addComment()">' + tr('dlh.send', 'Yuborish') + '</button><div id="cmtMentionDrop" style="display:none;position:absolute;bottom:46px;left:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14);max-height:220px;overflow:auto;z-index:60;min-width:220px;padding:5px;"></div></div>';
+    '<div class="cmt-input-row" style="position:relative;"><input class="cmt-input" id="newCmtInput" placeholder="' + tr('dlh.ph_comment', 'Izoh yozish… (@ — odam belgilash, Ctrl+Enter — yuborish)') + '" autocomplete="off" oninput="cmtMentionInput(this)" onkeydown="cmtInputKey(event)" /><button class="btn" onclick="addComment()">' + tr('dlh.send', 'Yuborish') + '</button><div id="cmtMentionDrop" style="display:none;position:absolute;bottom:46px;left:0;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14);max-height:220px;overflow:auto;z-index:60;min-width:220px;padding:5px;"></div></div>';
 
   // Attachments
   const attsHtml = curDetailAttachments.length
@@ -13539,7 +13539,7 @@ async function notifyMention(userId, text, commentId) {
   try {
     const { error } = await sb.functions.invoke('tg-send', { body: {
       workspace_id: currentWs.id, target: { user_id: userId },
-      text: '🔔 <b>Sizni belgilashdi</b>\n' + escapeHtml(title) + '\n\n' + escapeHtml(myProfile.full_name || me.email) + ':\n' + escapeHtml(text)
+      text: tr('common.tg_mention_body', '🔔 <b>Sizni belgilashdi</b>\n{0}\n\n{1}:\n{2}', escapeHtml(title), escapeHtml(myProfile.full_name || me.email), escapeHtml(text))
     }});
     if (error) throw error;
   } catch (e) { console.error('notifyMention tg-send:', e); }
@@ -14173,11 +14173,11 @@ function renderOrgChart() {
         '<div class="oc-cont-icon">' + (n.icon || '🏢') + '</div>' +
         '<div class="oc-cont-label">' + escapeHtml(n.name || '') + '</div>' +
         '<div class="oc-actions">' +
-          '<button class="oc-btn-mini" title="Pastiga qo\'shish" onclick="event.stopPropagation();ocOpenAddModal(\'' + n.id + '\')">+</button>' +
+          '<button class="oc-btn-mini" title="' + tr('common.oc_add_below', 'Pastiga qo\'shish') + '" onclick="event.stopPropagation();ocOpenAddModal(\'' + n.id + '\')">+</button>' +
           '<button class="oc-btn-mini" title="' + tr('common.action_edit', 'Tahrirlash') + '" onclick="event.stopPropagation();ocOpenContModal(\'' + n.id + '\')">✎</button>' +
           '<button class="oc-btn-mini danger" title="' + tr('common.action_delete', 'O\'chirish') + '" onclick="event.stopPropagation();ocRemoveFromChart(\'' + n.id + '\')">×</button>' +
         '</div>' +
-        '<div class="oc-connect-handle" title="Pastdagi xodimga ulang" onmousedown="ocStartConnect(event, \'' + n.id + '\')" ontouchstart="ocStartConnect(event, \'' + n.id + '\')">+</div>';
+        '<div class="oc-connect-handle" title="' + tr('common.oc_connect_handle', 'Pastdagi xodimga ulang') + '" onmousedown="ocStartConnect(event, \'' + n.id + '\')" ontouchstart="ocStartConnect(event, \'' + n.id + '\')">+</div>';
       el.addEventListener('mousedown', (e) => ocStartDrag(e, n.id));
       el.addEventListener('touchstart', (e) => ocStartDrag(e, n.id), { passive: false });
       stage.appendChild(el);
@@ -14200,11 +14200,11 @@ function renderOrgChart() {
           (branchName ? '<div class="oc-sub">▢ ' + escapeHtml(branchName) + '</div>' : (isSiteUser ? '<div class="oc-sub">' + tr('common.oc_site_user', '👤 Sayt foydalanuvchisi') + '</div>' : '')) +
         '</div>' +
         '<div class="oc-actions">' +
-          '<button class="oc-btn-mini" title="Pastiga qo\'shish" onclick="event.stopPropagation();ocOpenAddModal(\'' + n.id + '\')">+</button>' +
+          '<button class="oc-btn-mini" title="' + tr('common.oc_add_below', 'Pastiga qo\'shish') + '" onclick="event.stopPropagation();ocOpenAddModal(\'' + n.id + '\')">+</button>' +
           '<button class="oc-btn-mini" title="' + tr('common.oc_change_manager', 'Boshliqni o\'zgartirish') + '" onclick="event.stopPropagation();openManagerPick(\'' + n.id + '\')">↑</button>' +
-          '<button class="oc-btn-mini danger" title="Tashkilotdan olib tashlash" onclick="event.stopPropagation();ocRemoveFromChart(\'' + n.id + '\')">×</button>' +
+          '<button class="oc-btn-mini danger" title="' + tr('common.oc_remove_from_org', 'Tashkilotdan olib tashlash') + '" onclick="event.stopPropagation();ocRemoveFromChart(\'' + n.id + '\')">×</button>' +
         '</div>' +
-        '<div class="oc-connect-handle" title="Pastdagi xodimga ulang" onmousedown="ocStartConnect(event, \'' + n.id + '\')" ontouchstart="ocStartConnect(event, \'' + n.id + '\')">+</div>';
+        '<div class="oc-connect-handle" title="' + tr('common.oc_connect_handle', 'Pastdagi xodimga ulang') + '" onmousedown="ocStartConnect(event, \'' + n.id + '\')" ontouchstart="ocStartConnect(event, \'' + n.id + '\')">+</div>';
       el.addEventListener('mousedown', (e) => ocStartDrag(e, n.id));
       el.addEventListener('touchstart', (e) => ocStartDrag(e, n.id), { passive: false });
       stage.appendChild(el);
@@ -14778,8 +14778,8 @@ async function ocRemoveFromChart(nodeId) {
   if (n.kind === 'container') return ocOpenContModal(nodeId); // edit + delete via modal
   const hasKids = _ocNodes.some(x => x.manager_id === nodeId);
   const msg = hasKids
-    ? '"' + n.name + '" tashkilotdan olib tashlanadi. Uning pastidagilar boshliqsiz qoladi.\n\nDavom etilsinmi?'
-    : '"' + n.name + '" tashkilotdan olib tashlansinmi? (Foydalanuvchi o\'chirilmaydi.)';
+    ? tr('common.oc_remove_person_has_kids_confirm', '"{0}" tashkilotdan olib tashlanadi. Uning pastidagilar boshliqsiz qoladi.\n\nDavom etilsinmi?', n.name)
+    : tr('common.oc_remove_person_confirm', '"{0}" tashkilotdan olib tashlansinmi? (Foydalanuvchi o\'chirilmaydi.)', n.name);
   if (!confirm(msg)) return;
   try {
     let error;
@@ -15818,7 +15818,7 @@ function tblOpenAsgDrop(ev, taskId) {
   const left = Math.min(r.left, window.innerWidth - 280);
   drop.style.cssText = 'position:fixed;z-index:600;left:' + left + 'px;top:' + (r.bottom + 4) + 'px;width:264px;background:var(--surface);border:1px solid var(--line-strong);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);overflow:hidden;';
   drop.innerHTML =
-    '<div style="padding:8px;border-bottom:1px solid var(--line);"><input id="tblAsgSearch" placeholder="Xodim qidirish..." oninput="tblAsgFilter()" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-size:13px;box-sizing:border-box;" /></div>' +
+    '<div style="padding:8px;border-bottom:1px solid var(--line);"><input id="tblAsgSearch" placeholder="' + tr('tbl.employee_search_ph', 'Xodim qidirish...') + '" oninput="tblAsgFilter()" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-size:13px;box-sizing:border-box;" /></div>' +
     '<div id="tblAsgList" style="max-height:240px;overflow-y:auto;"></div>' +
     '<div style="border-top:1px solid var(--line);"><button onclick="tblAsgAddEmployee()" style="width:100%;text-align:left;padding:11px 12px;background:none;border:none;cursor:pointer;font-size:13px;color:var(--accent-ink);font-weight:600;">' + tr('tbl.invite_new_employee', '＋ Yangi xodim taklif qilish') + '</button></div>';
   document.body.appendChild(drop);
@@ -15911,7 +15911,7 @@ function tblNewRowHtml(cols) {
     switch (key) {
       case 'id': cell = '<span class="cell-id">＋</span>'; break;
       case 'title':
-        cell = '<input id="tblNewTitle" class="cell-inp" type="text" placeholder="Vazifa nomi… (Enter=saqlash, Esc=bekor)" style="border-color:var(--line);background:var(--surface);" onkeydown="if(event.key===\'Enter\')tblSaveNewRow();if(event.key===\'Escape\')tblCancelNewRow();">'; break;
+        cell = '<input id="tblNewTitle" class="cell-inp" type="text" placeholder="' + tr('tbl.new_task_ph', 'Vazifa nomi… (Enter=saqlash, Esc=bekor)') + '" style="border-color:var(--line);background:var(--surface);" onkeydown="if(event.key===\'Enter\')tblSaveNewRow();if(event.key===\'Escape\')tblCancelNewRow();">'; break;
       case 'department':
         cell = '<select id="tblNewDept" class="cell-sel"><option value="">—</option>' + (departments||[]).map(d=>'<option value="'+d.id+'">'+escapeHtml(d.name)+'</option>').join('') + '</select>'; break;
       case 'assignee':
@@ -17412,7 +17412,7 @@ function nmzRenderPanel() {
   if (nmzPanelHidden()) { el.style.display = 'none'; el.innerHTML = ''; return; }
   el.style.display = 'block';
   // Har holatda (yuklanmoqda / xato / vaqtlar) yopish tugmasi bo'lsin
-  const xBtn = '<button type="button" class="nmz-x" onclick="nmzPanelSetHidden(true)" title="Lentani yopish (keyin ☾ Vaqtlar bilan qaytariladi)" aria-label="Yopish">×</button>';
+  const xBtn = '<button type="button" class="nmz-x" onclick="nmzPanelSetHidden(true)" title="' + tr('nmz.panel_close_title', 'Lentani yopish (keyin ☾ Vaqtlar bilan qaytariladi)') + '" aria-label="' + tr('page-settings.btn_close', 'Yopish') + '">×</button>';
 
   const ds = nmzTodayStr();
   const day = nmzDay(ds);
@@ -17468,7 +17468,7 @@ function nmzSrcGeoLabel(src) {
 }
 
 function nmzCdText(nx) {
-  return (nx.tomorrow ? 'Ertangi ' : '') + NMZ_LABELS[nx.key] + 'gacha ' + nmzLeftLabel(nx.left);
+  return (nx.tomorrow ? 'Ertangi ' : '') + tr('nmz.countdown', '{0}gacha {1}', NMZ_LABELS[nx.key], nmzLeftLabel(nx.left));
 }
 
 // 'YYYY-MM-DD' + n kun
@@ -18622,7 +18622,7 @@ function renderTeamTable() {
     //    kirib ketardi. `tm-c-name` sticky'ni faqat ≤880 blokida oladi.
     '<th style="' + th + '" class="tm-c-num">№</th>' +
     '<th style="' + th + '" class="tm-c-av"></th>' +
-    '<th style="' + th + 'cursor:pointer;" class="tm-c-name" onclick="teamToggleSort()" title="Saralash">' + tr('common.col_full_name', 'To\'liq ism') + sortArrow + '</th>' +
+    '<th style="' + th + 'cursor:pointer;" class="tm-c-name" onclick="teamToggleSort()" title="' + tr('common.sort_title', 'Saralash') + '">' + tr('common.col_full_name', 'To\'liq ism') + sortArrow + '</th>' +
     '<th style="' + th + '">' + tr('common.col_first_name', 'Ism') + '</th>' +
     '<th style="' + th + '">' + tr('common.col_last_name', 'Familiya') + '</th>' +
     '<th style="' + th + '">' + tr('common.col_phone', 'Telefon') + '</th>' +
@@ -18691,9 +18691,9 @@ function renderTeamTable() {
       if (isSynthEmail) {
         // Sintetik email — hodim hech qachon kira olmaydi. Haqiqiy email bilan ulash taklifi.
         actionBtn = '<span class="badge" style="background:#FEF3C7;color:#92400E;flex:0 0 auto;white-space:nowrap;">' + tr('common.team_not_connected', '⚠ Ulanmagan') + '</span>' +
-          '<button title="Haqiqiy email bilan ulash" onclick="teamInviteConnect(\'' + m.user_id + '\')" style="flex:0 0 auto;background:none;border:1px solid var(--line);border-radius:6px;padding:3px 7px;cursor:pointer;font-size:13px;white-space:nowrap;">' + tr('common.team_invite_btn', '📧 Taklif') + '</button>';
+          '<button title="' + tr('common.team_connect_real_email', 'Haqiqiy email bilan ulash') + '" onclick="teamInviteConnect(\'' + m.user_id + '\')" style="flex:0 0 auto;background:none;border:1px solid var(--line);border-radius:6px;padding:3px 7px;cursor:pointer;font-size:13px;white-space:nowrap;">' + tr('common.team_invite_btn', '📧 Taklif') + '</button>';
       } else if (email) {
-        actionBtn = '<button title="Email qayta yuborish" onclick="teamResendEmail(\'' + m.user_id + '\',\'' + email.replace(/'/g, "\\'") + '\')" style="flex:0 0 auto;background:none;border:1px solid var(--line);border-radius:6px;padding:3px 7px;cursor:pointer;font-size:13px;">📧</button>';
+        actionBtn = '<button title="' + tr('common.team_resend_email_title', 'Email qayta yuborish') + '" onclick="teamResendEmail(\'' + m.user_id + '\',\'' + email.replace(/'/g, "\\'") + '\')" style="flex:0 0 auto;background:none;border:1px solid var(--line);border-radius:6px;padding:3px 7px;cursor:pointer;font-size:13px;">📧</button>';
       }
       emailCell = '<div style="display:flex;align-items:center;gap:6px;">' + editable + actionBtn + '</div>';
     } else emailCell = isSynthEmail ? '<span class="badge" style="background:#FEF3C7;color:#92400E;">' + tr('common.team_not_connected', '⚠ Ulanmagan') + '</span>' : escapeHtml(email || '—');
@@ -18713,7 +18713,7 @@ function renderTeamTable() {
     let ctrCell;
     if (d.contract_start || d.contract_end) {
       ctrCell = escapeHtml(hrFmtDate(d.contract_start) || '…') + ' – ' + escapeHtml(hrFmtDate(d.contract_end) || '…');
-      if (ctrSafe) ctrCell = '<a href="' + escapeHtml(ctrSafe) + '" target="_blank" rel="noopener noreferrer" title="Shartnomani ochish">📄 ' + ctrCell + '</a>';
+      if (ctrSafe) ctrCell = '<a href="' + escapeHtml(ctrSafe) + '" target="_blank" rel="noopener noreferrer" title="' + tr('common.team_open_contract', 'Shartnomani ochish') + '">📄 ' + ctrCell + '</a>';
     } else if (ctrSafe) {
       ctrCell = '<a href="' + escapeHtml(ctrSafe) + '" target="_blank" rel="noopener noreferrer">' + tr('common.team_contract_link', '📄 Shartnoma') + '</a>';
     } else ctrCell = '<span style="color:var(--muted)">—</span>';
@@ -18721,7 +18721,7 @@ function renderTeamTable() {
     // Harajat kassa (Provodka) — owner/admin uchun checkbox, member uchun statik
     const hkOn = !!(d && d.harajat_kassa);
     const hkCell = canManage
-      ? '<input type="checkbox" id="hkChk_' + m.user_id + '"' + (hkOn ? ' checked' : '') + ' onchange="hkTableToggle(\'' + m.user_id + '\', this)" title="Harajat kassa">'
+      ? '<input type="checkbox" id="hkChk_' + m.user_id + '"' + (hkOn ? ' checked' : '') + ' onchange="hkTableToggle(\'' + m.user_id + '\', this)" title="' + tr('common.hr_harajat_kassa', 'Harajat kassa') + '">'
       : (hkOn ? '💵' : '<span style="color:var(--muted)">—</span>');
 
     return '<tr class="team-row-link" onclick="teamRowClick(event,\'' + m.user_id + '\')">' +
@@ -18824,7 +18824,7 @@ function teamOpenPosDrop(ev, uid) {
   drop.id = 'teamPosDrop';
   drop.style.cssText = 'position:fixed;z-index:600;left:' + left + 'px;top:' + (r.bottom + 4) + 'px;width:264px;background:var(--surface);border:1px solid var(--line-strong);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);overflow:hidden;';
   drop.innerHTML =
-    '<div style="padding:8px;border-bottom:1px solid var(--line);"><input id="teamPosSearch" placeholder="Lavozim qidirish yoki yangi..." oninput="teamPosFilter()" onkeydown="if(event.key===\'Enter\')teamPosAddFromSearch()" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-size:13px;box-sizing:border-box;" /></div>' +
+    '<div style="padding:8px;border-bottom:1px solid var(--line);"><input id="teamPosSearch" placeholder="' + tr('common.pos_search_placeholder', 'Lavozim qidirish yoki yangi...') + '" oninput="teamPosFilter()" onkeydown="if(event.key===\'Enter\')teamPosAddFromSearch()" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-size:13px;box-sizing:border-box;" /></div>' +
     '<div id="teamPosList" style="max-height:240px;overflow-y:auto;"></div>' +
     '<div style="border-top:1px solid var(--line);"><button onclick="teamPosAddFromSearch()" style="width:100%;text-align:left;padding:11px 12px;background:none;border:none;cursor:pointer;font-size:13px;color:var(--accent-ink);font-weight:600;">' + tr('common.pos_add_new', '＋ Yangi lavozim qo\'shish') + '</button></div>';
   document.body.appendChild(drop);
@@ -19158,7 +19158,7 @@ function rmxRenderList(bd) {
           '<span class="rmx-dl' + (over ? ' over' : '') + '">' + escapeHtml(dl) + '</span>' +
         '</div>' +
       '</div>' +
-      '<select class="ui-input rmx-sel" data-tid="' + escapeHtml(String(r.id)) + '" aria-label="Kimga o\'tkaziladi">' +
+      '<select class="ui-input rmx-sel" data-tid="' + escapeHtml(String(r.id)) + '" aria-label="' + tr('rmx.assign_to', 'Kimga o\'tkaziladi') + '">' +
         rmxMemberOptions(_rmxUid, r.target) +
       '</select>' +
     '</div>';
@@ -19324,7 +19324,7 @@ function rmxOpenModal(uid, name, rows) {
 
   bd.querySelector('[data-act="skip"]').onclick = async function () {
     const ok = await uiConfirm(tr('common.rmx_remove_without_reassign', 'Biriktirmasdan o\'chirish'),
-      _rmxRows.length + ' ta vazifa biriktirilmagan holatga o\'tadi (yo\'qolmaydi — ro\'yxatda "biriktirilmagan" bo\'lib turadi). Davom etamizmi?',
+      tr('common.rmx_skip_msg', '{0} ta vazifa biriktirilmagan holatga o\'tadi (yo\'qolmaydi — ro\'yxatda "biriktirilmagan" bo\'lib turadi). Davom etamizmi?', _rmxRows.length),
       { danger: true, okText: tr('common.rmx_yes_unassigned', 'Ha, biriktirmasdan') });
     if (!ok) return;
     _rmxRows.forEach(function (r) { r.target = ''; });
@@ -21808,7 +21808,7 @@ function hrEdRowHtml() {
   if (!ready) {
     body = '<div class="hred-warn">' + tr('hrsv.not_configured', 'Sozlanmagan — Supabase SQL Editor\'da') + ' ' +
            '<code>TASKFIX_HR_EDITORS.sql</code> ni bajaring.</div>';
-    btn = '<button class="btn secondary sm" disabled title="Avval TASKFIX_HR_EDITORS.sql ni ishga tushiring">' + tr('hrEd.pick_positions', 'Lavozimlarni tanlash') + '</button>';
+    btn = '<button class="btn secondary sm" disabled title="' + tr('hrEd.run_editors_sql_first', 'Avval TASKFIX_HR_EDITORS.sql ni ishga tushiring') + '">' + tr('hrEd.pick_positions', 'Lavozimlarni tanlash') + '</button>';
   } else {
     const list = hrEdList();
     body = '<div class="hred-chips">' + (list.length
@@ -21915,7 +21915,7 @@ function intgHrParts() {
       status: '<span class="intg-status err">●  Sozlanmagan</span>' +
               '<div style="margin-top:6px;font-size:12px;color:var(--muted);line-height:1.5;">' +
               '' + tr('common.in_supabase_sql_editor', 'Supabase SQL Editor\'da') + ' <code style="background:#F0EFEA;padding:1px 5px;border-radius:4px;">TASKFIX_HR.sql</code> ni bajaring.</div>',
-      action: '<button class="btn sm secondary" disabled title="Avval TASKFIX_HR.sql ni ishga tushiring">' + tr('hrEd.enable', 'Yoqish') + '</button>'
+      action: '<button class="btn sm secondary" disabled title="' + tr('hrEd.run_hr_sql_first', 'Avval TASKFIX_HR.sql ni ishga tushiring') + '">' + tr('hrEd.enable', 'Yoqish') + '</button>'
     };
   }
   if (_hrsvErr) {
@@ -22636,7 +22636,7 @@ async function oscRetryHr() {
 function oscRenderCount() {
   const el = $('oscCount'); if (!el) return;
   if (_oscMissing) { el.textContent = ''; return; }
-  el.textContent = oscFolders.length + ' papka · ' + oscPeople.length + ' xodim';
+  el.textContent = oscFolders.length + ' papka · ' + tr('common.position_employee_count', '{0} xodim', oscPeople.length);
 }
 
 // Bitta tugun qatori (papka ham, hodim ham) — birlashgan daraxt bo'yicha.
@@ -22684,18 +22684,18 @@ function oscNodeRowHtml(n, t, seen) {
     html += oscSeatBadge(n.row.user_id, t);
     html += oscMgrBadge(n.row, t);
   }
-  if (nF) html += '<span class="osc-cnt" title="Ichki papkalar">' + nF + '</span>';
-  if (nP) html += '<span class="osc-cnt people" title="Xodimlar">' + nP + '</span>';
+  if (nF) html += '<span class="osc-cnt" title="' + tr('osc.inner_folders', 'Ichki papkalar') + '">' + nF + '</span>';
+  if (nP) html += '<span class="osc-cnt people" title="' + tr('osc.employees', 'Xodimlar') + '">' + nP + '</span>';
 
   if (canEdit) {
     const k = isF ? 'f' : 'p';
     html += '<span class="osc-acts">' +
       // ⚠️ HAR QANDAY tugun pastga davom etadi — hodim ostiga ham papka,
       //    ham hodim qo'shiladi.
-      '<button class="osc-act" title="Ostiga xodim qo\'shish" onclick="event.stopPropagation();oscAddPerson(\'' + k + '\',\'' + n.id + '\')">' + icon('userPlus', 14) + '</button>' +
-      '<button class="osc-act" title="Ostiga papka qo\'shish" onclick="event.stopPropagation();oscNewFolder(\'' + k + '\',\'' + n.id + '\')">' + icon('plus', 14) + '</button>' +
-      (isF ? '<button class="osc-act" title="Nomini o\'zgartirish" onclick="event.stopPropagation();oscRenameFolder(\'' + n.id + '\')">' + icon('pencil', 14) + '</button>' : '') +
-      '<button class="osc-act" title="Boshqa joyga ko\'chirish" onclick="event.stopPropagation();oscMoveNode(\'' + k + '\',\'' + n.id + '\')">' + icon('network', 14) + '</button>' +
+      '<button class="osc-act" title="' + tr('osc.add_person_under', 'Ostiga xodim qo\'shish') + '" onclick="event.stopPropagation();oscAddPerson(\'' + k + '\',\'' + n.id + '\')">' + icon('userPlus', 14) + '</button>' +
+      '<button class="osc-act" title="' + tr('osc.add_folder_under', 'Ostiga papka qo\'shish') + '" onclick="event.stopPropagation();oscNewFolder(\'' + k + '\',\'' + n.id + '\')">' + icon('plus', 14) + '</button>' +
+      (isF ? '<button class="osc-act" title="' + tr('osc.rename', 'Nomini o\'zgartirish') + '" onclick="event.stopPropagation();oscRenameFolder(\'' + n.id + '\')">' + icon('pencil', 14) + '</button>' : '') +
+      '<button class="osc-act" title="' + tr('osc.move_elsewhere', 'Boshqa joyga ko\'chirish') + '" onclick="event.stopPropagation();oscMoveNode(\'' + k + '\',\'' + n.id + '\')">' + icon('network', 14) + '</button>' +
       '<button class="osc-act danger" title="' + (isF ? tr('common.action_delete', 'O\'chirish') : tr('osc.remove_from_chart', 'Sxemadan olib tashlash')) + '" onclick="event.stopPropagation();' +
         (isF ? 'oscDeleteFolder(\'' + n.id + '\')' : 'oscRemovePerson(\'' + n.id + '\')') + '">' + icon('trash', 14) + '</button>' +
     '</span>';
@@ -22945,7 +22945,7 @@ async function oscDeleteFolder(id) {
   let subF = 0, subP = 0;
   keys.forEach(function (k) { if (k === oscKey('folder', id)) return; if (k.charAt(0) === 'f') subF++; else subP++; });
 
-  let msg = '"' + f.name + '" o\'chiriladi.';
+  let msg = tr('osc.folder_delete_msg', '"{0}" o\'chiriladi.', f.name);
   if (subF) msg += tr('osc.folder_delete_sub_folders', 'Ichidagi {0} ta papka ham o\'chadi.', subF);
   if (subP) msg += ' ' + subP + tr('osc.employees_move_to_root', 'ta xodim sxemada qoladi, lekin ildizga ko\'chadi (o\'chmaydi).');
   const ok = await uiConfirm(tr('osc.folder_delete_title', 'Papkani o\'chirish'), msg, { danger: true, okText: tr('common.action_delete', 'O\'chirish') });
@@ -23285,14 +23285,14 @@ function oscRenderChart() {
 
   pane.innerHTML =
     '<div class="osc-chart-bar">' +
-      '<button class="btn secondary sm" onclick="oscZoomBy(-0.15)" title="Kichraytirish">−</button>' +
+      '<button class="btn secondary sm" onclick="oscZoomBy(-0.15)" title="' + tr('osc.zoom_out', 'Kichraytirish') + '">−</button>' +
       '<span class="osc-zoom" id="oscZoomLbl">100%</span>' +
-      '<button class="btn secondary sm" onclick="oscZoomBy(0.15)" title="Kattalashtirish">+</button>' +
+      '<button class="btn secondary sm" onclick="oscZoomBy(0.15)" title="' + tr('osc.zoom_in', 'Kattalashtirish') + '">+</button>' +
       '<button class="btn secondary sm" onclick="oscZoomFit()">' + tr('osc.zoom_fit', 'Sig\'dirish') + '</button>' +
       '<button class="btn secondary sm" onclick="oscZoomSet(1)">100%</button>' +
       // Qo'lda surilgan karta bo'lsagina — hammasini avtomatga qaytarish
       (oscCanEdit() && oscManualCount()
-        ? '<button class="btn secondary sm" onclick="oscResetLayout()" title="Qo\'lda surilgan kartalarni avtomatik joyiga qaytarish">' +
+        ? '<button class="btn secondary sm" onclick="oscResetLayout()" title="' + tr('osc.reset_layout_title', 'Qo\'lda surilgan kartalarni avtomatik joyiga qaytarish') + '">' +
             icon('undo', 14) + ' ' + tr('osc.auto_layout', 'Avto joylashuv') + '</button>'
         : '') +
       // Chartdan ham qo'shish mumkin — papka ko'rinishi bilan bir xil funksiya.
@@ -24483,7 +24483,7 @@ function gsLocal(q, qd) {
       // sifatida shu xodim tanlangan bo'ladi. stopPropagation: qatorning
       // o'zi (profilga o'tish) ishga tushmasin.
       actionsHtml: canEditWorkspace()
-        ? '<button class="gs-act" type="button" title="Shu xodimga vazifa berish"' +
+        ? '<button class="gs-act" type="button" title="' + tr('gs.act_task_for_employee_title', 'Shu xodimga vazifa berish') + '"' +
           ' onclick="event.stopPropagation();gsNewTaskFor(\'' + escapeHtml(uid) + '\')">' + tr('gs.new_task_btn', '＋ Vazifa') + '</button>'
         : '',
       run: function () {
