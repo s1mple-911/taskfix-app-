@@ -10750,6 +10750,18 @@ function toggleHrSidebar() {
   renderSidebar();
 }
 
+// 🔴 SAHIFALAR YAGONA RO'YXATI + yagona ko'rsatish nuqtasi.
+// Avval ro'yxat IKKI joyda qo'lda yozilgandi (`goPage` va `goDept`) va ular BIR XIL EMAS edi:
+//   · goDept'da `projects`/`project`/`planner`/`employee`/`logs`/`profile` YO'Q edi
+//     → Loyihalar sahifasidan bo'limga kirilsa, loyihalar ro'yxati pastda OCHIQ qolardi;
+//   · goPage'da `orgchart` YO'Q edi → org chartdan boshqa sahifaga o'tilsa u yashirilmasdi.
+// Yangi sahifa qo'shilganda FAQAT shu ro'yxatga qo'shiladi.
+const PAGE_IDS = ['dashboard','planner','tasks','departments','department','team','employee','projects','project',
+  'integrations','tgusers','branches','positions','settings','logs','stats','botsettings','botcommands','profile','orgchart','orgschema'];
+function showOnlyPage(p) {
+  PAGE_IDS.forEach(x => { const el = $('page-' + x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
+}
+
 function goPage(p) {
   pfStart('page:' + p);   // perf o'lchov oynasi (perf=1 bo'lsa; aks holda no-op)
   // ☾ Namoz countdown'i faqat planner'da sanaydi (boshqa sahifada to'xtaydi)
@@ -10767,7 +10779,7 @@ function goPage(p) {
   if (p !== 'department') currentDeptId = null;
   if (p !== 'employee') _empDtlUid = null;
   renderSidebar();
-  ['dashboard','planner','tasks','departments','department','team','employee','projects','project','integrations','tgusers','branches','positions','settings','logs','stats','botsettings','botcommands','profile','orgschema'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === p ? 'block' : 'none'); });
+  showOnlyPage(p);
   if (p === 'planner') plnSetTab(plnTab);
   if (p === 'tasks') {
     const titles = { mine: tr('mob.tasks_mine', 'Mening vazifalarim'), assigned: tr('mob.tasks_assigned_by_me', 'Men topshirganlar'), all: tr('common.all_tasks', 'Barcha vazifalar') };
@@ -11027,7 +11039,7 @@ function goDept(deptId) {
   currentPage = 'department';
   currentDeptView = 'kanban';
   renderSidebar();
-  ['dashboard','tasks','departments','department','team','integrations','tgusers','branches','positions','settings','stats','botsettings','botcommands','orgchart','orgschema'].forEach(x => { const el = $('page-'+x); if (el) el.style.display = (x === 'department' ? 'block' : 'none'); });
+  showOnlyPage('department');
   renderDeptHeader();
   empFilterRenderBar();
   setDeptView('kanban');
