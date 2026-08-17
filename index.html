@@ -5785,7 +5785,7 @@ function prjRangeHtml(p) {
   const s = p.start_at ? prjFmtDT(p.start_at) : '';
   const e = p.end_at ? prjFmtDT(p.end_at) : '';
   if (!s && !e) return '';
-  const txt = (s && e) ? (s + ' → ' + e) : (s ? ('Boshlanish: ' + s) : ('Tugash: ' + e));
+  const txt = (s && e) ? (s + ' → ' + e) : (s ? (t('prj.range_start_only', 'Boshlanish: {0}', s)) : (t('prj.range_end_only', 'Tugash: {0}', e)));
   return '<span class="prj-range">' + icon('calendar', 14) + escapeHtml(txt) + '</span>';
 }
 
@@ -5881,7 +5881,7 @@ function taskHiddenByStart(t) {
 // "Loyiha 12.08.2026 da boshlanadi" — qulf sababi (oldingi bosqichdan FARQLI matn)
 function prjStartLabel(p) {
   const d = p && p.start_at ? prjFmtDT(p.start_at).split(' ')[0] : '';
-  return d ? ('Loyiha ' + d + ' da boshlanadi') : t('prj.not_started_yet', 'Loyiha hali boshlanmagan');
+  return d ? (t('prj.starts_on', 'Loyiha {0} da boshlanadi', d)) : t('prj.not_started_yet', 'Loyiha hali boshlanmagan');
 }
 function prjTaskStartLabel(t) {
   return prjStartLabel(prjInfoById(t && t.project_id));
@@ -6142,8 +6142,8 @@ function prjRecurLabel(p) {
   const rt = prjRecurType(p);
   if (rt !== 'none') return PRJ_RECUR[rt].label;
   const WD = [t('prj.weekday_0', 'Yakshanba'),t('prj.weekday_1', 'Dushanba'),t('prj.weekday_2', 'Seshanba'),t('prj.weekday_3', 'Chorshanba'),t('prj.weekday_4', 'Payshanba'),t('prj.weekday_5', 'Juma'),t('prj.weekday_6', 'Shanba')];
-  if (p.recurrence_type === 'weekly' && p.recurrence_weekday != null) return 'Har hafta ' + WD[p.recurrence_weekday];
-  if (p.recurrence_days) return 'Har ' + p.recurrence_days + ' kunda';
+  if (p.recurrence_type === 'weekly' && p.recurrence_weekday != null) return t('prj.recur_weekly_on', 'Har hafta {0}', WD[p.recurrence_weekday]);
+  if (p.recurrence_days) return t('prj.recur_every_n_days', 'Har {0} kunda', p.recurrence_days);
   return null;
 }
 // Takrorlanish nishoni (kartochka + sarlavha) — bo'lmasa bo'sh matn
@@ -6179,7 +6179,7 @@ function prjDoneByHtml(t) {
   if (t.status !== 'completed' && t.status !== 'qabul_kutilyapti') return '';
   const at = t.bajardi_at || t.completed_at || null;
   const nm = tblMemberName(uid);
-  return '<span class="prj-doneby" title="' + escapeHtml('Bajardi: ' + nm) + '">' + icon('check', 13) +
+  return '<span class="prj-doneby" title="' + escapeHtml(t('prj.done_by', 'Bajardi: {0}', nm)) + '">' + icon('check', 13) +
     '<span class="prj-doneby-n">' + escapeHtml(nm) + '</span>' +
     (at ? '<span class="prj-doneby-at">' + fmtDeadline(at) + '</span>' : '') + '</span>';
 }
@@ -6299,7 +6299,7 @@ function prjcCardHtml(p) {
     } else {
       const cur = prjCurrentTask(list);
       now = cur
-        ? '<div class="prjc-now" title="' + escapeHtml('Hozir shu bosqichda: ' + (cur.title || t('prj.untitled', '(nomsiz)'))) + '">' +
+        ? '<div class="prjc-now" title="' + escapeHtml(t('prj.card_now_title', 'Hozir shu bosqichda: {0}', (cur.title || t('prj.untitled', '(nomsiz)')))) + '">' +
             icon('play', 14) + '<span class="prjc-now-t">' + escapeHtml(cur.title || t('prj.untitled', '(nomsiz)')) + '</span></div>'
         : '<div class="prjc-now ok">' + icon('check', 14) + '<span class="prjc-now-t">' + t('prj.all_stages_done', 'Barcha bosqichlar tugadi') + '</span></div>';
     }
@@ -6513,7 +6513,7 @@ async function prjStartKickoff(project) {
       //    bosqichlarga; prjSaveTask allaqachon yuborgan bosqich bu ro'yxatda yo'q.
       notifyProjectAssign(t.assigned_to, t, project);
     });
-    if (targets.length) toast('▶️ Loyiha boshlandi — ' + targets.length + ' ta bajaruvchiga xabar yuborildi', 'ok');
+    if (targets.length) toast(t('prj.kickoff_notified', '▶️ Loyiha boshlandi — {0} ta bajaruvchiga xabar yuborildi', targets.length), 'ok');
   } catch (e) { console.error('prjStartKickoff:', e); }
 }
 
@@ -6641,7 +6641,7 @@ function prjRenderHero() {
       '<div class="prj-block-sub">' + t('prj.hero_before_start_sub', 'Bosqichlar shu vaqtgacha yopiq — bajaruvchilarga ko\'rinmaydi va xabar yuborilmaydi.') + '</div></div></div>';
   } else if (!open.length) {
     block = '<div class="prj-block done"><span style="font-size:20px;">✅</span><div class="prj-block-txt"><b>' + t('prj.all_stages_done', 'Barcha bosqichlar tugadi') + '</b>' +
-      '<div class="prj-block-sub">' + done + ' / ' + total + ' bajarildi.' + (prjRecurLabel(p) ? ' Takrorlanish: ' + escapeHtml(prjRecurLabel(p)) + '.' : '') + '</div></div></div>';
+      '<div class="prj-block-sub">' + done + ' / ' + total + ' bajarildi.' + (prjRecurLabel(p) ? t('prj.hero_recur_sentence', ' Takrorlanish: {0}.', escapeHtml(prjRecurLabel(p))) : '') + '</div></div></div>';
   } else if (ft === 'parallel') {
     block = '<div class="prj-block par"><span style="font-size:20px;">⚡</span><div class="prj-block-txt"><b>' + open.length + ' ta vazifa ochiq — hammasi birdan bajarilishi mumkin</b>' +
       '<div class="prj-block-sub">Bajaruvchilar: ' + escapeHtml(prjAssigneeSummary(open)) + (locked.length ? ' · ' + locked.length + ' ta bosqich qulflangan (istisno)' : '') + '</div></div></div>';
@@ -6654,7 +6654,7 @@ function prjRenderHero() {
       '<div class="prj-block-sub">' +
         (nm ? escapeHtml(nm) + ' bajarmoqda' : '<span style="color:var(--danger);font-weight:600;">' + t('prj.hero_nobody', 'Hech kimga biriktirilmagan') + '</span>') +
         (cur.deadline ? ' · ⏰ ' + (over ? '<span class="prj-over">' + fmtDeadline(cur.deadline) + ' (kechikdi)</span>' : fmtDeadline(cur.deadline)) : '') +
-        (locked.length ? ' · keyingi ' + locked.length + ' bosqich shuni kutmoqda' : '') +
+        (locked.length ? t('prj.hero_next_waiting', ' · keyingi {0} bosqich shuni kutmoqda', locked.length) : '') +
       '</div></div></div>';
   }
 
@@ -6948,7 +6948,7 @@ async function prjRenameOrDelete() {
       hint: prjDateHint(t('prj.hint_end_at', 'Muddat o\'tib, bosqichlar tugamagan bo\'lsa — "Muddat o\'tgan".')) },
     { id: 'recur', label: t('prj.tag_recurrence', 'Takrorlanish'), type: 'choice', value: curRecur, options: prjRecurOptions(),
       hint: prjDateHint(oldRecurLbl
-        ? ('Hozir eski takrorlanish faol: "' + oldRecurLbl + '". Yangisini tanlasangiz u almashadi.')
+        ? (t('prj.old_recur_active', 'Hozir eski takrorlanish faol: "{0}". Yangisini tanlasangiz u almashadi.', oldRecurLbl))
         : t('prj.hint_recur_new', 'Davr kelganda loyiha o\'zi qaytadan boshlanadi: bosqichlar "Yangi" holatiga qaytadi, sanalar keyingi davrga suriladi. Pauzadagi loyiha takrorlanmaydi.')) },
     { id: 'status', label: 'Holat', type: 'search', value: curStatus, options: [
       { value: 'active', label: t('prj.status_active', '● Faol') },
@@ -6998,7 +6998,7 @@ async function prjRenameOrDelete() {
       if (out.droppedDates) w.push(PRJ_MSG_NO_DATE);
       if (out.droppedRecur) w.push(PRJ_MSG_NO_RECUR);
       if (out.droppedFlow) w.push(PRJ_MSG_NO_FLOW);
-      toast('Saqlanmadi: ' + (w.join('; ') || translateErr((res.error && res.error.message) || t('prj.unknown_error', 'noma\'lum xato'))), 'err');
+      toast(t('prj.not_saved', 'Saqlanmadi: {0}', (w.join('; ') || translateErr((res.error && res.error.message) || t('prj.unknown_error', 'noma\'lum xato')))), 'err');
       return;
     }
     if (res.error) throw res.error;
@@ -7045,8 +7045,8 @@ async function prjRenameOrDelete() {
     const ft = patch.flow_type;
     const ask = await uiConfirm(t('prj.existing_stages_title', 'Mavjud bosqichlar'),
       ft === 'parallel'
-        ? 'Mavjud ' + prjTasks.length + ' ta bosqich ham parallel bo\'lsinmi? (hammasi darrov ochiladi)'
-        : 'Mavjud ' + prjTasks.length + ' ta bosqich ham ketma-ket bo\'lsinmi? (birinchisidan boshqasi qulflanadi)',
+        ? t('prj.apply_parallel_ask', 'Mavjud {0} ta bosqich ham parallel bo\'lsinmi? (hammasi darrov ochiladi)', prjTasks.length)
+        : t('prj.apply_sequential_ask', 'Mavjud {0} ta bosqich ham ketma-ket bo\'lsinmi? (birinchisidan boshqasi qulflanadi)', prjTasks.length),
       { okText: t('prj.apply_ok', 'Ha, qo\'llansin') });
     if (ask) await prjApplyTypeToTasks(ft);
   }
@@ -7183,7 +7183,7 @@ async function prjEditRecurrence() {
       { value: 'days', label: t('prj.recur_opt_days', 'Har necha kunda') },
       { value: 'weekly', label: t('prj.recur_opt_weekly_pick', 'Har hafta (kun tanlash)') }
     ], hint: t('prj.hint_recur_legacy', 'Muddat kelganda loyiha avtomatik qaytadan boshlanadi (barcha bosqichlar "Yangi" holatiga qaytadi).') +
-      (prjRecurNew(p) ? ' ⚠️ Hozir yangi takrorlanish faol: "' + PRJ_RECUR[prjRecurType(p)].label + '" — u shu sozlamadan USTUN turadi ("Sozlash" oynasidan o\'zgartiring).' : '') },
+      (prjRecurNew(p) ? t('prj.new_recur_overrides', ' ⚠️ Hozir yangi takrorlanish faol: "{0}" — u shu sozlamadan USTUN turadi ("Sozlash" oynasidan o\'zgartiring).', PRJ_RECUR[prjRecurType(p)].label) : '') },
     { id: 'days', label: t('prj.field_days', 'Har necha kunda? (agar "har necha kunda" tanlansa)'), type: 'number', value: p.recurrence_type === 'days' ? (p.recurrence_days || '') : '', placeholder: t('common.eg_30', 'Masalan: 30') },
     { id: 'weekday', label: t('prj.field_weekday', 'Qaysi kun? (agar "har hafta" tanlansa)'), type: 'search', value: p.recurrence_weekday != null ? p.recurrence_weekday : 1, options: WD.map((w, i) => ({ value: i, label: w })) }
   ], { okText: t('page-botsettings.save', 'Saqlash') });
@@ -7199,7 +7199,7 @@ async function prjEditRecurrence() {
     const { error } = await sb.from('projects').update(patch).eq('id', p.id);
     if (error) throw error;
     Object.assign(p, patch);
-    toast(v.type === 'weekly' ? ('🔁 Har hafta ' + WD[patch.recurrence_weekday]) : (v.type === 'days' ? ('🔁 Har ' + patch.recurrence_days + ' kunda') : t('prj.recur_disabled', 'Takrorlanish o\'chirildi')), 'ok');
+    toast(v.type === 'weekly' ? (t('prj.recur_saved_weekly', '🔁 Har hafta {0}', WD[patch.recurrence_weekday])) : (v.type === 'days' ? (t('prj.recur_saved_days', '🔁 Har {0} kunda', patch.recurrence_days)) : t('prj.recur_disabled', 'Takrorlanish o\'chirildi')), 'ok');
   } catch (e) {
     console.error('prjEditRecurrence:', e);
     toast('Xato: ' + translateErr(e.message || String(e)), 'err');
@@ -7289,7 +7289,7 @@ async function prjResetRecurrence(project, silent) {
           // Ustun yo'q — sana surilmadi. Bosqich deadline'lari ham surilmasin
           // (aks holda vazifalar loyiha muddatidan ajralib ketardi).
           console.error('prjResetRecurrence: sana ustunlari yo\'q — davr surilmadi');
-          if (!silent) toast('⚠️ Yangi sikl sanasi saqlanmadi — ' + PRJ_MSG_NO_DATE, 'err');
+          if (!silent) toast(t('prj.cycle_date_not_saved', '⚠️ Yangi sikl sanasi saqlanmadi — {0}', PRJ_MSG_NO_DATE), 'err');
           shifted = null;
         } else if (out.res.error) throw out.res.error;
         else if (!out.res.data || !out.res.data.length) throw new Error(t('prj.project_date_denied', 'Loyiha sanasi yangilanmadi — ruxsat yo\'q'));
@@ -8714,7 +8714,7 @@ async function emailSetSave() {
       details: Object.assign({}, emailSettings)
     });
     emailSetRender();
-    toast(onCnt ? ('✅ Saqlandi — ' + onCnt + ' ta bildirishnoma yoniq') : t('emailSet.saved_all_off', '✅ Saqlandi — hamma email bildirishnoma o\'chirilgan'), 'ok');
+    toast(onCnt ? (t('emailSet.saved_n_on', '✅ Saqlandi — {0} ta bildirishnoma yoniq', onCnt)) : t('emailSet.saved_all_off', '✅ Saqlandi — hamma email bildirishnoma o\'chirilgan'), 'ok');
   } catch (e) {
     if (emailSetTableMissing(e)) {
       _emailSetMissing = true;
@@ -9007,7 +9007,7 @@ async function bootstrap() {
     if (error) throw error;
     user = (sess && sess.session && sess.session.user) || null;
   } catch (e) {
-    showBootErr('Sessiyani tekshirishda xatolik: ' + (e && e.message ? e.message : String(e)));
+    showBootErr(t('hrsv.session_check_error', 'Sessiyani tekshirishda xatolik: {0}', (e && e.message ? e.message : String(e))));
     return;
   }
   me = user;
@@ -9046,7 +9046,7 @@ async function bootstrap() {
         prof = re || null;
       }
     } catch (e) {
-      showBootErr('Profil yaratishda xatolik: ' + (e && e.message ? e.message : String(e)));
+      showBootErr(t('hrsv.profile_create_error', 'Profil yaratishda xatolik: {0}', (e && e.message ? e.message : String(e))));
       return;
     }
   }
@@ -10586,7 +10586,7 @@ async function onbFinish() {
       if (lines.length) {
         const branchRows = lines.map(name => ({ workspace_id: ws.id, name: name }));
         const { error: e3 } = await sb.from('branches').insert(branchRows);
-        if (e3) { console.error('Onboarding: filiallar yaratilmadi:', e3); toast('⚠ Filiallar yaratilmadi: ' + translateErr(e3.message || String(e3)), 'err'); }
+        if (e3) { console.error('Onboarding: filiallar yaratilmadi:', e3); toast(t('onb.branches_failed', '⚠ Filiallar yaratilmadi: {0}', translateErr(e3.message || String(e3))), 'err'); }
       }
     }
 
@@ -10629,7 +10629,7 @@ async function onbFinish() {
           const swData = await swResp.json();
           if (!swData.ok) {
             console.error('setWebhook xato:', swData);
-            toast('⚠️ Bot ulandi, lekin webhook o\'rnatib bo\'lmadi: ' + (swData.description||''), 'err');
+            toast(t('onb.webhook_failed', '⚠️ Bot ulandi, lekin webhook o\'rnatib bo\'lmadi: {0}', (swData.description||'')), 'err');
           }
 
           // d) Bot sozlamalari default qiymat bilan yaratish
@@ -10637,7 +10637,7 @@ async function onbFinish() {
         }
       } catch(e) {
         console.warn('Bot ulashda xatolik:', e);
-        toast('⚠️ Bot ulashda xatolik: ' + translateErr(e.message || String(e)), 'err');
+        toast(t('onb.bot_connect_error', '⚠️ Bot ulashda xatolik: {0}', translateErr(e.message || String(e))), 'err');
       }
     }
 
@@ -11767,8 +11767,8 @@ async function saveNewEmployee() {
       const tid = window._tblAsgForTask; window._tblAsgForTask = null;
       logActivity('employee_added', { entityType: 'employee', entityTitle: fullName || email, details: { email } });
       closeAddEmployeeModal();
-      toast('✅ Xodim yaratildi: ' + (fullName || email), 'ok');
-      if (res.email_sent) toast('📧 Email yuborildi: ' + email, 'ok');
+      toast(t('dft.employee_created', '✅ Xodim yaratildi: {0}', (fullName || email)), 'ok');
+      if (res.email_sent) toast(t('dft.email_sent', '📧 Email yuborildi: {0}', email), 'ok');
       try { await tblUpdate(tid, 'assigned_to', newUserId); } catch (e) {}
       return;
     }
@@ -11785,11 +11785,11 @@ async function saveNewEmployee() {
 
     closeAddEmployeeModal();
     logActivity('employee_added', { entityType: 'employee', entityTitle: fullName || email, details: { email } });
-    toast('✅ Xodim yaratildi va biriktirildi: ' + (fullName || email), 'ok');
+    toast(t('dft.employee_created_assigned', '✅ Xodim yaratildi va biriktirildi: {0}', (fullName || email)), 'ok');
     if (res.email_sent) {
       toast('📧 Parol o\'rnatish emaili yuborildi: ' + email, 'ok');
     } else {
-      toast('⚠ Email yuborilmadi' + (res.email_error ? (': ' + res.email_error) : '') + ' — Supabase SMTP sozlamasini tekshiring', 'err');
+      toast(t('dft.email_not_sent', '⚠ Email yuborilmadi{0} — Supabase SMTP sozlamasini tekshiring', (res.email_error ? (': ' + res.email_error) : '')), 'err');
     }
   } catch (e) {
     showMsg($('empMsg'), 'Xato: ' + translateErr(e.message || String(e)), 'err');
@@ -16881,7 +16881,7 @@ async function nmzAskRegion(firstTime) {
     return {
       value: r.value,
       label: r.label,
-      sub: (guess && guess.value === r.value) ? ('Taxmin · ~' + guess.km + ' km') : (r.sub || ''),
+      sub: (guess && guess.value === r.value) ? (t('nmz.guess_sub', 'Taxmin · ~{0} km', guess.km)) : (r.sub || ''),
       search: r.api + ' ' + (r.sub || '')
     };
   });
@@ -17386,7 +17386,7 @@ function nmzRenderPanel() {
     el.innerHTML = '<div class="nmz-line"><span class="nmz-reg-lbl">' + escapeHtml(nmzRegionLabel(nmzRegion)) + '</span>' +
       '<span class="nmz-msg">' +
         (st === 'loading' ? t('nmz.times_loading', 'Namoz vaqtlari yuklanmoqda…')
-          : (_nmzErr ? ('Vaqtlar olinmadi: ' + escapeHtml(translateErr(_nmzErr.message || String(_nmzErr))))
+          : (_nmzErr ? (t('nmz.times_failed_with_err', 'Vaqtlar olinmadi: {0}', escapeHtml(translateErr(_nmzErr.message || String(_nmzErr)))))
                      : t('nmz.times_not_found', 'Namoz vaqtlari topilmadi'))) +
       '</span>' +
       (st === 'loading' ? '' : '<button class="nmz-retry" onclick="nmzReload()">' + t('hrImport.btn_retry', 'Qayta urinish') + '</button>') +
@@ -18716,7 +18716,7 @@ async function hkTableToggle(uid, el) {
       // Provodka yozmadi — DB'ni ham qaytaramiz (tick = Provodka'da kassa bor degani)
       try { await hkSetDb(uid, !active); } catch (e2) { /* revert xato — keyingi renderда to'g'rilanadi */ }
       if (el) el.checked = !active;
-      toast('Provodka sync xato: ' + sync.error, 'err');
+      toast(t('hk.sync_error', 'Provodka sync xato: {0}', sync.error), 'err');
     } else {
       toast(active ? '💵 Harajat kassa yoqildi' : t('hk.disabled', 'Harajat kassa o\'chirildi'), 'ok');
       logActivity('harajat_kassa_toggled', { entityType: 'employee', entityId: uid, details: { active: active } });
@@ -19065,7 +19065,7 @@ function rmxUpdateProgress(bd) {
   const el = bd.querySelector('#rmxProg');
   if (!el) return;
   const n = _rmxRows.filter(function (r) { return !!r.target; }).length;
-  el.textContent = '· ' + n + ' / ' + _rmxRows.length + ' tanlandi';
+  el.textContent = t('rmx.progress', '· {0} / {1} tanlandi', n, _rmxRows.length);
   el.classList.toggle('done', n > 0 && n === _rmxRows.length);
 }
 
@@ -19118,7 +19118,7 @@ async function rmxApply(uid) {
         if (error) throw error;
         // RLS jimgina to'sib qo'ymasin — nechta qator o'zgargani tekshiriladi
         if (!data || data.length !== ids.length) {
-          throw new Error('Vazifalarning bir qismi yangilanmadi (' + ((data && data.length) || 0) + '/' + ids.length + ') — ehtimol ruxsat yo\'q.');
+          throw new Error(t('rmx.partial_update', 'Vazifalarning bir qismi yangilanmadi ({0}/{1}) — ehtimol ruxsat yo\'q.', ((data && data.length) || 0), ids.length));
         }
         data.forEach(function (row) {
           const i = tasksCache.findIndex(function (x) { return x.id === row.id; });
@@ -19157,7 +19157,7 @@ async function rmxDoRemove(uid, name) {
     if (!data || !data.length) throw new Error(t('rmx.remove_failed_rls', 'O\'chirilmadi — ehtimol sizda ruxsat yo\'q (RLS).'));
     wsMembers = wsMembers.filter(function (x) { return x.user_id !== uid; });
     logActivity('member_removed', { entityType: 'employee', entityId: uid, entityTitle: name });
-    toast('✓ ' + name + ' jamoadan chiqarildi', 'ok');
+    toast(t('rmx.removed', '✓ {0} jamoadan chiqarildi', name), 'ok');
     if (currentPage === 'team') renderTeam();
     refreshActiveView();
     return true;
@@ -19368,7 +19368,7 @@ async function phUploadPhoto() {
     toast(t('ph.photo_uploaded', '✓ Rasm yuklandi'), 'ok');
     logActivity('employee_photo_uploaded', { entityType: 'employee', entityId: uid, entityTitle: nm.full });
   } catch (e) {
-    toast('Rasm yuklanmadi: ' + translateErr(e.message || String(e)), 'err');
+    toast(t('ph.photo_upload_failed', 'Rasm yuklanmadi: {0}', translateErr(e.message || String(e))), 'err');
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = t('common.upload_photo', '📷 Rasm yuklash'); }
     if (inp) inp.value = '';
@@ -19725,7 +19725,7 @@ async function schSaveDays() {
     const start = new Date(startStr + 'T00:00:00');
     const end = new Date(endStr + 'T00:00:00');
     const dayCount = Math.round((end - start) / 86400000) + 1;
-    if (dayCount > 800) { toast('Oraliq juda katta (' + dayCount + ' kun). Shartnoma sanalarini aniqlang.', 'err'); return; }
+    if (dayCount > 800) { toast(t('sch.range_too_big', 'Oraliq juda katta ({0} kun). Shartnoma sanalarini aniqlang.', dayCount), 'err'); return; }
 
     let weekend = [];
     if (mode === 'weekly') {
@@ -19756,7 +19756,7 @@ async function schSaveDays() {
 
   const offN = rows.filter(function (r) { return r.day_type === 'off'; }).length;
   const ok = await uiConfirm(t('sch.recalc_title', 'Kunlarni qayta hisoblash'),
-    'Bu hodimning ' + rows.length + ' ta ish kuni qayta hisoblanadi (' + offN + ' dam kuni). Mavjud kunlar ustiga yoziladi. Davom etamizmi?',
+    t('sch.recalc_confirm', 'Bu hodimning {0} ta ish kuni qayta hisoblanadi ({1} dam kuni). Mavjud kunlar ustiga yoziladi. Davom etamizmi?', rows.length, offN),
     { danger: true, okText: t('sch.recalc_ok', 'Qayta hisoblash') });
   if (!ok) return;
 
@@ -19770,10 +19770,10 @@ async function schSaveDays() {
     }
     // Moslashuvchan: boshlanғich holatni yangilaymiz
     if (mode === 'flexible') _schOffOriginal = new Set(_schOffDays);
-    toast('✓ ' + rows.length + ' kun saqlandi (' + offN + ' dam kuni)', 'ok');
+    toast(t('sch.days_saved', '✓ {0} kun saqlandi ({1} dam kuni)', rows.length, offN), 'ok');
     logActivity('schedule_days_regenerated', { entityType: 'employee', entityId: uid, entityTitle: t('sch.work_schedule', 'Ish jadvali'), details: { mode: mode, days: rows.length, off: offN } });
   } catch (e) {
-    toast('Kunlarni saqlashda xato: ' + translateErr(e.message || String(e)), 'err');
+    toast(t('sch.save_days_error', 'Kunlarni saqlashda xato: {0}', translateErr(e.message || String(e))), 'err');
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = t('sch.save_days_btn', '📅 Kunlarni saqlash'); }
   }
@@ -19866,7 +19866,7 @@ async function empDtlSave() {
       }
       break;   // boshqa xato — retry qilmaymiz
     }
-    if (!error && warns.length) toast('Saqlandi, lekin kerak: ' + warns.join(' + '), 'err');
+    if (!error && warns.length) toast(t('emp.saved_but_needs', 'Saqlandi, lekin kerak: {0}', warns.join(' + ')), 'err');
     if (error) throw error;
     empDetails[uid] = data;
 
@@ -19895,7 +19895,7 @@ async function empDtlSave() {
     const hkNew = !!(data && data.harajat_kassa);
     if (hkNew || hkNew !== hkOld) {
       const sync = await hkSync(uid, hkNew);
-      if (!sync.ok) toast('Saqlandi, lekin Provodka sync xato: ' + sync.error, 'err');
+      if (!sync.ok) toast(t('emp.saved_but_sync_error', 'Saqlandi, lekin Provodka sync xato: {0}', sync.error), 'err');
     }
 
     toast('✓ Saqlandi', 'ok');
@@ -20179,7 +20179,7 @@ function hrImportMapRow(raw, idx) {
   // Homoglif xaritasi tugagach ham kirill qolgan bo'lsa — bu haqiqiy kirill
   // matn (masalan "Баходир"), homoglif emas. Jimgina buzib yubormaymiz.
   if (hrHasCyrillic(out.full_name)) {
-    out.errors.push('ismda kirill harf qoldi: "' + out.full_name + '" — homoglif emas, qo\'lda tekshiring');
+    out.errors.push(t('hrImport.err_cyrillic_name', 'ismda kirill harf qoldi: "{0}" — homoglif emas, qo\'lda tekshiring', out.full_name));
   }
 
   // ---- Legacy id'lar (hammasi massiv — bitta hodimda 5 tagacha filial) ----
@@ -20203,8 +20203,8 @@ function hrImportMapRow(raw, idx) {
   // ---- Sanalar ----
   const cs = hrImportNormDate(raw.contract_start);
   const ce = hrImportNormDate(raw.contract_end);
-  if (!cs.ok) out.errors.push('contract_start: ' + cs.reason);
-  if (!ce.ok) out.errors.push('contract_end: ' + ce.reason);
+  if (!cs.ok) out.errors.push(t('hrImport.err_contract_start', 'contract_start: {0}', cs.reason));
+  if (!ce.ok) out.errors.push(t('hrImport.err_contract_end', 'contract_end: {0}', ce.reason));
 
   // ---- work_type: CHECK (39:143) offline|online|hybrid ----
   let workType = raw.work_type === null || raw.work_type === undefined || raw.work_type === ''
@@ -20229,7 +20229,7 @@ function hrImportMapRow(raw, idx) {
   if (raw.radius !== null && raw.radius !== undefined && raw.radius !== '') {
     const rn = Number(raw.radius);
     if (isFinite(rn)) radius = Math.round(rn);
-    else out.errors.push('radius son emas: ' + raw.radius);
+    else out.errors.push(t('hrImport.err_radius_not_number', 'radius son emas: {0}', raw.radius));
   }
 
   out.details = {
@@ -20261,7 +20261,7 @@ function hrImportMapRow(raw, idx) {
     raw.days.forEach(function (d) {
       if (!d || typeof d !== 'object') return;
       const dt = hrImportNormDate(d.date);
-      if (!dt.ok || !dt.date) { out.errors.push('ish kuni sanasi yaroqsiz: ' + JSON.stringify(d.date)); return; }
+      if (!dt.ok || !dt.date) { out.errors.push(t('hrImport.err_workday_date', 'ish kuni sanasi yaroqsiz: {0}', JSON.stringify(d.date))); return; }
       const type = String(d.day_type || '').toLowerCase();
       // 41-migratsiyada CHECK (day_type IN ('on','off')). Uchinchi qiymat
       // chiqsa — import'da EMAS, shu yerda ushlaymiz.
@@ -20313,7 +20313,7 @@ function hrImportNormPhone(raw) {
   const e164 = '+' + d;
   // admin-import-staff/index.ts:80 dagi looksE164 bilan BIR XIL
   if (!/^\+[1-9]\d{7,14}$/.test(e164)) {
-    return { ok: false, e164: null, reason: 'E.164 ga keltirib bo\'lmadi: "' + s + '" (' + digits.length + ' raqam)' };
+    return { ok: false, e164: null, reason: t('hrImport.phone_e164_fail', 'E.164 ga keltirib bo\'lmadi: "{0}" ({1} raqam)', s, digits.length) };
   }
   return { ok: true, e164: e164, reason: null };
 }
@@ -20334,7 +20334,7 @@ function hrImportNormDate(raw) {
     mt = s.match(/^(\d{2})[.\/](\d{2})[.\/](\d{4})$/);     // DD.MM.YYYY
     if (mt) { y = mt[3]; m = mt[2]; d = mt[1]; }
   }
-  if (!y) return { ok: false, date: null, reason: 'format tushunarsiz: "' + s + '"' };
+  if (!y) return { ok: false, date: null, reason: t('hrImport.date_bad_format', 'format tushunarsiz: "{0}"', s) };
 
   // Haqiqiy sanami (2025-02-30 emasmi) — Date orqali tekshiramiz
   const iso = y + '-' + m + '-' + d;
@@ -20434,7 +20434,7 @@ async function hrImportFilePicked() {
   const mb = (f.size / 1024 / 1024).toFixed(1);
   if (f.size > HR_IMP_MAX_FILE) {
     info.textContent = '';
-    showMsg($('hrImpMsg'), 'Fayl juda katta: ' + mb + ' MB (' + Math.round(HR_IMP_MAX_FILE / 1024 / 1024) + ' MB gacha)', 'err');
+    showMsg($('hrImpMsg'), t('hrImport.file_too_big', 'Fayl juda katta: {0} MB ({1} MB gacha)', mb, Math.round(HR_IMP_MAX_FILE / 1024 / 1024)), 'err');
     inp.value = '';
     return;
   }
@@ -20806,7 +20806,7 @@ async function hrImportPhotos(rows, results) {
   const btn = $('hrImpRunBtn');
   for (let i = 0; i < jobs.length; i += HR_IMP_PHOTO_CHUNK) {
     const chunk = jobs.slice(i, i + HR_IMP_PHOTO_CHUNK);
-    if (btn) btn.textContent = 'Rasm… ' + Math.min(i + HR_IMP_PHOTO_CHUNK, jobs.length) + '/' + jobs.length;
+    if (btn) btn.textContent = t('hrImport.btn_photo_progress', 'Rasm… {0}/{1}', Math.min(i + HR_IMP_PHOTO_CHUNK, jobs.length), jobs.length);
     try {
       const { data: res, error: fnErr } = await sb.functions.invoke('admin-import-staff', {
         body: { workspace_id: currentWs.id, phase: 'photos', rows: chunk },
@@ -20914,7 +20914,7 @@ async function hrImportWriteDetails(rows, results) {
       // branches'da nom UNIQUE emas → ikki alohida qator, legacy_id ajratadi.
       await hrLegacyPut('branch', b.id, data.id, nm);
       out.branches++;
-    } catch (e) { err('filial ' + b.id + ' "' + b.name + '"', e); }
+    } catch (e) { err(t('hrImport.step_branch', 'filial {0} "{1}"', b.id, b.name), e); }
   }
 
   // ── 2) Rollar ───────────────────────────────────────────
@@ -21106,7 +21106,7 @@ async function hrImportRun() {
   try {
     const idn = await hrImportInvoke(_hrImpPre.ok, {
       dryRun: false, runId: runId,
-      onProgress: function (done, total) { btn.textContent = 'Import… ' + done + '/' + total; },
+      onProgress: function (done, total) { btn.textContent = t('hrImport.btn_progress', 'Import… {0}/{1}', done, total); },
     });
     const det = await hrImportWriteDetails(_hrImpPre.ok, idn.results);
     // Rasm oxirida: photo_path employee_details'ga yoziladi, ya'ni qator
@@ -21117,7 +21117,7 @@ async function hrImportRun() {
     logActivity('staff_imported', { entityType: 'employee', entityTitle: HR_IMP_SOURCE, details: { run_id: runId, summary: idn.summary } });
     hrImportRenderReport(idn, det, runId);
   } catch (e) {
-    showMsg($('hrImpMsg'), 'Import xatosi: ' + translateErr(e.message || String(e)), 'err');
+    showMsg($('hrImpMsg'), t('hrImport.run_error', 'Import xatosi: {0}', translateErr(e.message || String(e))), 'err');
     btn.disabled = false; btn.textContent = 'Qayta urinish';
     return;
   }
@@ -21131,7 +21131,7 @@ function hrImportRenderReport(idn, det, runId) {
   html += '<div style="padding:10px 12px;border:1px solid #A7F3D0;background:#F0FDF4;color:#065F46;border-radius:8px;margin-bottom:10px;">' +
     '<b>' + t('hrImport.report_done', 'Import tugadi') + '</b><br>' +
     '✓ ' + (s.created || 0) + ' yaratildi &nbsp;·&nbsp; ↻ ' + (s.updated || 0) + ' yangilandi &nbsp;·&nbsp; ⚲ ' + (s.adopted || 0) + ' bog\'landi' +
-    ((s.error || s.skipped) ? ' &nbsp;·&nbsp; ⚠ ' + ((s.error || 0) + (s.skipped || 0)) + ' o\'tkazib yuborildi' : '') +
+    ((s.error || s.skipped) ? t('hrImport.report_skipped_suffix', ' &nbsp;·&nbsp; ⚠ {0} o\'tkazib yuborildi', ((s.error || 0) + (s.skipped || 0))) : '') +
     '<div style="font-size:12px;margin-top:6px;opacity:.85;">Rollback uchun run id: <code>' + escapeHtml(runId) + '</code></div>' +
     '</div>';
   if (errs.length) {
@@ -22071,7 +22071,7 @@ async function tgSaveIntegration() {
       });
       const swData = await swResp.json();
       if (!swData.ok) {
-        toast('⚠️ Bot ulandi, lekin webhook xato: ' + (swData.description || ''), 'err');
+        toast(t('tg.webhook_error', '⚠️ Bot ulandi, lekin webhook xato: {0}', (swData.description || '')), 'err');
       }
     } catch (e) { /* webhook xatosi — keyin qayta sozlash mumkin */ }
 
@@ -22146,10 +22146,10 @@ async function tgNotifyAssignment(taskId, target) {
     t.description ? escapeHtml(t.description) : '',
     '',
     dept ? ('📂 Bo\'lim: ' + escapeHtml(dept)) : '',
-    t.deadline ? ('⏰ Deadline: ' + fmtDeadline(t.deadline)) : '',
-    (t.priority_level||0) > 0 ? ('🔥 Prioritet: P' + t.priority_level) : '',
+    t.deadline ? (t('tg.line_deadline', '⏰ Deadline: {0}', fmtDeadline(t.deadline))) : '',
+    (t.priority_level||0) > 0 ? (t('tg.line_priority', '🔥 Prioritet: P{0}', t.priority_level)) : '',
     '',
-    'Beruvchi: ' + escapeHtml(myProfile.full_name || me.email),
+    t('tg.line_from', 'Beruvchi: {0}', escapeHtml(myProfile.full_name || me.email)),
   ].filter(Boolean).join('\n');
   // Inline tugmalar — botda javob berishi uchun
   // CALLBACK FORMAT (bot workflow bilan moslashtirilgan):
@@ -22884,7 +22884,7 @@ async function oscDeleteFolder(id) {
   keys.forEach(function (k) { if (k === oscKey('folder', id)) return; if (k.charAt(0) === 'f') subF++; else subP++; });
 
   let msg = '"' + f.name + '" o\'chiriladi.';
-  if (subF) msg += ' Ichidagi ' + subF + ' ta papka ham o\'chadi.';
+  if (subF) msg += t('osc.folder_delete_sub_folders', 'Ichidagi {0} ta papka ham o\'chadi.', subF);
   if (subP) msg += ' ' + subP + ' ta xodim sxemada qoladi, lekin ildizga ko\'chadi (o\'chmaydi).';
   const ok = await uiConfirm(t('osc.folder_delete_title', 'Papkani o\'chirish'), msg, { danger: true, okText: 'O\'chirish' });
   if (!ok) return;
@@ -23124,7 +23124,7 @@ function oscNodeHtml(n) {
         '<span class="osc-card-nm">' + escapeHtml(f.name || '') + '</span>' +
         '<span class="osc-card-sub">' + escapeHtml(name) + '</span>' +
       '</span>' +
-      (mSeats > 1 ? '<span class="osc-card-seat" title="' + escapeHtml('Bu xodim ' + mSeats + ' o\'rinda') + '">' + mSeats + '</span>' : '') +
+      (mSeats > 1 ? '<span class="osc-card-seat" title="' + escapeHtml(t('osc.person_seats_title', 'Bu xodim {0} o\'rinda', mSeats)) + '">' + mSeats + '</span>' : '') +
       acts +
     '</div>';
   }
@@ -23773,8 +23773,8 @@ async function oscRemovePerson(personId) {
   const seats = oscSeatCount(p.user_id);
 
   let msg = oscPersonName(p.user_id) + (pn ? (' — "' + pn + '" dagi o\'rni') : '') + ' sxemadan olib tashlanadi.';
-  if (seats > 1) msg += ' Uning qolgan ' + (seats - 1) + ' o\'rni JOYIDA QOLADI.';
-  if (under) msg += ' Ostidagi ' + under + ' ta tugun ildizga ko\'chadi (o\'chmaydi).';
+  if (seats > 1) msg += t('osc.remove_other_seats', 'Uning qolgan {0} o\'rni JOYIDA QOLADI.', (seats - 1));
+  if (under) msg += t('osc.remove_children_move', 'Ostidagi {0} ta tugun ildizga ko\'chadi (o\'chmaydi).', under);
   msg += (' ' + t('osc.remove_note_team', '⚠️ Xodim jamoadan CHIQARILMAYDI va vazifalariga tegilmaydi.'));
 
   const ok = await uiConfirm(seats > 1 ? 'Shu o\'rinni olib tashlash' : t('osc.remove_from_chart', 'Sxemadan olib tashlash'), msg, { danger: true, okText: 'Olib tashlash' });
