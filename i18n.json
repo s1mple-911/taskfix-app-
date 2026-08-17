@@ -6609,6 +6609,16 @@
     "ru": "Подзадачи (необязательно)",
     "en": "Subtasks (optional)"
   },
+  "page-settings.lang_hint": {
+    "uz": "ⓘ Til tanlangach sahifa qayta yuklanadi. Tanlov hisobingizga saqlanadi.",
+    "ru": "ⓘ После выбора языка страница перезагрузится. Выбор сохранится в вашем профиле.",
+    "en": "ⓘ The page reloads after you pick a language. Your choice is saved to your account."
+  },
+  "page-settings.lang_title": {
+    "uz": "Til (Language)",
+    "ru": "Язык (Language)",
+    "en": "Language"
+  },
   "page-settings.ms_clear": {
     "uz": "Tozalash",
     "ru": "Очистить",
