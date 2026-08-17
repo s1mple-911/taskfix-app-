@@ -3188,7 +3188,7 @@
     <div style="font-size:44px;text-align:center;margin-bottom:6px;">🏢</div>
     <h2 style="text-align:center;margin:0 0 6px;color:var(--ink);font-size:20px;" data-i18n="html-shell.onb_title">Kompaniyangizni yarating</h2>
     <p style="text-align:center;color:var(--muted);font-size:13px;margin:0 0 20px;line-height:1.5;" data-i18n="html-shell.onb_sub">Boshlash uchun kompaniya nomini kiriting. Siz uning egasi bo'lasiz — 14 kun bepul sinov.</p>
-    <div class="field"><input id="onbBoardName" type="text" data-i18n-ph="html-shell.onb_name_ph" placeholder="Masalan: MyCompany" onkeydown="if(event.key==='Enter'){onbBoardCreate();}" /></div>
+    <div class="field"><input id="onbBoardName" type="text" data-i18n-ph="html-shell.onb_name_ph" data-i18n-ph="html-shell.onb_name_ph" placeholder="Masalan: MyCompany" onkeydown="if(event.key==='Enter'){onbBoardCreate();}" /></div>
     <div class="msg" id="onbBoardMsg"></div>
     <button class="btn" id="onbBoardCreateBtn" onclick="onbBoardCreate()" style="width:100%;margin-top:12px;" data-i18n="html-shell.create">Yaratish</button>
     <button class="btn secondary" onclick="doLogout()" style="width:100%;margin-top:8px;" data-i18n="html-shell.logout">Chiqish</button>
@@ -3210,7 +3210,7 @@
 <div class="shell" id="authShell" style="display:none">
   <aside class="brand">
     <div class="wordmark">
-      <a href="landing.html" class="au-wm-link" data-i18n-aria="html-shell.home_link" aria-label="TaskFix bosh sahifasi">
+      <a href="landing.html" class="au-wm-link" data-i18n-aria="html-shell.home_link" data-i18n-aria="html-shell.home_link" aria-label="TaskFix bosh sahifasi">
         <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
           <rect width="32" height="32" rx="8" fill="#FEF3C7"/>
           <path d="M 9 16 L 14 21 L 23 11" stroke="#0F1417" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
@@ -3242,20 +3242,20 @@
         </div>
         <form id="authForm" novalidate onsubmit="event.preventDefault(); submitAuth();">
           <div class="au-grid2">
-            <div class="field au-anim" id="nameField" style="display:none"><label for="fullName" data-i18n="html-shell.first_name">Ismingiz</label><input id="fullName" type="text" autocomplete="given-name" data-i18n-ph="html-shell.first_name_ph" placeholder="Asilbek" /></div>
-            <div class="field au-anim" id="lastNameField" style="display:none"><label for="suLastName" data-i18n="html-shell.last_name">Familiyangiz</label><input id="suLastName" type="text" autocomplete="family-name" data-i18n-ph="html-shell.last_name_ph" placeholder="Aliyev" /></div>
+            <div class="field au-anim" id="nameField" style="display:none"><label for="fullName" data-i18n="html-shell.first_name">Ismingiz</label><input id="fullName" type="text" autocomplete="given-name" data-i18n-ph="html-shell.first_name_ph" data-i18n-ph="html-shell.first_name_ph" placeholder="Asilbek" /></div>
+            <div class="field au-anim" id="lastNameField" style="display:none"><label for="suLastName" data-i18n="html-shell.last_name">Familiyangiz</label><input id="suLastName" type="text" autocomplete="family-name" data-i18n-ph="html-shell.last_name_ph" data-i18n-ph="html-shell.last_name_ph" placeholder="Aliyev" /></div>
           </div>
           <div class="field au-anim" id="phoneField" style="display:none"><label for="suPhone" data-i18n="html-shell.phone">Telefon</label><input id="suPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+998 90 123 45 67" /></div>
           <div class="field au-anim" id="photoField" style="display:none"><label for="suPhoto" data-i18n="html-shell.photo_optional">Rasm (ixtiyoriy)</label><input id="suPhoto" type="file" accept="image/*" /></div>
-          <div class="field"><label for="email" data-i18n="html-shell.email">Email</label><input id="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" data-i18n-ph="html-shell.email_ph" placeholder="siz@kompaniya.uz" /></div>
+          <div class="field"><label for="email" data-i18n="html-shell.email">Email</label><input id="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" data-i18n-ph="html-shell.email_ph" data-i18n-ph="html-shell.email_ph" placeholder="siz@kompaniya.uz" /></div>
           <div class="field">
             <div class="au-lblrow">
               <label for="password" data-i18n="html-shell.password">Parol</label>
               <div id="forgotRow"><button class="link-btn" type="button" onclick="goForgot()" data-i18n="html-shell.forgot_password">Parolni unutdingizmi?</button></div>
             </div>
             <div class="au-pw">
-              <input id="password" type="password" autocomplete="current-password" data-i18n-ph="html-shell.min_6_chars" placeholder="Kamida 6 belgi" />
-              <button class="au-pweye" type="button" aria-pressed="false" data-i18n-aria="html-shell.show_password" aria-label="Parolni ko'rsatish" onclick="auTogglePw('password', this)"><svg class="au-ic-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="au-ic-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c6.4 0 10 7 10 7a17.3 17.3 0 0 1-2.16 3.19M6.61 6.61A17.4 17.4 0 0 0 2 11s3.6 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/></svg></button>
+              <input id="password" type="password" autocomplete="current-password" data-i18n-ph="html-shell.min_6_chars" data-i18n-ph="html-shell.min_6_chars" placeholder="Kamida 6 belgi" />
+              <button class="au-pweye" type="button" aria-pressed="false" data-i18n-aria="html-shell.show_password" data-i18n-aria="html-shell.show_password" aria-label="Parolni ko'rsatish" onclick="auTogglePw('password', this)"><svg class="au-ic-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="au-ic-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c6.4 0 10 7 10 7a17.3 17.3 0 0 1-2.16 3.19M6.61 6.61A17.4 17.4 0 0 0 2 11s3.6 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/></svg></button>
             </div>
           </div>
           <button class="btn block" type="submit" id="authBtn" data-i18n="html-shell.login">Kirish</button>
@@ -3268,7 +3268,7 @@
         <h2 data-i18n="html-shell.reset_title">Parolni tiklash</h2>
         <p class="sub" data-i18n="html-shell.reset_sub">Emailingizni yozing — tiklash havolasini yuboramiz.</p>
         <form id="forgotForm" novalidate onsubmit="event.preventDefault(); sendReset();">
-          <div class="field"><label for="fEmail" data-i18n="html-shell.email">Email</label><input id="fEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" data-i18n-ph="html-shell.email_ph" placeholder="siz@kompaniya.uz" /></div>
+          <div class="field"><label for="fEmail" data-i18n="html-shell.email">Email</label><input id="fEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" data-i18n-ph="html-shell.email_ph" data-i18n-ph="html-shell.email_ph" placeholder="siz@kompaniya.uz" /></div>
           <button class="btn block" type="submit" id="fBtn" data-i18n="html-shell.send_link">Havola yuborish</button>
           <div class="msg" id="fMsg" role="alert" aria-live="assertive" aria-atomic="true"></div>
           <div class="au-back"><button class="link-btn" type="button" onclick="backToLogin()" data-i18n="html-shell.back_to_login">← Kirishga qaytish</button></div>
@@ -3282,15 +3282,15 @@
           <div class="field">
             <label for="rPwd" data-i18n="html-shell.new_password">Yangi parol</label>
             <div class="au-pw">
-              <input id="rPwd" type="password" autocomplete="new-password" data-i18n-ph="html-shell.min_6_chars" placeholder="Kamida 6 belgi" />
-              <button class="au-pweye" type="button" aria-pressed="false" data-i18n-aria="html-shell.show_password" aria-label="Parolni ko'rsatish" onclick="auTogglePw('rPwd', this)"><svg class="au-ic-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="au-ic-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c6.4 0 10 7 10 7a17.3 17.3 0 0 1-2.16 3.19M6.61 6.61A17.4 17.4 0 0 0 2 11s3.6 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/></svg></button>
+              <input id="rPwd" type="password" autocomplete="new-password" data-i18n-ph="html-shell.min_6_chars" data-i18n-ph="html-shell.min_6_chars" placeholder="Kamida 6 belgi" />
+              <button class="au-pweye" type="button" aria-pressed="false" data-i18n-aria="html-shell.show_password" data-i18n-aria="html-shell.show_password" aria-label="Parolni ko'rsatish" onclick="auTogglePw('rPwd', this)"><svg class="au-ic-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="au-ic-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c6.4 0 10 7 10 7a17.3 17.3 0 0 1-2.16 3.19M6.61 6.61A17.4 17.4 0 0 0 2 11s3.6 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/></svg></button>
             </div>
           </div>
           <div class="field">
             <label for="rPwd2" data-i18n="html-shell.repeat">Takror</label>
             <div class="au-pw">
-              <input id="rPwd2" type="password" autocomplete="new-password" data-i18n-ph="html-shell.repeat_password" placeholder="Parolni takrorlang" />
-              <button class="au-pweye" type="button" aria-pressed="false" data-i18n-aria="html-shell.show_password" aria-label="Parolni ko'rsatish" onclick="auTogglePw('rPwd2', this)"><svg class="au-ic-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="au-ic-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c6.4 0 10 7 10 7a17.3 17.3 0 0 1-2.16 3.19M6.61 6.61A17.4 17.4 0 0 0 2 11s3.6 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/></svg></button>
+              <input id="rPwd2" type="password" autocomplete="new-password" data-i18n-ph="html-shell.repeat_password" data-i18n-ph="html-shell.repeat_password" placeholder="Parolni takrorlang" />
+              <button class="au-pweye" type="button" aria-pressed="false" data-i18n-aria="html-shell.show_password" data-i18n-aria="html-shell.show_password" aria-label="Parolni ko'rsatish" onclick="auTogglePw('rPwd2', this)"><svg class="au-ic-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="au-ic-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c6.4 0 10 7 10 7a17.3 17.3 0 0 1-2.16 3.19M6.61 6.61A17.4 17.4 0 0 0 2 11s3.6 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/></svg></button>
             </div>
           </div>
           <button class="btn block" type="submit" id="rBtn" data-i18n="html-shell.save_and_login">Saqlash va kirish</button>
@@ -3307,14 +3307,14 @@
           <div class="field">
             <label for="invPwd" data-i18n="html-shell.set_password">Parol o'rnating</label>
             <div class="au-pw">
-              <input id="invPwd" type="password" autocomplete="new-password" data-i18n-ph="html-shell.min_6_chars" placeholder="Kamida 6 belgi" />
+              <input id="invPwd" type="password" autocomplete="new-password" data-i18n-ph="html-shell.min_6_chars" data-i18n-ph="html-shell.min_6_chars" placeholder="Kamida 6 belgi" />
               <button class="au-pweye" type="button" aria-pressed="false" aria-label="Parolni ko'rsatish" onclick="auTogglePw('invPwd', this)"><svg class="au-ic-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="au-ic-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c6.4 0 10 7 10 7a17.3 17.3 0 0 1-2.16 3.19M6.61 6.61A17.4 17.4 0 0 0 2 11s3.6 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/></svg></button>
             </div>
           </div>
           <div class="field">
             <label for="invPwd2" data-i18n="html-shell.repeat_password">Parolni takrorlang</label>
             <div class="au-pw">
-              <input id="invPwd2" type="password" autocomplete="new-password" data-i18n-ph="html-shell.repeat_password" placeholder="Parolni takrorlang" />
+              <input id="invPwd2" type="password" autocomplete="new-password" data-i18n-ph="html-shell.repeat_password" data-i18n-ph="html-shell.repeat_password" placeholder="Parolni takrorlang" />
               <button class="au-pweye" type="button" aria-pressed="false" aria-label="Parolni ko'rsatish" onclick="auTogglePw('invPwd2', this)"><svg class="au-ic-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="au-ic-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c6.4 0 10 7 10 7a17.3 17.3 0 0 1-2.16 3.19M6.61 6.61A17.4 17.4 0 0 0 2 11s3.6 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/></svg></button>
             </div>
           </div>
@@ -3334,8 +3334,8 @@
     <div class="brand-top">
       <svg class="brand-logo" width="20" height="20" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#FEF3C7"/><path d="M 9 16 L 14 21 L 23 11" stroke="#0F1417" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
       <span class="brand-txt">TaskFix</span>
-      <button class="sb-toggle" id="sbToggleBtn" type="button" onclick="sbToggle()" data-i18n-title="html-shell.sidebar_collapse_title" title="Menyuni yig'ish (Ctrl+B)" data-i18n-aria="html-shell.sidebar_collapse" aria-label="Menyuni yig'ish"></button>
-      <button class="mob-drawer-x" id="mobDrawerX" type="button" onclick="mobNavClose()" data-i18n-title="html-shell.close_menu" title="Menyuni yopish" data-i18n-aria="html-shell.close_menu" aria-label="Menyuni yopish"></button>
+      <button class="sb-toggle" id="sbToggleBtn" type="button" onclick="sbToggle()" data-i18n-title="html-shell.sidebar_collapse_title" data-i18n-title="html-shell.sidebar_collapse_title" title="Menyuni yig'ish (Ctrl+B)" data-i18n-aria="html-shell.sidebar_collapse" data-i18n-aria="html-shell.sidebar_collapse" aria-label="Menyuni yig'ish"></button>
+      <button class="mob-drawer-x" id="mobDrawerX" type="button" onclick="mobNavClose()" data-i18n-title="html-shell.close_menu" data-i18n-title="html-shell.close_menu" title="Menyuni yopish" data-i18n-aria="html-shell.close_menu" data-i18n-aria="html-shell.close_menu" aria-label="Menyuni yopish"></button>
     </div>
     <div class="ws-switch" onclick="toggleWsDrop(event)">
       <div class="ws-avatar" id="wsAvatar">P</div>
@@ -3353,12 +3353,12 @@
       <!-- ⚠️ `title` STATIK: `sbTitles()` faqat #sideNav ni skanerlaydi, biz esa
            .side-bottom dagimiz → yig'ilgan menyuda (`.sb-collapsed`, font-size:0)
            tugma matnsiz qolardi. -->
-      <button class="side-link pwa-drawer-item" id="pwaDrawerBtn" type="button" style="display:none" data-i18n-title="html-shell.install_app" title="Ilovani o'rnatish" onclick="pwaInstall()"></button>
+      <button class="side-link pwa-drawer-item" id="pwaDrawerBtn" type="button" style="display:none" data-i18n-title="html-shell.install_app" data-i18n-title="html-shell.install_app" title="Ilovani o'rnatish" onclick="pwaInstall()"></button>
       <div class="side-user" id="sideUserBar" onclick="toggleProfileMenu(event)" style="cursor:pointer;position:relative;">
         <div class="side-user-avatar" id="userAv">?</div>
         <div class="side-user-info"><div class="side-user-name" id="userNm">—</div><div class="side-user-mail" id="userMl">—</div></div>
-        <button class="bell-btn" onclick="event.stopPropagation();openTgConnect()" data-i18n-title="html-shell.connect_telegram" title="Telegram'ga ulanish" id="tgConnBtn" style="font-size:14px">✈</button>
-        <button class="bell-btn" onclick="event.stopPropagation();toggleNotif(event)" data-i18n-title="html-shell.notifications" title="Bildirishnomalar">🔔<span class="bell-dot" id="bellDot" style="display:none"></span></button>
+        <button class="bell-btn" onclick="event.stopPropagation();openTgConnect()" data-i18n-title="html-shell.connect_telegram" data-i18n-title="html-shell.connect_telegram" title="Telegram'ga ulanish" id="tgConnBtn" style="font-size:14px">✈</button>
+        <button class="bell-btn" onclick="event.stopPropagation();toggleNotif(event)" data-i18n-title="html-shell.notifications" data-i18n-title="html-shell.notifications" title="Bildirishnomalar">🔔<span class="bell-dot" id="bellDot" style="display:none"></span></button>
         <!-- Dropdown menu -->
         <div id="profileMenu" class="profile-menu">
           <button class="profile-menu-item" onclick="event.stopPropagation();goProfilePage()"><span style="opacity:.7;">👤</span> Mening profilim</button>
@@ -3371,19 +3371,19 @@
   <main class="main">
     <div class="topbar">
       <!-- Mobil (≤880px) topbar elementlari — desktopda display:none -->
-      <button class="mob-burger" id="mobBurger" type="button" onclick="mobNavToggle()" data-i18n-aria="html-shell.menu" aria-label="Menyu" aria-expanded="false" aria-controls="appSidebar"></button>
+      <button class="mob-burger" id="mobBurger" type="button" onclick="mobNavToggle()" data-i18n-aria="html-shell.menu" data-i18n-aria="html-shell.menu" aria-label="Menyu" aria-expanded="false" aria-controls="appSidebar"></button>
       <div class="mob-title" id="mobTitle">TaskFix</div>
-      <div class="topbar-search" id="topSearchWrap" data-i18n-title="html-shell.search_title" title="Qidiruv (Ctrl+K)" onclick="gsFocus()">
-        <button class="mob-search-back" id="mobSearchBack" type="button" onclick="event.stopPropagation();mobSearchClose()" data-i18n-aria="html-shell.search_close" aria-label="Qidiruvni yopish"></button>
+      <div class="topbar-search" id="topSearchWrap" data-i18n-title="html-shell.search_title" data-i18n-title="html-shell.search_title" title="Qidiruv (Ctrl+K)" onclick="gsFocus()">
+        <button class="mob-search-back" id="mobSearchBack" type="button" onclick="event.stopPropagation();mobSearchClose()" data-i18n-aria="html-shell.search_close" data-i18n-aria="html-shell.search_close" aria-label="Qidiruvni yopish"></button>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
-        <input id="topSearchInp" type="text" data-i18n-ph="html-shell.search_ph" placeholder="Qidiruv: xodim, vazifa, loyiha, bo'lim…" oninput="gsOnInput()" onkeydown="gsKey(event)" onfocus="gsOpen()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="flex:1;border:none;background:transparent;outline:none;font-family:inherit;font-size:13px;color:var(--ink);min-width:0;" />
+        <input id="topSearchInp" type="text" data-i18n-ph="html-shell.search_ph" data-i18n-ph="html-shell.search_ph" placeholder="Qidiruv: xodim, vazifa, loyiha, bo'lim…" oninput="gsOnInput()" onkeydown="gsKey(event)" onfocus="gsOpen()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="flex:1;border:none;background:transparent;outline:none;font-family:inherit;font-size:13px;color:var(--ink);min-width:0;" />
         <div id="gsSpin" class="gs-spin"></div>
-        <button id="gsClear" class="gs-clear" type="button" data-i18n-title="html-shell.clear" title="Tozalash" onclick="event.stopPropagation();gsClearInput()">×</button>
+        <button id="gsClear" class="gs-clear" type="button" data-i18n-title="html-shell.clear" data-i18n-title="html-shell.clear" title="Tozalash" onclick="event.stopPropagation();gsClearInput()">×</button>
         <span class="kbd">⌘K</span>
       </div>
-      <button class="mob-iconbtn" id="mobSearchBtn" type="button" onclick="mobSearchOpen()" data-i18n-aria="html-shell.search" aria-label="Qidiruv"></button>
-      <button class="mob-iconbtn" id="mobBellBtn" type="button" onclick="event.stopPropagation();toggleNotif(event)" data-i18n-aria="html-shell.notifications" aria-label="Bildirishnomalar"><span class="bell-dot" id="mobBellDot" style="display:none"></span></button>
-      <button class="btn topbar-new" onclick="openCreate()" id="topbarNewBtn" style="display:none;" data-i18n-aria="html-shell.new_task" aria-label="Yangi vazifa">
+      <button class="mob-iconbtn" id="mobSearchBtn" type="button" onclick="mobSearchOpen()" data-i18n-aria="html-shell.search" data-i18n-aria="html-shell.search" aria-label="Qidiruv"></button>
+      <button class="mob-iconbtn" id="mobBellBtn" type="button" onclick="event.stopPropagation();toggleNotif(event)" data-i18n-aria="html-shell.notifications" data-i18n-aria="html-shell.notifications" aria-label="Bildirishnomalar"><span class="bell-dot" id="mobBellDot" style="display:none"></span></button>
+      <button class="btn topbar-new" onclick="openCreate()" id="topbarNewBtn" style="display:none;" data-i18n-aria="html-shell.new_task" data-i18n-aria="html-shell.new_task" aria-label="Yangi vazifa">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M12 5v14M5 12h14"></path></svg>
         Yangi vazifa
         <span style="font-family:'JetBrains Mono',monospace;font-size:10px;opacity:.6;border:1px solid rgba(255,255,255,.25);border-radius:4px;padding:1px 4px;margin-left:6px;">N</span>
@@ -3392,7 +3392,7 @@
     <!-- 📱 PWA banneri (spec 5.7-B) — topbar OSTIDA yopishadi, faqat ≤880px.
          Ko'rsatish/yashirish `pwaSyncUi()` da (`.show` klassi); shartlar
          `pwaBannerEligible()` da. Ichi `pwaInit()` da to'ldiriladi (icon()). -->
-    <div class="pwa-inapp" id="pwaInapp" role="region" data-i18n-aria="html-shell.install_app" aria-label="Ilovani o'rnatish"></div>
+    <div class="pwa-inapp" id="pwaInapp" role="region" data-i18n-aria="html-shell.install_app" data-i18n-aria="html-shell.install_app" aria-label="Ilovani o'rnatish"></div>
     <!-- Dashboard -->
     <section id="page-planner" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap;">
@@ -3400,7 +3400,7 @@
         <div id="nmzCtl" style="display:none;align-items:center;gap:8px;margin-left:auto;">
           <button type="button" class="nmz-toggle" id="nmzToggle" aria-pressed="false" onclick="nmzToggleClick()"><span class="nmz-moon">☾</span> Muslim</button>
           <button type="button" class="nmz-reg" id="nmzRegBtn" style="display:none" onclick="nmzAskRegion()">—</button>
-          <button type="button" class="nmz-reg nmz-show" id="nmzShowBtn" style="display:none" onclick="nmzPanelSetHidden(false)" data-i18n-title="page-planner.namoz_show_title" title="Namoz vaqtlari lentasini qaytarish" data-i18n="page-planner.namoz_show">☾ Vaqtlar</button>
+          <button type="button" class="nmz-reg nmz-show" id="nmzShowBtn" style="display:none" onclick="nmzPanelSetHidden(false)" data-i18n-title="page-planner.namoz_show_title" data-i18n-title="page-planner.namoz_show_title" title="Namoz vaqtlari lentasini qaytarish" data-i18n="page-planner.namoz_show">☾ Vaqtlar</button>
         </div>
         <div id="plnWeekNav" style="display:flex;align-items:center;gap:8px;">
           <button class="btn sm secondary" onclick="plnNav(-1)">‹</button>
@@ -3487,7 +3487,7 @@
             <span>👥</span><span id="empFilterLabel" data-i18n="common.emp_filter_all">Xodim: Barchasi</span><span class="emp-filter-caret">▾</span>
           </button>
           <div class="emp-filter-panel" id="empFilterPanel" style="display:none;">
-            <input type="text" id="empFilterSearch" class="emp-filter-search" data-i18n-ph="page-tasks.ph_search_employee" placeholder="Xodim qidirish…" oninput="empFilterRenderList('tasks')" autocomplete="off" />
+            <input type="text" id="empFilterSearch" class="emp-filter-search" data-i18n-ph="page-tasks.ph_search_employee" data-i18n-ph="page-tasks.ph_search_employee" placeholder="Xodim qidirish…" oninput="empFilterRenderList('tasks')" autocomplete="off" />
             <div class="emp-filter-list" id="empFilterList"></div>
           </div>
         </div>
@@ -3495,7 +3495,7 @@
       </div>
       <div id="tasksView-list">
         <div class="search-row">
-          <input type="text" class="search-input" id="tasksSearch" data-i18n-ph="page-tasks.ph_search_tasks_full" placeholder="Vazifalar bo'yicha qidirish… (nom, tavsif)" oninput="onTasksSearch()" />
+          <input type="text" class="search-input" id="tasksSearch" data-i18n-ph="page-tasks.ph_search_tasks_full" data-i18n-ph="page-tasks.ph_search_tasks_full" placeholder="Vazifalar bo'yicha qidirish… (nom, tavsif)" oninput="onTasksSearch()" />
           <select id="tasksAsgFilter" onchange="renderTasksList()" style="padding:9px 12px; border:1px solid var(--line); border-radius:10px; font-size:13px; background: var(--surface); font-family:inherit;">
             <option value="all">Hamma biriktirilganlar</option>
             <option value="me">Faqat menga</option>
@@ -3514,7 +3514,7 @@
       </div>
       <div id="tasksView-kanban" style="display:none">
         <div class="kanban-toolbar">
-          <input type="text" class="search-input" id="tkSearch" data-i18n-ph="page-tasks.ph_search_task" placeholder="Vazifa qidirish..." oninput="renderTasksKanban()" style="max-width: 280px;" />
+          <input type="text" class="search-input" id="tkSearch" data-i18n-ph="page-tasks.ph_search_task" data-i18n-ph="page-tasks.ph_search_task" placeholder="Vazifa qidirish..." oninput="renderTasksKanban()" style="max-width: 280px;" />
           <select id="tkAsgFilter" onchange="renderTasksKanban()" style="padding:9px 12px; border:1px solid var(--line); border-radius:10px; font-size:13px; background: var(--surface); font-family:inherit;">
             <option value="all">Hamma biriktirilganlar</option>
             <option value="me">Faqat menga</option>
@@ -3549,7 +3549,7 @@
           <button class="tbl-sv"        data-sv="workload"  onclick="tblSetSubview('workload')">Xodim yuklamasi</button>
         </div>
         <div class="tbl-toolbar">
-          <input type="text" class="search-input" id="tblSearch" data-i18n-ph="page-tasks.ph_search" placeholder="Qidirish..." oninput="renderTasksTable()" style="max-width:260px;" />
+          <input type="text" class="search-input" id="tblSearch" data-i18n-ph="page-tasks.ph_search" data-i18n-ph="page-tasks.ph_search" placeholder="Qidirish..." oninput="renderTasksTable()" style="max-width:260px;" />
           <button class="btn sm secondary" onclick="tblClearFilters()" id="tblClearBtn" style="display:none;">✕ Filtrlarni tozalash</button>
           <div style="flex:1"></div>
           <span style="font-size:11.5px;color:var(--muted);margin-right:6px;">Shift+Enter = yangi qator</span>
@@ -3568,7 +3568,7 @@
         <button class="btn" id="newDeptBtn" onclick="openNewDept()" style="display:none">+ Yangi bo'lim</button>
       </div>
       <div class="search-row">
-        <input type="text" class="search-input" id="deptSearch" data-i18n-ph="page-departments.search_ph" placeholder="Bo'lim nomi yoki tavsif bo'yicha qidirish..." oninput="renderDeptsList()" />
+        <input type="text" class="search-input" id="deptSearch" data-i18n-ph="page-departments.search_ph" data-i18n-ph="page-departments.search_ph" placeholder="Bo'lim nomi yoki tavsif bo'yicha qidirish..." oninput="renderDeptsList()" />
       </div>
       <div id="deptsList" class="list"></div>
       <div id="deptsEmpty" class="empty" style="display:none"><strong>Hali bo'lim yo'q</strong>Bo'limlar (IT, HR, Savdo, ...) yarating.</div>
@@ -3604,7 +3604,7 @@
             <span>👥</span><span id="deptEmpFilterLabel" data-i18n="common.emp_filter_all">Xodim: Barchasi</span><span class="emp-filter-caret">▾</span>
           </button>
           <div class="emp-filter-panel" id="deptEmpFilterPanel" style="display:none;">
-            <input type="text" id="deptEmpFilterSearch" class="emp-filter-search" data-i18n-ph="page-tasks.ph_search_employee" placeholder="Xodim qidirish…" oninput="empFilterRenderList('dept')" autocomplete="off" />
+            <input type="text" id="deptEmpFilterSearch" class="emp-filter-search" data-i18n-ph="page-tasks.ph_search_employee" data-i18n-ph="page-tasks.ph_search_employee" placeholder="Xodim qidirish…" oninput="empFilterRenderList('dept')" autocomplete="off" />
             <div class="emp-filter-list" id="deptEmpFilterList"></div>
           </div>
         </div>
@@ -3613,7 +3613,7 @@
 
       <div id="deptView-kanban">
         <div class="kanban-toolbar">
-          <input type="text" class="search-input" id="kanSearch" data-i18n-ph="page-tasks.ph_search_task" placeholder="Vazifa qidirish..." oninput="renderKanban()" style="max-width: 280px;" />
+          <input type="text" class="search-input" id="kanSearch" data-i18n-ph="page-tasks.ph_search_task" data-i18n-ph="page-tasks.ph_search_task" placeholder="Vazifa qidirish..." oninput="renderKanban()" style="max-width: 280px;" />
           <select id="kanAsgFilter" onchange="renderKanban()" style="padding:9px 12px; border:1px solid var(--line); border-radius:10px; font-size:13px; background: var(--surface); font-family:inherit;">
             <option value="all">Hamma biriktirilganlar</option>
             <option value="me">Faqat menga</option>
@@ -3747,13 +3747,13 @@
       -->
       <div id="teamPaneHodimlar" style="margin-top:16px;">
         <div class="tbl-toolbar" style="flex-wrap:wrap;">
-          <input type="text" class="search-input" id="teamSearch" data-i18n-ph="page-team.search_placeholder" placeholder="🔍 Ism, familiya, telefon yoki email..." oninput="teamOnFilterChange()" style="max-width:280px;" />
+          <input type="text" class="search-input" id="teamSearch" data-i18n-ph="page-team.search_placeholder" data-i18n-ph="page-team.search_placeholder" placeholder="🔍 Ism, familiya, telefon yoki email..." oninput="teamOnFilterChange()" style="max-width:280px;" />
           <select class="team-flt" id="teamFltBranch" onchange="teamOnFilterChange()"></select>
           <select class="team-flt" id="teamFltPos" onchange="teamOnFilterChange()"></select>
           <span class="team-flt-lbl">Shartnoma:</span>
-          <input type="date" class="team-flt" id="teamFltFrom" onchange="teamOnFilterChange()" data-i18n-title="page-team.contract_date_title" title="Shu sanada amal qilgan shartnomalar" />
+          <input type="date" class="team-flt" id="teamFltFrom" onchange="teamOnFilterChange()" data-i18n-title="page-team.contract_date_title" data-i18n-title="page-team.contract_date_title" title="Shu sanada amal qilgan shartnomalar" />
           <span class="team-flt-lbl">—</span>
-          <input type="date" class="team-flt" id="teamFltTo" onchange="teamOnFilterChange()" data-i18n-title="page-team.contract_date_title" title="Shu sanada amal qilgan shartnomalar" />
+          <input type="date" class="team-flt" id="teamFltTo" onchange="teamOnFilterChange()" data-i18n-title="page-team.contract_date_title" data-i18n-title="page-team.contract_date_title" title="Shu sanada amal qilgan shartnomalar" />
           <button class="btn sm secondary" id="teamClearFlt" onclick="teamResetFilters()" style="display:none;">✕ Tozalash</button>
           <div style="flex:1"></div>
           <span id="teamCount" style="font-size:11.5px;color:var(--muted);"></span>
@@ -3825,7 +3825,7 @@
       </div>
 
       <div class="search-row">
-        <input type="text" class="search-input" id="tgSearch" data-i18n-ph="page-tgusers.search_ph" placeholder="Ism, telefon, lavozim, filial bo'yicha qidirish..." oninput="renderTgUsersFiltered()" />
+        <input type="text" class="search-input" id="tgSearch" data-i18n-ph="page-tgusers.search_ph" data-i18n-ph="page-tgusers.search_ph" placeholder="Ism, telefon, lavozim, filial bo'yicha qidirish..." oninput="renderTgUsersFiltered()" />
         <select id="tgBranchFilter" onchange="renderTgUsersFiltered()" style="padding:9px 12px; border:1px solid var(--line); border-radius:10px; font-size:13px; background: var(--surface); font-family:inherit;">
           <option value="all">Hamma filiallar</option>
         </select>
@@ -3848,7 +3848,7 @@
       </div>
       <div style="margin-bottom: 14px; font-size: 13.5px; color: var(--muted);" data-i18n="page-branches.subtitle">Sizning kompaniya filiallari. Har xodim biror filialga biriktiriladi.</div>
       <div class="search-row">
-        <input type="text" class="search-input" id="branchSearch" data-i18n-ph="page-branches.search_ph" placeholder="Filial nomi yoki manzil bo'yicha qidirish..." oninput="renderBranches()" />
+        <input type="text" class="search-input" id="branchSearch" data-i18n-ph="page-branches.search_ph" data-i18n-ph="page-branches.search_ph" placeholder="Filial nomi yoki manzil bo'yicha qidirish..." oninput="renderBranches()" />
       </div>
       <div id="branchesList" class="list"></div>
       <div id="branchesEmpty" class="empty" style="display:none"><strong data-i18n="page-branches.empty_title">Filial yo'q</strong> — "+ Yangi filial" tugmasi bilan birinchi filialingizni yarating.</div>
@@ -3861,7 +3861,7 @@
       </div>
       <div style="margin-bottom: 14px; font-size: 13.5px; color: var(--muted);" data-i18n="page-positions.subtitle">Lavozimlar bo'yicha xodimlar ro'yxati. Lavozim bot user'lari profilidan olinadi.</div>
       <div class="search-row">
-        <input type="text" class="search-input" id="posSearch" data-i18n-ph="page-positions.search_ph" placeholder="Lavozim yoki xodim ismi bo'yicha qidirish..." oninput="filterPositionsList()" />
+        <input type="text" class="search-input" id="posSearch" data-i18n-ph="page-positions.search_ph" data-i18n-ph="page-positions.search_ph" placeholder="Lavozim yoki xodim ismi bo'yicha qidirish..." oninput="filterPositionsList()" />
       </div>
       <div id="positionsList" class="list"></div>
       <div id="positionsEmpty" class="empty" style="display:none"><strong data-i18n="page-positions.empty_title">Lavozim ma'lumoti yo'q</strong data-i18n="page-positions.empty_hint">Avval bot foydalanuvchilarini import qiling.</div>
@@ -3988,10 +3988,10 @@
         <h2 class="h2" style="margin:0" data-i18n="mob.page_orgchart">Tashkilot tuzilmasi</h2>
         <div style="display:flex;gap:8px;align-items:center;">
           <button class="btn" onclick="ocOpenAddModal(null)" data-i18n="page-orgchart.add_person_btn">+ Xodim</button>
-          <button class="btn secondary" onclick="ocZoomOut()" data-i18n-title="page-orgchart.zoom_out_title" title="Kichraytirish">−</button>
+          <button class="btn secondary" onclick="ocZoomOut()" data-i18n-title="page-orgchart.zoom_out_title" data-i18n-title="page-orgchart.zoom_out_title" title="Kichraytirish">−</button>
           <span id="ocZoomLabel" style="font-size:12px;color:var(--muted);min-width:46px;text-align:center;">100%</span>
-          <button class="btn secondary" onclick="ocZoomIn()" data-i18n-title="page-orgchart.zoom_in_title" title="Kattalashtirish">+</button>
-          <button class="btn secondary" onclick="ocAutoLayout()" data-i18n-title="page-orgchart.layout_btn_title" title="Avtomatik chizish" data-i18n="page-orgchart.layout_btn">⛁ Joylash</button>
+          <button class="btn secondary" onclick="ocZoomIn()" data-i18n-title="page-orgchart.zoom_in_title" data-i18n-title="page-orgchart.zoom_in_title" title="Kattalashtirish">+</button>
+          <button class="btn secondary" onclick="ocAutoLayout()" data-i18n-title="page-orgchart.layout_btn_title" data-i18n-title="page-orgchart.layout_btn_title" title="Avtomatik chizish" data-i18n="page-orgchart.layout_btn">⛁ Joylash</button>
         </div>
       </div>
       <div style="margin-bottom: 12px; font-size: 13px; color: var(--muted); line-height: 1.5;">
@@ -4055,7 +4055,7 @@
               <img id="profAvatarImg" src="" style="display:none; width:100%; height:100%; object-fit: cover;" />
             </div>
             <input id="profAvatarFile" type="file" accept="image/*" onchange="uploadAvatar(event)" style="display:none;" />
-            <button onclick="$('profAvatarFile').click()" data-i18n-title="page-profile.upload_photo_title" title="Rasm yuklash" style="position:absolute; bottom:-4px; right:-4px; width:32px; height:32px; border-radius:50%; background: var(--surface); border: 2px solid var(--bg); cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow: var(--shadow);">
+            <button onclick="$('profAvatarFile').click()" data-i18n-title="page-profile.upload_photo_title" data-i18n-title="page-profile.upload_photo_title" title="Rasm yuklash" style="position:absolute; bottom:-4px; right:-4px; width:32px; height:32px; border-radius:50%; background: var(--surface); border: 2px solid var(--bg); cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow: var(--shadow);">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
             </button>
           </div>
@@ -4073,7 +4073,7 @@
           <h3 data-i18n="page-profile.personal_title">Shaxsiy ma'lumotlar</h3>
           <div class="field">
             <label data-i18n="page-profile.fullname_label">Ism va familya</label>
-            <input id="profFullName" type="text" data-i18n-ph="page-profile.fullname_ph" placeholder="Ism Familya" />
+            <input id="profFullName" type="text" data-i18n-ph="page-profile.fullname_ph" data-i18n-ph="page-profile.fullname_ph" placeholder="Ism Familya" />
           </div>
           <div class="field">
             <label data-i18n="page-profile.phone_label">Telefon raqami</label>
@@ -4100,7 +4100,7 @@
           </div>
           <div class="field">
             <label data-i18n="page-profile.newpass2_label">Yangi parolni tasdiqlang</label>
-            <input id="profNewPass2" type="password" data-i18n-ph="page-profile.newpass2_ph" placeholder="Yangi parolni qayta yozing" />
+            <input id="profNewPass2" type="password" data-i18n-ph="page-profile.newpass2_ph" data-i18n-ph="page-profile.newpass2_ph" placeholder="Yangi parolni qayta yozing" />
           </div>
           <button class="btn secondary" id="profPassBtn" onclick="changePassword()" data-i18n="page-profile.update_password_btn">Parolni yangilash</button>
           <div class="msg" id="profPassMsg"></div>
@@ -4143,7 +4143,7 @@
       <div class="row-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
         <h2 class="h2" style="margin:0" data-i18n="page-logs.title">Loglar (harakatlar tarixi)</h2>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <input id="logSearch" data-i18n-ph="page-tasks.ph_search" placeholder="Qidirish..." oninput="renderLogs()" style="padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;width:200px;" />
+          <input id="logSearch" data-i18n-ph="page-tasks.ph_search" data-i18n-ph="page-tasks.ph_search" placeholder="Qidirish..." oninput="renderLogs()" style="padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;width:200px;" />
           <select id="logActionFilter" onchange="renderLogs()" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;">
             <option value="" data-i18n="page-logs.all_actions">Barcha harakatlar</option>
             <option value="task_created" data-i18n="common.email_task_create_label">Vazifa yaratildi</option>
@@ -4325,8 +4325,8 @@
       <button class="x-btn" onclick="closeBranchModal()">×</button>
     </div>
     <div class="modal-body">
-      <div class="field"><label data-i18n="page-settings.branch_name_req">Filial nomi *</label><input id="brName" type="text" data-i18n-ph="page-settings.ph_branch_name" placeholder="Masalan: Yunusobod" /></div>
-      <div class="field" id="brExternalIdWrap" style="display:none;"><label data-i18n="page-settings.branch_ext_label">Aros warehouse_id (ixtiyoriy)</label><input id="brExternalId" type="text" data-i18n-ph="page-settings.ph_ext_id" placeholder="Masalan: 37" /><div style="font-size: 11px; color: var(--muted); margin-top: 4px;" data-i18n="page-settings.branch_ext_hint">Aros API bilan moslik uchun</div></div>
+      <div class="field"><label data-i18n="page-settings.branch_name_req">Filial nomi *</label><input id="brName" type="text" data-i18n-ph="page-settings.ph_branch_name" data-i18n-ph="page-settings.ph_branch_name" placeholder="Masalan: Yunusobod" /></div>
+      <div class="field" id="brExternalIdWrap" style="display:none;"><label data-i18n="page-settings.branch_ext_label">Aros warehouse_id (ixtiyoriy)</label><input id="brExternalId" type="text" data-i18n-ph="page-settings.ph_ext_id" data-i18n-ph="page-settings.ph_ext_id" placeholder="Masalan: 37" /><div style="font-size: 11px; color: var(--muted); margin-top: 4px;" data-i18n="page-settings.branch_ext_hint">Aros API bilan moslik uchun</div></div>
       <div class="field"><label data-i18n="page-settings.branch_address">Manzil (ixtiyoriy)</label><input id="brAddress" type="text" /></div>
       <div class="field">
         <label data-i18n="page-settings.branch_manager_label">Boshliq (ixtiyoriy)</label>
@@ -4350,7 +4350,7 @@
       <button class="x-btn" onclick="closeAddColumnModal()">×</button>
     </div>
     <div class="modal-body">
-      <div class="field"><label data-i18n="page-settings.kc_name_label">Column nomi *</label><input id="kcName" type="text" data-i18n-ph="page-settings.ph_kc_name" placeholder="Masalan: Review" /></div>
+      <div class="field"><label data-i18n="page-settings.kc_name_label">Column nomi *</label><input id="kcName" type="text" data-i18n-ph="page-settings.ph_kc_name" data-i18n-ph="page-settings.ph_kc_name" placeholder="Masalan: Review" /></div>
       <div class="field" style="display:none">
         <label data-i18n="page-settings.kc_status_label">Status mapping</label>
         <select id="kcStatus">
@@ -4420,7 +4420,7 @@
   <div class="modal">
     <div class="modal-head"><h3 id="ocPickTitle" data-i18n="page-settings.oc_pick_title">Boshliqni tanlash</h3><button class="x-btn" onclick="closeManagerPick()">×</button></div>
     <div class="modal-body" style="max-height:60vh;overflow-y:auto;">
-      <input type="text" id="ocPickSearch" data-i18n-ph="page-tasks.ph_search" placeholder="Qidirish..." oninput="renderManagerPickList()" style="width:100%;margin-bottom:12px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;" />
+      <input type="text" id="ocPickSearch" data-i18n-ph="page-tasks.ph_search" data-i18n-ph="page-tasks.ph_search" placeholder="Qidirish..." oninput="renderManagerPickList()" style="width:100%;margin-bottom:12px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;" />
       <div id="ocPickList"></div>
     </div>
     <div class="modal-foot">
@@ -4440,7 +4440,7 @@
       </div>
       <div class="field">
         <label data-i18n="page-settings.label_name_req">Nomi *</label>
-        <input id="ocContLabel" type="text" data-i18n-ph="page-settings.ph_oc_cont_label" placeholder="Misol: Yashnobod filiali" />
+        <input id="ocContLabel" type="text" data-i18n-ph="page-settings.ph_oc_cont_label" data-i18n-ph="page-settings.ph_oc_cont_label" placeholder="Misol: Yashnobod filiali" />
       </div>
       <div class="field">
         <label data-i18n="page-settings.label_manager_opt">Boshlig'i (ixtiyoriy)</label>
@@ -4461,7 +4461,7 @@
 <!-- Universal qidiruv paneli — topbardagi maydon ostida ochiladi (modal YO'Q).
      body'ning bevosita farzandi: topbar `overflow`/`z-index` bilan urishmaydi.
      O'rni JS'da (gsPosition) topbar maydoni rect'iga qarab hisoblanadi. -->
-<div id="gsDrop" class="gs-drop" role="listbox" data-i18n-aria="page-settings.gs_aria_results" aria-label="Qidiruv natijalari">
+<div id="gsDrop" class="gs-drop" role="listbox" data-i18n-aria="page-settings.gs_aria_results" data-i18n-aria="page-settings.gs_aria_results" aria-label="Qidiruv natijalari">
   <div id="gsList" class="cmd-list"></div>
   <div class="cmd-foot">
     <span><span class="kbd-mini">↑↓</span> harakat</span>
@@ -4476,7 +4476,7 @@
     <div class="modal-body">
       <div class="field">
         <label data-i18n="page-settings.oc_add_person_label">Odam tanlang *</label>
-        <input type="text" id="ocAddSearch" data-i18n-ph="page-settings.ph_oc_add_search" placeholder="Qidirish (ism)..." oninput="renderOcAddList()" style="width:100%;margin-bottom:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;" />
+        <input type="text" id="ocAddSearch" data-i18n-ph="page-settings.ph_oc_add_search" data-i18n-ph="page-settings.ph_oc_add_search" placeholder="Qidirish (ism)..." oninput="renderOcAddList()" style="width:100%;margin-bottom:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;" />
         <div id="ocAddList" style="max-height:260px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:6px;"></div>
         <div style="font-size:11.5px;color:var(--muted);margin-top:6px;">Tanlangan: <span id="ocAddSelectedName" style="color:var(--ink);font-weight:600;">—</span></div>
       </div>
@@ -4534,11 +4534,11 @@
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
         <div class="field">
           <label>Ism <span style="color:var(--danger)">*</span></label>
-          <input id="empFirstName" type="text" data-i18n-ph="page-settings.ph_firstname" placeholder="Ism" />
+          <input id="empFirstName" type="text" data-i18n-ph="page-settings.ph_firstname" data-i18n-ph="page-settings.ph_firstname" placeholder="Ism" />
         </div>
         <div class="field">
           <label data-i18n="page-settings.label_lastname">Familya</label>
-          <input id="empLastName" type="text" data-i18n-ph="page-settings.label_lastname" placeholder="Familya" />
+          <input id="empLastName" type="text" data-i18n-ph="page-settings.label_lastname" data-i18n-ph="page-settings.label_lastname" placeholder="Familya" />
         </div>
       </div>
       <div class="field">
@@ -4553,7 +4553,7 @@
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
         <div class="field">
           <label data-i18n="page-settings.label_position">Lavozim</label>
-          <input id="empPosition" type="text" list="empPosList" data-i18n-ph="page-settings.ph_position" placeholder="Tanlang yoki yozing..." />
+          <input id="empPosition" type="text" list="empPosList" data-i18n-ph="page-settings.ph_position" data-i18n-ph="page-settings.ph_position" placeholder="Tanlang yoki yozing..." />
           <datalist id="empPosList"></datalist>
         </div>
         <div class="field">
@@ -4612,11 +4612,11 @@
       </div>
       <div class="field">
         <label data-i18n="page-settings.cmd_desc_label">Tavsif (/help'da ko'rinadi)</label>
-        <input id="cmdDesc" type="text" data-i18n-ph="page-settings.ph_cmd_desc" placeholder="Misol: Kompaniyamiz haqida" />
+        <input id="cmdDesc" type="text" data-i18n-ph="page-settings.ph_cmd_desc" data-i18n-ph="page-settings.ph_cmd_desc" placeholder="Misol: Kompaniyamiz haqida" />
       </div>
       <div class="field">
         <label data-i18n="page-settings.cmd_response_label">Javob matni *</label>
-        <textarea id="cmdResponse" rows="6" data-i18n-ph="page-settings.ph_cmd_response" placeholder="Foydalanuvchi shu komanda yozsa, qaysi matn yuboriladi" style="font-family:inherit;font-size:13.5px;"></textarea>
+        <textarea id="cmdResponse" rows="6" data-i18n-ph="page-settings.ph_cmd_response" data-i18n-ph="page-settings.ph_cmd_response" placeholder="Foydalanuvchi shu komanda yozsa, qaysi matn yuboriladi" style="font-family:inherit;font-size:13.5px;"></textarea>
         <div style="font-size: 11.5px; color: var(--muted); margin-top:4px;">HTML formatlash: &lt;b&gt;, &lt;i&gt;, &lt;code&gt;, &lt;a href="..."&gt;</div>
       </div>
       <div class="field">
@@ -4711,7 +4711,7 @@
       <div class="onb-step" data-step="1">
         <h4 style="margin:0 0 6px;font-size:15px;" data-i18n="page-settings.onb_step1_title">1. Kompaniyangiz nomi</h4>
         <p style="font-size:12.5px;color:var(--muted);margin:0 0 14px;line-height:1.5;" data-i18n="page-settings.onb_step1_sub">14 kun bepul sinov. Siz egasi bo'lasiz.</p>
-        <div class="field"><input id="onbName" type="text" data-i18n-ph="page-settings.ph_onb_name" placeholder="Masalan: TaskTeam, MyCompany" /></div>
+        <div class="field"><input id="onbName" type="text" data-i18n-ph="page-settings.ph_onb_name" data-i18n-ph="page-settings.ph_onb_name" placeholder="Masalan: TaskTeam, MyCompany" /></div>
       </div>
 
       <!-- Step 2: Telegram bot (optional) -->
@@ -4740,7 +4740,7 @@
         <p style="font-size:12.5px;color:var(--muted);margin:0 0 14px;line-height:1.5;" data-i18n="page-settings.onb_dept_desc">Vazifalarni guruhlash uchun bo'lim. Bo'sh qoldirsangiz default bo'lim yaratiladi.</p>
         <div class="field">
           <label data-i18n="page-settings.onb_dept_label">Bo'lim nomi</label>
-          <input id="onbDeptName" type="text" data-i18n-ph="page-settings.ph_onb_dept" placeholder="Masalan: Sotuv" value="Umumiy" />
+          <input id="onbDeptName" type="text" data-i18n-ph="page-settings.ph_onb_dept" data-i18n-ph="page-settings.ph_onb_dept" placeholder="Masalan: Sotuv" value="Umumiy" />
         </div>
       </div>
 
@@ -4769,8 +4769,8 @@
       <div class="field"><label data-i18n="page-settings.label_assign_req">Biriktirish *</label>
         <div class="ms-panel">
           <div class="ms-panel-search">
-            <input type="text" id="msInput" data-i18n-ph="page-settings.ph_ms_input" placeholder="Qidirish: ism, filial, lavozim..." oninput="msFilter()" />
-            <button type="button" class="ms-panel-clear" onclick="msClearAll()" data-i18n-title="page-settings.ms_clear_title" title="Tanlanganlarni tozalash" data-i18n="page-settings.ms_clear">Tozalash</button>
+            <input type="text" id="msInput" data-i18n-ph="page-settings.ph_ms_input" data-i18n-ph="page-settings.ph_ms_input" placeholder="Qidirish: ism, filial, lavozim..." oninput="msFilter()" />
+            <button type="button" class="ms-panel-clear" onclick="msClearAll()" data-i18n-title="page-settings.ms_clear_title" data-i18n-title="page-settings.ms_clear_title" title="Tanlanganlarni tozalash" data-i18n="page-settings.ms_clear">Tozalash</button>
           </div>
           <div class="ms-panel-list" id="msList"></div>
         </div>
@@ -4808,7 +4808,7 @@
         <label data-i18n="page-settings.label_subtasks">Subtask'lar (ixtiyoriy)</label>
         <div id="cSubsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
         <div style="display:flex; gap:8px; margin-top: 6px;">
-          <input id="cNewSub" type="text" data-i18n-ph="page-settings.ph_new_subtask" placeholder="Subtask qo'shish..." onkeydown="if(event.key==='Enter') { event.preventDefault(); addCreateSub(); }" />
+          <input id="cNewSub" type="text" data-i18n-ph="page-settings.ph_new_subtask" data-i18n-ph="page-settings.ph_new_subtask" placeholder="Subtask qo'shish..." onkeydown="if(event.key==='Enter') { event.preventDefault(); addCreateSub(); }" />
           <button class="btn sm secondary" onclick="addCreateSub()">+</button>
         </div>
       </div>
@@ -4839,7 +4839,7 @@
   <div class="modal">
     <div class="modal-head"><h3 id="deptModalTitle" data-i18n="page-settings.dept_modal_title">Yangi bo'lim</h3><button class="x-btn" onclick="closeDept()">×</button></div>
     <div class="modal-body">
-      <div class="field"><label data-i18n="page-settings.dept_name_req">Bo'lim nomi *</label><input id="deptName" type="text" data-i18n-ph="page-settings.ph_dept_name" placeholder="Masalan: IT, HR, Savdo" /></div>
+      <div class="field"><label data-i18n="page-settings.dept_name_req">Bo'lim nomi *</label><input id="deptName" type="text" data-i18n-ph="page-settings.ph_dept_name" data-i18n-ph="page-settings.ph_dept_name" placeholder="Masalan: IT, HR, Savdo" /></div>
       <div class="field"><label data-i18n="page-settings.label_description">Tavsif</label><textarea id="deptDesc"></textarea></div>
       <div class="msg" id="deptMsg"></div>
     </div>
@@ -4856,10 +4856,10 @@
     <div class="modal-head"><h3 data-i18n="page-settings.invite_title">Xodim taklif qilish</h3><button class="x-btn" onclick="closeInvite()">×</button></div>
     <div class="modal-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div class="field"><label data-i18n="page-settings.label_firstname_req">Ism *</label><input id="iFirst" type="text" data-i18n-ph="page-settings.ph_firstname" placeholder="Ism" /></div>
-        <div class="field"><label data-i18n="page-settings.label_lastname">Familya</label><input id="iLast" type="text" data-i18n-ph="page-settings.label_lastname" placeholder="Familya" /></div>
+        <div class="field"><label data-i18n="page-settings.label_firstname_req">Ism *</label><input id="iFirst" type="text" data-i18n-ph="page-settings.ph_firstname" data-i18n-ph="page-settings.ph_firstname" placeholder="Ism" /></div>
+        <div class="field"><label data-i18n="page-settings.label_lastname">Familya</label><input id="iLast" type="text" data-i18n-ph="page-settings.label_lastname" data-i18n-ph="page-settings.label_lastname" placeholder="Familya" /></div>
       </div>
-      <div class="field"><label data-i18n="page-settings.invite_email_label">Xodim email *</label><input id="iEmail" type="email" data-i18n-ph="page-settings.ph_invite_email" placeholder="xodim@kompaniya.uz" /></div>
+      <div class="field"><label data-i18n="page-settings.invite_email_label">Xodim email *</label><input id="iEmail" type="email" data-i18n-ph="page-settings.ph_invite_email" data-i18n-ph="page-settings.ph_invite_email" placeholder="xodim@kompaniya.uz" /></div>
       <div class="field"><label>Telefon</label><input id="iPhone" type="tel" placeholder="+998 90 123 45 67" /></div>
       <div class="field">
         <label data-i18n="page-settings.invite_dept_access">Bo'limlarga kirish *</label>
@@ -7682,7 +7682,7 @@ function logTimeStr(iso) {
   const diff = (now - d) / 1000;
   if (diff < 60) return tr('common.just_now', 'hozirgina');
   if (diff < 3600) return tr('common.minutes_ago', '{0} daqiqa oldin', Math.floor(diff / 60));
-  if (diff < 86400 && d.getDate() === now.getDate()) return 'bugun ' + d.toLocaleTimeString('uz', { hour: '2-digit', minute: '2-digit' });
+  if (diff < 86400 && d.getDate() === now.getDate()) return tr('common.today_at', 'bugun {0}', d.toLocaleTimeString('uz', { hour: '2-digit', minute: '2-digit' }));
   return d.toLocaleDateString('uz') + ' ' + d.toLocaleTimeString('uz', { hour: '2-digit', minute: '2-digit' });
 }
 
@@ -9549,7 +9549,7 @@ function tasksChip() {
     el.className = 'tsk-chip';
     document.body.appendChild(el);
   }
-  el.textContent = '⏳ Vazifalar yuklanmoqda… ' + tasksCache.length;
+  el.textContent = tr('common.tasks_loading_chip', '⏳ Vazifalar yuklanmoqda… {0}', tasksCache.length);
 }
 
 // ============ 🎨 IKONKA TO'PLAMI (ic*) ============
@@ -12490,7 +12490,7 @@ async function saveCreate() {
       // Qabul qiluvchiga xabar (o'zi bo'lmasa)
       if (t.acceptor_id && t.acceptor_id !== me.id) {
         emailNotify('task_acceptor', t.id, t.acceptor_id);
-        try { notifyMention(t.acceptor_id, 'Siz "' + t.title + '" vazifasini qabul qiluvchisiz', null); } catch (e) { console.error('notifyMention:', e); }
+        try { notifyMention(t.acceptor_id, tr('common.notif_you_are_acceptor', 'Siz "{0}" vazifasini qabul qiluvchisiz', t.title), null); } catch (e) { console.error('notifyMention:', e); }
       }
     }
   } catch (e) {
@@ -13618,7 +13618,7 @@ async function uploadAttachmentSilent(taskId, file) {
   if (!taskId || !file) return null;
   if (file.size > 20 * 1024 * 1024) { toast(tr('common.file_too_big', '{0} — 20MB dan katta', file.name), 'err'); return null; }
   try { return await _uploadAttachmentCore(taskId, file); }
-  catch (e) { toast('Yuklashda xato: ' + (file.name || ''), 'err'); return null; }
+  catch (e) { toast(tr('common.upload_err', 'Yuklashda xato: {0}', (file.name || '')), 'err'); return null; }
 }
 
 // Core upload — har joydan ishlatiladi
@@ -18784,7 +18784,7 @@ async function teamPosPick(pos) {
   const uid = _teamPosUid; teamClosePosDrop();
   if (!uid) return;
   try { await teamSetMemberPos(uid, pos); renderTeamTable(); }
-  catch (e) { toast('Lavozim saqlanmadi: ' + translateErr(e.message || String(e)), 'err'); }
+  catch (e) { toast(tr('common.pos_save_failed', 'Lavozim saqlanmadi: {0}', translateErr(e.message || String(e))), 'err'); }
 }
 async function teamPosAddFromSearch() {
   const v = ($('teamPosSearch') && $('teamPosSearch').value || '').trim();
@@ -18833,7 +18833,7 @@ async function teamResendEmail(uid, email, skipConfirm) {
       body: { email, workspace_id: currentWs.id, redirect_to: redirect }
     });
     if (error) throw error;
-    if (res && res.email_sent) toast('📧 Email qayta yuborildi: ' + email, 'ok');
+    if (res && res.email_sent) toast(tr('common.resend_email_ok', '📧 Email qayta yuborildi: {0}', email), 'ok');
     else toast(tr('common.send_failed', '⚠ Yuborilmadi') + (res && res.email_error ? (': ' + res.email_error) : ''), 'err');
   } catch (e) { toast('Xato: ' + translateErr(e.message || String(e)), 'err'); }
 }
@@ -18845,7 +18845,7 @@ async function teamInviteConnect(uid) {
   if (!canManageTeam() || !currentWs) return;
   const m = (wsMembers || []).find(function (x) { return x.user_id === uid; });
   const personLabel = (m && m.profile && m.profile.full_name) || 'Hodim';
-  const vals = await uiForm('📧 Taklif yuborish — ' + personLabel, [
+  const vals = await uiForm(tr('common.team_invite_modal_title', '📧 Taklif yuborish — {0}', personLabel), [
     { id: 'email', label: tr('common.real_email_label', 'Haqiqiy email'), type: 'text', placeholder: tr('common.email_placeholder_example', 'ism@example.com'), hint: tr('common.real_email_hint', 'Hodim shu email bilan kiradi. Parol o\'rnatish havolasi qaytariladi.') },
   ], { okText: tr('common.connect', 'Ulash') });
   if (!vals) return;
@@ -18968,10 +18968,10 @@ async function sendInvite() {
     const signupUrl = window.location.origin + window.location.pathname;
     try {
       const { data: tgData, error: tgErr } = await sb.functions.invoke('tg-send-invites', { body: { invitation_id: inv.id, signup_url: signupUrl } });
-      if (tgErr) toast('TG xabar yuborilmadi: ' + (tgErr.message || tgErr), 'err');
+      if (tgErr) toast(tr('common.tg_send_failed', 'TG xabar yuborilmadi: {0}', (tgErr.message || tgErr)), 'err');
       else if (tgData && tgData.sent === false) toast('TG xabar yuborilmadi: ' + (tgData.reason || tgData.error || 'noma\'lum'), 'err');
       else if (tgData && tgData.sent === true) toast(tr('common.tg_also_sent', '📨 Telegram\'ga ham yuborildi'), 'ok');
-    } catch (e) { toast('TG xato: ' + translateErr(e?.message || String(e)), 'err'); }
+    } catch (e) { toast(tr('common.tg_error', 'TG xato: {0}', translateErr(e?.message || String(e))), 'err'); }
 
     showMsg($('iMsg'), tr('common.invite_sent_ok', '✅ Taklif yuborildi. Botda xabar bordi va saytga ro\'yxatdan o\'tgach bell\'ida ko\'radi.'), 'ok');
     inviteFromTgUserId = null;
@@ -22225,7 +22225,7 @@ async function tgNotifyTaskEdit(task, field, oldValue, newValue) {
     '↓',
     '<b>' + escapeHtml(newStr) + '</b>',
     '',
-    'Tahrirladi: ' + escapeHtml(myProfile.full_name || me.email),
+    tr('common.tg_edited_by', 'Tahrirladi: {0}', escapeHtml(myProfile.full_name || me.email)),
   ].join('\n');
 
   // Inline tugmalar — qaytadan ko'rib chiqish uchun (faqat ko'rish)
