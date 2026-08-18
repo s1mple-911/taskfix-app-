@@ -2401,10 +2401,16 @@ function hraErrStatus(e) {
 
 function hraIsNetErr(e) {
   var m = hraErrStr(e).toLowerCase();
-  if (typeof navigator !== 'undefined' && navigator.onLine === false) { return true; }
-  return m.indexOf('failed to fetch') >= 0 || m.indexOf('networkerror') >= 0 ||
-         m.indexOf('network request failed') >= 0 || m.indexOf('fetch failed') >= 0 ||
-         m.indexOf('load failed') >= 0 || m.indexOf('timeout') >= 0;
+  if (m.indexOf('failed to fetch') >= 0 || m.indexOf('networkerror') >= 0 ||
+      m.indexOf('network request failed') >= 0 || m.indexOf('fetch failed') >= 0 ||
+      m.indexOf('load failed') >= 0 || m.indexOf('timeout') >= 0) { return true; }
+  /* navigator.onLine — ISHONCHSIZ (VPN/proxy/ba'zi Windows sozlamalarida
+     noto'g'ri `false` beradi) va faqat ZAXIRA bo'lishi kerak. Avval u BIRINCHI
+     tekshirilardi va HAR QANDAY yuklash xatosini "aloqa uzildi" qilib ko'rsatib,
+     haqiqiy sababni (bucket yo'q / RLS / hajm) YASHIRARDI. Endi u faqat
+     hech qanday status ham, xabar ham bo'lmagan holatda ishlaydi. */
+  if (!hraErrStatus(e) && !m) { return (typeof navigator !== 'undefined' && navigator.onLine === false); }
+  return false;
 }
 
 function hraIsDupErr(e) {
@@ -2413,6 +2419,16 @@ function hraIsDupErr(e) {
 }
 
 function hraUpErrText(e) {
+  return hraUpErrBase(e) + hraUpErrCode(e);
+}
+/* Texnik kod (agar bor bo'lsa) — mobil telefonda konsolni ochib bo'lmaydi,
+   shuning uchun sabab qisqa raqam bilan yoniga qo'shiladi. Xom Postgres/RLS
+   matni EMAS, faqat HTTP status. Yangi matn emas -> i18n kaliti kerak emas. */
+function hraUpErrCode(e) {
+  var st = hraErrStatus(e);
+  return st ? (' (' + st + ')') : '';
+}
+function hraUpErrBase(e) {
   var m = hraErrStr(e).toLowerCase();
   var st = hraErrStatus(e);
   if (hraIsNetErr(e))  { return tr('hra.err_up_net', HRA_TXT.errUpNet); }
