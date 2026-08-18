@@ -1,0 +1,2794 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Ishga qabul — ma'lumot to'ldirish · TaskFix</title>
+<!-- 🔴 Public havola, lekin QIDIRUVGA TUSHMASIN (shaxsiy ma'lumot formasi) -->
+<meta name="robots" content="noindex, nofollow" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
+<meta name="theme-color" content="#FAF7F0" />
+<meta name="description" content="TaskFix — ishga qabul uchun shaxsiy ma'lumotlarni to'ldirish sahifasi." />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230F1417'/%3E%3Cpath d='M 9 16 L 14 21 L 23 11' stroke='%23FEF3C7' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   TaskFix — hr-apply.html  (public registratsiya sahifasi, 1-bosqich: QOBIQ)
+
+   • Brend tokenlari index.html / landing.html bilan AYNAN bir xil.
+   • Barcha klasslar `hra-` prefiksi bilan — ilova CSS'i bilan to'qnashmaydi.
+   • Tashqi ulanish FAQAT Google Fonts. Rasm fayli YO'Q — ikonkalar inline SVG
+     (Lucide geometriyasi, index.html ICON_PATHS bilan bir xil). Emoji YO'Q.
+   • Dark theme YO'Q (ilovada ham yo'q) — bitta yorug' palitra.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --bg: #FAF7F0; --surface: #FFFFFF; --surface-2: #F3F1EA;
+  --ink: #1C1F24; --ink-soft: #2A2E38; --muted: #6B7280; --subtle: #9CA3AF;
+  --line: #C8C5BA; --line-soft: #E5E2D8; --line-strong: #A8A496;
+  --dark: #0F1417; --dark-ink: #FAF7F0;
+  --accent: #FEF3C7; --accent-ink: #854D0E; --accent-soft: #FFFBEB;
+  --success: #10B981; --success-soft: #D1FAE5; --success-ink: #047857;
+  --warn: #F59E0B; --warn-soft: #FEF3C7; --warn-ink: #92400E;
+  --danger: #EF4444; --danger-soft: #FEE2E2; --danger-ink: #B42318;
+  --info: #0EA5E9; --info-soft: #DBEAFE;
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(28,31,36,.05), 0 4px 16px rgba(28,31,36,.04);
+  --shadow-lg: 0 12px 40px rgba(15,20,23,.18);
+  --hdr-h: 60px;
+}
+
+* { box-sizing: border-box; }
+/* 🔴 SHART: .hra-drop / .hra-btn / .hi da aniq `display` bor — UA'ning
+   `[hidden]{display:none}` qoidasi ulardan KUCHSIZ va JS `el.hidden = true`
+   qilganda element yashirinmasdi. */
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+html, body { margin: 0; padding: 0; overflow-x: clip; }
+body {
+  background: var(--bg); color: var(--ink); min-height: 100vh; min-height: 100dvh;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4 { font-family: 'Space Grotesk', system-ui, sans-serif; letter-spacing: -.03em; margin: 0; font-weight: 600; }
+p { margin: 0; }
+button, input, textarea, select { font-family: inherit; color: inherit; }
+img, svg { max-width: 100%; }
+:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; border-radius: 6px; }
+
+/* ── Ikonka ─────────────────────────────────────────────────────────────── */
+.hi { width: 20px; height: 20px; display: block; flex: 0 0 auto;
+  fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.hi-12 { width: 12px; height: 12px; }
+.hi-14 { width: 14px; height: 14px; }
+.hi-16 { width: 16px; height: 16px; }
+.hi-18 { width: 18px; height: 18px; }
+.hi-22 { width: 22px; height: 22px; }
+.hi-28 { width: 28px; height: 28px; }
+.hi-b { stroke-width: 2.4; }
+
+/* ── Karkas ─────────────────────────────────────────────────────────────── */
+.hra-shell { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+.hra-wrap { width: 100%; max-width: 720px; margin: 0 auto; padding: 0 20px; }
+
+.hra-hdr {
+  position: sticky; top: 0; z-index: 40;
+  background: rgba(250,247,240,.86); border-bottom: 1px solid var(--line-soft);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4); backdrop-filter: blur(12px) saturate(1.4);
+  padding-top: env(safe-area-inset-top);
+}
+.hra-hdr-in { display: flex; align-items: center; gap: 14px; min-height: var(--hdr-h); }
+.hra-logo { display: inline-flex; align-items: center; gap: 9px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 17.5px; letter-spacing: -.025em; color: var(--ink); }
+.hra-logo svg { border-radius: 7px; display: block; }
+.hra-co {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 7px; min-width: 0;
+  font-size: 13px; font-weight: 600; color: var(--ink-soft);
+  background: var(--surface); border: 1px solid var(--line-soft); border-radius: 999px;
+  padding: 5px 13px 5px 10px; max-width: 55%;
+}
+.hra-co .hi { color: var(--subtle); }
+.hra-co b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hra-co[hidden] { display: none; }
+
+/* ── Til tanlagich (index.html dagi `.lang-sw` vizual naqshi, `hra-` prefiksi) ─
+   Emoji YO'Q (fayl qoidasi) — bayroq o'rniga til kodi va inline SVG "✓". */
+.hra-lang { position: relative; flex: 0 0 auto; }
+/* 🔴 Kompaniya nomi hali kelmagan bo'lsa (`.hra-co[hidden]`) uning
+   `margin-left:auto` si ishlamaydi va tanlagich logotipga yopishib qolardi. */
+.hra-co[hidden] + .hra-lang { margin-left: auto; }
+.hra-lang-btn {
+  display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 10px;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--surface);
+  color: var(--ink-soft); font-family: inherit; font-size: 12.5px; font-weight: 600;
+  letter-spacing: .02em; cursor: pointer; transition: border-color .15s ease, background .15s ease;
+}
+.hra-lang-btn:hover { border-color: var(--line-strong); background: var(--surface-2); }
+.hra-lang-btn svg { display: block; flex: 0 0 auto; }
+.hra-lang-code { line-height: 1; }
+.hra-lang-chev { opacity: .55; transition: transform .18s ease; }
+.hra-lang.open .hra-lang-chev { transform: rotate(180deg); }
+.hra-lang-menu {
+  display: none; position: absolute; right: 0; top: calc(100% + 8px); min-width: 196px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: 0 18px 44px -14px rgba(15,20,23,.30); padding: 6px; z-index: 50;
+}
+.hra-lang.open .hra-lang-menu { display: block; animation: hraLangIn .16s ease both; }
+@keyframes hraLangIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.hra-lang-item {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 40px; padding: 9px 10px;
+  border: none; border-radius: 10px; background: none; cursor: pointer;
+  font-family: inherit; font-size: 13px; color: var(--ink); text-align: left;
+}
+.hra-lang-item:hover { background: var(--surface-2); }
+.hra-lang-item .hra-lsw-code {
+  flex: 0 0 auto; min-width: 30px; text-align: center; padding: 2px 6px; border-radius: 6px;
+  font-size: 11px; font-weight: 700; letter-spacing: .06em; color: var(--muted); background: var(--surface-2);
+}
+.hra-lang-item .hra-lsw-nm { flex: 1; min-width: 0; font-weight: 600; }
+.hra-lang-item .hra-lsw-ck { color: var(--success-ink); opacity: 0; }
+.hra-lang-item.active { background: var(--accent-soft); }
+.hra-lang-item.active .hra-lsw-code { background: var(--surface); color: var(--accent-ink); }
+.hra-lang-item.active .hra-lsw-ck { opacity: 1; }
+@media (max-width: 420px) {
+  .hra-lang-btn { padding: 0 8px; gap: 4px; }
+  .hra-lang-btn > svg:first-of-type { display: none; }
+  .hra-lang-menu { min-width: 178px; }
+}
+
+.hra-main { flex: 1; padding: 26px 0 40px; }
+.hra-foot {
+  border-top: 1px solid var(--line-soft); padding: 18px 0 calc(18px + env(safe-area-inset-bottom));
+  font-size: 12.5px; color: var(--subtle);
+}
+.hra-foot-in { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; }
+.hra-foot span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* ── Holatlar (loading / blocked / form / done) ─────────────────────────── */
+.hra-state { display: none; animation: hraIn .28s ease both; }
+.hra-state.on { display: block; }
+@keyframes hraIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ── Karta ──────────────────────────────────────────────────────────────── */
+.hra-card {
+  background: var(--surface); border: 1px solid var(--line-soft); border-radius: 18px;
+  box-shadow: 0 1px 2px rgba(28,31,36,.04), 0 14px 36px rgba(28,31,36,.06);
+  padding: 28px;
+}
+.hra-card + .hra-card { margin-top: 16px; }
+
+/* ── Sarlavha bloki ─────────────────────────────────────────────────────── */
+.hra-intro { margin-bottom: 22px; }
+.hra-eyebrow {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 11.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--accent-ink); background: var(--accent-soft);
+  border: 1px solid #F5E7BE; border-radius: 999px; padding: 5px 12px 5px 10px;
+}
+.hra-h1 { font-size: clamp(24px, 4.4vw, 32px); line-height: 1.12; margin: 16px 0 0; }
+.hra-lead { color: var(--muted); font-size: 15.5px; line-height: 1.6; margin-top: 10px; }
+.hra-h2 { font-size: 19px; line-height: 1.25; }
+.hra-h3 { font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+
+.hra-shead { display: flex; align-items: flex-start; gap: 13px; margin-bottom: 22px; }
+.hra-shead-ic {
+  flex: 0 0 40px; width: 40px; height: 40px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent-soft); border: 1px solid #F5E7BE; color: var(--accent-ink);
+}
+.hra-shead p { color: var(--muted); font-size: 13.5px; line-height: 1.5; margin-top: 3px; }
+
+/* ── Progress ───────────────────────────────────────────────────────────── */
+.hra-prog { margin-bottom: 20px; }
+.hra-steps { display: flex; align-items: center; }
+.hra-st { display: flex; align-items: center; min-width: 0; }
+.hra-st-btn {
+  display: inline-flex; align-items: center; gap: 9px; padding: 4px 8px 4px 4px;
+  background: transparent; border: none; border-radius: 999px; cursor: pointer;
+  transition: background .15s ease;
+}
+.hra-st-btn:disabled { cursor: default; }
+.hra-st-btn:not(:disabled):hover { background: var(--surface-2); }
+.hra-st-n {
+  width: 28px; height: 28px; flex: 0 0 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--subtle);
+  font-size: 12.5px; font-weight: 700; transition: background .18s ease, color .18s ease, border-color .18s ease;
+}
+.hra-st-n .hi { display: none; }
+.hra-st-l { font-size: 12.5px; font-weight: 600; color: var(--subtle); white-space: nowrap; transition: color .18s ease; }
+.hra-st-line { width: 26px; height: 2px; background: var(--line-soft); border-radius: 2px; margin: 0 4px; flex: 0 0 auto; transition: background .18s ease; }
+.hra-st.on .hra-st-n { background: var(--dark); border-color: var(--dark); color: var(--accent); }
+.hra-st.on .hra-st-l { color: var(--ink); }
+.hra-st.ok .hra-st-n { background: var(--success-soft); border-color: #A7F3D0; color: var(--success-ink); font-size: 0; }
+.hra-st.ok .hra-st-n .hi { display: block; }
+.hra-st.ok .hra-st-l { color: var(--ink-soft); }
+.hra-st.ok .hra-st-line { background: #A7F3D0; }
+
+/* Mobil o'lchagich */
+.hra-progm { display: none; }
+.hra-progm-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.hra-progm-t { font-size: 14.5px; font-weight: 600; letter-spacing: -.01em; }
+.hra-progm-n { font-size: 12.5px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+.hra-bar { height: 4px; border-radius: 99px; background: var(--line-soft); overflow: hidden; }
+.hra-bar i { display: block; height: 100%; border-radius: 99px; background: var(--dark); transition: width .28s cubic-bezier(.32,.72,0,1); }
+
+/* ── Maydonlar ──────────────────────────────────────────────────────────── */
+.hra-grid { display: grid; gap: 0 16px; grid-template-columns: 1fr 1fr; }
+.hra-grid .hra-full { grid-column: 1 / -1; }
+
+.hra-fld { margin-bottom: 16px; }
+.hra-lblrow { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.hra-fld label { display: block; font-size: 12.5px; font-weight: 600; letter-spacing: -.005em; color: var(--ink-soft); }
+.hra-req { color: var(--danger); font-weight: 700; margin-left: 2px; }
+.hra-opt { font-size: 11px; font-weight: 600; letter-spacing: .02em; color: var(--subtle); background: var(--surface-2); border-radius: 999px; padding: 2px 8px; }
+
+.hra-inp, .hra-sel {
+  width: 100%; height: 46px; padding: 0 14px; font-size: 16px;
+  border: 1px solid var(--line); border-radius: 11px; background: var(--surface); color: var(--ink);
+  -webkit-appearance: none; appearance: none;
+  transition: border-color .14s ease, box-shadow .14s ease, background .14s ease;
+}
+textarea.hra-inp { height: auto; min-height: 84px; padding: 12px 14px; line-height: 1.5; resize: vertical; }
+.hra-inp::placeholder { color: var(--subtle); }
+.hra-inp:hover, .hra-sel:hover { border-color: var(--line-strong); }
+.hra-inp:focus, .hra-sel:focus { outline: none; border-color: #E2B95E; box-shadow: 0 0 0 3px rgba(254,243,199,.55); }
+.hra-inp:focus-visible, .hra-sel:focus-visible { outline: none; border-color: var(--accent-ink); box-shadow: 0 0 0 3px var(--accent), 0 0 0 4px rgba(133,77,14,.32); }
+.hra-inp[aria-invalid="true"] { border-color: #F0A9A0; background: #FFFBFA; }
+.hra-inp[aria-invalid="true"]:focus { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(239,68,68,.16); }
+.hra-inp.mono { font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+/* Sana maydoni — iOS'da balandligi sakramasin */
+input[type="date"].hra-inp { min-height: 46px; line-height: 46px; }
+input[type="date"].hra-inp::-webkit-date-and-time-value { text-align: left; }
+/* Select — o'ng tomonda chevron */
+.hra-selwrap { position: relative; }
+.hra-sel { padding-right: 40px; cursor: pointer; }
+.hra-selwrap .hi { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); color: var(--subtle); pointer-events: none; }
+
+.hra-hint { font-size: 12px; color: var(--subtle); line-height: 1.45; margin-top: 6px; }
+.hra-err {
+  display: none; align-items: flex-start; gap: 6px;
+  font-size: 12.5px; line-height: 1.4; color: var(--danger-ink); margin-top: 6px;
+}
+.hra-err.show { display: flex; }
+.hra-err::before {
+  content: ''; flex: 0 0 14px; width: 14px; height: 14px; margin-top: 2px; background: currentColor;
+  -webkit-mask: var(--hra-errIc) center / 14px 14px no-repeat; mask: var(--hra-errIc) center / 14px 14px no-repeat;
+}
+.hra-err { --hra-errIc: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 8v4'/%3E%3Cpath d='M12 16h.01'/%3E%3C/svg%3E"); }
+
+/* ── Fayl yuklash ───────────────────────────────────────────────────────── */
+.hra-fgrp { margin-bottom: 24px; }
+.hra-fgrp:last-of-type { margin-bottom: 8px; }
+.hra-fgrp-h { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; }
+.hra-fgrp-h .hi { color: var(--accent-ink); }
+.hra-fgrp-h .hra-fgrp-s { margin-left: auto; font-size: 12px; color: var(--subtle); white-space: nowrap; }
+.hra-fpair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.hra-fbox { position: relative; min-width: 0; }
+/* 🔴 display:none EMAS — input tab tartibida qolsin (klaviatura bilan yuklash) */
+.hra-fin { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.hra-drop {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  min-height: 148px; padding: 18px 14px; text-align: center; cursor: pointer;
+  background: var(--surface-2); border: 1.5px dashed var(--line); border-radius: 14px;
+  transition: background .16s ease, border-color .16s ease, transform .16s ease;
+}
+.hra-drop:hover { background: #EFEDE5; border-color: var(--line-strong); }
+.hra-fin:focus-visible + .hra-drop { outline: 2px solid var(--accent-ink); outline-offset: 2px; border-color: var(--accent-ink); }
+.hra-fbox.drag .hra-drop { background: var(--accent-soft); border-color: var(--accent-ink); border-style: solid; }
+.hra-fbox.bad .hra-drop { border-color: #F0A9A0; background: #FFFBFA; }
+.hra-drop-ic {
+  width: 38px; height: 38px; border-radius: 11px; margin-bottom: 4px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface); border: 1px solid var(--line-soft); color: var(--accent-ink);
+}
+.hra-drop-t { font-size: 13.5px; font-weight: 600; color: var(--ink); line-height: 1.35; }
+.hra-drop-s { font-size: 11.5px; color: var(--subtle); line-height: 1.4; }
+.hra-drop-b {
+  margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 14px;
+  border-radius: 9px; background: var(--surface); border: 1px solid var(--line);
+  font-size: 12.5px; font-weight: 600; color: var(--ink);
+}
+.hra-drop:hover .hra-drop-b { border-color: var(--line-strong); }
+
+.hra-prev {
+  display: flex; align-items: center; gap: 12px; padding: 10px;
+  background: var(--surface); border: 1px solid var(--line-soft); border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+.hra-prev[hidden] { display: none; }
+.hra-prev-th {
+  position: relative; flex: 0 0 56px; width: 56px; height: 56px; border-radius: 10px; overflow: hidden;
+  background: var(--surface-2); border: 1px solid var(--line-soft);
+  display: flex; align-items: center; justify-content: center; color: var(--accent-ink);
+}
+.hra-prev-th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hra-prev-meta { flex: 1; min-width: 0; }
+.hra-prev-name { display: block; font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.3;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hra-prev-sub { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+.hra-prev-ok { display: inline-flex; align-items: center; gap: 4px; color: var(--success-ink); font-weight: 600; }
+.hra-prev-acts { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+.hra-iconbtn {
+  width: 36px; height: 36px; min-width: 36px; padding: 0; border: none; border-radius: 9px;
+  background: transparent; color: var(--subtle); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .14s ease, color .14s ease;
+}
+.hra-iconbtn:hover { background: var(--surface-2); color: var(--ink); }
+.hra-iconbtn.danger:hover { background: var(--danger-soft); color: var(--danger-ink); }
+.hra-iconbtn:active { transform: scale(.94); }
+
+/* ── Rozilik ────────────────────────────────────────────────────────────── */
+.hra-consent {
+  display: flex; gap: 13px; padding: 16px; border-radius: 14px;
+  background: var(--accent-soft); border: 1px solid #F5E7BE;
+}
+.hra-consent.bad { background: #FFFBFA; border-color: #F0A9A0; }
+.hra-cb { position: relative; flex: 0 0 22px; padding-top: 1px; }
+.hra-cb input {
+  width: 22px; height: 22px; margin: 0; cursor: pointer; -webkit-appearance: none; appearance: none;
+  border: 1.5px solid var(--line-strong); border-radius: 7px; background: var(--surface);
+  transition: background .14s ease, border-color .14s ease;
+}
+.hra-cb input:checked { background: var(--dark); border-color: var(--dark); }
+.hra-cb input:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
+.hra-cb .hi { position: absolute; left: 3px; top: 4px; width: 16px; height: 16px; color: var(--accent); opacity: 0; pointer-events: none; transition: opacity .12s ease; }
+.hra-cb input:checked + .hi { opacity: 1; }
+.hra-consent-txt { flex: 1; min-width: 0; font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); }
+.hra-consent-txt label { display: block; cursor: pointer; }
+.hra-consent-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+/* ── Xulosa (5-qadam) ───────────────────────────────────────────────────── */
+.hra-recap { border: 1px solid var(--line-soft); border-radius: 14px; overflow: hidden; }
+.hra-recap-g + .hra-recap-g { border-top: 1px solid var(--line-soft); }
+.hra-recap-h {
+  display: flex; align-items: center; gap: 8px; padding: 11px 14px;
+  background: var(--surface-2); font-size: 12px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+}
+.hra-recap-h .hra-edit {
+  margin-left: auto; text-transform: none; letter-spacing: 0; font-size: 12.5px; font-weight: 600;
+  color: var(--accent-ink); background: transparent; border: none; border-radius: 7px;
+  padding: 4px 8px; cursor: pointer; min-height: 30px;
+}
+.hra-recap-h .hra-edit:hover { background: var(--accent-soft); }
+.hra-rlist { margin: 0; }
+.hra-rrow { display: grid; grid-template-columns: 152px minmax(0, 1fr); gap: 10px 14px; padding: 10px 14px; font-size: 13.5px; }
+.hra-rrow + .hra-rrow { border-top: 1px solid #F1EFE8; }
+.hra-rrow dt { color: var(--muted); font-size: 12.5px; }
+.hra-rrow dd { margin: 0; color: var(--ink); font-weight: 500; overflow-wrap: anywhere; }
+.hra-rrow dd.empty { color: var(--subtle); font-weight: 400; }
+.hra-rfile { display: inline-flex; align-items: center; gap: 6px; }
+.hra-rfile .hi { color: var(--success-ink); }
+
+/* ── Tugmalar ───────────────────────────────────────────────────────────── */
+.hra-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 0 20px; border-radius: 12px; border: 1px solid transparent;
+  font-size: 15px; font-weight: 600; letter-spacing: -.005em; cursor: pointer; white-space: nowrap;
+  transition: background .18s ease, border-color .18s ease, transform .12s ease, box-shadow .18s ease, opacity .18s ease;
+}
+.hra-btn-dark { background: var(--dark); color: var(--dark-ink); box-shadow: 0 1px 2px rgba(15,20,23,.12); }
+.hra-btn-dark:hover:not(:disabled) { background: #232833; box-shadow: 0 8px 22px rgba(15,20,23,.16); }
+.hra-btn-ghost { background: var(--surface); color: var(--ink); border-color: var(--line); }
+.hra-btn-ghost:hover:not(:disabled) { background: var(--surface-2); border-color: var(--line-strong); }
+.hra-btn:active:not(:disabled) { transform: scale(.985); }
+.hra-btn:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+.hra-btn.busy { cursor: progress; }
+.hra-btn.busy::after {
+  content: ''; flex: 0 0 auto; width: 15px; height: 15px; border-radius: 50%;
+  border: 2px solid rgba(250,247,240,.3); border-top-color: currentColor; animation: hraSpin .7s linear infinite;
+}
+@keyframes hraSpin { to { transform: rotate(360deg); } }
+
+/* Pastki navigatsiya — yopishqoq, klaviatura ochilganda ham ko'rinadi */
+.hra-nav {
+  position: sticky; bottom: 0; z-index: 30; margin-top: 24px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 0 calc(14px + env(safe-area-inset-bottom));
+  /* Karta oq — gradient ham oqqa ketadi (fonga emas), aks holda chegara ko'rinardi */
+  background: linear-gradient(to bottom, rgba(255,255,255,0) 0, var(--surface) 26%);
+}
+.hra-nav .hra-spacer { flex: 1; }
+.hra-nav .hra-btn-dark { min-width: 168px; }
+.hra-nav-save { font-size: 12px; color: var(--subtle); display: inline-flex; align-items: center; gap: 6px; }
+
+/* ── Xavfsizlik lentasi ─────────────────────────────────────────────────── */
+.hra-safe {
+  display: flex; align-items: flex-start; gap: 11px; margin-top: 16px; padding: 13px 15px;
+  background: var(--surface); border: 1px solid var(--line-soft); border-radius: 13px;
+  font-size: 12.5px; line-height: 1.5; color: var(--muted);
+}
+.hra-safe .hi { color: var(--success-ink); margin-top: 1px; }
+.hra-safe b { color: var(--ink-soft); font-weight: 600; }
+
+/* ── Yuklanmoqda (skeleton) ─────────────────────────────────────────────── */
+.hra-sk { border-radius: 8px; background: linear-gradient(90deg, #EDEAE1 25%, #F5F3EC 37%, #EDEAE1 63%);
+  background-size: 400% 100%; animation: hraSk 1.4s ease infinite; }
+@keyframes hraSk { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.hra-sk-t { height: 26px; width: 62%; margin-bottom: 14px; }
+.hra-sk-l { height: 13px; width: 100%; margin-bottom: 9px; }
+.hra-sk-l.s { width: 74%; }
+.hra-sk-b { height: 46px; width: 100%; margin-top: 20px; border-radius: 11px; }
+.hra-loading-note { display: flex; align-items: center; justify-content: center; gap: 9px; margin-top: 20px; font-size: 13px; color: var(--muted); }
+.hra-spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--ink-soft); animation: hraSpin .7s linear infinite; }
+
+/* ── Bo'sh / yakuniy holatlar ───────────────────────────────────────────── */
+.hra-panel { text-align: center; padding: 44px 28px 40px; }
+.hra-panel-ic {
+  width: 64px; height: 64px; margin: 0 auto 20px; border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+}
+.hra-panel-ic.warn { background: var(--warn-soft); border: 1px solid #F5E7BE; color: var(--warn-ink); }
+.hra-panel-ic.ok { background: var(--success-soft); border: 1px solid #A7F3D0; color: var(--success-ink); }
+.hra-panel h2 { font-size: 22px; line-height: 1.2; }
+.hra-panel p { color: var(--muted); font-size: 14.5px; line-height: 1.6; margin-top: 10px; max-width: 420px; margin-left: auto; margin-right: auto; }
+.hra-help {
+  display: inline-flex; align-items: center; gap: 9px; margin-top: 22px; padding: 11px 16px;
+  background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 12px;
+  font-size: 13.5px; color: var(--ink-soft); text-align: left;
+}
+.hra-help .hi { color: var(--muted); flex: 0 0 auto; }
+
+.hra-next { margin-top: 26px; text-align: left; border: 1px solid var(--line-soft); border-radius: 14px; overflow: hidden; }
+.hra-next-h { padding: 11px 16px; background: var(--surface-2); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.hra-next-i { display: flex; align-items: flex-start; gap: 12px; padding: 13px 16px; font-size: 13.5px; line-height: 1.5; color: var(--ink-soft); }
+.hra-next-i + .hra-next-i { border-top: 1px solid #F1EFE8; }
+.hra-next-n { flex: 0 0 24px; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: var(--accent-ink);
+  display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+
+/* ── Moslashuv ──────────────────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .hra-steps { display: none; }
+  .hra-progm { display: block; }
+  .hra-wrap { padding: 0 16px; }
+  .hra-main { padding: 18px 0 28px; }
+  .hra-card { padding: 20px 18px 22px; border-radius: 16px; box-shadow: 0 1px 2px rgba(28,31,36,.05); }
+  .hra-grid { grid-template-columns: 1fr; }
+  .hra-fpair { grid-template-columns: 1fr; gap: 10px; }
+  .hra-drop { min-height: 122px; }
+  .hra-h1 { font-size: 24px; }
+  .hra-lead { font-size: 14.5px; }
+  .hra-shead { gap: 11px; margin-bottom: 18px; }
+  .hra-rrow { grid-template-columns: 1fr; gap: 2px; }
+  .hra-nav { gap: 8px; }
+  .hra-nav .hra-btn { flex: 1 1 auto; min-width: 0; padding: 0 14px; }
+  .hra-nav .hra-nav-save { display: none; }
+  .hra-panel { padding: 34px 18px 30px; }
+  .hra-co { max-width: 48%; font-size: 12.5px; }
+}
+@media (max-width: 420px) {
+  .hra-logo { font-size: 16px; }
+  .hra-co { padding: 4px 10px 4px 8px; }
+  .hra-btn { font-size: 14.5px; padding: 0 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hra-state, .hra-sk, .hra-bar i, .hra-btn { animation: none !important; transition: none !important; }
+  .hra-btn:active:not(:disabled) { transform: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="hra-shell">
+
+  <!-- ═══ HEADER ═══════════════════════════════════════════════════════════ -->
+  <header class="hra-hdr">
+    <div class="hra-wrap hra-hdr-in">
+      <span class="hra-logo">
+        <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
+          <rect width="32" height="32" rx="8" fill="#0F1417"/>
+          <path d="M 9 16 L 14 21 L 23 11" stroke="#FEF3C7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        TaskFix
+      </span>
+      <!-- 🔗 Kompaniya nomi — 2-bosqichda hr_apply_peek() to'ldiradi -->
+      <span class="hra-co" id="hraCompanyWrap" hidden>
+        <svg class="hi hi-14" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/></svg>
+        <b id="hraCompany"></b>
+      </span>
+      <!-- 🌐 Til (D12) — nomzod rus/ingliz tilli bo'lishi mumkin.
+           Tanlov localStorage'da; sahifa QAYTA YUKLANMAYDI (kiritilgan ma'lumot yo'qolmasin). -->
+      <div class="hra-lang" id="hraLang">
+        <button class="hra-lang-btn" id="hraLangBtn" type="button" onclick="hraLangToggle(event)"
+                aria-haspopup="true" aria-expanded="false" title="Til · Язык · Language"
+                data-i18n-aria="hra.lang_pick" aria-label="Tilni tanlash">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3.6 9h16.8M3.6 15h16.8"></path><path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z"></path></svg>
+          <span class="hra-lang-code" id="hraLangCode">UZ</span>
+          <svg class="hra-lang-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+        </button>
+        <!-- Til nomlari TARJIMA QILINMAYDI (CLAUDE.md 10-qoida) -->
+        <div class="hra-lang-menu" id="hraLangMenu" role="menu">
+          <button class="hra-lang-item" type="button" role="menuitemradio" aria-checked="false" data-hlang="uz" onclick="hraLangPick('uz')">
+            <span class="hra-lsw-code">UZ</span><span class="hra-lsw-nm">O'zbekcha</span>
+            <svg class="hi hi-16 hi-b hra-lsw-ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          </button>
+          <button class="hra-lang-item" type="button" role="menuitemradio" aria-checked="false" data-hlang="ru" onclick="hraLangPick('ru')">
+            <span class="hra-lsw-code">RU</span><span class="hra-lsw-nm">Русский</span>
+            <svg class="hi hi-16 hi-b hra-lsw-ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          </button>
+          <button class="hra-lang-item" type="button" role="menuitemradio" aria-checked="false" data-hlang="en" onclick="hraLangPick('en')">
+            <span class="hra-lsw-code">EN</span><span class="hra-lsw-nm">English</span>
+            <svg class="hi hi-16 hi-b hra-lsw-ck" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="hra-main">
+    <div class="hra-wrap">
+
+      <!-- ═══ 1) YUKLANMOQDA ═════════════════════════════════════════════ -->
+      <section class="hra-state on" id="hraStateLoading" aria-busy="true" aria-live="polite">
+        <div class="hra-card">
+          <div class="hra-sk hra-sk-t"></div>
+          <div class="hra-sk hra-sk-l"></div>
+          <div class="hra-sk hra-sk-l s"></div>
+          <div class="hra-sk hra-sk-b"></div>
+          <p class="hra-loading-note"><span class="hra-spin" aria-hidden="true"></span> <span data-i18n="hra.loading">Havola tekshirilmoqda…</span></p>
+        </div>
+      </section>
+
+      <!-- ═══ 2) HAVOLA YAROQSIZ (used | expired | invalid) ══════════════ -->
+      <section class="hra-state" id="hraStateBlocked">
+        <div class="hra-card hra-panel">
+          <div class="hra-panel-ic warn" id="hraBlockedIc">
+            <!-- used -->
+            <svg class="hi hi-28" viewBox="0 0 24 24" aria-hidden="true" data-hra-ic="used" hidden><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+            <!-- expired -->
+            <svg class="hi hi-28" viewBox="0 0 24 24" aria-hidden="true" data-hra-ic="expired" hidden><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <!-- invalid -->
+            <svg class="hi hi-28" viewBox="0 0 24 24" aria-hidden="true" data-hra-ic="invalid" hidden><path d="M9 17H7A5 5 0 0 1 7 7"/><path d="M15 7h2a5 5 0 0 1 4 8"/><path d="M8 12h3"/><path d="m2 2 20 20"/></svg>
+            <!-- offline (tarmoq) — 2-bosqich: havola yaroqsiz EMAS, ulanib bo'lmadi -->
+            <svg class="hi hi-28" viewBox="0 0 24 24" aria-hidden="true" data-hra-ic="offline" hidden><path d="M12 20h.01"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 14 0"/><path d="m2 2 20 20"/></svg>
+          </div>
+          <h2 id="hraBlockedTitle">Havola ochilmadi</h2>
+          <p id="hraBlockedText">Havolani qayta tekshiring.</p>
+          <!-- Faqat 'offline' holatida ko'rinadi (hraPaintBlocked) -->
+          <div id="hraRetryWrap" hidden style="margin-top:22px">
+            <button type="button" class="hra-btn hra-btn-dark" id="hraRetryBtn" onclick="hraRetry()">
+              <svg class="hi hi-16 hi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+              <span data-i18n="hra.retry">Qayta urinish</span>
+            </button>
+          </div>
+          <div class="hra-help">
+            <svg class="hi hi-18" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/></svg>
+            <span id="hraBlockedHelp" data-i18n="hra.blocked_help">Yordam kerak bo'lsa — sizga havolani yuborgan HR xodimi bilan bog'laning.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ 3) FORMA ═══════════════════════════════════════════════════ -->
+      <section class="hra-state" id="hraStateForm">
+
+        <div class="hra-intro">
+          <span class="hra-eyebrow">
+            <svg class="hi hi-12" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span data-i18n="hra.eyebrow">Ishga qabul</span>
+          </span>
+          <h1 class="hra-h1" data-i18n="hra.title">Ma'lumotlaringizni to'ldiring</h1>
+          <p class="hra-lead" data-i18n="hra.lead">Bu havola faqat siz uchun va bir marta ishlaydi. To'ldirish 5 daqiqa vaqt oladi — passportingiz va ota-onangizning passporti yoningizda bo'lsin.</p>
+        </div>
+
+        <div class="hra-card">
+
+          <!-- Progress -->
+          <div class="hra-prog">
+            <div class="hra-steps" id="hraSteps" role="list">
+              <div class="hra-st" role="listitem" data-step="1">
+                <button type="button" class="hra-st-btn" onclick="hraGoStep(1)">
+                  <span class="hra-st-n"><svg class="hi hi-14 hi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hra-st-d">1</span></span>
+                  <span class="hra-st-l" data-i18n="hra.s1">Shaxsiy</span>
+                </button>
+                <span class="hra-st-line" aria-hidden="true"></span>
+              </div>
+              <div class="hra-st" role="listitem" data-step="2">
+                <button type="button" class="hra-st-btn" onclick="hraGoStep(2)">
+                  <span class="hra-st-n"><svg class="hi hi-14 hi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hra-st-d">2</span></span>
+                  <span class="hra-st-l" data-i18n="hra.s2">Passport</span>
+                </button>
+                <span class="hra-st-line" aria-hidden="true"></span>
+              </div>
+              <div class="hra-st" role="listitem" data-step="3">
+                <button type="button" class="hra-st-btn" onclick="hraGoStep(3)">
+                  <span class="hra-st-n"><svg class="hi hi-14 hi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hra-st-d">3</span></span>
+                  <span class="hra-st-l" data-i18n="hra.s3">Ota-ona</span>
+                </button>
+                <span class="hra-st-line" aria-hidden="true"></span>
+              </div>
+              <div class="hra-st" role="listitem" data-step="4">
+                <button type="button" class="hra-st-btn" onclick="hraGoStep(4)">
+                  <span class="hra-st-n"><svg class="hi hi-14 hi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hra-st-d">4</span></span>
+                  <span class="hra-st-l" data-i18n="hra.s4">Hujjatlar</span>
+                </button>
+                <span class="hra-st-line" aria-hidden="true"></span>
+              </div>
+              <div class="hra-st" role="listitem" data-step="5">
+                <button type="button" class="hra-st-btn" onclick="hraGoStep(5)">
+                  <span class="hra-st-n"><svg class="hi hi-14 hi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span class="hra-st-d">5</span></span>
+                  <span class="hra-st-l" data-i18n="hra.s5">Yuborish</span>
+                </button>
+              </div>
+            </div>
+            <div class="hra-progm">
+              <div class="hra-progm-top">
+                <span class="hra-progm-t" id="hraProgTitle">Shaxsiy ma'lumot</span>
+                <span class="hra-progm-n"><span id="hraProgN">1</span> / 5</span>
+              </div>
+              <div class="hra-bar"><i id="hraProgBar" style="width:20%"></i></div>
+            </div>
+          </div>
+
+          <!-- ── 1-QADAM: Shaxsiy ────────────────────────────────────────── -->
+          <div class="hra-pane" id="hraPane1">
+            <div class="hra-shead">
+              <span class="hra-shead-ic"><svg class="hi hi-18" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+              <div>
+                <h2 class="hra-h2" data-i18n="hra.s1_title">Shaxsiy ma'lumot</h2>
+                <p data-i18n="hra.s1_sub">Ismingizni passportdagidek yozing.</p>
+              </div>
+            </div>
+
+            <div class="hra-fld">
+              <div class="hra-lblrow"><label for="hraFullName" data-i18n-txt="hra.f_fio">F.I.O <span class="hra-req" aria-hidden="true">*</span></label></div>
+              <input class="hra-inp" id="hraFullName" type="text" autocomplete="name" enterkeyhint="next"
+                     placeholder="Masalan: Aliyev Alisher Akmalovich" data-req data-check="name" data-label="F.I.O"
+                     aria-describedby="hraFullNameErr" oninput="hraClearErr(this)">
+              <p class="hra-err" id="hraFullNameErr" role="alert" aria-live="polite"></p>
+            </div>
+
+            <div class="hra-grid">
+              <div class="hra-fld">
+                <div class="hra-lblrow"><label for="hraBirthDate" data-i18n-txt="hra.f_birth">Tug'ilgan sana <span class="hra-req" aria-hidden="true">*</span></label></div>
+                <input class="hra-inp" id="hraBirthDate" type="date" autocomplete="bday"
+                       data-req data-check="birth" data-label="Tug'ilgan sana"
+                       aria-describedby="hraBirthDateErr" oninput="hraClearErr(this)">
+                <p class="hra-err" id="hraBirthDateErr" role="alert" aria-live="polite"></p>
+              </div>
+              <div class="hra-fld">
+                <div class="hra-lblrow">
+                  <label for="hraGender" data-i18n="hra.f_gender">Jinsi</label>
+                  <span class="hra-opt" data-i18n="hra.optional">ixtiyoriy</span>
+                </div>
+                <span class="hra-selwrap">
+                  <select class="hra-sel" id="hraGender" data-label="Jinsi">
+                    <option value="" data-i18n="hra.g_none">Tanlanmagan</option>
+                    <option value="m" data-i18n="hra.g_m">Erkak</option>
+                    <option value="f" data-i18n="hra.g_f">Ayol</option>
+                  </select>
+                  <svg class="hi hi-16" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                </span>
+              </div>
+            </div>
+
+            <div class="hra-grid">
+              <div class="hra-fld">
+                <div class="hra-lblrow"><label for="hraPhone" data-i18n-txt="hra.f_phone">Telefon raqamingiz <span class="hra-req" aria-hidden="true">*</span></label></div>
+                <input class="hra-inp mono" id="hraPhone" type="tel" inputmode="tel" autocomplete="tel" enterkeyhint="next"
+                       placeholder="+998 90 123 45 67" data-req data-check="phone" data-label="Telefon raqamingiz"
+                       aria-describedby="hraPhoneErr" oninput="hraPhoneInput(this)" onfocus="hraPhoneFocus(this)">
+                <p class="hra-err" id="hraPhoneErr" role="alert" aria-live="polite"></p>
+              </div>
+              <div class="hra-fld">
+                <div class="hra-lblrow"><label for="hraEmail" data-i18n-txt="hra.f_email">Email <span class="hra-req" aria-hidden="true">*</span></label></div>
+                <input class="hra-inp" id="hraEmail" type="email" inputmode="email" autocomplete="email" enterkeyhint="next"
+                       placeholder="ism@example.com" data-req data-check="email" data-label="Email"
+                       aria-describedby="hraEmailErr" oninput="hraClearErr(this)">
+                <p class="hra-hint" data-i18n="hra.h_email">Ishga qabul bo'yicha xabarlar shu manzilga keladi.</p>
+                <p class="hra-err" id="hraEmailErr" role="alert" aria-live="polite"></p>
+              </div>
+            </div>
+
+            <div class="hra-fld">
+              <div class="hra-lblrow"><label for="hraAddress" data-i18n-txt="hra.f_addr">Yashash manzili <span class="hra-req" aria-hidden="true">*</span></label></div>
+              <textarea class="hra-inp" id="hraAddress" autocomplete="street-address" rows="2"
+                        placeholder="Viloyat, tuman, ko'cha, uy" data-req data-check="addr" data-label="Yashash manzili"
+                        aria-describedby="hraAddressErr" oninput="hraClearErr(this)"></textarea>
+              <p class="hra-err" id="hraAddressErr" role="alert" aria-live="polite"></p>
+            </div>
+          </div>
+
+          <!-- ── 2-QADAM: Passport ───────────────────────────────────────── -->
+          <div class="hra-pane" id="hraPane2" hidden>
+            <div class="hra-shead">
+              <span class="hra-shead-ic"><svg class="hi hi-18" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></span>
+              <div>
+                <h2 class="hra-h2" data-i18n="hra.s2_title">Passport va JSHSHIR</h2>
+                <p data-i18n="hra.s2_sub">Raqamlarni passportning ikkinchi sahifasidan ko'chiring.</p>
+              </div>
+            </div>
+
+            <div class="hra-grid">
+              <div class="hra-fld">
+                <div class="hra-lblrow"><label for="hraPinfl" data-i18n-txt="hra.f_pinfl">JSHSHIR (PINFL) <span class="hra-req" aria-hidden="true">*</span></label></div>
+                <input class="hra-inp mono" id="hraPinfl" type="text" inputmode="numeric" maxlength="14" enterkeyhint="next"
+                       placeholder="14 ta raqam" data-req data-check="pinfl" data-label="JSHSHIR"
+                       aria-describedby="hraPinflErr" oninput="hraDigitsInput(this, 14)">
+                <p class="hra-hint" data-i18n="hra.h_pinfl">Passportda "PINFL" deb yozilgan 14 xonali raqam.</p>
+                <p class="hra-err" id="hraPinflErr" role="alert" aria-live="polite"></p>
+              </div>
+              <div class="hra-fld">
+                <div class="hra-lblrow"><label for="hraPassportSeries" data-i18n-txt="hra.f_pser">Passport seriya va raqami <span class="hra-req" aria-hidden="true">*</span></label></div>
+                <input class="hra-inp mono" id="hraPassportSeries" type="text" maxlength="9" autocapitalize="characters" spellcheck="false" enterkeyhint="next"
+                       placeholder="AA1234567" data-req data-check="passport" data-label="Passport seriya va raqami"
+                       aria-describedby="hraPassportSeriesErr" oninput="hraPassportInput(this)">
+                <p class="hra-hint" data-i18n="hra.h_pser">2 ta harf va 7 ta raqam, masalan AA1234567.</p>
+                <p class="hra-err" id="hraPassportSeriesErr" role="alert" aria-live="polite"></p>
+              </div>
+            </div>
+
+            <div class="hra-fld">
+              <div class="hra-lblrow">
+                <label for="hraPassportIssuedBy" data-i18n="hra.f_pby">Kim tomonidan berilgan</label>
+                <span class="hra-opt" data-i18n="hra.optional">ixtiyoriy</span>
+              </div>
+              <input class="hra-inp" id="hraPassportIssuedBy" type="text" data-label="Kim tomonidan berilgan"
+                     placeholder="Masalan: Chilonzor tuman IIB" oninput="hraClearErr(this)">
+            </div>
+
+            <div class="hra-grid">
+              <div class="hra-fld">
+                <div class="hra-lblrow">
+                  <label for="hraPassportIssuedAt" data-i18n="hra.f_pat">Berilgan sana</label>
+                  <span class="hra-opt" data-i18n="hra.optional">ixtiyoriy</span>
+                </div>
+                <input class="hra-inp" id="hraPassportIssuedAt" type="date" data-label="Berilgan sana" oninput="hraClearErr(this)">
+              </div>
+              <div class="hra-fld">
+                <div class="hra-lblrow">
+                  <label for="hraPassportExpiresAt" data-i18n="hra.f_pexp">Amal qilish muddati</label>
+                  <span class="hra-opt" data-i18n="hra.optional">ixtiyoriy</span>
+                </div>
+                <input class="hra-inp" id="hraPassportExpiresAt" type="date" data-label="Amal qilish muddati" oninput="hraClearErr(this)">
+              </div>
+            </div>
+          </div>
+
+          <!-- ── 3-QADAM: Ota-ona ────────────────────────────────────────── -->
+          <div class="hra-pane" id="hraPane3" hidden>
+            <div class="hra-shead">
+              <span class="hra-shead-ic"><svg class="hi hi-18" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+              <div>
+                <h2 class="hra-h2" data-i18n="hra.s3_title">Ota yoki ona ma'lumoti</h2>
+                <p data-i18n="hra.s3_sub">Favqulodda holatda bog'lanish uchun bitta yaqin qarindoshingiz.</p>
+              </div>
+            </div>
+
+            <div class="hra-grid">
+              <div class="hra-fld">
+                <div class="hra-lblrow"><label for="hraParentName" data-i18n-txt="hra.f_pname">Ota / ona F.I.O <span class="hra-req" aria-hidden="true">*</span></label></div>
+                <input class="hra-inp" id="hraParentName" type="text" enterkeyhint="next"
+                       placeholder="Masalan: Aliyev Akmal Karimovich" data-req data-check="name" data-label="Ota / ona F.I.O"
+                       aria-describedby="hraParentNameErr" oninput="hraClearErr(this)">
+                <p class="hra-err" id="hraParentNameErr" role="alert" aria-live="polite"></p>
+              </div>
+              <div class="hra-fld">
+                <div class="hra-lblrow"><label for="hraParentPhone" data-i18n-txt="hra.f_pphone">Ota / ona telefoni <span class="hra-req" aria-hidden="true">*</span></label></div>
+                <input class="hra-inp mono" id="hraParentPhone" type="tel" inputmode="tel" enterkeyhint="done"
+                       placeholder="+998 90 123 45 67" data-req data-check="phone" data-label="Ota / ona telefoni"
+                       aria-describedby="hraParentPhoneErr" oninput="hraPhoneInput(this)" onfocus="hraPhoneFocus(this)">
+                <p class="hra-err" id="hraParentPhoneErr" role="alert" aria-live="polite"></p>
+              </div>
+            </div>
+            <!-- 🔴 D10 (Asilbek, 2026-08-18): «Sizni kim tavsiya qildi?» (hraReferral)
+                 shu yerdan BUTUNLAY olib tashlandi — uni faqat HR to'ldiradi
+                 (`referred_by` payload'da ham yuborilmaydi). -->
+          </div>
+
+          <!-- ── 4-QADAM: Hujjatlar ──────────────────────────────────────── -->
+          <div class="hra-pane" id="hraPane4" hidden>
+            <div class="hra-shead">
+              <span class="hra-shead-ic"><svg class="hi hi-18" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg></span>
+              <div>
+                <h2 class="hra-h2" data-i18n="hra.s4_title">Hujjatlar</h2>
+                <p data-i18n="hra.s4_sub">5 ta hujjat majburiy, shartnoma ixtiyoriy. Telefon kamerasi bilan tushirsangiz ham bo'ladi — matn aniq o'qilsin.</p>
+              </div>
+            </div>
+
+            <!-- Guruh 1: shaxsiy foto -->
+            <div class="hra-fgrp">
+              <div class="hra-fgrp-h">
+                <svg class="hi hi-16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.7a8 8 0 0 1 10 0"/></svg>
+                <h3 class="hra-h3" data-i18n="hra.g_photo">Shaxsiy rasm</h3>
+                <span class="hra-fgrp-s" data-i18n="hra.lim_img">JPG · PNG · HEIC, 10 MB gacha</span>
+              </div>
+              <div class="hra-fbox" data-key="photo">
+                <input class="hra-fin" type="file" id="hraFilePhoto" accept="image/jpeg,image/png,image/heic,image/heif"
+                       data-freq data-kind="img" data-label="Hodim fotosi" aria-describedby="hraFilePhotoErr" onchange="hraFileChange(this)">
+                <label class="hra-drop" for="hraFilePhoto"
+                       ondragover="hraDragOver(event, this)" ondragleave="hraDragLeave(event, this)" ondrop="hraDrop(event, 'hraFilePhoto')">
+                  <span class="hra-drop-ic"><svg class="hi hi-18" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></span>
+                  <span class="hra-drop-t" data-i18n-txt="hra.u_photo">Hodim fotosi <span class="hra-req" aria-hidden="true">*</span></span>
+                  <span class="hra-drop-s" data-i18n="hra.u_photo_s">Yuz aniq ko'rinadigan rasm (3x4 shart emas)</span>
+                  <span class="hra-drop-b"><svg class="hi hi-14" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5-5 5 5"/><path d="M12 5v12"/></svg> <span data-i18n="hra.u_pick">Fayl tanlash</span></span>
+                </label>
+                <div class="hra-prev" hidden></div>
+                <p class="hra-err" id="hraFilePhotoErr" role="alert" aria-live="polite"></p>
+              </div>
+            </div>
+
+            <!-- Guruh 2: o'z passporti -->
+            <div class="hra-fgrp">
+              <div class="hra-fgrp-h">
+                <svg class="hi hi-16" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/></svg>
+                <h3 class="hra-h3" data-i18n="hra.g_pass">Passportingiz nusxasi</h3>
+                <span class="hra-fgrp-s" data-i18n="hra.lim_img">JPG · PNG · HEIC, 10 MB gacha</span>
+              </div>
+              <div class="hra-fpair">
+                <div class="hra-fbox" data-key="passport_front">
+                  <input class="hra-fin" type="file" id="hraFilePassportFront" accept="image/jpeg,image/png,image/heic,image/heif"
+                         data-freq data-kind="img" data-label="Passport — oldi" aria-describedby="hraFilePassportFrontErr" onchange="hraFileChange(this)">
+                  <label class="hra-drop" for="hraFilePassportFront"
+                         ondragover="hraDragOver(event, this)" ondragleave="hraDragLeave(event, this)" ondrop="hraDrop(event, 'hraFilePassportFront')">
+                    <span class="hra-drop-ic"><svg class="hi hi-18" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7 20.7a6 6 0 0 1 10 0"/></svg></span>
+                    <span class="hra-drop-t" data-i18n-txt="hra.u_pf">Oldi tomoni <span class="hra-req" aria-hidden="true">*</span></span>
+                    <span class="hra-drop-s" data-i18n="hra.u_pf_s">Rasm va ma'lumot bor sahifa</span>
+                    <span class="hra-drop-b"><svg class="hi hi-14" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5-5 5 5"/><path d="M12 5v12"/></svg> <span data-i18n="hra.u_pick">Fayl tanlash</span></span>
+                  </label>
+                  <div class="hra-prev" hidden></div>
+                  <p class="hra-err" id="hraFilePassportFrontErr" role="alert" aria-live="polite"></p>
+                </div>
+                <div class="hra-fbox" data-key="passport_back">
+                  <input class="hra-fin" type="file" id="hraFilePassportBack" accept="image/jpeg,image/png,image/heic,image/heif"
+                         data-freq data-kind="img" data-label="Passport — orqa" aria-describedby="hraFilePassportBackErr" onchange="hraFileChange(this)">
+                  <label class="hra-drop" for="hraFilePassportBack"
+                         ondragover="hraDragOver(event, this)" ondragleave="hraDragLeave(event, this)" ondrop="hraDrop(event, 'hraFilePassportBack')">
+                    <span class="hra-drop-ic"><svg class="hi hi-18" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 9h10"/><path d="M7 13h10"/><path d="M7 17h6"/></svg></span>
+                    <span class="hra-drop-t" data-i18n-txt="hra.u_pb">Orqa tomoni <span class="hra-req" aria-hidden="true">*</span></span>
+                    <span class="hra-drop-s" data-i18n="hra.u_pb_s">Ro'yxatdan o'tgan manzil sahifasi</span>
+                    <span class="hra-drop-b"><svg class="hi hi-14" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5-5 5 5"/><path d="M12 5v12"/></svg> <span data-i18n="hra.u_pick">Fayl tanlash</span></span>
+                  </label>
+                  <div class="hra-prev" hidden></div>
+                  <p class="hra-err" id="hraFilePassportBackErr" role="alert" aria-live="polite"></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Guruh 3: ota-ona passporti -->
+            <div class="hra-fgrp">
+              <div class="hra-fgrp-h">
+                <svg class="hi hi-16" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+                <h3 class="hra-h3" data-i18n="hra.g_ppass">Ota / ona passporti</h3>
+                <span class="hra-fgrp-s" data-i18n="hra.lim_img">JPG · PNG · HEIC, 10 MB gacha</span>
+              </div>
+              <div class="hra-fpair">
+                <div class="hra-fbox" data-key="parent_passport_front">
+                  <input class="hra-fin" type="file" id="hraFileParentFront" accept="image/jpeg,image/png,image/heic,image/heif"
+                         data-freq data-kind="img" data-label="Ota/ona passporti — oldi" aria-describedby="hraFileParentFrontErr" onchange="hraFileChange(this)">
+                  <label class="hra-drop" for="hraFileParentFront"
+                         ondragover="hraDragOver(event, this)" ondragleave="hraDragLeave(event, this)" ondrop="hraDrop(event, 'hraFileParentFront')">
+                    <span class="hra-drop-ic"><svg class="hi hi-18" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7 20.7a6 6 0 0 1 10 0"/></svg></span>
+                    <span class="hra-drop-t" data-i18n-txt="hra.u_ppf">Oldi tomoni <span class="hra-req" aria-hidden="true">*</span></span>
+                    <span class="hra-drop-s" data-i18n="hra.u_ppf_s">Ota yoki onangizning passporti</span>
+                    <span class="hra-drop-b"><svg class="hi hi-14" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5-5 5 5"/><path d="M12 5v12"/></svg> <span data-i18n="hra.u_pick">Fayl tanlash</span></span>
+                  </label>
+                  <div class="hra-prev" hidden></div>
+                  <p class="hra-err" id="hraFileParentFrontErr" role="alert" aria-live="polite"></p>
+                </div>
+                <div class="hra-fbox" data-key="parent_passport_back">
+                  <input class="hra-fin" type="file" id="hraFileParentBack" accept="image/jpeg,image/png,image/heic,image/heif"
+                         data-freq data-kind="img" data-label="Ota/ona passporti — orqa" aria-describedby="hraFileParentBackErr" onchange="hraFileChange(this)">
+                  <label class="hra-drop" for="hraFileParentBack"
+                         ondragover="hraDragOver(event, this)" ondragleave="hraDragLeave(event, this)" ondrop="hraDrop(event, 'hraFileParentBack')">
+                    <span class="hra-drop-ic"><svg class="hi hi-18" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 9h10"/><path d="M7 13h10"/><path d="M7 17h6"/></svg></span>
+                    <span class="hra-drop-t" data-i18n-txt="hra.u_ppb">Orqa tomoni <span class="hra-req" aria-hidden="true">*</span></span>
+                    <span class="hra-drop-s" data-i18n="hra.u_ppb_s">Manzil yozilgan sahifa</span>
+                    <span class="hra-drop-b"><svg class="hi hi-14" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5-5 5 5"/><path d="M12 5v12"/></svg> <span data-i18n="hra.u_pick">Fayl tanlash</span></span>
+                  </label>
+                  <div class="hra-prev" hidden></div>
+                  <p class="hra-err" id="hraFileParentBackErr" role="alert" aria-live="polite"></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Guruh 4: shartnoma -->
+            <div class="hra-fgrp">
+              <div class="hra-fgrp-h">
+                <svg class="hi hi-16" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 15h6"/></svg>
+                <h3 class="hra-h3" data-i18n="hra.g_contract">Shartnoma</h3>
+                <span class="hra-opt" data-i18n="hra.optional">ixtiyoriy</span>
+                <span class="hra-fgrp-s" data-i18n="hra.lim_doc">PDF · JPG · PNG, 10 MB gacha</span>
+              </div>
+              <!-- 🔴 D10: shartnoma nomzod uchun IXTIYORIY (`data-freq` YO'Q) — uni HR yuklaydi.
+                   Nomzodda bo'lsa yuklay oladi, bo'lmasa yuborishga to'sqinlik qilmaydi. -->
+              <div class="hra-fbox" data-key="contract">
+                <input class="hra-fin" type="file" id="hraFileContract" accept="application/pdf,image/jpeg,image/png,image/heic,image/heif"
+                       data-kind="doc" data-label="Shartnoma" aria-describedby="hraFileContractErr" onchange="hraFileChange(this)">
+                <label class="hra-drop" for="hraFileContract"
+                       ondragover="hraDragOver(event, this)" ondragleave="hraDragLeave(event, this)" ondrop="hraDrop(event, 'hraFileContract')">
+                  <span class="hra-drop-ic"><svg class="hi hi-18" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span>
+                  <span class="hra-drop-t" data-i18n="hra.u_contract">Imzolangan shartnoma</span>
+                  <span class="hra-drop-s" data-i18n="hra.u_contract_s">Ixtiyoriy — sizda bo'lsa yuklang, bo'lmasa HR yuklaydi</span>
+                  <span class="hra-drop-b"><svg class="hi hi-14" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5-5 5 5"/><path d="M12 5v12"/></svg> <span data-i18n="hra.u_pick">Fayl tanlash</span></span>
+                </label>
+                <div class="hra-prev" hidden></div>
+                <p class="hra-err" id="hraFileContractErr" role="alert" aria-live="polite"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── 5-QADAM: Tekshirish va yuborish ─────────────────────────── -->
+          <div class="hra-pane" id="hraPane5" hidden>
+            <div class="hra-shead">
+              <span class="hra-shead-ic"><svg class="hi hi-18" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg></span>
+              <div>
+                <h2 class="hra-h2" data-i18n="hra.s5_title">Tekshirib chiqing</h2>
+                <p data-i18n="hra.s5_sub">Yuborilgandan keyin havola yopiladi va o'zgartirib bo'lmaydi.</p>
+              </div>
+            </div>
+
+            <div class="hra-recap" id="hraRecap"></div>
+
+            <div class="hra-consent" id="hraConsentBox" style="margin-top:20px">
+              <span class="hra-cb">
+                <input type="checkbox" id="hraConsent" onchange="hraConsentChange()" aria-describedby="hraConsentErr">
+                <svg class="hi" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+              </span>
+              <div class="hra-consent-txt">
+                <label for="hraConsent" data-i18n-html="hra.consent">
+                  Men yuborayotgan ma'lumotlarim — F.I.O, tug'ilgan sana, JSHSHIR, passport ma'lumotlari,
+                  manzil, telefon raqamlari va hujjat nusxalari — <b>faqat ishga qabul qilish jarayoni uchun</b>
+                  ishlatilishiga roziman. Ular maxfiy saqlanadi, kompaniyaning mas'ul xodimlaridan boshqa hech kimga
+                  va uchinchi shaxslarga berilmaydi.
+                </label>
+                <p class="hra-consent-note" data-i18n="hra.consent_note">Rozilikni qaytarib olish yoki ma'lumotlaringizni o'chirishni so'rash uchun HR xodimi bilan bog'laning.</p>
+                <p class="hra-err" id="hraConsentErr" role="alert" aria-live="polite"></p>
+              </div>
+            </div>
+
+            <div class="hra-safe">
+              <svg class="hi hi-18" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span data-i18n-html="hra.safe"><b>Xavfsiz uzatish.</b> Hujjatlaringiz shifrlangan ulanish orqali yuboriladi va yopiq omborda saqlanadi. Havola bir marta ishlaydi — yuborilgandan keyin u boshqa ochilmaydi.</span>
+            </div>
+
+            <!-- 2-bosqich: yuklash/RPC xatosi shu yerda ko'rinadi (jimgina yutilmaydi) -->
+            <p class="hra-err" id="hraSubmitErr" role="alert" aria-live="assertive" style="margin-top:14px"></p>
+          </div>
+
+          <!-- Navigatsiya -->
+          <div class="hra-nav">
+            <button type="button" class="hra-btn hra-btn-ghost" id="hraBackBtn" onclick="hraBack()" hidden>
+              <svg class="hi hi-16 hi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+              <span data-i18n="hra.back">Orqaga</span>
+            </button>
+            <span class="hra-spacer"></span>
+            <button type="button" class="hra-btn hra-btn-dark" id="hraNextBtn" onclick="hraNext()">
+              <span data-i18n="hra.next">Davom etish</span>
+              <svg class="hi hi-16 hi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+            <button type="button" class="hra-btn hra-btn-dark" id="hraSubmitBtn" onclick="hrApplySubmit()" hidden disabled>
+              <svg class="hi hi-16 hi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.54 21.69a.5.5 0 0 0 .93-.03l6.5-19a.5.5 0 0 0-.63-.63l-19 6.5a.5.5 0 0 0-.03.93l7.93 3.18a2 2 0 0 1 1.11 1.11z"/><path d="m21.85 2.15-10.94 10.94"/></svg>
+              <span data-i18n="hra.submit">Yuborish</span>
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ═══ 4) YUBORILDI ═══════════════════════════════════════════════ -->
+      <section class="hra-state" id="hraStateDone">
+        <div class="hra-card hra-panel">
+          <div class="hra-panel-ic ok">
+            <svg class="hi hi-28" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+          </div>
+          <h2 data-i18n="hra.done_title">Ma'lumotlaringiz yuborildi</h2>
+          <p data-i18n="hra.done_sub">Rahmat! Hujjatlaringiz HR bo'limiga yetib bordi. Endi bu havola yopildi — uni qayta ochish shart emas.</p>
+          <div class="hra-next">
+            <div class="hra-next-h" data-i18n="hra.done_next">Keyin nima bo'ladi</div>
+            <div class="hra-next-i"><span class="hra-next-n">1</span><span data-i18n="hra.done_1">HR xodimi ma'lumotlaringizni va hujjatlarni tekshiradi.</span></div>
+            <div class="hra-next-i"><span class="hra-next-n">2</span><span data-i18n="hra.done_2">Kerak bo'lsa siz ko'rsatgan telefon yoki email orqali bog'lanadi.</span></div>
+            <div class="hra-next-i"><span class="hra-next-n">3</span><span data-i18n="hra.done_3">Tasdiqlangach ishchi hisobingiz ochiladi va taklif emailingizga keladi.</span></div>
+          </div>
+          <p class="hra-hint" style="margin-top:20px" data-i18n="hra.done_close">Bu sahifani yopishingiz mumkin.</p>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="hra-foot">
+    <div class="hra-wrap hra-foot-in">
+      <span>
+        <svg class="hi hi-14" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span data-i18n="hra.foot_safe">Ma'lumotlar shifrlangan ulanish orqali uzatiladi</span>
+      </span>
+      <span style="margin-left:auto" data-i18n="hra.foot_brand">TaskFix — jamoa va vazifalarni boshqarish tizimi</span>
+    </div>
+  </footer>
+
+</div>
+
+<!-- Supabase JS — index.html dagi AYNAN o'sha CDN (boshqa tashqi ulanish yo'q) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   hr-apply.html — 1-BOSQICH: QOBIQ (Supabase JS YO'Q)
+
+   Bu blokda FAQAT vizual/UX mantiq bor:
+     • holat almashtirish (loading / used / expired / invalid / form / done)
+     • bosqichlar orasida yurish + progress
+     • mijoz tomonidagi validatsiya KO'RINISHI
+     • fayl tanlash, drag-drop, preview, o'chirish
+   2-BOSQICH (coder): hr_apply_peek / hr_apply_submit RPC + Storage upload.
+   Ulanish nuqtalari fayl bo'ylab "TODO (2-bosqich)" bilan belgilangan.
+
+   🔴 Barcha funksiyalar TOP-LEVEL `function` — inline handler global scope'da
+      baholanadi (CLAUDE.md 2026-07-28 saboqi). Inline handler ichida arrow
+      function YO'Q.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Cheklovlar (coder 2-bosqichda AYNAN shularni ishlatadi) ─────────────── */
+var HRA_MAX_IMG_MB   = 10;                 /* rasm: hodim fotosi, passport nusxalari */
+/* 🔴 10 (20 EMAS): bucket `hr-docs` file_size_limit = 10485760 bayt
+   (TASKFIX_HR_RECRUITING.sql 7-bo'lim) va index.html dagi HRC_MAX_MB = 10.
+   Katta bo'lsa nomzod 5 qadamni to'ldirib, faylni mijoz qabul qilgach,
+   "Yuborish"da 413 xatosini olardi — eng oxirida va sababsiz. */
+var HRA_MAX_DOC_MB   = 10;                 /* shartnoma */
+var HRA_IMG_TYPES    = ['image/jpeg', 'image/jpg', 'image/png', 'image/heic', 'image/heif'];
+var HRA_DOC_TYPES    = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/heic', 'image/heif'];
+var HRA_IMG_EXT      = ['jpg', 'jpeg', 'png', 'heic', 'heif'];
+var HRA_DOC_EXT      = ['pdf', 'jpg', 'jpeg', 'png', 'heic', 'heif'];
+var HRA_BUCKET       = 'hr-docs';          /* D2: private bucket */
+var HRA_PATH_PREFIX  = 'apply';            /* D2: hr-docs/apply/<token>/<key>.<ext> */
+var HRA_CONSENT_VER  = 'v1-2026-08-18';    /* D7: consent_version */
+var HRA_STEPS_N      = 5;
+
+/* ── 2-BOSQICH: Supabase (anon) ─────────────────────────────────────────── */
+var HRA_SB_URL  = 'https://nnpsbwsppgxbytlfloth.supabase.co';
+var HRA_SB_KEY  = 'sb_publishable_ouA6pp3DwJjQkDJrWPi8QQ_30CUo51t';
+var HRA_SB_LIB  = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+/* 🔴 Alohida storageKey + persistSession:false — TaskFix'ga kirgan odam shu
+   havolani o'sha brauzerda ochsa so'rovlar `authenticated` roli bilan ketardi va
+   `hrdocs_anon_insert` policy'si QO'LLANMASDI (yuklash RLS xatosi). Bu sahifa
+   DOIM anon bo'lib qoladi va ilova sessiyasiga umuman tegmaydi. */
+var HRA_SB_OPTS = { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: 'tf-hr-apply' } };
+
+var HRA_UP_PAR   = 3;    /* bir vaqtda nechta fayl yuklanadi (telefon interneti) */
+var HRA_UP_KEYS  = ['photo', 'passport_front', 'passport_back', 'parent_passport_front', 'parent_passport_back', 'contract'];
+/* hrApplyFiles kaliti → hr_apply_submit oq ro'yxatidagi payload maydoni */
+var HRA_PATH_FIELD = {
+  photo:                 'photo_path',
+  passport_front:        'passport_front_path',
+  passport_back:         'passport_back_path',
+  parent_passport_front: 'parent_passport_front_path',
+  parent_passport_back:  'parent_passport_back_path',
+  contract:              'contract_path'
+};
+var HRA_UP_LABEL = {
+  photo:                 'Hodim fotosi',
+  passport_front:        'Passport — oldi',
+  passport_back:         'Passport — orqa',
+  parent_passport_front: 'Ota/ona passporti — oldi',
+  parent_passport_back:  'Ota/ona passporti — orqa',
+  contract:              'Shartnoma'
+};
+var HRA_MIME_EXT = {
+  'image/jpeg': 'jpg', 'image/jpg': 'jpg', 'image/png': 'png',
+  'image/heic': 'heic', 'image/heif': 'heif', 'application/pdf': 'pdf'
+};
+var HRA_UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+/* 🔴 D10: shartnomani HR yuklaydi — nomzod yo'lida IXTIYORIY.
+   Validatsiya (`data-freq` yo'q) va yuklash (`hraUploadAll`) ikkovi ham shunga tayanadi. */
+var HRA_OPTIONAL_FILES = { contract: 1 };
+
+/* Fayl yorlig'i — xato matnida va xulosada bir xil ko'rinishi uchun bitta joydan */
+function hraUpLabel(key) {
+  return tr('hra.lbl_' + key, HRA_UP_LABEL[key] || key);
+}
+
+/* ── Matnlar (tarjima uchun bitta joyda; statik matnlar HTML'da data-i18n) ─ */
+var HRA_TXT = {
+  stepTitles: ["Shaxsiy ma'lumot", 'Passport va JSHSHIR', 'Ota-ona ma\'lumoti', 'Hujjatlar', 'Tekshirish va yuborish'],
+
+  errRequired:  "Bu maydon to'ldirilishi shart",
+  errName:      "To'liq ism-familiyani yozing (kamida 2 so'z)",
+  errBirth:     "Tug'ilgan sanani to'g'ri kiriting",
+  errBirthYoung:"Yosh 16 dan katta bo'lishi kerak",
+  errPhone:     "Telefon raqami to'liq emas: +998 90 123 45 67",
+  errEmail:     "Email manzil noto'g'ri, masalan: ism@example.com",
+  errAddr:      "Manzilni to'liqroq yozing (viloyat, tuman, ko'cha)",
+  errPinfl:     "JSHSHIR 14 ta raqamdan iborat",
+  errPassport:  "Format: 2 harf va 7 raqam, masalan AA1234567",
+  errFileReq:   "Bu hujjatni yuklash shart",
+  errFileBig:   "Fayl juda katta ({0}). Chegara — {1} MB",
+  errFileType:  "Format mos emas. Ruxsat: {0}",
+  errConsent:   "Yuborish uchun rozilikni belgilang",
+  /* ⚠️ `errStep` olib tashlandi — hech qayerda ishlatilmasdi va tarjimasi ham
+     bo'sh yotardi (har matn 3 tilda bo'lishi kerak, o'lik matn esa yo'q). */
+
+  fileOk:       'Tayyor',
+  fileReplace:  'Almashtirish',
+  fileRemove:   "O'chirish",
+  notFilled:    "To'ldirilmagan",
+  notPicked:    'Tanlanmagan',
+  notPickedOpt: "Tanlanmagan — ixtiyoriy",
+  genderM:      'Erkak',
+  genderF:      'Ayol',
+
+  recapPersonal: "Shaxsiy ma'lumot",
+  recapPassport: 'Passport va JSHSHIR',
+  recapParent:   'Ota-ona',
+  recapFiles:    'Hujjatlar',
+  recapEdit:     "O'zgartirish",
+
+  blocked: {
+    used: {
+      title: "Bu havola allaqachon to'ldirilgan",
+      text:  "Ma'lumotlar bir marta yuborilgan va havola yopilgan. Agar bu siz emas bo'lsangiz yoki ma'lumotni o'zgartirish kerak bo'lsa — HR xodimiga xabar bering."
+    },
+    expired: {
+      title: 'Havolaning muddati tugagan',
+      text:  "Havola xavfsizlik uchun cheklangan muddatga beriladi. HR xodimidan yangi havola so'rang — eski ma'lumotlaringiz saqlanadi."
+    },
+    invalid: {
+      title: "Havola noto'g'ri",
+      text:  "Manzil to'liq ko'chirilmagan yoki xato bo'lishi mumkin. Havolani xabardan qaytadan, to'liq holda oching."
+    },
+    /* 🔴 Tarmoq/server xatosi — havola YAROQSIZ emas. Odamni yo'q joyga
+       "havola noto'g'ri" deb qo'rqitmaymiz: qayta urinish tugmasi bor. */
+    offline: {
+      title: 'Ulanib bo‘lmadi',
+      text:  "Internet aloqasi uzilgan yoki server javob bermayapti. Havolangiz yaroqli — ulanishni tekshirib, qayta urinib ko'ring."
+    }
+  },
+
+  /* ── 2-bosqich: yuklash / yuborish xatolari ────────────────────────────── */
+  upProgress:  'Yuklanmoqda… {0}/{1}',
+  upSending:   'Yuborilmoqda…',
+  errNet:      "Internet aloqasi uzildi. Ulanishni tekshirib, «Yuborish» tugmasini qayta bosing.",
+  errUpFile:   "«{0}» yuklanmadi: {1}",
+  errUpRls:    "havola yopilgan yoki muddati tugagan bo'lishi mumkin — HR xodimidan yangi havola so'rang",
+  errUpBig:    "fayl server chegarasidan katta, kichikroq nusxa yuklang",
+  errUpBucket: "hujjat ombori sozlanmagan — HR xodimiga xabar bering",
+  errUpDup:    "shu nomdagi fayl allaqachon yuklangan, sahifani yangilab qaytadan urinib ko'ring",
+  errUpNet:    "aloqa uzildi",
+  errUpOther:  "kutilmagan xato",
+  errSubmit:   "Yuborilmadi. Qaytadan urinib ko'ring.",
+  errLib:      "Sahifa to'liq yuklanmadi. Internetni tekshirib, sahifani yangilang."
+};
+
+/* ═══════════════ i18n — UZ / RU / EN (D12 · CLAUDE.md 10-qoida) ═══════════
+   Nomzod rus yoki ingliz tilli bo'lishi mumkin. Bu fayl o'zi-yetarli —
+   lug'at ham shu yerda (index.html dagi `I18N_DICT` bu sahifaga yuklanmaydi).
+
+   🔴 FUNKSIYA NOMI `tr()`, `t()` EMAS. `t` bu faylda ham band
+      (`hraPaintBlocked` dagi `var t = HRA_TXT.blocked[kind]`) — `t()` deb
+      nomlansa o'sha scope'da soyalanib "t is not a function" berardi va
+      `node --check` / `vm.Script` buni TUTMAYDI.
+
+   Ishlash: `tr('hra.kalit', 'uz matn'[, arg0…])`.
+     • uz rejimida lug'at UMUMAN o'qilmaydi → 2-argument qaytadi (nol xavf).
+     • ru/en da kalit yo'q bo'lsa — uz matni ko'rinadi (xom kalit hech qachon
+       ekranga chiqmaydi) + bir marta console.warn.
+     • `{0}` / `{1}` argumentlar bilan almashadi.
+   Statik HTML: data-i18n · -html · -txt · -ph · -title · -aria.
+   ─────────────────────────────────────────────────────────────────────────── */
+var HRA_LANG_LS  = 'hra_lang';
+var HRA_DOC_TITLE = "Ishga qabul — ma'lumot to'ldirish · TaskFix";
+var _hraLang     = 'uz';
+var _hraLangMiss = {};        /* yo'q kalit — har biri uchun bir marta warn */
+var _hraLangBound = false;    /* tashqariga bosish / Escape listener'lari */
+
+function hraLangNorm(v) {
+  if (!v) { return 'uz'; }
+  var s = String(v).toLowerCase();
+  if (s.indexOf('ru') === 0) { return 'ru'; }
+  if (s.indexOf('en') === 0) { return 'en'; }
+  return 'uz';   /* 'uz-latin', 'uz-cyril' va noma'lum qiymat — hammasi uz */
+}
+
+/* URL ?lang= → localStorage → navigator → uz */
+function hraLangDetect() {
+  var v = '';
+  try { v = new URLSearchParams(window.location.search).get('lang') || ''; }
+  catch (e) { v = ''; }
+  if (v) { return { lang: hraLangNorm(v), fromUrl: true }; }
+  try { v = localStorage.getItem(HRA_LANG_LS) || ''; } catch (e2) { v = ''; }
+  if (v) { return { lang: hraLangNorm(v), fromUrl: false }; }
+  try {
+    v = (navigator.languages && navigator.languages[0]) || navigator.language || '';
+  } catch (e3) { v = ''; }
+  return { lang: hraLangNorm(v), fromUrl: false };
+}
+
+function tr(key, uz) {
+  var s = uz;
+  if (_hraLang !== 'uz') {
+    var d = HRA_I18N ? HRA_I18N[_hraLang] : null;
+    var v = d ? d[key] : null;
+    if (v) { s = v; }
+    else if (!_hraLangMiss[key]) {
+      _hraLangMiss[key] = 1;
+      console.warn('[hr-apply] i18n kalit topilmadi:', key, '(' + _hraLang + ')');
+    }
+  }
+  if (arguments.length > 2) {
+    var a = Array.prototype.slice.call(arguments, 2);
+    s = String(s).replace(/\{(\d+)\}/g, function (m, i) {
+      return (a[i] === undefined || a[i] === null) ? m : a[i];
+    });
+  }
+  return s;
+}
+
+/* ⚠️ Asl uz matni BIRINCHI o'tishda `dataset` ga saqlanadi — aks holda ru'ga
+   o'tgandan keyingi ikkinchi o'tish rus matnini "asl" deb olib, uz'ga qaytish
+   imkonsiz bo'lardi (index.html dagi `i18nApplyDom` saboqi). */
+function hraI18nApplyDom(root) {
+  var r = root || document;
+  function pass(sel, attr, get, set) {
+    var els = r.querySelectorAll(sel), i, el, key, store;
+    for (i = 0; i < els.length; i++) {
+      el = els[i];
+      key = el.getAttribute(attr);
+      if (!key) { continue; }
+      store = 'i18nUz' + (attr === 'data-i18n' ? '' : attr.replace('data-i18n-', '_'));
+      if (el.dataset[store] === undefined) { el.dataset[store] = get(el); }
+      set(el, tr(key, el.dataset[store]));
+    }
+  }
+  /* 🔴 ENG BIRINCHI: ichida `data-i18n` bolasi bo'lsa keyingi o'tish uni baribir
+     tarjima qiladi; teskari tartibda innerHTML nusxasi ALLAQACHON tarjima
+     qilingan holda "asl uz matni" bo'lib saqlanib qolardi.
+     ⚠️ Faqat BIZ yozgan statik jumla (<b> bor) — foydalanuvchi kiritgan matn
+     bu yo'ldan hech qachon o'tmaydi (XSS). */
+  pass('[data-i18n-html]', 'data-i18n-html',
+       function (el) { return el.innerHTML; },
+       function (el, v) { el.innerHTML = v; });
+  pass('[data-i18n]', 'data-i18n',
+       function (el) { return el.textContent; },
+       function (el, v) { el.textContent = v; });
+  /* 🔴 ARALASH KONTENT: `<label>F.I.O <span class="hra-req">*</span></label>` —
+     bu yerda textContent yozilsa majburiylik yulduzchasi O'CHIB KETARDI.
+     Shuning uchun `data-i18n-txt`: faqat eng uzun bevosita matn tuguni
+     almashadi, bolalar va DOM tuzilishi tegilmaydi. */
+  var txts = r.querySelectorAll('[data-i18n-txt]'), i, j, el, key, node, orig, lead, tail, ch;
+  for (i = 0; i < txts.length; i++) {
+    el = txts[i];
+    key = el.getAttribute('data-i18n-txt');
+    if (!key) { continue; }
+    node = null;
+    ch = el.childNodes;
+    for (j = 0; j < ch.length; j++) {
+      if (ch[j].nodeType === 3 && ch[j].nodeValue.trim() &&
+          (!node || ch[j].nodeValue.trim().length > node.nodeValue.trim().length)) { node = ch[j]; }
+    }
+    if (!node) { continue; }
+    if (el.dataset.i18nUz_txt === undefined) { el.dataset.i18nUz_txt = node.nodeValue; }
+    orig = el.dataset.i18nUz_txt;
+    lead = orig.match(/^\s*/)[0];
+    tail = orig.match(/\s*$/)[0];
+    node.nodeValue = lead + tr(key, orig.trim()) + tail;
+  }
+  pass('[data-i18n-ph]', 'data-i18n-ph',
+       function (el) { return el.getAttribute('placeholder') || ''; },
+       function (el, v) { el.setAttribute('placeholder', v); });
+  pass('[data-i18n-title]', 'data-i18n-title',
+       function (el) { return el.getAttribute('title') || ''; },
+       function (el, v) { el.setAttribute('title', v); });
+  pass('[data-i18n-aria]', 'data-i18n-aria',
+       function (el) { return el.getAttribute('aria-label') || ''; },
+       function (el, v) { el.setAttribute('aria-label', v); });
+}
+
+/* Til almashganda JS chizadigan joylar ham yangilanadi (ular `data-i18n` bilan
+   qoplanmaydi — matnini funksiyalar yozadi). 🔴 Foydalanuvchi kiritgan
+   ma'lumot (input qiymatlari, tanlangan fayllar) TEGILMAYDI. */
+function hraI18nRefresh() {
+  try { document.documentElement.lang = _hraLang; } catch (e) { /* eski brauzer */ }
+  try { document.title = tr('hra.doc_title', HRA_DOC_TITLE); } catch (e2) { /* muhim emas */ }
+  hraI18nApplyDom();
+  hraLangSync();
+  _hraBtnLabel = '';   /* "Yuborish" keshi til bilan birga eskiradi */
+  if (_hraState === 'used' || _hraState === 'expired' ||
+      _hraState === 'invalid' || _hraState === 'offline') { hraPaintBlocked(_hraState); }
+  if (_hraState === 'form') { hraStepUi(); hraRepaintPreviews(); }
+}
+
+/* Ko'rinib turgan xato matnlari eski tilda qotib qolmasin — tozalanadi
+   (keyingi «Davom etish» / «Yuborish» da yangi tilda qaytadan chiqadi). */
+function hraClearAllErrs() {
+  var i, els = document.querySelectorAll('.hra-err.show');
+  for (i = 0; i < els.length; i++) { els[i].textContent = ''; els[i].classList.remove('show'); }
+  els = document.querySelectorAll('[aria-invalid="true"]');
+  for (i = 0; i < els.length; i++) { els[i].removeAttribute('aria-invalid'); }
+  els = document.querySelectorAll('.hra-fbox.bad');
+  for (i = 0; i < els.length; i++) { els[i].classList.remove('bad'); }
+  var cbox = hraEl('hraConsentBox');
+  if (cbox) { cbox.classList.remove('bad'); }
+}
+
+function hraRepaintPreviews() {
+  var els = document.querySelectorAll('.hra-fbox .hra-fin'), i, key;
+  for (i = 0; i < els.length; i++) {
+    key = hraKeyOf(els[i]);
+    if (hrApplyFiles[key]) { hraPaintPreview(els[i], hrApplyFiles[key]); }
+  }
+}
+
+function hraLangSync() {
+  var code = hraEl('hraLangCode');
+  if (code) { code.textContent = String(_hraLang).toUpperCase(); }
+  var menu = hraEl('hraLangMenu');
+  if (!menu) { return; }
+  var items = menu.querySelectorAll('.hra-lang-item'), i;
+  for (i = 0; i < items.length; i++) {
+    items[i].classList.toggle('active', items[i].getAttribute('data-hlang') === _hraLang);
+    items[i].setAttribute('aria-checked', items[i].getAttribute('data-hlang') === _hraLang ? 'true' : 'false');
+  }
+}
+
+function hraLangClose() {
+  var w = hraEl('hraLang');
+  if (!w) { return; }
+  w.classList.remove('open');
+  var b = hraEl('hraLangBtn');
+  if (b) { b.setAttribute('aria-expanded', 'false'); }
+}
+
+function hraLangToggle(ev) {
+  if (ev) { ev.stopPropagation(); }
+  var w = hraEl('hraLang');
+  if (!w) { return; }
+  var open = !w.classList.contains('open');
+  w.classList.toggle('open', open);
+  var b = hraEl('hraLangBtn');
+  if (b) { b.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+  if (open) { hraLangSync(); }
+  /* Listener'lar BIR MARTA bog'lanadi (index.html `langSw*` naqshi) */
+  if (!_hraLangBound) {
+    _hraLangBound = true;
+    document.addEventListener('mousedown', function (e) {
+      var wrap = hraEl('hraLang');
+      if (wrap && wrap.classList.contains('open') && !wrap.contains(e.target)) { hraLangClose(); }
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { hraLangClose(); }
+    });
+  }
+}
+
+/* 🔴 SAHIFA QAYTA YUKLANMAYDI — nomzod kiritgan ma'lumot va tanlagan fayllar
+   yo'qolmasin (index.html da reload bor, chunki u yerda 25k qatorli imperativ
+   render bor; bu sahifa kichik va hammasi `data-i18n` bilan qoplangan). */
+function hraLangPick(lang) {
+  hraLangClose();
+  var L = hraLangNorm(lang);
+  if (L === _hraLang) { return; }
+  _hraLang = L;
+  try { localStorage.setItem(HRA_LANG_LS, L); }
+  catch (e) { console.error('[hr-apply] til saqlanmadi:', e); }
+  hraClearAllErrs();
+  hraI18nRefresh();
+}
+
+/* Tilni ANIQLASH — skript yuklanganda (DOM'ga tegmaydi). Qo'llash `hraInit()` da. */
+function hraI18nInit() {
+  var got = hraLangDetect();
+  _hraLang = got.lang;
+  /* ?lang= bilan kelgan tanlov eslab qolinadi — keyingi ochilishda ham o'sha til */
+  if (got.fromUrl) {
+    try { localStorage.setItem(HRA_LANG_LS, _hraLang); }
+    catch (e) { /* private rejim — muhim emas */ }
+  }
+  try { document.documentElement.lang = _hraLang; } catch (e2) { /* muhim emas */ }
+}
+hraI18nInit();
+
+/* ── Lug'at (ru / en). uz matni KODDA qoladi — `tr()` ning 2-argumenti. ───── */
+var HRA_I18N = {
+  ru: {
+    'hra.doc_title': 'Приём на работу — заполнение данных · TaskFix',
+    'hra.lang_pick': 'Выбор языка',
+    'hra.loading': 'Проверяем ссылку…',
+    'hra.retry': 'Повторить попытку',
+    'hra.blocked_help': 'Нужна помощь — свяжитесь с сотрудником отдела кадров, который отправил вам ссылку.',
+    'hra.eyebrow': 'Приём на работу',
+    'hra.title': 'Заполните свои данные',
+    'hra.lead': 'Эта ссылка предназначена только для вас и действует один раз. Заполнение займёт около 5 минут — держите под рукой свой паспорт и паспорт родителя.',
+    'hra.s1': 'Личные',
+    'hra.s2': 'Паспорт',
+    'hra.s3': 'Родители',
+    'hra.s4': 'Документы',
+    'hra.s5': 'Отправка',
+    'hra.s1_title': 'Личные данные',
+    'hra.s1_sub': 'Укажите имя так, как в паспорте.',
+    'hra.f_fio': 'Ф.И.О.',
+    'hra.f_birth': 'Дата рождения',
+    'hra.f_gender': 'Пол',
+    'hra.optional': 'необязательно',
+    'hra.g_none': 'Не выбрано',
+    'hra.g_m': 'Мужской',
+    'hra.g_f': 'Женский',
+    'hra.f_phone': 'Ваш номер телефона',
+    'hra.f_email': 'Электронная почта',
+    'hra.h_email': 'На этот адрес будут приходить письма по приёму на работу.',
+    'hra.f_addr': 'Адрес проживания',
+    'hra.s2_title': 'Паспорт и ПИНФЛ',
+    'hra.s2_sub': 'Перепишите номера со второй страницы паспорта.',
+    'hra.f_pinfl': 'ПИНФЛ (JSHSHIR)',
+    'hra.h_pinfl': 'Это 14-значный номер, указанный в паспорте как «PINFL».',
+    'hra.f_pser': 'Серия и номер паспорта',
+    'hra.h_pser': '2 буквы и 7 цифр, например AA1234567.',
+    'hra.f_pby': 'Кем выдан',
+    'hra.f_pat': 'Дата выдачи',
+    'hra.f_pexp': 'Срок действия',
+    'hra.s3_title': 'Данные отца или матери',
+    'hra.s3_sub': 'Один близкий родственник для связи в экстренном случае.',
+    'hra.f_pname': 'Ф.И.О. отца / матери',
+    'hra.f_pphone': 'Телефон отца / матери',
+    'hra.s4_title': 'Документы',
+    'hra.s4_sub': '5 документов обязательны, договор — по желанию. Можно сфотографировать на телефон — главное, чтобы текст читался.',
+    'hra.g_photo': 'Личное фото',
+    'hra.lim_img': 'JPG · PNG · HEIC, до 10 МБ',
+    'hra.u_photo': 'Фото сотрудника',
+    'hra.u_photo_s': 'Снимок, где чётко видно лицо (3x4 необязательно)',
+    'hra.u_pick': 'Выбрать файл',
+    'hra.g_pass': 'Копия вашего паспорта',
+    'hra.u_pf': 'Лицевая сторона',
+    'hra.u_pf_s': 'Страница с фотографией и данными',
+    'hra.u_pb': 'Обратная сторона',
+    'hra.u_pb_s': 'Страница с адресом прописки',
+    'hra.g_ppass': 'Паспорт отца / матери',
+    'hra.u_ppf': 'Лицевая сторона',
+    'hra.u_ppf_s': 'Паспорт вашего отца или матери',
+    'hra.u_ppb': 'Обратная сторона',
+    'hra.u_ppb_s': 'Страница с адресом',
+    'hra.g_contract': 'Договор',
+    'hra.lim_doc': 'PDF · JPG · PNG, до 10 МБ',
+    'hra.u_contract': 'Подписанный договор',
+    'hra.u_contract_s': 'Необязательно — загрузите, если он у вас есть; иначе его загрузит HR',
+    'hra.s5_title': 'Проверьте данные',
+    'hra.s5_sub': 'После отправки ссылка закроется и изменить данные будет нельзя.',
+    'hra.consent': 'Я согласен(-на), что передаваемые мною данные — Ф.И.О., дата рождения, ПИНФЛ, паспортные данные, адрес, номера телефонов и копии документов — будут использованы <b>только для процесса приёма на работу</b>. Они хранятся конфиденциально и не передаются никому, кроме ответственных сотрудников компании, и третьим лицам.',
+    'hra.consent_note': 'Чтобы отозвать согласие или запросить удаление своих данных, свяжитесь с сотрудником отдела кадров.',
+    'hra.safe': '<b>Безопасная передача.</b> Ваши документы отправляются по зашифрованному соединению и хранятся в закрытом хранилище. Ссылка действует один раз — после отправки она больше не откроется.',
+    'hra.back': 'Назад',
+    'hra.next': 'Продолжить',
+    'hra.submit': 'Отправить',
+    'hra.done_title': 'Ваши данные отправлены',
+    'hra.done_sub': 'Спасибо! Ваши документы получены отделом кадров. Ссылка закрыта — открывать её повторно не нужно.',
+    'hra.done_next': 'Что дальше',
+    'hra.done_1': 'Сотрудник отдела кадров проверит ваши данные и документы.',
+    'hra.done_2': 'При необходимости с вами свяжутся по указанному телефону или почте.',
+    'hra.done_3': 'После подтверждения будет создана ваша рабочая учётная запись, а приглашение придёт на почту.',
+    'hra.done_close': 'Эту страницу можно закрыть.',
+    'hra.foot_safe': 'Данные передаются по зашифрованному соединению',
+    'hra.foot_brand': 'TaskFix — система управления командой и задачами',
+
+    'hra.step_title_1': 'Личные данные',
+    'hra.step_title_2': 'Паспорт и ПИНФЛ',
+    'hra.step_title_3': 'Данные родителей',
+    'hra.step_title_4': 'Документы',
+    'hra.step_title_5': 'Проверка и отправка',
+
+    'hra.err_required': 'Это поле обязательно для заполнения',
+    'hra.err_name': 'Укажите имя и фамилию полностью (минимум 2 слова)',
+    'hra.err_birth': 'Укажите корректную дату рождения',
+    'hra.err_birth_young': 'Возраст должен быть больше 16 лет',
+    'hra.err_phone': 'Номер телефона неполный: +998 90 123 45 67',
+    'hra.err_email': 'Некорректный адрес почты, например: ism@example.com',
+    'hra.err_addr': 'Укажите адрес подробнее (область, район, улица)',
+    'hra.err_pinfl': 'ПИНФЛ состоит из 14 цифр',
+    'hra.err_passport': 'Формат: 2 буквы и 7 цифр, например AA1234567',
+    'hra.err_file_req': 'Этот документ обязателен для загрузки',
+    'hra.err_file_big': 'Файл слишком большой ({0}). Ограничение — {1} МБ',
+    'hra.err_file_type': 'Неподходящий формат. Разрешено: {0}',
+    'hra.err_consent': 'Чтобы отправить, отметьте согласие',
+
+    'hra.file_ok': 'Готово',
+    'hra.file_replace': 'Заменить',
+    'hra.file_remove': 'Удалить',
+    'hra.not_filled': 'Не заполнено',
+    'hra.not_picked': 'Не выбрано',
+    'hra.not_picked_opt': 'Не выбрано — необязательно',
+    'hra.gender_m': 'Мужской',
+    'hra.gender_f': 'Женский',
+
+    'hra.recap_personal': 'Личные данные',
+    'hra.recap_passport': 'Паспорт и ПИНФЛ',
+    'hra.recap_parent': 'Родители',
+    'hra.recap_files': 'Документы',
+    'hra.recap_edit': 'Изменить',
+
+    'hra.r_fio': 'Ф.И.О.',
+    'hra.r_birth': 'Дата рождения',
+    'hra.r_gender': 'Пол',
+    'hra.r_phone': 'Телефон',
+    'hra.r_email': 'Эл. почта',
+    'hra.r_addr': 'Адрес',
+    'hra.r_pinfl': 'ПИНФЛ',
+    'hra.r_passport': 'Паспорт',
+    'hra.r_pby': 'Кем выдан',
+    'hra.r_pat': 'Дата выдачи',
+    'hra.r_pexp': 'Срок действия',
+    'hra.r_parent_name': 'Ф.И.О. отца / матери',
+    'hra.r_parent_phone': 'Телефон отца / матери',
+
+    'hra.lbl_photo': 'Фото сотрудника',
+    'hra.lbl_passport_front': 'Паспорт — лицевая сторона',
+    'hra.lbl_passport_back': 'Паспорт — обратная сторона',
+    'hra.lbl_parent_passport_front': 'Паспорт родителя — лицевая сторона',
+    'hra.lbl_parent_passport_back': 'Паспорт родителя — обратная сторона',
+    'hra.lbl_contract': 'Договор',
+
+    'hra.blocked_used_title': 'Эта ссылка уже заполнена',
+    'hra.blocked_used_text': 'Данные были отправлены один раз, и ссылка закрыта. Если это были не вы или нужно изменить данные — сообщите сотруднику отдела кадров.',
+    'hra.blocked_expired_title': 'Срок действия ссылки истёк',
+    'hra.blocked_expired_text': 'В целях безопасности ссылка выдаётся на ограниченный срок. Попросите у сотрудника отдела кадров новую ссылку — ранее введённые данные сохраняются.',
+    'hra.blocked_invalid_title': 'Ссылка неверна',
+    'hra.blocked_invalid_text': 'Возможно, адрес скопирован не полностью или с ошибкой. Откройте ссылку из сообщения заново и целиком.',
+    'hra.blocked_offline_title': 'Не удалось подключиться',
+    'hra.blocked_offline_text': 'Нет соединения с интернетом или сервер не отвечает. Ваша ссылка действительна — проверьте подключение и попробуйте снова.',
+
+    'hra.up_progress': 'Загрузка… {0}/{1}',
+    'hra.up_sending': 'Отправка…',
+    'hra.err_net': 'Соединение с интернетом прервано. Проверьте подключение и нажмите «Отправить» ещё раз.',
+    'hra.err_up_file': '«{0}» не загружен: {1}',
+    'hra.err_up_rls': 'возможно, ссылка закрыта или её срок истёк — попросите у сотрудника отдела кадров новую ссылку',
+    'hra.err_up_big': 'файл больше серверного ограничения, загрузите копию меньшего размера',
+    'hra.err_up_bucket': 'хранилище документов не настроено — сообщите сотруднику отдела кадров',
+    'hra.err_up_dup': 'файл с таким именем уже загружен, обновите страницу и попробуйте снова',
+    'hra.err_up_net': 'связь прервана',
+    'hra.err_up_other': 'непредвиденная ошибка',
+    'hra.err_submit': 'Не отправлено. Попробуйте ещё раз.',
+    'hra.err_lib': 'Страница загрузилась не полностью. Проверьте интернет и обновите страницу.'
+  },
+
+  en: {
+    'hra.doc_title': 'Onboarding — fill in your details · TaskFix',
+    'hra.lang_pick': 'Choose language',
+    'hra.loading': 'Checking the link…',
+    'hra.retry': 'Try again',
+    'hra.blocked_help': 'Need help? Contact the HR officer who sent you the link.',
+    'hra.eyebrow': 'Onboarding',
+    'hra.title': 'Fill in your details',
+    'hra.lead': 'This link is meant for you only and works once. It takes about 5 minutes — keep your passport and your parent’s passport at hand.',
+    'hra.s1': 'Personal',
+    'hra.s2': 'Passport',
+    'hra.s3': 'Parent',
+    'hra.s4': 'Documents',
+    'hra.s5': 'Submit',
+    'hra.s1_title': 'Personal details',
+    'hra.s1_sub': 'Write your name exactly as it appears in your passport.',
+    'hra.f_fio': 'Full name',
+    'hra.f_birth': 'Date of birth',
+    'hra.f_gender': 'Gender',
+    'hra.optional': 'optional',
+    'hra.g_none': 'Not selected',
+    'hra.g_m': 'Male',
+    'hra.g_f': 'Female',
+    'hra.f_phone': 'Your phone number',
+    'hra.f_email': 'Email',
+    'hra.h_email': 'Messages about your hiring will be sent to this address.',
+    'hra.f_addr': 'Home address',
+    'hra.s2_title': 'Passport and PINFL',
+    'hra.s2_sub': 'Copy the numbers from the second page of your passport.',
+    'hra.f_pinfl': 'PINFL (personal ID number)',
+    'hra.h_pinfl': 'The 14-digit number printed in your passport as “PINFL”.',
+    'hra.f_pser': 'Passport series and number',
+    'hra.h_pser': 'Two letters and seven digits, for example AA1234567.',
+    'hra.f_pby': 'Issued by',
+    'hra.f_pat': 'Date of issue',
+    'hra.f_pexp': 'Valid until',
+    'hra.s3_title': 'Father’s or mother’s details',
+    'hra.s3_sub': 'One close relative we can contact in an emergency.',
+    'hra.f_pname': 'Parent’s full name',
+    'hra.f_pphone': 'Parent’s phone number',
+    'hra.s4_title': 'Documents',
+    'hra.s4_sub': 'Five documents are required; the contract is optional. A phone photo is fine — just make sure the text is legible.',
+    'hra.g_photo': 'Personal photo',
+    'hra.lim_img': 'JPG · PNG · HEIC, up to 10 MB',
+    'hra.u_photo': 'Employee photo',
+    'hra.u_photo_s': 'A photo where your face is clearly visible (3x4 not required)',
+    'hra.u_pick': 'Choose file',
+    'hra.g_pass': 'Copy of your passport',
+    'hra.u_pf': 'Front side',
+    'hra.u_pf_s': 'The page with your photo and details',
+    'hra.u_pb': 'Back side',
+    'hra.u_pb_s': 'The page with your registered address',
+    'hra.g_ppass': 'Parent’s passport',
+    'hra.u_ppf': 'Front side',
+    'hra.u_ppf_s': 'Your father’s or mother’s passport',
+    'hra.u_ppb': 'Back side',
+    'hra.u_ppb_s': 'The page with the address',
+    'hra.g_contract': 'Contract',
+    'hra.lim_doc': 'PDF · JPG · PNG, up to 10 MB',
+    'hra.u_contract': 'Signed contract',
+    'hra.u_contract_s': 'Optional — upload it if you have it, otherwise HR will upload it',
+    'hra.s5_title': 'Review your details',
+    'hra.s5_sub': 'Once you submit, the link closes and the details can no longer be changed.',
+    'hra.consent': 'I consent to the data I submit — full name, date of birth, PINFL, passport details, address, phone numbers and copies of documents — being used <b>solely for the hiring process</b>. It is kept confidential and is not disclosed to anyone other than the responsible staff of the company, nor to any third party.',
+    'hra.consent_note': 'To withdraw your consent or request deletion of your data, contact the HR officer.',
+    'hra.safe': '<b>Secure transfer.</b> Your documents are sent over an encrypted connection and stored in a private vault. The link works once — after you submit, it will not open again.',
+    'hra.back': 'Back',
+    'hra.next': 'Continue',
+    'hra.submit': 'Submit',
+    'hra.done_title': 'Your details have been submitted',
+    'hra.done_sub': 'Thank you! Your documents have reached the HR team. The link is now closed — there is no need to open it again.',
+    'hra.done_next': 'What happens next',
+    'hra.done_1': 'An HR officer will review your details and documents.',
+    'hra.done_2': 'If needed, they will contact you via the phone number or email you provided.',
+    'hra.done_3': 'Once approved, your work account is created and the invitation is sent to your email.',
+    'hra.done_close': 'You can close this page.',
+    'hra.foot_safe': 'Data is transmitted over an encrypted connection',
+    'hra.foot_brand': 'TaskFix — team and task management system',
+
+    'hra.step_title_1': 'Personal details',
+    'hra.step_title_2': 'Passport and PINFL',
+    'hra.step_title_3': 'Parent’s details',
+    'hra.step_title_4': 'Documents',
+    'hra.step_title_5': 'Review and submit',
+
+    'hra.err_required': 'This field is required',
+    'hra.err_name': 'Enter your full name (at least 2 words)',
+    'hra.err_birth': 'Enter a valid date of birth',
+    'hra.err_birth_young': 'You must be older than 16',
+    'hra.err_phone': 'The phone number is incomplete: +998 90 123 45 67',
+    'hra.err_email': 'Invalid email address, for example: name@example.com',
+    'hra.err_addr': 'Write the address in more detail (region, district, street)',
+    'hra.err_pinfl': 'PINFL consists of 14 digits',
+    'hra.err_passport': 'Format: 2 letters and 7 digits, for example AA1234567',
+    'hra.err_file_req': 'This document is required',
+    'hra.err_file_big': 'The file is too large ({0}). The limit is {1} MB',
+    'hra.err_file_type': 'Unsupported format. Allowed: {0}',
+    'hra.err_consent': 'Tick the consent box to submit',
+
+    'hra.file_ok': 'Ready',
+    'hra.file_replace': 'Replace',
+    'hra.file_remove': 'Remove',
+    'hra.not_filled': 'Not filled in',
+    'hra.not_picked': 'Not selected',
+    'hra.not_picked_opt': 'Not selected — optional',
+    'hra.gender_m': 'Male',
+    'hra.gender_f': 'Female',
+
+    'hra.recap_personal': 'Personal details',
+    'hra.recap_passport': 'Passport and PINFL',
+    'hra.recap_parent': 'Parent',
+    'hra.recap_files': 'Documents',
+    'hra.recap_edit': 'Edit',
+
+    'hra.r_fio': 'Full name',
+    'hra.r_birth': 'Date of birth',
+    'hra.r_gender': 'Gender',
+    'hra.r_phone': 'Phone',
+    'hra.r_email': 'Email',
+    'hra.r_addr': 'Address',
+    'hra.r_pinfl': 'PINFL',
+    'hra.r_passport': 'Passport',
+    'hra.r_pby': 'Issued by',
+    'hra.r_pat': 'Date of issue',
+    'hra.r_pexp': 'Valid until',
+    'hra.r_parent_name': 'Parent’s full name',
+    'hra.r_parent_phone': 'Parent’s phone number',
+
+    'hra.lbl_photo': 'Employee photo',
+    'hra.lbl_passport_front': 'Passport — front side',
+    'hra.lbl_passport_back': 'Passport — back side',
+    'hra.lbl_parent_passport_front': 'Parent’s passport — front side',
+    'hra.lbl_parent_passport_back': 'Parent’s passport — back side',
+    'hra.lbl_contract': 'Contract',
+
+    'hra.blocked_used_title': 'This link has already been filled in',
+    'hra.blocked_used_text': 'The details were submitted once and the link is now closed. If this was not you, or something needs to be changed, let the HR officer know.',
+    'hra.blocked_expired_title': 'The link has expired',
+    'hra.blocked_expired_text': 'For security reasons the link is valid for a limited time. Ask the HR officer for a new link — the details you entered earlier are kept.',
+    'hra.blocked_invalid_title': 'The link is not valid',
+    'hra.blocked_invalid_text': 'The address may have been copied incompletely or with a typo. Open the full link from the message again.',
+    'hra.blocked_offline_title': 'Could not connect',
+    'hra.blocked_offline_text': 'There is no internet connection or the server is not responding. Your link is valid — check the connection and try again.',
+
+    'hra.up_progress': 'Uploading… {0}/{1}',
+    'hra.up_sending': 'Submitting…',
+    'hra.err_net': 'The internet connection was lost. Check your connection and press “Submit” again.',
+    'hra.err_up_file': '“{0}” was not uploaded: {1}',
+    'hra.err_up_rls': 'the link may be closed or expired — ask the HR officer for a new link',
+    'hra.err_up_big': 'the file exceeds the server limit, upload a smaller copy',
+    'hra.err_up_bucket': 'the document storage is not configured — inform the HR officer',
+    'hra.err_up_dup': 'a file with this name has already been uploaded, refresh the page and try again',
+    'hra.err_up_net': 'the connection was lost',
+    'hra.err_up_other': 'unexpected error',
+    'hra.err_submit': 'Not submitted. Please try again.',
+    'hra.err_lib': 'The page did not load fully. Check your internet connection and refresh the page.'
+  }
+};
+
+/* ── Holat ──────────────────────────────────────────────────────────────── */
+var hrApplyFiles = {};      /* {key: File} — coder shundan yuklaydi */
+var _hraUrls     = {};      /* {key: objectURL} — revoke uchun */
+var _hraStep     = 1;
+var _hraMaxStep  = 1;       /* eng uzoq borilgan qadam (progress'da bosish uchun) */
+var _hraState    = 'loading';
+var _hraToken    = '';
+var _hraBusy     = false;
+
+/* ───────────────────────────── Yordamchilar ────────────────────────────── */
+function hraEl(id) { return document.getElementById(id); }
+
+function hraEsc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function hraFmt(tpl, a, b) {
+  return String(tpl).replace('{0}', a == null ? '' : a).replace('{1}', b == null ? '' : b);
+}
+
+function hraFmtSize(bytes) {
+  var n = Number(bytes) || 0;
+  if (n < 1024) { return n + ' B'; }
+  if (n < 1024 * 1024) { return Math.round(n / 1024) + ' KB'; }
+  return (Math.round(n / 1024 / 102.4) / 10).toFixed(1).replace('.', ',') + ' MB';
+}
+
+function hraExt(name) {
+  var s = String(name || '');
+  var i = s.lastIndexOf('.');
+  return i < 0 ? '' : s.slice(i + 1).toLowerCase();
+}
+
+/* ═════════════════════ HOLAT ALMASHTIRISH (coder ilmog'i) ════════════════ */
+/* hrApplySetState('loading'|'invalid'|'used'|'expired'|'form'|'done') */
+function hrApplySetState(state) {
+  /* 'offline' — 2-bosqichda qo'shildi: tarmoq/server xatosi (havola yaroqsiz EMAS) */
+  var known = { loading: 1, invalid: 1, used: 1, expired: 1, form: 1, done: 1, offline: 1 };
+  if (!known[state]) { console.error('[hr-apply] noma\'lum holat:', state); return; }
+  _hraState = state;
+
+  var map = { loading: 'hraStateLoading', form: 'hraStateForm', done: 'hraStateDone' };
+  var target = map[state] || 'hraStateBlocked';
+  var all = ['hraStateLoading', 'hraStateBlocked', 'hraStateForm', 'hraStateDone'];
+  var i, el;
+  for (i = 0; i < all.length; i++) {
+    el = hraEl(all[i]);
+    if (el) { el.classList.toggle('on', all[i] === target); }
+  }
+  var load = hraEl('hraStateLoading');
+  if (load) { load.setAttribute('aria-busy', state === 'loading' ? 'true' : 'false'); }
+
+  if (target === 'hraStateBlocked') { hraPaintBlocked(state); }
+  if (state === 'form') { hraStepUi(); }
+  if (state === 'done') { hraReleaseUrls(); }
+
+  try { window.scrollTo(0, 0); } catch (e) { /* eski brauzer — muhim emas */ }
+}
+
+function hraPaintBlocked(kind) {
+  /* ⚠️ `t` — mavjud lokal o'zgaruvchi; i18n funksiyasi shu sababli `tr()` */
+  var k = HRA_TXT.blocked[kind] ? kind : 'invalid';
+  var t = HRA_TXT.blocked[k];
+  var tt = hraEl('hraBlockedTitle');
+  var tx = hraEl('hraBlockedText');
+  if (tt) { tt.textContent = tr('hra.blocked_' + k + '_title', t.title); }
+  if (tx) { tx.textContent = tr('hra.blocked_' + k + '_text', t.text); }
+  /* «Qayta urinish» FAQAT tarmoq xatosida — yaroqsiz/ishlatilgan havolada
+     qayta urinish hech narsa bermaydi, faqat umid berardi. */
+  var rw = hraEl('hraRetryWrap');
+  if (rw) { rw.hidden = (kind !== 'offline'); }
+
+  var box = hraEl('hraBlockedIc');
+  if (!box) { return; }
+  var ics = box.querySelectorAll('[data-hra-ic]');
+  var i;
+  for (i = 0; i < ics.length; i++) {
+    ics[i].hidden = (ics[i].getAttribute('data-hra-ic') !== kind);
+  }
+  box.classList.toggle('ok', kind === 'used');
+  box.classList.toggle('warn', kind !== 'used');
+}
+
+/* ═══════════════════════════ BOSQICHLAR ═════════════════════════════════ */
+function hraStepUi() {
+  var i, pane, st, btn;
+  for (i = 1; i <= HRA_STEPS_N; i++) {
+    pane = hraEl('hraPane' + i);
+    if (pane) { pane.hidden = (i !== _hraStep); }
+  }
+
+  var sts = document.querySelectorAll('#hraSteps .hra-st');
+  for (i = 0; i < sts.length; i++) {
+    st = sts[i];
+    var n = Number(st.getAttribute('data-step'));
+    st.classList.toggle('on', n === _hraStep);
+    st.classList.toggle('ok', n < _hraStep);
+    btn = st.querySelector('.hra-st-btn');
+    if (btn) {
+      btn.disabled = (n > _hraMaxStep);
+      btn.setAttribute('aria-current', n === _hraStep ? 'step' : 'false');
+    }
+  }
+
+  var pt = hraEl('hraProgTitle');
+  if (pt) { pt.textContent = tr('hra.step_title_' + _hraStep, HRA_TXT.stepTitles[_hraStep - 1] || ''); }
+  var pn = hraEl('hraProgN');
+  if (pn) { pn.textContent = String(_hraStep); }
+  var pb = hraEl('hraProgBar');
+  if (pb) { pb.style.width = Math.round(_hraStep / HRA_STEPS_N * 100) + '%'; }
+
+  var back = hraEl('hraBackBtn');
+  if (back) { back.hidden = (_hraStep === 1); }
+  var next = hraEl('hraNextBtn');
+  var subm = hraEl('hraSubmitBtn');
+  var last = (_hraStep === HRA_STEPS_N);
+  if (next) { next.hidden = last; }
+  if (subm) { subm.hidden = !last; }
+  if (last) { hraBuildRecap(); hraConsentChange(); }
+}
+
+function hraNext() {
+  if (!hraValidateStep(_hraStep)) { return; }
+  if (_hraStep >= HRA_STEPS_N) { return; }
+  _hraStep += 1;
+  if (_hraStep > _hraMaxStep) { _hraMaxStep = _hraStep; }
+  hraStepUi();
+  hraScrollTop();
+}
+
+function hraBack() {
+  if (_hraStep <= 1) { return; }
+  _hraStep -= 1;
+  hraStepUi();
+  hraScrollTop();
+}
+
+/* Progress'dagi raqamni bosish — faqat ALLAQACHON ochilgan qadamga */
+function hraGoStep(n) {
+  n = Number(n) || 1;
+  if (n === _hraStep) { return; }
+  if (n > _hraMaxStep) { return; }
+  /* Oldinga siljishda joriy qadam validatsiyadan o'tsin */
+  if (n > _hraStep && !hraValidateStep(_hraStep)) { return; }
+  _hraStep = n;
+  hraStepUi();
+  hraScrollTop();
+}
+
+function hraScrollTop() {
+  try { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  catch (e) { window.scrollTo(0, 0); }
+}
+
+/* ═══════════════════════════ VALIDATSIYA ════════════════════════════════ */
+function hraShowErr(el, msg) {
+  if (!el) { return; }
+  var box = hraEl(el.id + 'Err');
+  if (box) { box.textContent = msg; box.classList.add('show'); }
+  if (el.type === 'file') {
+    var fb = el.closest('.hra-fbox');
+    if (fb) { fb.classList.add('bad'); }
+  } else {
+    el.setAttribute('aria-invalid', 'true');
+  }
+}
+
+function hraClearErr(el) {
+  if (!el) { return; }
+  var box = hraEl(el.id + 'Err');
+  if (box) { box.textContent = ''; box.classList.remove('show'); }
+  if (el.type === 'file') {
+    var fb = el.closest('.hra-fbox');
+    if (fb) { fb.classList.remove('bad'); }
+  } else {
+    el.removeAttribute('aria-invalid');
+  }
+}
+
+/* Format tekshiruvlari → xato matni yoki '' */
+function hraCheck(kind, val) {
+  var v = String(val || '').trim();
+  if (kind === 'name') {
+    return v.split(/\s+/).length >= 2 && v.length >= 5 ? '' : tr('hra.err_name', HRA_TXT.errName);
+  }
+  if (kind === 'birth') {
+    var d = new Date(v + 'T00:00:00');
+    if (!v || isNaN(d.getTime())) { return tr('hra.err_birth', HRA_TXT.errBirth); }
+    var now = new Date();
+    var age = now.getFullYear() - d.getFullYear();
+    var m = now.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && now.getDate() < d.getDate())) { age -= 1; }
+    if (age < 16) { return tr('hra.err_birth_young', HRA_TXT.errBirthYoung); }
+    if (age > 100) { return tr('hra.err_birth', HRA_TXT.errBirth); }
+    return '';
+  }
+  if (kind === 'phone')    { return hraPhoneDigits(v).length === 12 ? '' : tr('hra.err_phone', HRA_TXT.errPhone); }
+  if (kind === 'email')    { return /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(v) ? '' : tr('hra.err_email', HRA_TXT.errEmail); }
+  if (kind === 'addr')     { return v.length >= 8 ? '' : tr('hra.err_addr', HRA_TXT.errAddr); }
+  if (kind === 'pinfl')    { return /^[0-9]{14}$/.test(v) ? '' : tr('hra.err_pinfl', HRA_TXT.errPinfl); }
+  if (kind === 'passport') { return /^[A-Z]{2}[0-9]{7}$/.test(v.toUpperCase()) ? '' : tr('hra.err_passport', HRA_TXT.errPassport); }
+  return '';
+}
+
+/* Bitta qadam. focusFirst=false bo'lsa jimgina tekshiradi (5-qadam xulosasi) */
+function hraValidateStep(step, focusFirst) {
+  var pane = hraEl('hraPane' + step);
+  if (!pane) { return true; }
+  if (focusFirst !== false) { focusFirst = true; }
+
+  var bad = null, badCount = 0;
+
+  /* 1) Matn / sana maydonlari */
+  var fields = pane.querySelectorAll('[data-req]');
+  var i, el, msg;
+  for (i = 0; i < fields.length; i++) {
+    el = fields[i];
+    if (el.type === 'file') { continue; }
+    hraClearErr(el);
+    msg = '';
+    if (!String(el.value || '').trim()) {
+      msg = tr('hra.err_required', HRA_TXT.errRequired);
+    } else {
+      msg = hraCheck(el.getAttribute('data-check') || '', el.value);
+    }
+    if (msg) {
+      hraShowErr(el, msg);
+      badCount += 1;
+      if (!bad) { bad = el; }
+    }
+  }
+
+  /* 2) Fayl maydonlari */
+  var files = pane.querySelectorAll('[data-freq]');
+  for (i = 0; i < files.length; i++) {
+    el = files[i];
+    var key = hraKeyOf(el);
+    if (!hrApplyFiles[key]) {
+      hraShowErr(el, tr('hra.err_file_req', HRA_TXT.errFileReq));
+      badCount += 1;
+      if (!bad) { bad = el; }
+    }
+  }
+
+  /* 3) Rozilik (faqat oxirgi qadam) */
+  if (step === HRA_STEPS_N) {
+    var cb = hraEl('hraConsent');
+    var cbox = hraEl('hraConsentBox');
+    var cerr = hraEl('hraConsentErr');
+    if (cb && !cb.checked) {
+      if (cerr) { cerr.textContent = tr('hra.err_consent', HRA_TXT.errConsent); cerr.classList.add('show'); }
+      if (cbox) { cbox.classList.add('bad'); }
+      badCount += 1;
+      if (!bad) { bad = cb; }
+    } else {
+      if (cerr) { cerr.textContent = ''; cerr.classList.remove('show'); }
+      if (cbox) { cbox.classList.remove('bad'); }
+    }
+  }
+
+  if (bad && focusFirst) { hraFocusBad(bad); }
+  return badCount === 0;
+}
+
+function hraFocusBad(el) {
+  var target = el;
+  if (el.type === 'file') {
+    var fb = el.closest('.hra-fbox');
+    if (fb) {
+      try { fb.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { fb.scrollIntoView(); }
+    }
+    try { el.focus({ preventScroll: true }); } catch (e2) { /* file input ko'rinmas — muhim emas */ }
+    return;
+  }
+  try { target.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e3) { target.scrollIntoView(); }
+  try { target.focus({ preventScroll: true }); } catch (e4) { target.focus(); }
+}
+
+/* Butun forma. Coder shuni submit'dan oldin chaqiradi. */
+function hrApplyValidate() {
+  var i, firstBad = 0;
+  for (i = 1; i <= HRA_STEPS_N; i++) {
+    if (!hraValidateStep(i, false) && !firstBad) { firstBad = i; }
+  }
+  if (firstBad) {
+    if (firstBad !== _hraStep) {
+      _hraStep = firstBad;
+      if (_hraStep > _hraMaxStep) { _hraMaxStep = _hraStep; }
+      hraStepUi();
+    }
+    hraValidateStep(firstBad, true);
+    return false;
+  }
+  return true;
+}
+
+/* ═══════════════════════ MASKALAR / KIRITISH ════════════════════════════ */
+function hraPhoneDigits(v) {
+  var d = String(v || '').replace(/\D/g, '');
+  if (d.indexOf('998') === 0) { return d.slice(0, 12); }
+  return d ? ('998' + d).slice(0, 12) : '';
+}
+
+function hraPhoneFmt(v) {
+  var d = String(v || '').replace(/\D/g, '');
+  if (d.indexOf('998') === 0) { d = d.slice(3); }
+  d = d.slice(0, 9);
+  var out = '+998';
+  if (d.length > 0) { out += ' ' + d.slice(0, 2); }
+  if (d.length > 2) { out += ' ' + d.slice(2, 5); }
+  if (d.length > 5) { out += ' ' + d.slice(5, 7); }
+  if (d.length > 7) { out += ' ' + d.slice(7, 9); }
+  return out;
+}
+
+function hraPhoneInput(el) {
+  var raw = String(el.value || '').replace(/\D/g, '');
+  /* "+998" dan boshqa hech narsa qolmasa — maydonni butunlay bo'shatamiz,
+     aks holda foydalanuvchi o'chirib tashlay olmaydi. */
+  if (!raw || raw === '998' || raw === '99' || raw === '9') {
+    if (String(el.value || '').indexOf('+') === 0 && raw.length <= 3) { el.value = ''; hraClearErr(el); return; }
+  }
+  el.value = hraPhoneFmt(el.value);
+  hraClearErr(el);
+}
+
+function hraPhoneFocus(el) {
+  if (!String(el.value || '').trim()) { el.value = '+998 '; }
+}
+
+function hraDigitsInput(el, max) {
+  var v = String(el.value || '').replace(/\D/g, '');
+  el.value = v.slice(0, Number(max) || 20);
+  hraClearErr(el);
+}
+
+function hraPassportInput(el) {
+  var v = String(el.value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  var L = v.replace(/[^A-Z]/g, '').slice(0, 2);
+  var D = v.replace(/[^0-9]/g, '').slice(0, 7);
+  el.value = L + D;
+  hraClearErr(el);
+}
+
+function hraConsentChange() {
+  var cb = hraEl('hraConsent');
+  var btn = hraEl('hraSubmitBtn');
+  var box = hraEl('hraConsentBox');
+  var err = hraEl('hraConsentErr');
+  var ok = !!(cb && cb.checked);
+  if (btn) { btn.disabled = !ok || _hraBusy; }
+  if (ok) {
+    if (err) { err.textContent = ''; err.classList.remove('show'); }
+    if (box) { box.classList.remove('bad'); }
+  }
+}
+
+/* ═══════════════════════════ FAYLLAR ════════════════════════════════════ */
+function hraKeyOf(input) {
+  var box = input.closest('.hra-fbox');
+  return box ? (box.getAttribute('data-key') || input.id) : input.id;
+}
+
+function hraLimitOf(input) {
+  return (input.getAttribute('data-kind') === 'doc') ? HRA_MAX_DOC_MB : HRA_MAX_IMG_MB;
+}
+
+function hraTypesOf(input) {
+  return (input.getAttribute('data-kind') === 'doc') ? HRA_DOC_TYPES : HRA_IMG_TYPES;
+}
+
+function hraExtsOf(input) {
+  return (input.getAttribute('data-kind') === 'doc') ? HRA_DOC_EXT : HRA_IMG_EXT;
+}
+
+/* Fayl mos keladimi → xato matni yoki '' */
+function hraFileProblem(input, file) {
+  var limit = hraLimitOf(input);
+  var types = hraTypesOf(input);
+  var exts  = hraExtsOf(input);
+  var type  = String(file.type || '').toLowerCase();
+  var ext   = hraExt(file.name);
+  /* ⚠️ HEIC'da ba'zi brauzerlar file.type ni BO'SH qaytaradi — kengaytma bo'yicha ham tekshiramiz */
+  var okType = (type && types.indexOf(type) >= 0) || (ext && exts.indexOf(ext) >= 0);
+  if (!okType) {
+    return tr('hra.err_file_type', HRA_TXT.errFileType, exts.join(', ').toUpperCase());
+  }
+  if (file.size > limit * 1024 * 1024) {
+    return tr('hra.err_file_big', HRA_TXT.errFileBig, hraFmtSize(file.size), limit);
+  }
+  return '';
+}
+
+function hraFileChange(input) {
+  var f = input.files && input.files[0];
+  if (!f) { return; }
+  hraFileAccept(input, f);
+}
+
+function hraFileAccept(input, file) {
+  var key = hraKeyOf(input);
+  hraClearErr(input);
+  var problem = hraFileProblem(input, file);
+  if (problem) {
+    input.value = '';
+    hraShowErr(input, problem);
+    return;
+  }
+  hrApplyFiles[key] = file;
+  hraPaintPreview(input, file);
+}
+
+function hraPaintPreview(input, file) {
+  var box = input.closest('.hra-fbox');
+  if (!box) { return; }
+  var key = box.getAttribute('data-key');
+  var drop = box.querySelector('.hra-drop');
+  var prev = box.querySelector('.hra-prev');
+  if (!prev) { return; }
+
+  if (_hraUrls[key]) { URL.revokeObjectURL(_hraUrls[key]); delete _hraUrls[key]; }
+
+  var isImg = /^image\//.test(String(file.type || '')) && !/heic|heif/i.test(String(file.type || ''));
+  var thumb;
+  if (isImg) {
+    _hraUrls[key] = URL.createObjectURL(file);
+    thumb = '<span class="hra-prev-th"><img src="' + hraEsc(_hraUrls[key]) + '" alt="" onerror="hraThumbFail(this)"></span>';
+  } else {
+    thumb = '<span class="hra-prev-th">' + hraDocIcon() + '</span>';
+  }
+
+  var txtOk  = tr('hra.file_ok', HRA_TXT.fileOk);
+  var txtRep = tr('hra.file_replace', HRA_TXT.fileReplace);
+  var txtRem = tr('hra.file_remove', HRA_TXT.fileRemove);
+
+  prev.innerHTML =
+    thumb +
+    '<span class="hra-prev-meta">' +
+      '<span class="hra-prev-name">' + hraEsc(file.name) + '</span>' +
+      '<span class="hra-prev-sub">' +
+        '<span class="hra-prev-ok"><svg class="hi hi-12 hi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>' + hraEsc(txtOk) + '</span>' +
+        '<span aria-hidden="true">·</span>' +
+        '<span>' + hraEsc(hraFmtSize(file.size)) + '</span>' +
+      '</span>' +
+    '</span>' +
+    '<span class="hra-prev-acts">' +
+      '<button type="button" class="hra-iconbtn" title="' + hraEsc(txtRep) + '" aria-label="' + hraEsc(txtRep) + '" onclick="hraFilePick(\'' + hraEsc(input.id) + '\')">' +
+        '<svg class="hi hi-16" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>' +
+      '</button>' +
+      '<button type="button" class="hra-iconbtn danger" title="' + hraEsc(txtRem) + '" aria-label="' + hraEsc(txtRem) + '" onclick="hraFileRemove(\'' + hraEsc(input.id) + '\')">' +
+        '<svg class="hi hi-16" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>' +
+      '</button>' +
+    '</span>';
+
+  prev.hidden = false;
+  if (drop) { drop.hidden = true; }
+}
+
+/* Rasm ochilmadi (masalan HEIC) → hujjat ikonkasiga tushamiz */
+function hraThumbFail(img) {
+  var th = img.parentNode;
+  if (!th) { return; }
+  th.innerHTML = hraDocIcon();
+}
+
+function hraDocIcon() {
+  return '<svg class="hi hi-22" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 13h6"/><path d="M9 17h4"/></svg>';
+}
+
+function hraFilePick(inputId) {
+  var input = hraEl(inputId);
+  if (input) { input.click(); }
+}
+
+function hraFileRemove(inputId) {
+  var input = hraEl(inputId);
+  if (!input) { return; }
+  var box = input.closest('.hra-fbox');
+  var key = hraKeyOf(input);
+  if (_hraUrls[key]) { URL.revokeObjectURL(_hraUrls[key]); delete _hraUrls[key]; }
+  delete hrApplyFiles[key];
+  input.value = '';
+  hraClearErr(input);
+  if (box) {
+    var prev = box.querySelector('.hra-prev');
+    var drop = box.querySelector('.hra-drop');
+    if (prev) { prev.hidden = true; prev.innerHTML = ''; }
+    if (drop) { drop.hidden = false; }
+  }
+  try { input.focus({ preventScroll: true }); } catch (e) { /* ko'rinmas input — muhim emas */ }
+}
+
+function hraReleaseUrls() {
+  var k;
+  for (k in _hraUrls) {
+    if (Object.prototype.hasOwnProperty.call(_hraUrls, k)) { URL.revokeObjectURL(_hraUrls[k]); }
+  }
+  _hraUrls = {};
+}
+
+/* ── Drag & drop ────────────────────────────────────────────────────────── */
+function hraDragOver(ev, label) {
+  ev.preventDefault();
+  ev.stopPropagation();
+  var box = label.closest('.hra-fbox');
+  if (box) { box.classList.add('drag'); }
+}
+
+function hraDragLeave(ev, label) {
+  ev.preventDefault();
+  ev.stopPropagation();
+  /* ⚠️ `dragleave` ichki span'lardan ham KO'TARILADI — relatedTarget hamon
+     label ichida bo'lsa kursor chiqmagan, ramka o'chirilmaydi (miltillamasin). */
+  var to = ev.relatedTarget;
+  if (to && label.contains(to)) { return; }
+  var box = label.closest('.hra-fbox');
+  if (box) { box.classList.remove('drag'); }
+}
+
+function hraDrop(ev, inputId) {
+  ev.preventDefault();
+  ev.stopPropagation();
+  var input = hraEl(inputId);
+  if (!input) { return; }
+  var box = input.closest('.hra-fbox');
+  if (box) { box.classList.remove('drag'); }
+  var dt = ev.dataTransfer;
+  var f = dt && dt.files && dt.files[0];
+  if (!f) { return; }
+  hraFileAccept(input, f);
+}
+
+/* ══════════════════════ XULOSA (5-qadam) ════════════════════════════════ */
+function hraVal(id) {
+  var el = hraEl(id);
+  return el ? String(el.value || '').trim() : '';
+}
+
+function hraRow(label, value) {
+  var empty = !value;
+  return '<div class="hra-rrow">' +
+           '<dt>' + hraEsc(label) + '</dt>' +
+           '<dd class="' + (empty ? 'empty' : '') + '">' +
+             hraEsc(empty ? tr('hra.not_filled', HRA_TXT.notFilled) : value) +
+           '</dd>' +
+         '</div>';
+}
+
+/* `optional` — D10: shartnoma nomzod uchun majburiy emas, xulosada ham
+   "Tanlanmagan" o'rniga "Tanlanmagan — ixtiyoriy" deb ko'rsatiladi. */
+function hraFileRow(label, key, optional) {
+  var f = hrApplyFiles[key];
+  if (!f) {
+    var none = optional
+      ? tr('hra.not_picked_opt', HRA_TXT.notPickedOpt)
+      : tr('hra.not_picked', HRA_TXT.notPicked);
+    return '<div class="hra-rrow"><dt>' + hraEsc(label) + '</dt><dd class="empty">' + hraEsc(none) + '</dd></div>';
+  }
+  return '<div class="hra-rrow"><dt>' + hraEsc(label) + '</dt><dd>' +
+           '<span class="hra-rfile"><svg class="hi hi-14 hi-b" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>' +
+           hraEsc(f.name) + ' · ' + hraEsc(hraFmtSize(f.size)) + '</span></dd></div>';
+}
+
+/* ⚠️ Sarlavha <dl> DAN TASHQARIDA — <dl> ichida faqat dt/dd (yoki ularni
+   o'rovchi <div>) turishi mumkin, tugmali sarlavha u yerda haqiqiy emas. */
+function hraGroup(title, step, rows) {
+  return '<div class="hra-recap-g">' +
+           '<div class="hra-recap-h">' + hraEsc(title) +
+             '<button type="button" class="hra-edit" onclick="hraGoStep(' + step + ')">' + hraEsc(tr('hra.recap_edit', HRA_TXT.recapEdit)) + '</button>' +
+           '</div>' +
+           '<dl class="hra-rlist">' + rows + '</dl>' +
+         '</div>';
+}
+
+function hraBuildRecap() {
+  var wrap = hraEl('hraRecap');
+  if (!wrap) { return; }
+  var g = hraEl('hraGender');
+  var gv = g ? g.value : '';
+  var gender = gv === 'm' ? tr('hra.gender_m', HRA_TXT.genderM)
+             : (gv === 'f' ? tr('hra.gender_f', HRA_TXT.genderF) : '');
+
+  var html = '';
+  html += hraGroup(tr('hra.recap_personal', HRA_TXT.recapPersonal), 1,
+    hraRow(tr('hra.r_fio', 'F.I.O'), hraVal('hraFullName')) +
+    hraRow(tr('hra.r_birth', "Tug'ilgan sana"), hraVal('hraBirthDate')) +
+    hraRow(tr('hra.r_gender', 'Jinsi'), gender) +
+    hraRow(tr('hra.r_phone', 'Telefon'), hraVal('hraPhone')) +
+    hraRow(tr('hra.r_email', 'Email'), hraVal('hraEmail')) +
+    hraRow(tr('hra.r_addr', 'Manzil'), hraVal('hraAddress')));
+
+  html += hraGroup(tr('hra.recap_passport', HRA_TXT.recapPassport), 2,
+    hraRow(tr('hra.r_pinfl', 'JSHSHIR'), hraVal('hraPinfl')) +
+    hraRow(tr('hra.r_passport', 'Passport'), hraVal('hraPassportSeries')) +
+    hraRow(tr('hra.r_pby', 'Kim bergan'), hraVal('hraPassportIssuedBy')) +
+    hraRow(tr('hra.r_pat', 'Berilgan sana'), hraVal('hraPassportIssuedAt')) +
+    hraRow(tr('hra.r_pexp', 'Amal qilish muddati'), hraVal('hraPassportExpiresAt')));
+
+  /* 🔴 D10: "Kim tavsiya qildi" qatori OLIB TASHLANDI — maydonning o'zi yo'q */
+  html += hraGroup(tr('hra.recap_parent', HRA_TXT.recapParent), 3,
+    hraRow(tr('hra.r_parent_name', 'Ota / ona F.I.O'), hraVal('hraParentName')) +
+    hraRow(tr('hra.r_parent_phone', 'Ota / ona telefoni'), hraVal('hraParentPhone')));
+
+  html += hraGroup(tr('hra.recap_files', HRA_TXT.recapFiles), 4,
+    hraFileRow(hraUpLabel('photo'), 'photo') +
+    hraFileRow(hraUpLabel('passport_front'), 'passport_front') +
+    hraFileRow(hraUpLabel('passport_back'), 'passport_back') +
+    hraFileRow(hraUpLabel('parent_passport_front'), 'parent_passport_front') +
+    hraFileRow(hraUpLabel('parent_passport_back'), 'parent_passport_back') +
+    hraFileRow(hraUpLabel('contract'), 'contract', true));
+
+  wrap.innerHTML = html;
+}
+
+/* ══════════════════ MA'LUMOT YIG'ISH (coder ilmog'i) ════════════════════ */
+/* RPC payload'i. Telefon normallashtirilgan: +998XXXXXXXXX */
+function hrApplyCollect() {
+  var g = hraEl('hraGender');
+  var cb = hraEl('hraConsent');
+  var phone = hraPhoneDigits(hraVal('hraPhone'));
+  var pphone = hraPhoneDigits(hraVal('hraParentPhone'));
+  return {
+    full_name:            hraVal('hraFullName'),
+    birth_date:           hraVal('hraBirthDate') || null,
+    gender:               (g && g.value) ? g.value : null,
+    phone:                phone ? ('+' + phone) : '',
+    email:                hraVal('hraEmail'),
+    address:              hraVal('hraAddress'),
+    pinfl:                hraVal('hraPinfl'),
+    passport_series:      hraVal('hraPassportSeries').toUpperCase(),
+    passport_issued_by:   hraVal('hraPassportIssuedBy') || null,
+    passport_issued_at:   hraVal('hraPassportIssuedAt') || null,
+    passport_expires_at:  hraVal('hraPassportExpiresAt') || null,
+    parent_name:          hraVal('hraParentName'),
+    parent_phone:         pphone ? ('+' + pphone) : '',
+    /* 🔴 D10: `referral` YO'Q — nomzod "kim tavsiya qildi" ni to'ldirmaydi */
+    consent:              !!(cb && cb.checked),
+    consent_version:      HRA_CONSENT_VER
+  };
+}
+
+/* Tugma bandligi — coder yuklash paytida chaqiradi: hrApplyBusy(true/false) */
+function hrApplyBusy(on) {
+  _hraBusy = !!on;
+  var btn = hraEl('hraSubmitBtn');
+  var back = hraEl('hraBackBtn');
+  if (btn) {
+    btn.classList.toggle('busy', _hraBusy);
+    btn.disabled = _hraBusy;
+    btn.setAttribute('aria-busy', _hraBusy ? 'true' : 'false');
+  }
+  if (back) { back.disabled = _hraBusy; }
+  if (!_hraBusy) { hraConsentChange(); }
+}
+
+/* ══════════════════ SUPABASE (anon) — 2-BOSQICH ═════════════════════════ */
+var _hraSb    = null;   /* createClient natijasi (bir marta quriladi) */
+var _hraPaths = {};     /* {key: {file, path}} — allaqachon yuklangan fayl */
+
+function hraLibReady() {
+  return !!(window.supabase && typeof window.supabase.createClient === 'function');
+}
+
+/* CDN yiqilgan bo'lsa qayta yuklashga urinamiz — «Qayta urinish» tugmasi
+   shu sababli haqiqiy foyda beradi (aks holda sahifani yangilash kerak bo'lardi). */
+function hraLoadLib() {
+  return new Promise(function (resolve, reject) {
+    if (hraLibReady()) { resolve(); return; }
+    var s = document.createElement('script');
+    s.src = HRA_SB_LIB;
+    s.async = true;
+    s.onload = function () {
+      if (hraLibReady()) { resolve(); } else { reject(new Error('supabase-js yuklanmadi')); }
+    };
+    s.onerror = function () { reject(new Error('supabase-js yuklanmadi')); };
+    document.head.appendChild(s);
+  });
+}
+
+async function hraSb() {
+  if (_hraSb) { return _hraSb; }
+  if (!hraLibReady()) { await hraLoadLib(); }
+  _hraSb = window.supabase.createClient(HRA_SB_URL, HRA_SB_KEY, HRA_SB_OPTS);
+  return _hraSb;
+}
+
+/* ── Xatolarni o'zbekchaga (index.html dagi translateErr yo'q — kichik xarita).
+   🔴 Xom Postgres/RLS/Storage matni foydalanuvchiga HECH QACHON ko'rsatilmaydi;
+   asl matn har doim console.error ga tushadi. ─────────────────────────────── */
+function hraErrStr(e) {
+  if (!e) { return ''; }
+  return String(e.message || e.error_description || e.error || e.msg || e);
+}
+
+function hraErrStatus(e) {
+  var s = e && (e.statusCode || e.status || (e.originalError && e.originalError.status));
+  return Number(s) || 0;
+}
+
+function hraIsNetErr(e) {
+  var m = hraErrStr(e).toLowerCase();
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) { return true; }
+  return m.indexOf('failed to fetch') >= 0 || m.indexOf('networkerror') >= 0 ||
+         m.indexOf('network request failed') >= 0 || m.indexOf('fetch failed') >= 0 ||
+         m.indexOf('load failed') >= 0 || m.indexOf('timeout') >= 0;
+}
+
+function hraIsDupErr(e) {
+  var m = hraErrStr(e).toLowerCase();
+  return hraErrStatus(e) === 409 || m.indexOf('already exists') >= 0 || m.indexOf('duplicate') >= 0;
+}
+
+function hraUpErrText(e) {
+  var m = hraErrStr(e).toLowerCase();
+  var st = hraErrStatus(e);
+  if (hraIsNetErr(e))  { return tr('hra.err_up_net', HRA_TXT.errUpNet); }
+  if (hraIsDupErr(e))  { return tr('hra.err_up_dup', HRA_TXT.errUpDup); }
+  if (st === 404 || m.indexOf('bucket not found') >= 0) { return tr('hra.err_up_bucket', HRA_TXT.errUpBucket); }
+  if (st === 413 || m.indexOf('maximum allowed size') >= 0 || m.indexOf('too large') >= 0) { return tr('hra.err_up_big', HRA_TXT.errUpBig); }
+  if (st === 401 || st === 403 || m.indexOf('row-level security') >= 0 ||
+      m.indexOf('unauthorized') >= 0 || m.indexOf('violates') >= 0) { return tr('hra.err_up_rls', HRA_TXT.errUpRls); }
+  return tr('hra.err_up_other', HRA_TXT.errUpOther);
+}
+
+/* ── Fayl yo'li: apply/<token>/<key>-<rand>.<ext> ──────────────────────────
+   🔴 Nomda TASODIFIY qism SHART. Sabab: `upsert:false` (anon uchun UPDATE
+   policy YO'Q), ya'ni aynan bir nom ikkinchi marta yozilmaydi. RPC validatsiyasi
+   xato bergach odam formani tuzatib qayta yuborsa, o'zgarmas nom 409 bilan
+   yiqilardi — anon uni o'chira ham olmaydi (SELECT/DELETE policy yo'q). */
+function hraRand() {
+  var a = new Uint8Array(6), i, s = '';
+  try { (window.crypto || window.msCrypto).getRandomValues(a); }
+  catch (e) { for (i = 0; i < a.length; i++) { a[i] = Math.floor(Math.random() * 256); } }
+  for (i = 0; i < a.length; i++) { s += ('0' + a[i].toString(16)).slice(-2); }
+  return s;
+}
+
+function hraFileExt(file) {
+  var ext = hraExt(file && file.name).replace(/[^a-z0-9]/g, '').slice(0, 5);
+  if (!ext) { ext = HRA_MIME_EXT[String((file && file.type) || '').toLowerCase()] || ''; }
+  return ext || 'dat';
+}
+
+function hraUpPath(key, file) {
+  return HRA_PATH_PREFIX + '/' + _hraToken + '/' + key + '-' + hraRand() + '.' + hraFileExt(file);
+}
+
+/* Tugma matni — progress shu yerda ko'rinadi (yangi element/dizayn yo'q) */
+var _hraBtnLabel = '';
+function hraBtnText(txt) {
+  var btn = hraEl('hraSubmitBtn');
+  if (!btn) { return; }
+  var sp = btn.querySelector('span');
+  if (!sp) { return; }
+  if (!_hraBtnLabel) { _hraBtnLabel = sp.textContent; }
+  sp.textContent = txt || _hraBtnLabel;
+}
+
+function hraShowSubmitErr(msg) {
+  var el = hraEl('hraSubmitErr');
+  if (!el) { return; }
+  if (msg) { el.textContent = msg; el.classList.add('show'); }
+  else { el.textContent = ''; el.classList.remove('show'); }
+}
+
+async function hraUploadOne(sb, key) {
+  var file = hrApplyFiles[key];
+  if (!file) { throw new Error('fayl tanlanmagan: ' + key); }
+
+  /* Qayta yuborishda (RPC validatsiyasi rad etgan bo'lsa) ayni fayl ikkinchi
+     marta yuklanmaydi — Storage'da yetim nusxa qolmasin. */
+  var got = _hraPaths[key];
+  if (got && got.file === file && got.path) { return got.path; }
+
+  var attempt = 0, path, res;
+  while (attempt < 2) {
+    attempt += 1;
+    path = hraUpPath(key, file);
+    res = await sb.storage.from(HRA_BUCKET).upload(path, file, {
+      contentType: file.type || 'application/octet-stream',
+      cacheControl: '3600',
+      upsert: false     /* 🔴 anon uchun UPDATE policy YO'Q — upsert:true RLS bilan yiqilardi */
+    });
+    /* 🔴 supabase-js THROW QILMAYDI — {data, error} */
+    if (!res.error) { _hraPaths[key] = { file: file, path: path }; return path; }
+    console.error('[hr-apply] upload xato:', key, path, res.error);
+    /* Nom to'qnashuvi (deyarli imkonsiz) — BIR marta yangi nom bilan urinamiz */
+    if (!hraIsDupErr(res.error) || attempt >= 2) { throw res.error; }
+  }
+  throw new Error('upload: kutilmagan holat');
+}
+
+/* Cheklangan parallel (HRA_UP_PAR) — 6 fayl telefon internetida ketma-ket
+   ketsa juda sekin, hammasi birdan ketsa uzilib qolardi. */
+async function hraUploadAll(sb) {
+  /* 🔴 Faqat HAQIQATDA tanlangan fayllar yuklanadi: shartnoma (D10) ixtiyoriy,
+     tanlanmasa `hraUploadOne` "fayl tanlanmagan" deb yiqilardi. Majburiy fayl
+     yetishmasa bu yergacha yetib kelinmaydi — `hrApplyValidate()` to'sadi. */
+  var keys = HRA_UP_KEYS.filter(function (k) { return !!hrApplyFiles[k]; });
+  var paths = {}, doneN = 0, idx = 0, failed = null, pool = [], i;
+
+  hraBtnText(tr('hra.up_progress', HRA_TXT.upProgress, 0, keys.length));
+
+  async function worker() {
+    while (idx < keys.length && !failed) {
+      var k = keys[idx];
+      idx += 1;
+      try {
+        paths[k] = await hraUploadOne(sb, k);
+        doneN += 1;
+        hraBtnText(tr('hra.up_progress', HRA_TXT.upProgress, doneN, keys.length));
+      } catch (e) {
+        if (!failed) { failed = { key: k, err: e }; }
+      }
+    }
+  }
+
+  for (i = 0; i < Math.min(HRA_UP_PAR, keys.length); i++) { pool.push(worker()); }
+  await Promise.all(pool);
+
+  if (failed) {
+    var msg = tr('hra.err_up_file', HRA_TXT.errUpFile, hraUpLabel(failed.key), hraUpErrText(failed.err));
+    var err = new Error(msg);
+    err._hraShown = true;   /* matn allaqachon foydalanuvchi tilida */
+    throw err;
+  }
+  return paths;
+}
+
+/* hrApplyCollect() → hr_apply_submit OQ RO'YXATI (ortiqchasi YO'Q).
+   ⚠️ Nom farqi: collect `passport_series`, SQL esa `passport_serial` deb o'qiydi.
+   🔴 D10 (2026-08-18): `referred_by` va majburiy `contract_path` bu yerdan
+   CHIQDI — shartnoma tanlanmasa `contract_path` bo'sh satr ketadi.
+   🔴 `consent` YUBORILADI va SERVERDA tekshiriladi: hr_apply_submit
+   `p_payload->>'consent' = 'true'` bo'lmasa RAD ETADI va `consent_at` ni
+   YOZMAYDI. Avval faqat `consent_version` ketardi — u checkbox holatidan
+   qat'i nazar doim yuborilgani uchun rozilik faqat MIJOZ validatsiyasiga
+   suyanardi (brief 64-qator DB darajasida kafolatlanmagan edi). */
+function hraPayload(paths) {
+  var c = hrApplyCollect();
+  var p = {
+    full_name:           c.full_name,
+    birth_date:          c.birth_date,
+    gender:              c.gender,
+    pinfl:               c.pinfl,
+    passport_serial:     c.passport_series,
+    passport_issued_by:  c.passport_issued_by,
+    passport_issued_at:  c.passport_issued_at,
+    passport_expires_at: c.passport_expires_at,
+    address:             c.address,
+    phone:               c.phone,
+    parent_name:         c.parent_name,
+    parent_phone:        c.parent_phone,
+    email:               c.email,
+    /* 🔴 D10: `referred_by` YUBORILMAYDI — uni faqat HR to'ldiradi.
+       SQL oq ro'yxatidan ham chiqarilishi kerak (hisobotga qarang). */
+    consent:             c.consent === true,
+    consent_version:     c.consent_version
+  };
+  var i, k;
+  for (i = 0; i < HRA_UP_KEYS.length; i++) {
+    k = HRA_UP_KEYS[i];
+    p[HRA_PATH_FIELD[k]] = paths[k] || '';
+  }
+  return p;
+}
+
+/* Muvaffaqiyatdan keyin "sahifadan chiqasizmi?" chiqmasin */
+function hraDisarmLeave() {
+  window.removeEventListener('beforeunload', hraOnLeave);
+}
+
+/* ═════════════════════════ YUBORISH ═════════════════════════════════════ */
+async function hrApplySubmit() {
+  if (_hraBusy) { return; }
+  hraShowSubmitErr('');
+  if (!hrApplyValidate()) { return; }
+  if (!_hraToken || !HRA_UUID_RE.test(_hraToken)) {
+    console.error('[hr-apply] token yaroqsiz — yuborilmadi');
+    hrApplySetState('invalid');
+    return;
+  }
+
+  hrApplyBusy(true);
+  try {
+    var sb = await hraSb();
+
+    /* 1) Fayllar (D2: hr-docs/apply/<token>/…) */
+    var paths = await hraUploadAll(sb);
+
+    /* 2) RPC — token RPC ichida ATOMIK yopiladi */
+    hraBtnText(tr('hra.up_sending', HRA_TXT.upSending));
+    var r = await sb.rpc('hr_apply_submit', { p_token: _hraToken, p_payload: hraPayload(paths) });
+    if (r.error) {                                   /* 🔴 supabase-js throw qilmaydi */
+      console.error('[hr-apply] hr_apply_submit xato:', r.error);
+      hraShowSubmitErr(hraIsNetErr(r.error) ? tr('hra.err_net', HRA_TXT.errNet) : tr('hra.err_submit', HRA_TXT.errSubmit));
+      return;
+    }
+    var d = r.data;
+    if (!d || typeof d !== 'object') {
+      console.error('[hr-apply] hr_apply_submit kutilmagan javob:', r.data);
+      hraShowSubmitErr(tr('hra.err_submit', HRA_TXT.errSubmit));
+      return;
+    }
+    if (d.ok !== true) {
+      if (d.state === 'used' || d.state === 'expired' || d.state === 'invalid') {
+        console.error('[hr-apply] token yopiq:', d.state);
+        hraDisarmLeave();
+        hrApplySetState(d.state);
+        return;
+      }
+      /* ⚠️ RPC xato matni SERVERDAN faqat o'zbekcha keladi (tarjima qilinmaydi —
+         u yerda til noma'lum). Matn bo'lmasa umumiy xabar joriy tilda. */
+      console.error('[hr-apply] hr_apply_submit rad etdi:', d);
+      hraShowSubmitErr(String(d.error || tr('hra.err_submit', HRA_TXT.errSubmit)));
+      return;
+    }
+
+    /* 🔴 CLAUDE.md 6-qoida: 'done' FAQAT shu yerda — haqiqiy muvaffaqiyatda */
+    hraDisarmLeave();
+    hrApplySetState('done');
+  } catch (e) {
+    console.error('[hr-apply] yuborish yiqildi:', e);
+    if (e && e._hraShown)                              { hraShowSubmitErr(e.message); }
+    else if (hraIsNetErr(e))                           { hraShowSubmitErr(tr('hra.err_net', HRA_TXT.errNet)); }
+    else if (hraErrStr(e).indexOf('supabase-js') >= 0) { hraShowSubmitErr(tr('hra.err_lib', HRA_TXT.errLib)); }
+    else                                               { hraShowSubmitErr(tr('hra.err_submit', HRA_TXT.errSubmit)); }
+  } finally {
+    hraBtnText('');
+    hrApplyBusy(false);
+  }
+}
+
+/* ═════════════════════════ BOOT ═════════════════════════════════════════ */
+function hraToken() {
+  try {
+    var p = new URLSearchParams(window.location.search);
+    /* 🔴 .toLowerCase() SHART: Postgres uuid'ni doim kichik harfda saqlaydi va
+       hr_apply_submit fayl yo'llarini 'apply/' || p_token::text || '/' prefiksi
+       bilan solishtiradi. Havola KATTA harfli uuid bilan ochilsa (qo'lda
+       ko'chirish, UUID'ni uppercase qiladigan tizimlar) fayllar
+       apply/A1B2…/ ga muvaffaqiyatli yuklanardi (storage policy ::uuid bilan
+       normallashtiradi), keyin RPC "Hujjatlar to'liq yuklanmadi" deb rad etardi
+       va sahifani yangilash YORDAM BERMASDI. */
+    return String(p.get('t') || '').trim().toLowerCase();
+  } catch (e) {
+    console.error('[hr-apply] URL o\'qilmadi:', e);
+    return '';
+  }
+}
+
+function hraSetCompany(name) {
+  var wrap = hraEl('hraCompanyWrap');
+  var el = hraEl('hraCompany');
+  if (!el || !wrap) { return; }
+  if (name) { el.textContent = String(name); wrap.hidden = false; }
+  else { el.textContent = ''; wrap.hidden = true; }
+}
+
+async function hraBoot() {
+  _hraToken = hraToken();
+
+  /* Dizayn/QA uchun: ?state=form|done|used|expired|invalid|offline|loading
+     ⚠️ Bu shoxda RPC UMUMAN chaqirilmaydi (dizayner naqshi saqlangan). */
+  var forced = '';
+  try { forced = new URLSearchParams(window.location.search).get('state') || ''; } catch (e) { forced = ''; }
+  if (forced) {
+    if (forced === 'form') { hraSetCompany('Aros Group'); }
+    hrApplySetState(forced);
+    return;
+  }
+
+  if (!_hraToken) { hrApplySetState('invalid'); return; }
+  /* Token uuid emas → serverga bormasdan 'invalid' (aks holda 22P02 xatosi
+     tarmoq xatosidek ko'rinardi). */
+  if (!HRA_UUID_RE.test(_hraToken)) { hrApplySetState('invalid'); return; }
+
+  hrApplySetState('loading');
+  try {
+    var sb = await hraSb();
+    var r = await sb.rpc('hr_apply_peek', { p_token: _hraToken });
+    /* 🔴 supabase-js THROW QILMAYDI — {data, error} tekshiriladi.
+       Xato = tarmoq/server muammosi, havola YAROQSIZ EMAS: odamni yo'q joyga
+       "havola noto'g'ri" deb qo'rqitmaymiz. */
+    if (r.error) {
+      console.error('[hr-apply] hr_apply_peek xato:', r.error);
+      hrApplySetState('offline');
+      return;
+    }
+    var d = r.data;
+    if (!d || typeof d !== 'object' || !d.state) {
+      console.error('[hr-apply] hr_apply_peek kutilmagan javob:', r.data);
+      hrApplySetState('offline');
+      return;
+    }
+    if (d.state === 'open') {
+      hraSetCompany(d.company_name || '');
+      hrApplySetState('form');
+      return;
+    }
+    if (d.state === 'used' || d.state === 'expired' || d.state === 'invalid') {
+      hrApplySetState(d.state);
+      return;
+    }
+    console.error('[hr-apply] noma\'lum state:', d.state);
+    hrApplySetState('invalid');
+  } catch (e) {
+    console.error('[hr-apply] boot yiqildi:', e);
+    hrApplySetState('offline');
+  }
+}
+
+/* «Qayta urinish» — faqat 'offline' ekranida ko'rinadi */
+function hraRetry() {
+  var b = hraEl('hraRetryBtn');
+  if (b) {
+    if (b.disabled) { return; }
+    b.disabled = true;
+    b.classList.add('busy');
+  }
+  hrApplySetState('loading');
+  Promise.resolve(hraBoot()).catch(function (e) {
+    console.error('[hr-apply] qayta urinish yiqildi:', e);
+    hrApplySetState('offline');
+  }).then(function () {
+    if (b) { b.disabled = false; b.classList.remove('busy'); }
+  });
+}
+
+function hraInit() {
+  /* 🔴 Til — ENG BIRINCHI: qolgan qadamlar (hraBoot → hrApplySetState →
+     hraPaintBlocked/hraStepUi) matn chizadi va u allaqachon tanlangan tilda
+     bo'lishi kerak. `_hraLang` skript yuklanganda aniqlangan (hraI18nInit). */
+  try {
+    document.title = tr('hra.doc_title', HRA_DOC_TITLE);
+    hraI18nApplyDom();
+    hraLangSync();
+  } catch (e) { console.error('[hr-apply] i18n qo\'llanmadi:', e); }
+
+  /* A11y: ko'zga ko'rinadigan "*" aria-hidden — majburiylikni skrinrider
+     `aria-required` orqali eshitadi. Bitta joydan qo'yiladi. */
+  var reqs = document.querySelectorAll('[data-req], [data-freq]');
+  var i;
+  for (i = 0; i < reqs.length; i++) { reqs[i].setAttribute('aria-required', 'true'); }
+  var cbx = hraEl('hraConsent');
+  if (cbx) { cbx.setAttribute('aria-required', 'true'); }
+
+  /* Tug'ilgan sana — kelajak sana tanlab bo'lmasin */
+  var b = hraEl('hraBirthDate');
+  if (b) {
+    var d = new Date();
+    var iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    b.setAttribute('max', iso);
+  }
+  /* Enter → keyingi qadam (textarea ichida emas) */
+  document.addEventListener('keydown', hraOnKey);
+  /* Sahifadan chiqishda ogohlantirish — yozilgan ma'lumot bekorga yo'qolmasin */
+  window.addEventListener('beforeunload', hraOnLeave);
+  /* hraBoot() endi async — rad etilishi jimgina yo'qolmasin */
+  Promise.resolve(hraBoot()).catch(function (e) {
+    console.error('[hr-apply] boot yiqildi (init):', e);
+    hrApplySetState('offline');
+  });
+}
+
+function hraOnKey(ev) {
+  if (ev.key !== 'Enter') { return; }
+  if (_hraState !== 'form') { return; }
+  var t = ev.target;
+  if (!t || t.tagName === 'TEXTAREA' || t.tagName === 'BUTTON') { return; }
+  if (t.tagName !== 'INPUT' && t.tagName !== 'SELECT') { return; }
+  if (t.type === 'file') { return; }
+  ev.preventDefault();
+  if (_hraStep < HRA_STEPS_N) { hraNext(); }
+}
+
+function hraOnLeave(ev) {
+  if (_hraState !== 'form') { return; }
+  var v = hraVal('hraFullName') || hraVal('hraPhone') || hraVal('hraPinfl');
+  if (!v && !Object.keys(hrApplyFiles).length) { return; }
+  ev.preventDefault();
+  ev.returnValue = '';
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', hraInit);
+} else {
+  hraInit();
+}
+</script>
+</body>
+</html>

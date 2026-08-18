@@ -4824,6 +4824,906 @@
     "ru": "📊 Импорт — задач: {0}",
     "en": "📊 Import — {0} tasks"
   },
+  "hrc.act_edit": {
+    "uz": "Tahrirlash",
+    "ru": "Редактировать",
+    "en": "Edit"
+  },
+  "hrc.act_hire": {
+    "uz": "Ishga olindi",
+    "ru": "Принять",
+    "en": "Hire"
+  },
+  "hrc.act_hr_side": {
+    "uz": "HR tomoni",
+    "ru": "Со стороны HR",
+    "en": "HR side"
+  },
+  "hrc.act_link": {
+    "uz": "Havola",
+    "ru": "Ссылка",
+    "en": "Link"
+  },
+  "hrc.act_open": {
+    "uz": "Ochish",
+    "ru": "Открыть",
+    "en": "Open"
+  },
+  "hrc.act_reject": {
+    "uz": "Rad etish",
+    "ru": "Отклонить",
+    "en": "Reject"
+  },
+  "hrc.act_reopen": {
+    "uz": "Qayta ko'rib chiqish",
+    "ru": "Вернуть на рассмотрение",
+    "en": "Reopen for review"
+  },
+  "hrc.back_to_list": {
+    "uz": "← Ro'yxat",
+    "ru": "← Список",
+    "en": "← List"
+  },
+  "hrc.box_act_kassa": {
+    "uz": "Kassa ochish",
+    "ru": "Открыть кассу",
+    "en": "Open cash desk"
+  },
+  "hrc.box_act_tf": {
+    "uz": "Taklif yuborish",
+    "ru": "Отправить приглашение",
+    "en": "Send invitation"
+  },
+  "hrc.box_busy": {
+    "uz": "Bajarilmoqda…",
+    "ru": "Выполняется…",
+    "en": "Working…"
+  },
+  "hrc.box_hint": {
+    "uz": "Faqat tanlov saqlanadi — amalni nomzod kartasidagi alohida tugma bajaradi.",
+    "ru": "Сохраняется только выбор — действие выполняет отдельная кнопка в карточке кандидата.",
+    "en": "Only the choice is saved — the action is performed by a separate button on the candidate card."
+  },
+  "hrc.box_kassa": {
+    "uz": "Xarajat kassa ochish",
+    "ru": "Открыть кассу расходов",
+    "en": "Open an expense cash desk"
+  },
+  "hrc.box_kassa_done": {
+    "uz": "Kassa: ochilgan",
+    "ru": "Касса: открыта",
+    "en": "Cash desk: opened"
+  },
+  "hrc.box_kassa_done_at": {
+    "uz": "Kassa ochilgan: {0}",
+    "ru": "Касса открыта: {0}",
+    "en": "Cash desk opened: {0}"
+  },
+  "hrc.box_kassa_hint": {
+    "uz": "Provodka'da hodim nomiga xarajat kassa ochiladi.",
+    "ru": "В Provodka на сотрудника будет открыта расходная касса.",
+    "en": "An expense cash desk is opened for the employee in Provodka."
+  },
+  "hrc.box_kassa_wait": {
+    "uz": "Kassa: kutilmoqda",
+    "ru": "Касса: ожидается",
+    "en": "Cash desk: pending"
+  },
+  "hrc.box_last_error": {
+    "uz": "Oxirgi urinish xatosi: {0}",
+    "ru": "Ошибка последней попытки: {0}",
+    "en": "Last attempt failed: {0}"
+  },
+  "hrc.box_need_taskfix": {
+    "uz": "Avval TaskFix'ga taklif yuborilishi kerak — kassa TaskFix foydalanuvchisi nomiga ochiladi.",
+    "ru": "Сначала нужно отправить приглашение в TaskFix — касса открывается на пользователя TaskFix.",
+    "en": "The TaskFix invitation must be sent first — the cash desk is opened for a TaskFix user."
+  },
+  "hrc.box_no_dept": {
+    "uz": "Workspace'da bo'lim yo'q — avval kamida bitta bo'lim yarating.",
+    "ru": "В воркспейсе нет отделов — сначала создайте хотя бы один отдел.",
+    "en": "The workspace has no departments — create at least one first."
+  },
+  "hrc.box_no_email": {
+    "uz": "Nomzodning emaili yo'q — avval \"Tahrirlash\" orqali email kiriting.",
+    "ru": "У кандидата нет email — сначала укажите его через «Редактировать».",
+    "en": "The candidate has no email — add one first via \"Edit\"."
+  },
+  "hrc.box_none": {
+    "uz": "Qo'shimcha amal tanlanmagan. \"HR tomoni\" oynasidan TaskFix taklifi yoki xarajat kassani yoqishingiz mumkin.",
+    "ru": "Дополнительные действия не выбраны. Включить приглашение в TaskFix или расходную кассу можно в окне «Сторона HR».",
+    "en": "No extra action selected. You can enable the TaskFix invitation or the expense cash desk in the \"HR side\" dialog."
+  },
+  "hrc.box_note": {
+    "uz": "🔴 Bu yerda faqat TANLOV saqlanadi. Taklif yuborish va kassa ochish nomzod kartasidagi alohida tugma bilan bajariladi — saqlash o'zi hech narsa yubormaydi.",
+    "ru": "🔴 Здесь сохраняется только ВЫБОР. Приглашение и открытие кассы выполняются отдельной кнопкой в карточке кандидата — само сохранение ничего не отправляет.",
+    "en": "🔴 Only the CHOICE is saved here. Sending the invite and opening the cash desk are done by a separate button on the candidate card — saving itself sends nothing."
+  },
+  "hrc.box_off": {
+    "uz": "Tanlanmagan — yoqish uchun \"HR tomoni\" ni oching.",
+    "ru": "Не выбрано — чтобы включить, откройте «Сторона HR».",
+    "en": "Not selected — open \"HR side\" to enable it."
+  },
+  "hrc.box_owner_only": {
+    "uz": "Faqat workspace egasi yoki administratori bajara oladi.",
+    "ru": "Может выполнить только владелец или администратор воркспейса.",
+    "en": "Only the workspace owner or an administrator can do this."
+  },
+  "hrc.box_taskfix": {
+    "uz": "TaskFix'ga taklif qilish",
+    "ru": "Пригласить в TaskFix",
+    "en": "Invite to TaskFix"
+  },
+  "hrc.box_tf_done": {
+    "uz": "TaskFix: yuborilgan",
+    "ru": "TaskFix: отправлено",
+    "en": "TaskFix: sent"
+  },
+  "hrc.box_tf_done_at": {
+    "uz": "Taklif yuborilgan: {0}",
+    "ru": "Приглашение отправлено: {0}",
+    "en": "Invitation sent: {0}"
+  },
+  "hrc.box_tf_hint": {
+    "uz": "Nomzodga parol o'rnatish emaili yuboriladi va u workspace a'zosi bo'ladi.",
+    "ru": "Кандидату будет отправлено письмо для установки пароля, и он станет участником воркспейса.",
+    "en": "The candidate gets a password-setup email and becomes a workspace member."
+  },
+  "hrc.box_tf_wait": {
+    "uz": "TaskFix: kutilmoqda",
+    "ru": "TaskFix: ожидается",
+    "en": "TaskFix: pending"
+  },
+  "hrc.checking_access": {
+    "uz": "Ruxsat tekshirilmoqda…",
+    "ru": "Проверяем доступ…",
+    "en": "Checking access…"
+  },
+  "hrc.col_actions": {
+    "uz": "Amallar",
+    "ru": "Действия",
+    "en": "Actions"
+  },
+  "hrc.col_branch": {
+    "uz": "Filial",
+    "ru": "Филиал",
+    "en": "Branch"
+  },
+  "hrc.col_created": {
+    "uz": "Yaratilgan",
+    "ru": "Создан",
+    "en": "Created"
+  },
+  "hrc.col_name": {
+    "uz": "F.I.O.",
+    "ru": "Ф.И.О.",
+    "en": "Full name"
+  },
+  "hrc.col_phone": {
+    "uz": "Telefon",
+    "ru": "Телефон",
+    "en": "Phone"
+  },
+  "hrc.col_position": {
+    "uz": "Lavozim",
+    "ru": "Должность",
+    "en": "Position"
+  },
+  "hrc.col_status": {
+    "uz": "Holat",
+    "ru": "Статус",
+    "en": "Status"
+  },
+  "hrc.continue": {
+    "uz": "Davom etish",
+    "ru": "Продолжить",
+    "en": "Continue"
+  },
+  "hrc.count": {
+    "uz": "{0} nomzod",
+    "ru": "кандидатов: {0}",
+    "en": "{0} candidates"
+  },
+  "hrc.del_files_left": {
+    "uz": "Nomzod o'chirildi, lekin {0} ta hujjat omborda qoldi: {1}",
+    "ru": "Кандидат удалён, но {0} документ(ов) остались в хранилище: {1}",
+    "en": "The candidate was deleted, but {0} document(s) remain in storage: {1}"
+  },
+  "hrc.del_files_unknown": {
+    "uz": "Nomzod o'chirildi. Hujjatlar to'liq o'chganini tekshirib bo'lmadi: {0}",
+    "ru": "Кандидат удалён. Не удалось проверить, все ли документы удалены: {0}",
+    "en": "The candidate was deleted. Could not verify that all documents were removed: {0}"
+  },
+  "hrc.del_msg": {
+    "uz": "\"{0}\" o'chirilsinmi? Barcha ma'lumot va havolalar ham o'chadi. Bu amalni qaytarib bo'lmaydi.",
+    "ru": "Удалить «{0}»? Все данные и ссылки также будут удалены. Действие необратимо.",
+    "en": "Delete “{0}”? All data and links will be removed as well. This cannot be undone."
+  },
+  "hrc.del_row_failed": {
+    "uz": "Hujjatlar o'chirildi, lekin nomzod qatori o'chmadi: {0}. Qayta urinib ko'ring.",
+    "ru": "Документы удалены, но запись кандидата не удалена: {0}. Попробуйте ещё раз.",
+    "en": "The documents were deleted, but the candidate record was not: {0}. Please try again."
+  },
+  "hrc.del_title": {
+    "uz": "Nomzodni o'chirish",
+    "ru": "Удалить кандидата",
+    "en": "Delete candidate"
+  },
+  "hrc.del_trunc_none": {
+    "uz": "Bu safar hech qanday hujjat o'chmadi{0}.",
+    "ru": "В этот раз не удалён ни один документ{0}.",
+    "en": "No document was deleted this time{0}."
+  },
+  "hrc.del_trunc_part": {
+    "uz": "{0} ta hujjat o'chirildi.",
+    "ru": "Удалено документов: {0}.",
+    "en": "{0} document(s) were deleted."
+  },
+  "hrc.del_truncated": {
+    "uz": "Nomzod O'CHIRILMADI: papkada {0} tadan ortiq hujjat bor va hammasi bir yo'la o'chmaydi. {1} Qolgan hujjatlar qulflanib qolmasligi uchun nomzod saqlab qolindi — \"O'chirish\"ni qayta bosing.",
+    "ru": "Кандидат НЕ УДАЛЁН: в папке более {0} документов, и все они не удаляются за один раз. {1} Чтобы оставшиеся файлы не оказались заблокированными, кандидат сохранён — нажмите «Удалить» ещё раз.",
+    "en": "The candidate was NOT deleted: the folder holds more than {0} documents and they cannot all be removed at once. {1} The candidate was kept so the remaining files do not get locked — press \"Delete\" again."
+  },
+  "hrc.deleted": {
+    "uz": "✅ O'chirildi",
+    "ru": "✅ Удалено",
+    "en": "✅ Deleted"
+  },
+  "hrc.digits": {
+    "uz": "raqam",
+    "ru": "цифр",
+    "en": "digits"
+  },
+  "hrc.doc_contract": {
+    "uz": "Shartnoma",
+    "ru": "Договор",
+    "en": "Contract"
+  },
+  "hrc.doc_no_access": {
+    "uz": "ochilmadi",
+    "ru": "не открылось",
+    "en": "unavailable"
+  },
+  "hrc.doc_open": {
+    "uz": "Ochish",
+    "ru": "Открыть",
+    "en": "Open"
+  },
+  "hrc.doc_par_back": {
+    "uz": "Ota/ona passporti — orqa",
+    "ru": "Паспорт родителя — оборотная сторона",
+    "en": "Parent's passport — back"
+  },
+  "hrc.doc_par_front": {
+    "uz": "Ota/ona passporti — oldi",
+    "ru": "Паспорт родителя — лицевая сторона",
+    "en": "Parent's passport — front"
+  },
+  "hrc.doc_pass_back": {
+    "uz": "Passport — orqa",
+    "ru": "Паспорт — оборотная сторона",
+    "en": "Passport — back"
+  },
+  "hrc.doc_pass_front": {
+    "uz": "Passport — oldi",
+    "ru": "Паспорт — лицевая сторона",
+    "en": "Passport — front"
+  },
+  "hrc.doc_photo": {
+    "uz": "Hodim fotosi",
+    "ru": "Фото сотрудника",
+    "en": "Employee photo"
+  },
+  "hrc.docs_empty": {
+    "uz": "Hujjat yuklanmagan.",
+    "ru": "Документы не загружены.",
+    "en": "No documents uploaded."
+  },
+  "hrc.docs_failed": {
+    "uz": "Hujjatlar ochilmadi: {0}",
+    "ru": "Документы не открылись: {0}",
+    "en": "Documents could not be opened: {0}"
+  },
+  "hrc.docs_loading": {
+    "uz": "Hujjatlar tayyorlanmoqda…",
+    "ru": "Готовим документы…",
+    "en": "Preparing documents…"
+  },
+  "hrc.docs_note": {
+    "uz": "Rasm yoki PDF, har biri {0} MB gacha. Hujjatlar maxfiy saqlanadi va faqat HR ko'radi.",
+    "ru": "Изображение или PDF, каждый до {0} МБ. Документы хранятся конфиденциально и доступны только HR.",
+    "en": "Image or PDF, up to {0} MB each. Documents are stored confidentially and visible only to HR."
+  },
+  "hrc.ef_offline": {
+    "uz": "Xizmatga ulanib bo'lmadi — internet aloqasini tekshirib, qayta urinib ko'ring.",
+    "ru": "Не удалось подключиться к сервису — проверьте интернет и попробуйте снова.",
+    "en": "Could not reach the service — check your internet connection and try again."
+  },
+  "hrc.empty_hint": {
+    "uz": "Yangi xodimni ro'yxatga olish uchun quyidagi tugmani bosing.",
+    "ru": "Нажмите кнопку ниже, чтобы оформить нового сотрудника.",
+    "en": "Use the button below to register a new employee."
+  },
+  "hrc.empty_title": {
+    "uz": "Hali nomzod yo'q",
+    "ru": "Кандидатов пока нет",
+    "en": "No candidates yet"
+  },
+  "hrc.err_address": {
+    "uz": "Yashash manzili to'liq kiritilishi kerak",
+    "ru": "Адрес проживания нужно указать полностью",
+    "en": "The residential address must be filled in completely"
+  },
+  "hrc.err_birth": {
+    "uz": "Tug'ilgan sana kiritilishi kerak",
+    "ru": "Нужно указать дату рождения",
+    "en": "Date of birth is required"
+  },
+  "hrc.err_birth_bad": {
+    "uz": "Tug'ilgan sana noto'g'ri",
+    "ru": "Дата рождения указана неверно",
+    "en": "The date of birth is invalid"
+  },
+  "hrc.err_docs": {
+    "uz": "Hujjat yuklanmagan: {0}",
+    "ru": "Не загружены документы: {0}",
+    "en": "Documents not uploaded: {0}"
+  },
+  "hrc.err_email": {
+    "uz": "Email manzili noto'g'ri",
+    "ru": "Email указан неверно",
+    "en": "The email address is invalid"
+  },
+  "hrc.err_name": {
+    "uz": "F.I.O. kamida 3 belgi bo'lishi kerak",
+    "ru": "Ф.И.О. должно быть не короче 3 символов",
+    "en": "The full name must be at least 3 characters"
+  },
+  "hrc.err_parent_name": {
+    "uz": "Ota/ona F.I.O. kiritilishi kerak",
+    "ru": "Нужно указать Ф.И.О. родителя",
+    "en": "The parent's full name is required"
+  },
+  "hrc.err_parent_phone": {
+    "uz": "Ota/ona telefon raqami noto'g'ri",
+    "ru": "Номер телефона родителя указан неверно",
+    "en": "The parent's phone number is invalid"
+  },
+  "hrc.err_passport": {
+    "uz": "Passport seriyasi noto'g'ri (namuna: AA1234567)",
+    "ru": "Серия паспорта указана неверно (пример: AA1234567)",
+    "en": "The passport number is invalid (example: AA1234567)"
+  },
+  "hrc.err_passport_dates": {
+    "uz": "Passport muddati berilgan sanadan keyin bo'lishi kerak",
+    "ru": "Срок действия паспорта должен быть позже даты выдачи",
+    "en": "The passport expiry date must be after the issue date"
+  },
+  "hrc.err_paths": {
+    "uz": "Hujjatlar yuklandi, lekin qatorga yozilmadi: {0}",
+    "ru": "Документы загружены, но не записаны в карточку: {0}",
+    "en": "Documents were uploaded but not written to the record: {0}"
+  },
+  "hrc.err_phone": {
+    "uz": "Telefon raqami noto'g'ri",
+    "ru": "Номер телефона указан неверно",
+    "en": "The phone number is invalid"
+  },
+  "hrc.err_pinfl": {
+    "uz": "JSHSHIR (PINFL) 14 ta raqamdan iborat bo'lishi kerak",
+    "ru": "ПИНФЛ должен состоять из 14 цифр",
+    "en": "The PINFL must contain exactly 14 digits"
+  },
+  "hrc.err_position": {
+    "uz": "Lavozim tanlanishi kerak",
+    "ru": "Нужно выбрать должность",
+    "en": "A position must be selected"
+  },
+  "hrc.err_referred": {
+    "uz": "Kim taklif qilgani (yoki qayerdan topilgani) ko'rsatilishi kerak",
+    "ru": "Нужно указать, кто порекомендовал (или откуда найден)",
+    "en": "You must state who referred the candidate (or where they were found)"
+  },
+  "hrc.err_upload": {
+    "uz": "Hujjatlar yuklanmadi: {0}. Nomzod qoralama sifatida saqlandi.",
+    "ru": "Документы не загружены: {0}. Кандидат сохранён как черновик.",
+    "en": "Documents were not uploaded: {0}. The candidate was saved as a draft."
+  },
+  "hrc.err_upload_edit": {
+    "uz": "Hujjatlar yuklanmadi: {0}. Qolgan ma'lumot saqlandi, nomzod holati o'zgarmadi.",
+    "ru": "Документы не загружены: {0}. Остальные данные сохранены, статус кандидата не изменён.",
+    "en": "Documents were not uploaded: {0}. The rest of the data was saved; the candidate status did not change."
+  },
+  "hrc.f_address": {
+    "uz": "Yashash manzili",
+    "ru": "Адрес проживания",
+    "en": "Residential address"
+  },
+  "hrc.f_all": {
+    "uz": "Hammasi",
+    "ru": "Все",
+    "en": "All"
+  },
+  "hrc.f_birth": {
+    "uz": "Tug'ilgan sana",
+    "ru": "Дата рождения",
+    "en": "Date of birth"
+  },
+  "hrc.f_branch": {
+    "uz": "Filial",
+    "ru": "Филиал",
+    "en": "Branch"
+  },
+  "hrc.f_consent": {
+    "uz": "Rozilik",
+    "ru": "Согласие",
+    "en": "Consent"
+  },
+  "hrc.f_email": {
+    "uz": "Email",
+    "ru": "Email",
+    "en": "Email"
+  },
+  "hrc.f_expires_at": {
+    "uz": "Amal qilish muddati",
+    "ru": "Срок действия",
+    "en": "Expiry date"
+  },
+  "hrc.f_full_name": {
+    "uz": "F.I.O.",
+    "ru": "Ф.И.О.",
+    "en": "Full name"
+  },
+  "hrc.f_gender": {
+    "uz": "Jinsi",
+    "ru": "Пол",
+    "en": "Gender"
+  },
+  "hrc.f_hired_by": {
+    "uz": "Kim ishga oldi",
+    "ru": "Кто принял на работу",
+    "en": "Hired by"
+  },
+  "hrc.f_issued_at": {
+    "uz": "Berilgan sana",
+    "ru": "Дата выдачи",
+    "en": "Issue date"
+  },
+  "hrc.f_issued_by": {
+    "uz": "Kim tomonidan berilgan",
+    "ru": "Кем выдан",
+    "en": "Issued by"
+  },
+  "hrc.f_notes": {
+    "uz": "Izoh",
+    "ru": "Заметка",
+    "en": "Notes"
+  },
+  "hrc.f_parent_name": {
+    "uz": "Ota/ona F.I.O.",
+    "ru": "Ф.И.О. родителя",
+    "en": "Parent's full name"
+  },
+  "hrc.f_parent_phone": {
+    "uz": "Ota/ona telefoni",
+    "ru": "Телефон родителя",
+    "en": "Parent's phone"
+  },
+  "hrc.f_passport": {
+    "uz": "Passport seriyasi",
+    "ru": "Серия и номер паспорта",
+    "en": "Passport number"
+  },
+  "hrc.f_phone": {
+    "uz": "Telefon",
+    "ru": "Телефон",
+    "en": "Phone"
+  },
+  "hrc.f_pinfl": {
+    "uz": "JSHSHIR (PINFL)",
+    "ru": "ПИНФЛ",
+    "en": "PINFL (personal ID number)"
+  },
+  "hrc.f_position": {
+    "uz": "Lavozim",
+    "ru": "Должность",
+    "en": "Position"
+  },
+  "hrc.f_referred": {
+    "uz": "Kim tavsiya qildi / qayerdan topildi",
+    "ru": "Кто порекомендовал / откуда найден",
+    "en": "Referred by / source"
+  },
+  "hrc.f_start_date": {
+    "uz": "Ish boshlash sanasi",
+    "ru": "Дата начала работы",
+    "en": "Start date"
+  },
+  "hrc.f_submitted": {
+    "uz": "Yuborilgan",
+    "ru": "Отправлено",
+    "en": "Submitted"
+  },
+  "hrc.file_none": {
+    "uz": "Fayl tanlanmagan",
+    "ru": "Файл не выбран",
+    "en": "No file selected"
+  },
+  "hrc.file_pick": {
+    "uz": "Fayl tanlash",
+    "ru": "Выбрать файл",
+    "en": "Choose file"
+  },
+  "hrc.file_too_big": {
+    "uz": "{0} — {1} MB dan katta",
+    "ru": "{0} — больше {1} МБ",
+    "en": "{0} — larger than {1} MB"
+  },
+  "hrc.file_uploaded": {
+    "uz": "Yuklangan — almashtirish uchun yangi fayl tanlang",
+    "ru": "Загружен — выберите новый файл, чтобы заменить",
+    "en": "Uploaded — pick a new file to replace it"
+  },
+  "hrc.gender_f": {
+    "uz": "Ayol",
+    "ru": "Женский",
+    "en": "Female"
+  },
+  "hrc.gender_m": {
+    "uz": "Erkak",
+    "ru": "Мужской",
+    "en": "Male"
+  },
+  "hrc.gender_none": {
+    "uz": "Ko'rsatilmagan",
+    "ru": "Не указан",
+    "en": "Not specified"
+  },
+  "hrc.hr_note": {
+    "uz": "Bu maydonlar nomzodga KO'RINMAYDI.",
+    "ru": "Эти поля кандидату НЕ видны.",
+    "en": "These fields are NOT visible to the candidate."
+  },
+  "hrc.kassa_ef_missing": {
+    "uz": "Xarajat kassa xizmati hali ulanmagan (sync-provodka-kassa deploy qilinmagan) — administratorga xabar bering.",
+    "ru": "Сервис расходной кассы ещё не подключён (sync-provodka-kassa не задеплоен) — сообщите администратору.",
+    "en": "The expense cash desk service is not connected yet (sync-provodka-kassa is not deployed) — tell your administrator."
+  },
+  "hrc.kassa_failed": {
+    "uz": "Kassa ochilmadi: {0}",
+    "ru": "Касса не открыта: {0}",
+    "en": "The cash desk was not opened: {0}"
+  },
+  "hrc.kassa_failed_stuck": {
+    "uz": "Kassa ochilmadi: {0}. ⚠️ \"Ochilgan\" belgisi ham qaytarilmadi ({1}) — nomzodni qo'lda tekshiring.",
+    "ru": "Касса не открыта: {0}. ⚠️ Отметку «открыта» тоже не удалось снять ({1}) — проверьте кандидата вручную.",
+    "en": "The cash desk was not opened: {0}. ⚠️ The \"opened\" mark could not be reverted either ({1}) — check the candidate manually."
+  },
+  "hrc.kassa_msg": {
+    "uz": "\"{0}\" uchun Provodka'da xarajat kassa ochilsinmi?",
+    "ru": "Открыть расходную кассу в Provodka для «{0}»?",
+    "en": "Open an expense cash desk in Provodka for \"{0}\"?"
+  },
+  "hrc.kassa_ok": {
+    "uz": "✅ Xarajat kassa ochildi",
+    "ru": "✅ Расходная касса открыта",
+    "en": "✅ Expense cash desk opened"
+  },
+  "hrc.kassa_ok_no_tick": {
+    "uz": "✅ Kassa ochildi, lekin jamoa jadvalidagi 💵 belgisi saqlanmadi: {0}",
+    "ru": "✅ Касса открыта, но отметка 💵 в таблице команды не сохранена: {0}",
+    "en": "✅ The cash desk was opened, but the 💵 mark in the team table was not saved: {0}"
+  },
+  "hrc.kassa_taken": {
+    "uz": "Bu nomzod uchun kassa allaqachon ochilgan.",
+    "ru": "Касса для этого кандидата уже открыта.",
+    "en": "The cash desk for this candidate is already open."
+  },
+  "hrc.kassa_title": {
+    "uz": "Xarajat kassa ochish",
+    "ru": "Открыть расходную кассу",
+    "en": "Open expense cash desk"
+  },
+  "hrc.link_desc": {
+    "uz": "Havolani nomzodga yuboring. U o'z ma'lumotlari va hujjatlarini o'zi to'ldiradi — sizning tanlovlaringiz (lavozim, filial, box) unga ko'rinmaydi.",
+    "ru": "Отправьте ссылку кандидату. Он сам заполнит свои данные и документы — ваши настройки (должность, филиал, галочки) ему не видны.",
+    "en": "Send the link to the candidate. They fill in their own data and documents — your settings (position, branch, checkboxes) are not visible to them."
+  },
+  "hrc.link_label": {
+    "uz": "To'ldirish havolasi",
+    "ru": "Ссылка для заполнения",
+    "en": "Link to fill in"
+  },
+  "hrc.link_note": {
+    "uz": "🔒 Havola BIR MARTALIK: nomzod formani yuborgach ishlamay qoladi. Muddati: {0} gacha.",
+    "ru": "🔒 Ссылка ОДНОРАЗОВАЯ: после отправки анкеты она перестаёт работать. Срок действия — до {0}.",
+    "en": "🔒 The link is ONE-TIME: it stops working once the candidate submits the form. Valid until {0}."
+  },
+  "hrc.link_open_until": {
+    "uz": "Havola ochiq: {0} gacha",
+    "ru": "Ссылка активна до {0}",
+    "en": "Link is open until {0}"
+  },
+  "hrc.link_person_label": {
+    "uz": "Nomzod",
+    "ru": "Кандидат",
+    "en": "Candidate"
+  },
+  "hrc.link_title": {
+    "uz": "✓ Havola yaratildi",
+    "ru": "✓ Ссылка создана",
+    "en": "✓ Link created"
+  },
+  "hrc.mode_hr": {
+    "uz": "HR yuklaydi",
+    "ru": "Заполняет HR",
+    "en": "HR fills it in"
+  },
+  "hrc.mode_hr_desc": {
+    "uz": "Hamma ma'lumot va hujjatlarni hozir o'zingiz kiritasiz.",
+    "ru": "Все данные и документы вы вносите сами прямо сейчас.",
+    "en": "You enter all data and documents yourself right now."
+  },
+  "hrc.mode_self": {
+    "uz": "Hodim yuklaydi",
+    "ru": "Заполняет сотрудник",
+    "en": "The employee fills it in"
+  },
+  "hrc.mode_self_desc": {
+    "uz": "Bir martalik havola beriladi — nomzod o'zi to'ldiradi.",
+    "ru": "Выдаётся одноразовая ссылка — кандидат заполняет сам.",
+    "en": "A one-time link is issued — the candidate fills it in."
+  },
+  "hrc.new_btn": {
+    "uz": "Yangi xodim",
+    "ru": "Новый сотрудник",
+    "en": "New employee"
+  },
+  "hrc.new_mode_label": {
+    "uz": "Ma'lumotni kim to'ldiradi?",
+    "ru": "Кто заполнит данные?",
+    "en": "Who will fill in the data?"
+  },
+  "hrc.new_title": {
+    "uz": "Yangi xodim",
+    "ru": "Новый сотрудник",
+    "en": "New employee"
+  },
+  "hrc.no_access": {
+    "uz": "Bu bo'lim faqat HR va boshqaruvchilar uchun",
+    "ru": "Этот раздел доступен только HR и руководителям",
+    "en": "This section is for HR and managers only"
+  },
+  "hrc.not_found": {
+    "uz": "Nomzod topilmadi",
+    "ru": "Кандидат не найден",
+    "en": "Candidate not found"
+  },
+  "hrc.page_title": {
+    "uz": "Hodim ishga olish",
+    "ru": "Приём на работу",
+    "en": "Hiring"
+  },
+  "hrc.ph_address": {
+    "uz": "Viloyat, tuman, ko'cha, uy",
+    "ru": "Область, район, улица, дом",
+    "en": "Region, district, street, house"
+  },
+  "hrc.ph_branch": {
+    "uz": "Filialni qidiring…",
+    "ru": "Найдите филиал…",
+    "en": "Search for a branch…"
+  },
+  "hrc.ph_full_name": {
+    "uz": "Familiya Ism Sharif",
+    "ru": "Фамилия Имя Отчество",
+    "en": "Last name First name Middle name"
+  },
+  "hrc.ph_hired_by": {
+    "uz": "Xodimni qidiring…",
+    "ru": "Найдите сотрудника…",
+    "en": "Search for an employee…"
+  },
+  "hrc.ph_position": {
+    "uz": "Lavozimni qidiring…",
+    "ru": "Найдите должность…",
+    "en": "Search for a position…"
+  },
+  "hrc.saved": {
+    "uz": "✅ Saqlandi",
+    "ru": "✅ Сохранено",
+    "en": "✅ Saved"
+  },
+  "hrc.sec_boxes": {
+    "uz": "Qo'shimcha amallar",
+    "ru": "Дополнительные действия",
+    "en": "Additional actions"
+  },
+  "hrc.sec_docs": {
+    "uz": "Hujjatlar",
+    "ru": "Документы",
+    "en": "Documents"
+  },
+  "hrc.sec_hr": {
+    "uz": "HR tomoni",
+    "ru": "Со стороны HR",
+    "en": "HR side"
+  },
+  "hrc.sec_parent": {
+    "uz": "Ota/ona",
+    "ru": "Родитель",
+    "en": "Parent"
+  },
+  "hrc.sec_passport": {
+    "uz": "Passport",
+    "ru": "Паспорт",
+    "en": "Passport"
+  },
+  "hrc.sec_personal": {
+    "uz": "Shaxsiy ma'lumotlar",
+    "ru": "Персональные данные",
+    "en": "Personal data"
+  },
+  "hrc.self_name_hint": {
+    "uz": "Ro'yxatda ko'rinadi. Nomzod formani yuborganda haqiqiy ismi bilan almashadi.",
+    "ru": "Отображается в списке. Заменится настоящим именем, когда кандидат отправит анкету.",
+    "en": "Shown in the list. It will be replaced by the real name once the candidate submits the form."
+  },
+  "hrc.self_name_label": {
+    "uz": "Nomzod ismi",
+    "ru": "Имя кандидата",
+    "en": "Candidate name"
+  },
+  "hrc.self_name_ph": {
+    "uz": "Familiya Ism",
+    "ru": "Фамилия Имя",
+    "en": "Last name First name"
+  },
+  "hrc.sql_missing_body": {
+    "uz": "Nomzodlar jadvali yo'q — avval SQL faylni Supabase SQL Editor'da bajaring.",
+    "ru": "Таблицы кандидатов нет — сначала выполните SQL-файл в Supabase SQL Editor.",
+    "en": "The candidates table is missing — run the SQL file in the Supabase SQL Editor first."
+  },
+  "hrc.sql_missing_title": {
+    "uz": "TASKFIX_HR_RECRUITING.sql ishga tushirilmagan.",
+    "ru": "TASKFIX_HR_RECRUITING.sql не выполнен.",
+    "en": "TASKFIX_HR_RECRUITING.sql has not been run."
+  },
+  "hrc.sql_missing_toast": {
+    "uz": "TASKFIX_HR_RECRUITING.sql hali ishga tushirilmagan",
+    "ru": "TASKFIX_HR_RECRUITING.sql ещё не выполнен",
+    "en": "TASKFIX_HR_RECRUITING.sql has not been run yet"
+  },
+  "hrc.st_draft": {
+    "uz": "Qoralama",
+    "ru": "Черновик",
+    "en": "Draft"
+  },
+  "hrc.st_hired": {
+    "uz": "Ishga olindi",
+    "ru": "Принят",
+    "en": "Hired"
+  },
+  "hrc.st_pending": {
+    "uz": "Ko'rib chiqilmoqda",
+    "ru": "На рассмотрении",
+    "en": "In review"
+  },
+  "hrc.st_rejected": {
+    "uz": "Rad etildi",
+    "ru": "Отклонён",
+    "en": "Rejected"
+  },
+  "hrc.status_msg": {
+    "uz": "\"{0}\" uchun yangi holat: {1}. Davom etilsinmi?",
+    "ru": "Новый статус для «{0}»: {1}. Продолжить?",
+    "en": "New status for “{0}”: {1}. Continue?"
+  },
+  "hrc.status_saved": {
+    "uz": "✅ Holat o'zgartirildi",
+    "ru": "✅ Статус изменён",
+    "en": "✅ Status changed"
+  },
+  "hrc.status_title": {
+    "uz": "Holatni o'zgartirish",
+    "ru": "Изменить статус",
+    "en": "Change status"
+  },
+  "hrc.tf_dept_failed": {
+    "uz": "Xodim yaratildi, lekin bo'limlarga qo'shilmadi: {0}",
+    "ru": "Сотрудник создан, но не добавлен в отделы: {0}",
+    "en": "The employee was created but not added to the departments: {0}"
+  },
+  "hrc.tf_depts": {
+    "uz": "Bo'lim(lar)",
+    "ru": "Отдел(ы)",
+    "en": "Department(s)"
+  },
+  "hrc.tf_depts_hint": {
+    "uz": "Kamida bitta bo'lim majburiy — TaskFix taklifi bo'limsiz yuborilmaydi.",
+    "ru": "Нужен хотя бы один отдел — без отдела приглашение в TaskFix не отправляется.",
+    "en": "At least one department is required — the TaskFix invitation is not sent without one."
+  },
+  "hrc.tf_depts_ph": {
+    "uz": "Bo'limni qidiring…",
+    "ru": "Найти отдел…",
+    "en": "Search department…"
+  },
+  "hrc.tf_ef_missing": {
+    "uz": "TaskFix taklif xizmati javob bermadi (admin-create-employee) — administratorga xabar bering.",
+    "ru": "Сервис приглашений TaskFix не ответил (admin-create-employee) — сообщите администратору.",
+    "en": "The TaskFix invitation service did not respond (admin-create-employee) — tell your administrator."
+  },
+  "hrc.tf_failed": {
+    "uz": "Taklif yuborilmadi: {0}",
+    "ru": "Приглашение не отправлено: {0}",
+    "en": "Invitation was not sent: {0}"
+  },
+  "hrc.tf_failed_stuck": {
+    "uz": "Taklif yuborilmadi: {0}. ⚠️ \"Yuborilgan\" belgisi ham qaytarilmadi ({1}) — nomzodni qo'lda tekshiring.",
+    "ru": "Приглашение не отправлено: {0}. ⚠️ Отметку «отправлено» тоже не удалось снять ({1}) — проверьте кандидата вручную.",
+    "en": "Invitation was not sent: {0}. ⚠️ The \"sent\" mark could not be reverted either ({1}) — check the candidate manually."
+  },
+  "hrc.tf_no_email_sent": {
+    "uz": "⚠ Xodim yaratildi, lekin email yuborilmadi{0} — Supabase SMTP sozlamasini tekshiring",
+    "ru": "⚠ Сотрудник создан, но письмо не отправлено{0} — проверьте настройки SMTP в Supabase",
+    "en": "⚠ The employee was created but the email was not sent{0} — check the Supabase SMTP settings"
+  },
+  "hrc.tf_role": {
+    "uz": "Bo'limdagi rol",
+    "ru": "Роль в отделе",
+    "en": "Role in the department"
+  },
+  "hrc.tf_role_ph": {
+    "uz": "Rolni tanlang…",
+    "ru": "Выберите роль…",
+    "en": "Choose a role…"
+  },
+  "hrc.tf_sent": {
+    "uz": "✅ TaskFix taklifi yuborildi: {0}",
+    "ru": "✅ Приглашение в TaskFix отправлено: {0}",
+    "en": "✅ TaskFix invitation sent: {0}"
+  },
+  "hrc.tf_taken": {
+    "uz": "Bu nomzodga taklif allaqachon yuborilgan.",
+    "ru": "Этому кандидату приглашение уже отправлено.",
+    "en": "An invitation has already been sent to this candidate."
+  },
+  "hrc.tf_title": {
+    "uz": "TaskFix'ga taklif yuborish",
+    "ru": "Отправить приглашение в TaskFix",
+    "en": "Send TaskFix invitation"
+  },
+  "hrc.token_failed": {
+    "uz": "Nomzod saqlandi, lekin havola yaratilmadi: {0}",
+    "ru": "Кандидат сохранён, но ссылка не создана: {0}",
+    "en": "The candidate was saved, but the link was not created: {0}"
+  },
+  "hrc.up_progress": {
+    "uz": "Hujjatlar: {0}/{1}",
+    "ru": "Документы: {0}/{1}",
+    "en": "Documents: {0}/{1}"
+  },
+  "hrc.warn_folders": {
+    "uz": "Filiallar ro'yxati o'qilmadi (org_folders) — filial tanlash bo'sh bo'ladi.",
+    "ru": "Список филиалов не прочитан (org_folders) — выбор филиала будет пустым.",
+    "en": "Branch list could not be read (org_folders) — branch selection will be empty."
+  },
+  "hrc.warn_limit": {
+    "uz": "Ro'yxat {0} ta qator bilan cheklangan — eskilari ko'rinmayapti.",
+    "ru": "Список ограничен {0} записями — старые не показаны.",
+    "en": "The list is limited to {0} rows — older ones are not shown."
+  },
+  "hrc.warn_prefix": {
+    "uz": "Ogohlantirish:",
+    "ru": "Предупреждение:",
+    "en": "Warning:"
+  },
+  "hrc.warn_tokens": {
+    "uz": "Havolalar holati o'qilmadi — \"havola berilgan\" belgisi ko'rinmasligi mumkin.",
+    "ru": "Состояние ссылок не прочитано — отметка «ссылка выдана» может не отображаться.",
+    "en": "Link status could not be read — the “link issued” mark may not be shown."
+  },
   "hrsv.disabled": {
     "uz": "HR Service o'chirildi",
     "ru": "HR Service отключён",
@@ -6604,6 +7504,21 @@
     "ru": "Поиск по названию или описанию отдела...",
     "en": "Search by department name or description..."
   },
+  "page-hrrecruit.search_ph": {
+    "uz": "Ism, telefon, passport yoki email bo'yicha qidirish…",
+    "ru": "Поиск по имени, телефону, паспорту или email…",
+    "en": "Search by name, phone, passport or email…"
+  },
+  "page-hrrecruit.subtitle": {
+    "uz": "Ishga olinayotgan nomzodlar. Passport va shaxsiy ma'lumot maxfiy — faqat HR va boshqaruvchilar ko'radi.",
+    "ru": "Кандидаты на приём. Паспорт и персональные данные конфиденциальны — их видят только HR и руководители.",
+    "en": "Candidates being hired. Passport and personal data are confidential — visible only to HR and managers."
+  },
+  "page-hrrecruit.title": {
+    "uz": "Hodim ishga olish",
+    "ru": "Приём на работу",
+    "en": "Hiring"
+  },
   "page-logs.all_actions": {
     "uz": "Barcha harakatlar",
     "ru": "Все действия",
@@ -7294,6 +8209,21 @@
     "ru": "Повтор (необязательно)",
     "en": "Repeat (optional)"
   },
+  "page-settings.label_recur_monthday": {
+    "uz": "Oy kuni",
+    "ru": "День месяца",
+    "en": "Day of the month"
+  },
+  "page-settings.label_recur_time": {
+    "uz": "Soat",
+    "ru": "Время",
+    "en": "Time"
+  },
+  "page-settings.label_recur_weekday": {
+    "uz": "Hafta kuni",
+    "ru": "День недели",
+    "en": "Day of the week"
+  },
   "page-settings.label_subtasks": {
     "uz": "Subtask'lar (ixtiyoriy)",
     "ru": "Подзадачи (необязательно)",
@@ -7753,6 +8683,11 @@
     "uz": "Takrorlanmaydi",
     "ru": "Не повторяется",
     "en": "No repeat"
+  },
+  "page-settings.recur_time_required": {
+    "uz": "Takrorlanish uchun soatni tanlang",
+    "ru": "Выберите время повтора",
+    "en": "Select the recurrence time"
   },
   "page-settings.recur_weekly": {
     "uz": "Har hafta",
@@ -8644,10 +9579,30 @@
     "ru": "Повтор (необязательно, дней)",
     "en": "Recurrence (optional, days)"
   },
+  "prj.field_recur_days_legacy": {
+    "uz": "Yoki: har necha kunda (eski usul)",
+    "ru": "Или: каждые N дней (прежний способ)",
+    "en": "Or: every N days (legacy)"
+  },
+  "prj.field_recur_monthday": {
+    "uz": "Oy kuni",
+    "ru": "День месяца",
+    "en": "Day of the month"
+  },
+  "prj.field_recur_time": {
+    "uz": "Soat",
+    "ru": "Время",
+    "en": "Time"
+  },
   "prj.field_recur_type": {
     "uz": "Takrorlanish turi",
     "ru": "Тип повтора",
     "en": "Recurrence type"
+  },
+  "prj.field_recur_weekday": {
+    "uz": "Hafta kuni",
+    "ru": "День недели",
+    "en": "Day of the week"
   },
   "prj.field_start_at": {
     "uz": "Boshlanish",
@@ -8799,6 +9754,11 @@
     "ru": "⚠️ TASKFIX_LOYIHA.sql не выполнен — дата не сохранится. ",
     "en": "⚠️ TASKFIX_LOYIHA.sql has not been run — the date will not be saved. "
   },
+  "prj.hint_recur_create": {
+    "uz": "Tur tanlansa loyiha o'sha vaqtda o'zi qaytadan boshlanadi. \"Takrorlanmaydi\" bo'lsa quyidagi eski \"har N kunda\" usuli ishlaydi.",
+    "ru": "Если выбран тип, проект сам начнётся заново в указанное время. При «Не повторяется» работает прежний способ «каждые N дней» ниже.",
+    "en": "If a type is selected, the project restarts by itself at that time. With \"No repeat\", the old \"every N days\" option below applies."
+  },
   "prj.hint_recur_days": {
     "uz": "Bo'sh = takrorlanmaydi.",
     "ru": "Пусто = без повтора.",
@@ -8809,10 +9769,20 @@
     "ru": "По наступлении срока проект перезапустится автоматически (все этапы вернутся в статус «Новый»).",
     "en": "When the period arrives the project restarts automatically (all stages return to \"New\")."
   },
+  "prj.hint_recur_monthday": {
+    "uz": "Oyda bunday kun bo'lmasa — o'sha oyning oxirgi kuni olinadi.",
+    "ru": "Если в месяце нет такого дня — берётся последний день месяца.",
+    "en": "If the month has no such day, the last day of the month is used."
+  },
   "prj.hint_recur_new": {
     "uz": "Davr kelganda loyiha o'zi qaytadan boshlanadi: bosqichlar \"Yangi\" holatiga qaytadi, sanalar keyingi davrga suriladi. Pauzadagi loyiha takrorlanmaydi.",
     "ru": "Когда наступит период, проект перезапустится сам: этапы вернутся в статус «Новый», даты сдвинутся на следующий период. Проект на паузе не повторяется.",
     "en": "When the period comes the project restarts by itself: stages return to \"New\" and dates shift to the next period. A paused project doesn't repeat."
+  },
+  "prj.hint_recur_time": {
+    "uz": "Yangi sikl shu vaqtda boshlanadi (Toshkent). Majburiy.",
+    "ru": "Новый цикл начнётся в это время (Ташкент). Обязательно.",
+    "en": "The new cycle starts at this time (Tashkent). Required."
   },
   "prj.hint_start_at": {
     "uz": "Bo'sh = belgilanmagan. Boshlanish kelmagan bo'lsa loyiha \"Boshlanmagan\" ko'rinadi.",
@@ -8953,6 +9923,11 @@
     "uz": "takrorlanish saqlanmadi — TASKFIX_LOYIHA.sql ishga tushirilmagan",
     "ru": "повтор не сохранён — TASKFIX_LOYIHA.sql не выполнен",
     "en": "recurrence not saved — TASKFIX_LOYIHA.sql has not been run"
+  },
+  "prj.msg_no_recur_time": {
+    "uz": "takrorlanish vaqti saqlanmadi — TASKFIX_RECUR_TIME.sql ishga tushirilmagan",
+    "ru": "время повтора не сохранено — TASKFIX_RECUR_TIME.sql не выполнен",
+    "en": "recurrence time not saved — TASKFIX_RECUR_TIME.sql has not been run"
   },
   "prj.name_required": {
     "uz": "Loyiha nomi bo'sh bo'lmasin",
@@ -9168,6 +10143,11 @@
     "uz": "🔁 Har hafta {0}",
     "ru": "🔁 Еженедельно: {0}",
     "en": "🔁 Weekly: {0}"
+  },
+  "prj.recur_time_required": {
+    "uz": "Takrorlanish uchun soatni tanlang",
+    "ru": "Выберите время повтора",
+    "en": "Select the recurrence time"
   },
   "prj.recur_weekly": {
     "uz": "Har hafta",
@@ -9453,6 +10433,31 @@
     "uz": "Yangi versiya yuklandi — sahifani qayta oching",
     "ru": "Загружена новая версия — переоткройте страницу",
     "en": "New version loaded — reopen the page"
+  },
+  "rcx.day_n": {
+    "uz": "{0}-kun",
+    "ru": "{0}-е число",
+    "en": "Day {0}"
+  },
+  "rcx.every_day": {
+    "uz": "Har kuni {0}",
+    "ru": "Ежедневно в {0}",
+    "en": "Every day at {0}"
+  },
+  "rcx.every_month": {
+    "uz": "Har oy {0}-kun {1}",
+    "ru": "Ежемесячно, {0}-го числа в {1}",
+    "en": "Every month on day {0} at {1}"
+  },
+  "rcx.every_week": {
+    "uz": "Har hafta {0} {1}",
+    "ru": "Еженедельно, {0} в {1}",
+    "en": "Every week on {0} at {1}"
+  },
+  "rcx.msg_no_col": {
+    "uz": "takrorlanish vaqti saqlanmadi — TASKFIX_RECUR_TIME.sql ishga tushirilmagan",
+    "ru": "время повтора не сохранено — TASKFIX_RECUR_TIME.sql не выполнен",
+    "en": "recurrence time not saved — TASKFIX_RECUR_TIME.sql has not been run"
   },
   "rmx.assign_to": {
     "uz": "Kimga o'tkaziladi",
