@@ -1573,22 +1573,6 @@ BEGIN
   IF strpos(v_flat, 'STATUS=PENDING') = 0 THEN
     RAISE EXCEPTION 'hr_apply_submit() KODIDA status = ''pending'' yozilmayapti (D8). To''xtatildi.';
   END IF;
-
-  -- ── 10.h2) hr_fields_guard() — yozib bo'lmaydigan 3 ustun qulfi ───
-  -- 🔴 Busiz HR "Kim tavsiya qildi" ni nomzodga ochib qo'yardi va javob
-  --    jimgina yo'qolardi (yuqoridagi izohga qarang).
-  SELECT regexp_replace(p.prosrc, '--[^\n]*', '', 'g') INTO v_src
-    FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
-   WHERE n.nspname = 'public' AND p.proname = 'hr_fields_guard'
-   LIMIT 1;
-  IF v_src IS NULL THEN
-    RAISE EXCEPTION 'hr_fields_guard() tanasi o''qilmadi';
-  END IF;
-  v_flat := replace(replace(upper(regexp_replace(v_src, '\s+', ' ', 'g')), '''', ''), ' ', '');
-  IF strpos(v_flat, 'NEW.COLIN(REFERRED_BY,START_DATE,NOTES)') = 0
-     OR strpos(v_flat, 'NEW.FILL_BY<>HR') = 0 THEN
-    RAISE EXCEPTION 'hr_fields_guard() KODIDA referred_by/start_date/notes uchun fill_by = hr qulfi topilmadi — HR bu maydonlarni nomzodga ochib qo''ysa javob JIMGINA yo''qolardi. To''xtatildi.';
-  END IF;
   IF strpos(v_flat, 'CONSENT_AT=NOW()') = 0 THEN
     RAISE EXCEPTION 'hr_apply_submit() KODIDA consent_at = now() yo''q — rozilik lahzasi yozilmasdi (D7). To''xtatildi.';
   END IF;
@@ -1636,6 +1620,22 @@ BEGIN
   -- Fayl prefiksi maxsus maydonlarga ham qo'llanadimi?
   IF strpos(v_flat, 'LOWER(LEFT(V_FPATH,CHAR_LENGTH(V_PREF)))<>V_PREF') = 0 THEN
     RAISE EXCEPTION 'hr_apply_submit() KODIDA maxsus fayl maydoni uchun apply/<token>/ prefiks tekshiruvi yo''q — nomzod qatorga begona Storage yo''lini yozdira olardi. To''xtatildi.';
+  END IF;
+
+  -- ── 10.h2) hr_fields_guard() — yozib bo'lmaydigan 3 ustun qulfi ───
+  -- 🔴 Busiz HR "Kim tavsiya qildi" ni nomzodga ochib qo'yardi va javob
+  --    jimgina yo'qolardi (yuqoridagi izohga qarang).
+  SELECT regexp_replace(p.prosrc, '--[^\n]*', '', 'g') INTO v_src
+    FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+   WHERE n.nspname = 'public' AND p.proname = 'hr_fields_guard'
+   LIMIT 1;
+  IF v_src IS NULL THEN
+    RAISE EXCEPTION 'hr_fields_guard() tanasi o''qilmadi';
+  END IF;
+  v_flat := replace(replace(upper(regexp_replace(v_src, '\s+', ' ', 'g')), '''', ''), ' ', '');
+  IF strpos(v_flat, 'NEW.COLIN(REFERRED_BY,START_DATE,NOTES)') = 0
+     OR strpos(v_flat, 'NEW.FILL_BY<>HR') = 0 THEN
+    RAISE EXCEPTION 'hr_fields_guard() KODIDA referred_by/start_date/notes uchun fill_by = hr qulfi topilmadi — HR bu maydonlarni nomzodga ochib qo''ysa javob JIMGINA yo''qolardi. To''xtatildi.';
   END IF;
 
   -- ── 10.i) STORAGE: yangi policy YO'Q, mavjudlari yo'llarni qoplaydi ─
