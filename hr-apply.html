@@ -3321,21 +3321,34 @@ function hraShowSubmitErr(msg) {
    Ikkovi ham supabase-js'da bir xil xato bo'lib keladi, lekin odamga
    beriladigan maslahat butunlay boshqa. 1 BAYT o'qib farqlaymiz — arzon,
    xotira yemaydi, katta faylni ikki marta o'qimaydi. */
-async function hraFileReadable(file) {
-  try {
-    if (!file || !file.slice) { return true; }
-    var part = file.slice(0, 1);
-    if (part.arrayBuffer) { await part.arrayBuffer(); return true; }
-    return await new Promise(function (res) {
+/* 🔴 FAYLNI XOTIRAGA O'QIB, YUKLASHGA `Blob` BERAMIZ — `File` EMAS.
+   MUAMMO: brauzer `File` ni yuborayotganda baytlarni DISKDAN OQIZADI. Agar
+   fayl o'sha lahzada o'qilmasa — OneDrive/Google Drive'ning "faqat bulutda"
+   nusxasi, veb-sahifadan sudrab olib kelingan rasm, ko'chirilgan/o'chirilgan
+   fayl, uzilgan tashqi disk — so'rov 0 BAYT bilan `net::ERR_FAILED` beradi.
+   CORS preflight esa 200 qaytaradi, shuning uchun bu "tarmoq uzildi" bo'lib
+   ko'rinadi va odam sababni hech qachon topa olmaydi.
+   ⚠️ Avval 1 BAYT o'qib tekshirardik — YETARLI EMAS: bulut fayllarida
+   birinchi bloklar keshda turishi mumkin, qolgani esa yo'q.
+   Xotiraga o'qilgach bunday xato IMKONSIZ: `Blob` allaqachon RAMda.
+   Xotira: `HRA_UP_PAR` (3) ta fayl bir vaqtda, har biri <= 10 MB. */
+async function hraReadBlob(file) {
+  var buf;
+  if (file.arrayBuffer) {
+    buf = await file.arrayBuffer();
+  } else {
+    buf = await new Promise(function (res, rej) {
       var fr = new FileReader();
-      fr.onload  = function () { res(true); };
-      fr.onerror = function () { res(false); };
-      fr.readAsArrayBuffer(part);
+      fr.onload  = function () { res(fr.result); };
+      fr.onerror = function () { rej(fr.error || new Error('FileReader')); };
+      fr.readAsArrayBuffer(file);
     });
-  } catch (e) {
-    console.error("[hr-apply] fayl o'qilmadi:", (file && file.name) || "", e);
-    return false;
   }
+  /* Bo'sh natija ham o'qilmagan bilan barobar (ba'zi brauzerlar throw qilmaydi) */
+  if (!buf || (buf.byteLength === 0 && file.size > 0)) {
+    throw new Error('bo' + "'" + 'sh natija');
+  }
+  return new Blob([buf], { type: file.type || 'application/octet-stream' });
 }
 
 async function hraUploadOne(sb, key) {
@@ -3347,11 +3360,24 @@ async function hraUploadOne(sb, key) {
   var got = _hraPaths[key];
   if (got && got.file === file && got.path) { return got.path; }
 
+  /* 🔴 TARMOQQA CHIQISHDAN OLDIN faylni o'qib olamiz. Bu yerda yiqilsa
+     sabab ANIQ: fayl o'qilmadi — "aloqa uzildi" degan chalg'ituvchi xabar
+     o'rniga odamga faylni qaytadan tanlash aytiladi. */
+  var blob;
+  try {
+    blob = await hraReadBlob(file);
+  } catch (e) {
+    console.error("[hr-apply] fayl o'qilmadi:", key, file.name, e);
+    var unread = new Error('file-unreadable: ' + key);
+    unread._hraUnread = true;
+    throw unread;
+  }
+
   var attempt = 0, path, res;
   while (attempt < 2) {
     attempt += 1;
     path = hraUpPath(key, file);
-    res = await sb.storage.from(HRA_BUCKET).upload(path, file, {
+    res = await sb.storage.from(HRA_BUCKET).upload(path, blob, {
       contentType: file.type || 'application/octet-stream',
       cacheControl: '3600',
       upsert: false     /* 🔴 anon uchun UPDATE policy YO'Q — upsert:true RLS bilan yiqilardi */
@@ -3359,12 +3385,6 @@ async function hraUploadOne(sb, key) {
     /* 🔴 supabase-js THROW QILMAYDI — {data, error} */
     if (!res.error) { _hraPaths[key] = { file: file, path: path }; return path; }
     console.error('[hr-apply] upload xato:', key, path, res.error);
-    /* Tarmoq ko'rinishidagi xatoda faylning o'zi o'qiladimi — tekshiramiz. */
-    if (hraIsNetErr(res.error) && !(await hraFileReadable(file))) {
-      var unread = new Error('file-unreadable: ' + key);
-      unread._hraUnread = true;
-      throw unread;
-    }
     /* Nom to'qnashuvi (deyarli imkonsiz) — BIR marta yangi nom bilan urinamiz */
     if (!hraIsDupErr(res.error) || attempt >= 2) { throw res.error; }
   }
