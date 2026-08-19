@@ -341,6 +341,16 @@ input[type="date"].hra-inp::-webkit-date-and-time-value { text-align: left; }
 .hra-consent-txt label { display: block; cursor: pointer; }
 .hra-consent-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
 
+/* ── Dinamik maydon: belgilash katagi (HR qo'shgan `checkbox`) ────────────
+   Mavjud `.hra-cb` (rozilik katagi) QAYTA ISHLATILADI — yangi dizayn tili yo'q,
+   faqat joylashuv. `.hra-fld label` (12.5px/600) yorliq uchun juda kichik:
+   bu qator matn, sarlavha emas — shuning uchun ustidan yoziladi. */
+.hra-dyncb { display: flex; align-items: flex-start; gap: 12px; }
+.hra-dyncb .hra-cb { padding-top: 0; }
+.hra-dyncb-m { flex: 1; min-width: 0; }
+.hra-dyncb-m label { display: block; font-size: 13.5px; font-weight: 500; line-height: 1.5; color: var(--ink-soft); cursor: pointer; }
+.hra-dyncb.bad .hra-cb input { border-color: #F0A9A0; background: #FFFBFA; }
+
 /* ── Xulosa (5-qadam) ───────────────────────────────────────────────────── */
 .hra-recap { border: 1px solid var(--line-soft); border-radius: 14px; overflow: hidden; }
 .hra-recap-g + .hra-recap-g { border-top: 1px solid var(--line-soft); }
@@ -617,7 +627,9 @@ input[type="date"].hra-inp::-webkit-date-and-time-value { text-align: left; }
             <div class="hra-progm">
               <div class="hra-progm-top">
                 <span class="hra-progm-t" id="hraProgTitle">Shaxsiy ma'lumot</span>
-                <span class="hra-progm-n"><span id="hraProgN">1</span> / 5</span>
+                <!-- Jami qadam soni DINAMIK: HR barcha maydonlarni yashirgan qadam
+                     o'tkazib yuboriladi (hraStepUi), "1 / 5" yolg'on bo'lib qolmasin. -->
+                <span class="hra-progm-n"><span id="hraProgN">1</span> / <span id="hraProgTot">5</span></span>
               </div>
               <div class="hra-bar"><i id="hraProgBar" style="width:20%"></i></div>
             </div>
@@ -890,7 +902,9 @@ input[type="date"].hra-inp::-webkit-date-and-time-value { text-align: left; }
               <div class="hra-fgrp-h">
                 <svg class="hi hi-16" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 15h6"/></svg>
                 <h3 class="hra-h3" data-i18n="hra.g_contract">Shartnoma</h3>
-                <span class="hra-opt" data-i18n="hra.optional">ixtiyoriy</span>
+                <!-- id: dinamik rejimda HR shartnomani MAJBURIY qilishi mumkin —
+                     unda bu "ixtiyoriy" belgisi yolg'on bo'lardi (hraSysFileApply). -->
+                <span class="hra-opt" id="hraOptContract" data-i18n="hra.optional">ixtiyoriy</span>
                 <span class="hra-fgrp-s" data-i18n="hra.lim_doc">PDF · JPG · PNG, 10 MB gacha</span>
               </div>
               <!-- 🔴 D10: shartnoma nomzod uchun IXTIYORIY (`data-freq` YO'Q) — uni HR yuklaydi.
@@ -1075,8 +1089,22 @@ var HRA_UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-
    Validatsiya (`data-freq` yo'q) va yuklash (`hraUploadAll`) ikkovi ham shunga tayanadi. */
 var HRA_OPTIONAL_FILES = { contract: 1 };
 
-/* Fayl yorlig'i — xato matnida va xulosada bir xil ko'rinishi uchun bitta joydan */
+/* Fayl yorlig'i — xato matnida va xulosada bir xil ko'rinishi uchun bitta joydan.
+   ⚠️ HR qo'shgan maxsus fayl (`f_<id>`) — WORKSPACE ma'lumoti: `tr()` ga
+   berilmaydi (lug'atda bunday kalit yo'q va bo'lishi ham mumkin emas). */
 function hraUpLabel(key) {
+  if (String(key).indexOf('f_') === 0) {
+    var f = _hraById[String(key).slice(2)];
+    if (f) { return hraFieldName(f); }
+  }
+  if (_hraSysByCol) {
+    var m = null, i;
+    for (i = 0; i < HRA_SYS_ORDER.length; i++) {
+      if (HRA_SYS_ORDER[i].file === key) { m = HRA_SYS_ORDER[i]; break; }
+    }
+    /* Tizim fayli — HR nomini o'zgartirgan bo'lsa o'sha nom ko'rinadi */
+    if (m && _hraSysByCol[m.col]) { return hraFieldName(_hraSysByCol[m.col]); }
+  }
   return tr('hra.lbl_' + key, HRA_UP_LABEL[key] || key);
 }
 
@@ -1093,6 +1121,13 @@ var HRA_TXT = {
   errAddr:      "Manzilni to'liqroq yozing (viloyat, tuman, ko'cha)",
   errPinfl:     "JSHSHIR 14 ta raqamdan iborat",
   errPassport:  "Format: 2 harf va 7 raqam, masalan AA1234567",
+  /* HR qo'shgan maxsus maydonlar uchun (server tekshiruvlariga mos) */
+  errTel:       "Telefon raqami noto'g'ri",
+  errNumber:    "Faqat raqam kiriting",
+  errDate:      "Sanani to'g'ri kiriting (YYYY-MM-DD)",
+  errCheck:     "Bu katakcha belgilanishi shart",
+  errSelect:    "Ro'yxatdan variant tanlang",
+
   errFileReq:   "Bu hujjatni yuklash shart",
   errFileBig:   "Fayl juda katta ({0}). Chegara — {1} MB",
   errFileType:  "Format mos emas. Ruxsat: {0}",
@@ -1283,6 +1318,9 @@ function hraI18nRefresh() {
   try { document.documentElement.lang = _hraLang; } catch (e) { /* eski brauzer */ }
   try { document.title = tr('hra.doc_title', HRA_DOC_TITLE); } catch (e2) { /* muhim emas */ }
   hraI18nApplyDom();
+  /* 🔴 applyDom DAN KEYIN: HR kiritgan nomlar (workspace ma'lumoti) statik
+     matn bilan bosilib ketmasin. Qiymatlar/fayl tanlovlari TEGILMAYDI. */
+  hraDynRelabel();
   hraLangSync();
   _hraBtnLabel = '';   /* "Yuborish" keshi til bilan birga eskiradi */
   if (_hraState === 'used' || _hraState === 'expired' ||
@@ -1297,7 +1335,7 @@ function hraClearAllErrs() {
   for (i = 0; i < els.length; i++) { els[i].textContent = ''; els[i].classList.remove('show'); }
   els = document.querySelectorAll('[aria-invalid="true"]');
   for (i = 0; i < els.length; i++) { els[i].removeAttribute('aria-invalid'); }
-  els = document.querySelectorAll('.hra-fbox.bad');
+  els = document.querySelectorAll('.hra-fbox.bad, .hra-dyncb.bad');
   for (i = 0; i < els.length; i++) { els[i].classList.remove('bad'); }
   var cbox = hraEl('hraConsentBox');
   if (cbox) { cbox.classList.remove('bad'); }
@@ -1476,6 +1514,16 @@ var HRA_I18N = {
     'hra.err_addr': 'Укажите адрес подробнее (область, район, улица)',
     'hra.err_pinfl': 'ПИНФЛ состоит из 14 цифр',
     'hra.err_passport': 'Формат: 2 буквы и 7 цифр, например AA1234567',
+    'hra.err_tel': 'Некорректный номер телефона',
+    'hra.err_number': 'Введите только число',
+    'hra.err_date': 'Укажите корректную дату (ГГГГ-ММ-ДД)',
+    'hra.err_check': 'Этот пункт нужно отметить',
+    'hra.err_select': 'Выберите вариант из списка',
+    'hra.sec_extra': 'Дополнительные сведения',
+    'hra.s4_sub_dyn': 'Загрузите документы — текст должен быть чётким и полностью видимым.',
+    'hra.s4_extra_sub': 'Заполните приведённые ниже данные.',
+    'hra.yes': 'Да',
+    'hra.no': 'Нет',
     'hra.err_file_req': 'Этот документ обязателен для загрузки',
     'hra.err_file_big': 'Файл слишком большой ({0}). Ограничение — {1} МБ',
     'hra.err_file_type': 'Неподходящий формат. Разрешено: {0}',
@@ -1635,6 +1683,16 @@ var HRA_I18N = {
     'hra.err_addr': 'Write the address in more detail (region, district, street)',
     'hra.err_pinfl': 'PINFL consists of 14 digits',
     'hra.err_passport': 'Format: 2 letters and 7 digits, for example AA1234567',
+    'hra.err_tel': 'Invalid phone number',
+    'hra.err_number': 'Enter digits only',
+    'hra.err_date': 'Enter a valid date (YYYY-MM-DD)',
+    'hra.err_check': 'This box must be ticked',
+    'hra.err_select': 'Pick an option from the list',
+    'hra.sec_extra': 'Additional details',
+    'hra.s4_sub_dyn': 'Upload the documents — the text must be sharp and fully visible.',
+    'hra.s4_extra_sub': 'Fill in the details below.',
+    'hra.yes': 'Yes',
+    'hra.no': 'No',
     'hra.err_file_req': 'This document is required',
     'hra.err_file_big': 'The file is too large ({0}). The limit is {1} MB',
     'hra.err_file_type': 'Unsupported format. Allowed: {0}',
@@ -1736,6 +1794,706 @@ function hraExt(name) {
   return i < 0 ? '' : s.slice(i + 1).toLowerCase();
 }
 
+/* ══════════ DINAMIK MAYDONLAR — `hraDyn*` / `hraSys*` (hr_fields) ══════════
+   HR "Hodim ishga olish" konstruktorida sozlagan maydonlar shu sahifada
+   ko'rinadi. Manba: `hr_apply_peek(p_token).fields` (TASKFIX_HR_DYNAMIC.sql).
+
+   🔴 ZAXIRA (eng muhim): `fields` KELMASA yoki BO'SH bo'lsa — sahifa AYNAN
+      avvalgidek ishlaydi (qat'iy 5 qadam, qat'iy validatsiya, qat'iy payload).
+      Bu NORMAL holat (SQL run qilinmagan / workspace seed qilinmagan) — hech
+      qanday ogohlantirish ko'rsatilmaydi. Eski kod o'chirilmagan: har joyda
+      `hraDynOn()` shoxi bor, `false` bo'lsa hech narsa o'zgarmaydi.
+
+   Ikki xil maydon (server `col` bilan farqlaydi):
+     • TIZIM (`col` to'lgan)  → MAVJUD HTML boksi ishlatiladi (yangi chizilmaydi):
+       ro'yxatda bo'lmasa YASHIRILADI va payload'ga QO'SHILMAYDI; bo'lsa
+       majburiyligi/nomi serverdan olinadi. Qiymat avvalgidek `payload[col]`.
+     • MAXSUS (`col` bo'sh) → YANGI chiziladi, qiymati `payload.fields[<id>]`,
+       fayli `payload.files[<id>]` (`apply/<token>/f_<id>-<rand>.<ext>`).
+
+   🔴 `name_*` / `placeholder_*` / `section` / `options[].*` — HR yozadi, ya'ni
+      ISHONCHSIZ matn: `hraEsc()` MAJBURIY (public sahifa, XSS).
+   ⚠️ Bular WORKSPACE ma'lumoti — `HRA_I18N` ga tegishli EMAS: joriy tilga
+      qarab `*_<lang>` olinadi, bo'sh bo'lsa `*_uz` ga qaytiladi. */
+
+var HRA_FTYPES   = ['text', 'textarea', 'number', 'date', 'tel', 'email', 'select', 'checkbox', 'file'];
+/* HR yozgan `section` ning mavjud qadamga mos kelishi (index.html `HRC_SEC_*`
+   bilan bitta ro'yxat). Boshqa (yoki bo'sh) `section` — oxirgi ma'lumot
+   qadamidagi "Qo'shimcha ma'lumot" bloki. */
+var HRA_SEC_STEP = { personal: 1, passport: 2, parent: 3, docs: 4 };
+var HRA_DYN_STEP = 4;   /* maxsus bo'limlar chiziladigan qadam (yuborishdan oldingi oxirgi) */
+
+/* TIZIM maydoni → MAVJUD element. Kalit — `hr_fields.col` (payload kaliti ham
+   AYNAN shu). Tartib = ekrandagi tartib (xulosa shu bo'yicha chiziladi). */
+var HRA_SYS_ORDER = [
+  { col: 'full_name',                  el: 'hraFullName',          step: 1 },
+  { col: 'birth_date',                 el: 'hraBirthDate',         step: 1 },
+  { col: 'gender',                     el: 'hraGender',            step: 1 },
+  { col: 'phone',                      el: 'hraPhone',             step: 1 },
+  { col: 'email',                      el: 'hraEmail',             step: 1 },
+  { col: 'address',                    el: 'hraAddress',           step: 1 },
+  { col: 'pinfl',                      el: 'hraPinfl',             step: 2 },
+  { col: 'passport_serial',            el: 'hraPassportSeries',    step: 2 },
+  { col: 'passport_issued_by',         el: 'hraPassportIssuedBy',  step: 2 },
+  { col: 'passport_issued_at',         el: 'hraPassportIssuedAt',  step: 2 },
+  { col: 'passport_expires_at',        el: 'hraPassportExpiresAt', step: 2 },
+  { col: 'parent_name',                el: 'hraParentName',        step: 3 },
+  { col: 'parent_phone',               el: 'hraParentPhone',       step: 3 },
+  { col: 'photo_path',                 file: 'photo',                 step: 4 },
+  { col: 'passport_front_path',        file: 'passport_front',        step: 4 },
+  { col: 'passport_back_path',         file: 'passport_back',         step: 4 },
+  { col: 'parent_passport_front_path', file: 'parent_passport_front', step: 4 },
+  { col: 'parent_passport_back_path',  file: 'parent_passport_back',  step: 4 },
+  { col: 'contract_path',              file: 'contract',              step: 4 }
+];
+
+var _hraFields      = [];                 /* serverdan kelgan tozalangan ro'yxat */
+var _hraById        = {};                 /* id → maydon */
+var _hraSysByCol    = {};                 /* col → maydon (faqat tizim) */
+var _hraCustom      = [];                 /* col yo'q (maxsus) maydonlar */
+var _hraStepFields  = { 1: [], 2: [], 3: [], 4: [] };
+var _hraExtraGroups = [];                 /* [{title, fields[]}] — "Qo'shimcha ma'lumot" */
+var _hraSkip        = {};                 /* {qadam: true} — butunlay bo'sh qadam */
+var _hraStepTitleOv = {};                 /* {qadam: 'kalit'} — sarlavha almashtirilgan */
+var _hraPaneSnap    = null;               /* qadam panellarining ASL HTML'i (zaxira uchun) */
+
+function hraDynOn() { return _hraFields.length > 0; }
+
+/* 🔴 TIZIM tomoni dinamik boshqariladimi?
+   Ro'yxatda BITTA ham tizim maydoni (`col`) bo'lmasa — bu workspace uchun
+   `hr_fields_seed()` chaqirilmagan, ya'ni katalogda faqat MAXSUS maydonlar
+   bor. Bunda tizim maydonlarini yashirsak nomzod F.I.O./passport/telefonni
+   umuman ko'rmasdi, server esa (hr_apply_submit, `v_dyn` faqat `col IS NOT
+   NULL` qatorlarni sanaydi) ESKI qat'iy majburiy ro'yxatni talab qilib
+   yuborishni RAD ETARDI — odam formadan hech qachon chiqa olmasdi.
+   Shuning uchun bunday holatda tizim tomoni AYNAN eskicha qoladi, maxsus
+   maydonlar esa ustiga qo'shiladi (serverdagi mantiqning nusxasi). */
+function hraSysDynOn() {
+  var k;
+  for (k in _hraSysByCol) {
+    if (Object.prototype.hasOwnProperty.call(_hraSysByCol, k)) { return true; }
+  }
+  return false;
+}
+
+/* Joriy tildagi qiymat, bo'sh bo'lsa o'zbekcha (yorliq hech qachon bo'sh emas) */
+function hraPick(row, prefix) {
+  if (!row) { return ''; }
+  var v = row[prefix + '_' + _hraLang];
+  if (v != null && String(v).trim() !== '') { return String(v); }
+  v = row[prefix + '_uz'];
+  return (v == null) ? '' : String(v);
+}
+function hraFieldName(f) { return hraPick(f, 'name') || String((f && f.key) || ''); }
+function hraFieldPh(f)   { return hraPick(f, 'placeholder'); }
+function hraOptLabel(o) {
+  if (!o) { return ''; }
+  var v = o[_hraLang];
+  if (v != null && String(v).trim() !== '') { return String(v); }
+  v = o.uz;
+  return String((v == null || String(v).trim() === '') ? o.value : v);
+}
+function hraOptions(f) {
+  var raw = (f && f.options) || [];
+  if (!Array.isArray(raw)) { return []; }
+  return raw.filter(function (o) { return o && o.value != null && String(o.value) !== ''; });
+}
+
+/* Maydon → DOM id / fayl kaliti */
+function hraDynInputId(f) { return 'hraD_'  + f.id; }
+function hraDynFileId(f)  { return 'hraDF_' + f.id; }
+function hraSysMeta(col)  {
+  var i;
+  for (i = 0; i < HRA_SYS_ORDER.length; i++) {
+    if (HRA_SYS_ORDER[i].col === col) { return HRA_SYS_ORDER[i]; }
+  }
+  return null;
+}
+/* `hrApplyFiles` / Storage yo'lidagi kalit. Maxsus faylda `f_<id>` —
+   SQL izohidagi naqsh (`apply/<token>/f_<field_id>-<rand>.<ext>`). */
+function hraFileKeyOf(f) {
+  if (!f.col) { return 'f_' + f.id; }
+  var m = hraSysMeta(f.col);
+  return (m && m.file) || '';
+}
+
+/* ── Serverdan kelgan ro'yxatni qabul qilish ─────────────────────────────── */
+function hraSetFields(list) {
+  _hraFields = []; _hraById = {}; _hraSysByCol = {}; _hraCustom = [];
+  _hraStepFields = { 1: [], 2: [], 3: [], 4: [] };
+  _hraExtraGroups = []; _hraSkip = {}; _hraStepTitleOv = {};
+  if (!Array.isArray(list) || !list.length) { return; }   /* 🔴 ZAXIRA: eski forma */
+
+  var i, r, out = [];
+  for (i = 0; i < list.length; i++) {
+    r = list[i];
+    if (!r || typeof r !== 'object' || r.id == null || String(r.id) === '') { continue; }
+    out.push({
+      id:       String(r.id),
+      key:      String(r.key || ''),
+      col:      (r.col == null || String(r.col) === '') ? '' : String(r.col),
+      /* Noma'lum tur (kelajakdagi yangi tur) — matn bo'lib chiziladi, yiqilmaydi */
+      ftype:    (HRA_FTYPES.indexOf(String(r.ftype)) >= 0) ? String(r.ftype) : 'text',
+      required: r.required === true,
+      name_uz: r.name_uz, name_ru: r.name_ru, name_en: r.name_en,
+      placeholder_uz: r.placeholder_uz, placeholder_ru: r.placeholder_ru, placeholder_en: r.placeholder_en,
+      options:  Array.isArray(r.options) ? r.options : [],
+      sort_order: Number(r.sort_order) || 0,
+      section:  String(r.section == null ? '' : r.section).trim()
+    });
+  }
+  /* Server ORDER BY sort_order, key bilan beradi — mahalliy saralash faqat
+     kafolat (agregat tartibi buzilsa ham ekran barqaror qolsin). */
+  out.sort(function (a, b) {
+    if (a.sort_order !== b.sort_order) { return a.sort_order - b.sort_order; }
+    return a.key < b.key ? -1 : (a.key > b.key ? 1 : 0);
+  });
+  if (!out.length) { return; }
+  _hraFields = out;
+  for (i = 0; i < out.length; i++) {
+    _hraById[out[i].id] = out[i];
+    if (out[i].col) { _hraSysByCol[out[i].col] = out[i]; } else { _hraCustom.push(out[i]); }
+  }
+  hraApplyFieldConfig();
+}
+
+/* 🔴 Yarim qo'llangan sozlama XAVFLI (majburiy maydon yashirin qolib ketishi
+   mumkin), shuning uchun panellarning ASL HTML'i saqlanadi va xatoda AYNAN
+   qaytariladi → sahifa eski qat'iy formaga tushadi (ishlaydigan holat). */
+function hraApplyFieldConfig() {
+  var i, p;
+  _hraPaneSnap = {};
+  for (i = 1; i <= 4; i++) { p = hraEl('hraPane' + i); if (p) { _hraPaneSnap[i] = p.innerHTML; } }
+  try {
+    hraSysApplyAll();
+    hraDynRender();
+    hraDynTidy();
+    hraDynStepHeads();
+    if (!hraStepOk(_hraStep)) { _hraStep = hraStepFirst(); }
+    if (_hraStep > _hraMaxStep) { _hraMaxStep = _hraStep; }
+  } catch (e) {
+    console.error('[hr-apply] dinamik maydonlar qo\'llanmadi — eski formaga qaytildi:', e);
+    hraDynRestore();
+  }
+}
+
+function hraDynRestore() {
+  var i, p;
+  for (i = 1; i <= 4; i++) {
+    p = hraEl('hraPane' + i);
+    if (p && _hraPaneSnap && _hraPaneSnap[i] != null) { p.innerHTML = _hraPaneSnap[i]; }
+  }
+  _hraFields = []; _hraById = {}; _hraSysByCol = {}; _hraCustom = [];
+  _hraStepFields = { 1: [], 2: [], 3: [], 4: [] };
+  _hraExtraGroups = []; _hraSkip = {}; _hraStepTitleOv = {};
+  hrApplyFiles = {};
+  var oc = hraEl('hraOptContract');
+  if (oc) { oc.hidden = false; }
+  _hraStep = 1;
+  try { hraI18nApplyDom(); } catch (e) { console.error('[hr-apply] i18n qayta qo\'llanmadi:', e); }
+}
+
+/* ── TIZIM maydonlari: mavjud bokslarni ko'rsatish/yashirish ─────────────── */
+function hraSysApplyAll() {
+  var i, m, f;
+  if (!hraSysDynOn()) { return; }   /* seed qilinmagan — eski forma tegilmaydi */
+  for (i = 0; i < HRA_SYS_ORDER.length; i++) {
+    m = HRA_SYS_ORDER[i];
+    f = _hraSysByCol[m.col] || null;
+    if (f) { _hraStepFields[m.step].push(f); }
+    if (m.file) { hraSysFileApply(m, f); } else { hraSysInputApply(m, f); }
+  }
+}
+
+function hraSysInputApply(m, f) {
+  var el = hraEl(m.el);
+  if (!el) { return; }
+  var fld = el.closest('.hra-fld');
+  if (!f) {
+    /* Serverda yo'q → nomzod ko'rmaydi va payload'ga tushmaydi */
+    el.removeAttribute('data-req');
+    el.removeAttribute('aria-required');
+    el.setAttribute('data-hra-off', '1');
+    if (fld) { fld.hidden = true; }
+    return;
+  }
+  el.removeAttribute('data-hra-off');
+  if (fld) { fld.hidden = false; fld.setAttribute('data-hra-fid', f.id); }
+  hraReqApply(el, fld, !!f.required);
+  hraSysLabelApply(fld, f);
+  if (f.ftype === 'select' && el.tagName === 'SELECT') { hraSelectOptions(el, f); }
+}
+
+function hraSysFileApply(m, f) {
+  var box = document.querySelector('.hra-fbox[data-key="' + m.file + '"]');
+  if (!box) { return; }
+  var inp = box.querySelector('.hra-fin');
+  if (!f) {
+    box.hidden = true;
+    if (inp) {
+      inp.removeAttribute('data-freq');
+      inp.removeAttribute('aria-required');
+      inp.setAttribute('data-hra-off', '1');
+    }
+    delete hrApplyFiles[m.file];
+    if (m.file === 'contract') { var oc0 = hraEl('hraOptContract'); if (oc0) { oc0.hidden = true; } }
+    return;
+  }
+  box.hidden = false;
+  box.setAttribute('data-hra-fid', f.id);
+  if (inp) {
+    inp.removeAttribute('data-hra-off');
+    if (f.required) { inp.setAttribute('data-freq', ''); inp.setAttribute('aria-required', 'true'); }
+    else { inp.removeAttribute('data-freq'); inp.removeAttribute('aria-required'); }
+  }
+  var ttl = box.querySelector('.hra-drop-t');
+  hraStarSet(ttl, !!f.required);
+  hraLabelSet(ttl, hraFieldName(f));
+  /* Shartnoma guruhidagi "ixtiyoriy" belgisi haqiqatga mos bo'lsin */
+  if (m.file === 'contract') {
+    var oc = hraEl('hraOptContract');
+    if (oc) { oc.hidden = !!f.required; }
+  }
+}
+
+/* Tizim maydonining yorlig'i/placeholder'i — HR nomi bo'lsa AYNAN u ko'rinadi.
+   ⚠️ `data-i18n*` olib tashlanadi: aks holda til almashganda `hraI18nApplyDom`
+   HR nomini o'zining statik matni bilan bosib ketardi. Til almashganda nom
+   `hraDynRelabel()` da `name_<lang>` dan qayta olinadi. */
+function hraSysLabelApply(fld, f) {
+  if (!fld) { return; }
+  var lab = fld.querySelector('label');
+  var nm = hraFieldName(f);
+  if (lab && nm) { hraLabelSet(lab, nm); }
+  var ph = hraFieldPh(f);
+  if (ph) {
+    var inp = fld.querySelector('.hra-inp, .hra-sel');
+    if (inp) { inp.setAttribute('placeholder', ph); }
+  }
+}
+
+/* Majburiylik: validatsiya bayrog'i + ko'zga ko'rinadigan belgilar */
+function hraReqApply(el, fld, req) {
+  if (req) { el.setAttribute('data-req', ''); el.setAttribute('aria-required', 'true'); }
+  else { el.removeAttribute('data-req'); el.removeAttribute('aria-required'); }
+  if (!fld) { return; }
+  var row = fld.querySelector('.hra-lblrow');
+  hraStarSet(fld.querySelector('label'), req);
+  hraOptSet(row, req);
+}
+
+/* Majburiylik yulduzchasi (`*`) — mavjud `.hra-req` naqshi */
+function hraStarSet(host, req) {
+  if (!host) { return; }
+  var star = host.querySelector('.hra-req');
+  var doc = host.ownerDocument;
+  if (req && !star) {
+    host.appendChild(doc.createTextNode(' '));
+    star = doc.createElement('span');
+    star.className = 'hra-req';
+    star.setAttribute('aria-hidden', 'true');
+    star.textContent = '*';
+    host.appendChild(star);
+  } else if (!req && star) {
+    var prev = star.previousSibling;
+    if (prev && prev.nodeType === 3 && !prev.nodeValue.trim()) { host.removeChild(prev); }
+    host.removeChild(star);
+  }
+}
+
+/* "ixtiyoriy" belgisi. Yangi qo'shilgani `data-hra-opt` bilan — til almashganda
+   `hraDynRelabel()` uni yangilaydi (statik belgilarni `data-i18n` boshqaradi). */
+function hraOptSet(row, req) {
+  if (!row) { return; }
+  var b = row.querySelector('.hra-opt');
+  if (!req && !b) {
+    b = row.ownerDocument.createElement('span');
+    b.className = 'hra-opt';
+    b.setAttribute('data-hra-opt', '1');
+    b.textContent = tr('hra.optional', 'ixtiyoriy');
+    row.appendChild(b);
+  } else if (req && b) {
+    b.parentNode.removeChild(b);
+  }
+}
+
+/* Yorliqning ASOSIY matn tugunini almashtiradi — `<span class="hra-req">*</span>`
+   va boshqa bolalar TEGILMAYDI (`data-i18n-txt` naqshi). */
+function hraLabelSet(host, text) {
+  if (!host) { return; }
+  host.removeAttribute('data-i18n');
+  host.removeAttribute('data-i18n-txt');
+  var i, node = null, ch = host.childNodes;
+  for (i = 0; i < ch.length; i++) {
+    if (ch[i].nodeType === 3 && (!node || ch[i].nodeValue.length > node.nodeValue.length)) { node = ch[i]; }
+  }
+  if (!node) {
+    node = host.ownerDocument.createTextNode('');
+    host.insertBefore(node, host.firstChild);
+  }
+  node.nodeValue = String(text || '') + (host.querySelector('.hra-req') ? ' ' : '');
+}
+
+/* `<select>` variantlari — qiymat SAQLANADI (til almashganda tanlov yo'qolmasin) */
+function hraSelectOptions(sel, f) {
+  var opts = hraOptions(f);
+  if (!opts.length) { return; }
+  var cur = sel.value;
+  var first = sel.querySelector('option[value=""]');
+  var keep = first ? first.outerHTML
+                   : '<option value="">' + hraEsc(hraFieldPh(f) || tr('hra.g_none', 'Tanlanmagan')) + '</option>';
+  var h = keep, i;
+  for (i = 0; i < opts.length; i++) {
+    h += '<option value="' + hraEsc(opts[i].value) + '">' + hraEsc(hraOptLabel(opts[i])) + '</option>';
+  }
+  sel.innerHTML = h;
+  sel.value = cur;
+}
+
+/* ── MAXSUS maydonlar: HTML ──────────────────────────────────────────────── */
+function hraDynCheck(f) {
+  if (f.ftype === 'number') { return 'num'; }
+  if (f.ftype === 'date')   { return 'dt'; }
+  if (f.ftype === 'tel')    { return 'telx'; }
+  if (f.ftype === 'email')  { return 'email'; }
+  return '';
+}
+
+function hraDynFieldHtml(f) {
+  var id   = hraDynInputId(f);
+  var eid  = hraEsc(id);
+  var name = hraEsc(hraFieldName(f));
+  var ph   = hraEsc(hraFieldPh(f));
+  var req  = !!f.required;
+  var star = req ? ' <span class="hra-req" aria-hidden="true">*</span>' : '';
+  var opt  = req ? '' : '<span class="hra-opt" data-hra-opt="1">' + hraEsc(tr('hra.optional', 'ixtiyoriy')) + '</span>';
+  var reqA = req ? ' data-req aria-required="true"' : '';
+  var chk  = hraDynCheck(f);
+  var chkA = chk ? ' data-check="' + chk + '"' : '';
+  var err  = '<p class="hra-err" id="' + eid + 'Err" role="alert" aria-live="polite"></p>';
+  var open = '<div class="hra-fld" data-hra-fid="' + hraEsc(f.id) + '">';
+  var head = '<div class="hra-lblrow"><label for="' + eid + '">' + name + star + '</label>' + opt + '</div>';
+
+  if (f.ftype === 'checkbox') {
+    return '<div class="hra-fld hra-dyncb" data-hra-fid="' + hraEsc(f.id) + '">' +
+        '<span class="hra-cb">' +
+          '<input type="checkbox" id="' + eid + '"' + reqA + ' aria-describedby="' + eid + 'Err" onchange="hraClearErr(this)">' +
+          '<svg class="hi" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>' +
+        '</span>' +
+        '<span class="hra-dyncb-m"><label for="' + eid + '">' + name + star + '</label>' + err + '</span>' +
+      '</div>';
+  }
+  if (f.ftype === 'select') {
+    var o = '<option value="">' + hraEsc(hraFieldPh(f) || tr('hra.g_none', 'Tanlanmagan')) + '</option>';
+    hraOptions(f).forEach(function (x) {
+      o += '<option value="' + hraEsc(x.value) + '">' + hraEsc(hraOptLabel(x)) + '</option>';
+    });
+    return open + head +
+      '<span class="hra-selwrap">' +
+        '<select class="hra-sel" id="' + eid + '"' + reqA + ' aria-describedby="' + eid + 'Err" onchange="hraClearErr(this)">' + o + '</select>' +
+        '<svg class="hi hi-16" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>' +
+      '</span>' + err + '</div>';
+  }
+  if (f.ftype === 'textarea') {
+    return open + head +
+      '<textarea class="hra-inp" id="' + eid + '" rows="2" maxlength="5000" placeholder="' + ph + '"' + reqA +
+        ' aria-describedby="' + eid + 'Err" oninput="hraClearErr(this)"></textarea>' + err + '</div>';
+  }
+  var ty = (f.ftype === 'date' || f.ftype === 'number' || f.ftype === 'tel' || f.ftype === 'email') ? f.ftype : 'text';
+  var ex = (ty === 'number') ? ' step="any" inputmode="decimal"'
+         : (ty === 'tel') ? ' inputmode="tel"'
+         : (ty === 'email') ? ' inputmode="email"' : '';
+  var ml = (ty === 'date' || ty === 'number') ? '' : ' maxlength="1000"';
+  return open + head +
+    '<input class="hra-inp" id="' + eid + '" type="' + ty + '" placeholder="' + ph + '"' + ml + reqA + chkA + ex +
+      ' aria-describedby="' + eid + 'Err" oninput="hraClearErr(this)">' + err + '</div>';
+}
+
+function hraDynFileHtml(f) {
+  var id   = hraDynFileId(f);
+  var eid  = hraEsc(id);
+  var key  = hraEsc('f_' + f.id);
+  var name = hraEsc(hraFieldName(f));
+  var req  = !!f.required;
+  var star = req ? ' <span class="hra-req" aria-hidden="true">*</span>' : '';
+  var sub  = hraEsc(hraFieldPh(f) || tr('hra.lim_doc', 'PDF · JPG · PNG, 10 MB gacha'));
+  return '<div class="hra-fbox" data-key="' + key + '" data-hra-fid="' + hraEsc(f.id) + '">' +
+      '<input class="hra-fin" type="file" id="' + eid + '" accept="application/pdf,image/jpeg,image/png,image/heic,image/heif"' +
+        (req ? ' data-freq aria-required="true"' : '') + ' data-kind="doc" aria-describedby="' + eid + 'Err" onchange="hraFileChange(this)">' +
+      '<label class="hra-drop" for="' + eid + '"' +
+        ' ondragover="hraDragOver(event, this)" ondragleave="hraDragLeave(event, this)" ondrop="hraDrop(event, \'' + eid + '\')">' +
+        '<span class="hra-drop-ic"><svg class="hi hi-18" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span>' +
+        '<span class="hra-drop-t">' + name + star + '</span>' +
+        '<span class="hra-drop-s">' + sub + '</span>' +
+        '<span class="hra-drop-b"><svg class="hi hi-14" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5-5 5 5"/><path d="M12 5v12"/></svg> <span data-i18n="hra.u_pick">Fayl tanlash</span></span>' +
+      '</label>' +
+      '<div class="hra-prev" hidden></div>' +
+      '<p class="hra-err" id="' + eid + 'Err" role="alert" aria-live="polite"></p>' +
+    '</div>';
+}
+
+/* Uch guruh — mavjud formadagi joylashuv naqshi: qisqa maydonlar setkada,
+   uzun/belgilash to'liq kenglikda, fayllar pastda. */
+function hraDynFieldsHtml(list) {
+  var grid = [], full = [], files = [], h = '';
+  (list || []).forEach(function (f) {
+    if (f.ftype === 'file') { files.push(hraDynFileHtml(f)); }
+    else if (f.ftype === 'textarea' || f.ftype === 'checkbox') { full.push(hraDynFieldHtml(f)); }
+    else { grid.push(hraDynFieldHtml(f)); }
+  });
+  if (grid.length)  { h += '<div class="hra-grid">' + grid.join('') + '</div>'; }
+  if (full.length)  { h += full.join(''); }
+  if (files.length) { h += '<div class="hra-fpair">' + files.join('') + '</div>'; }
+  return h;
+}
+
+function hraDynSecIcon() {
+  return '<svg class="hi hi-16" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>';
+}
+
+function hraDynRender() {
+  var i, f, step, groups = {}, order = [], pane, box, h;
+
+  /* 1) `section` mavjud qadamga mos → o'sha qadam oxiriga */
+  for (i = 0; i < _hraCustom.length; i++) {
+    f = _hraCustom[i];
+    step = HRA_SEC_STEP[f.section] || 0;
+    if (step) { _hraStepFields[step].push(f); continue; }
+    if (!groups[f.section]) { groups[f.section] = []; order.push(f.section); }
+    groups[f.section].push(f);
+  }
+  for (step = 1; step <= 4; step++) {
+    var own = _hraStepFields[step].filter(function (x) { return !x.col; });
+    if (!own.length) { continue; }
+    pane = hraEl('hraPane' + step);
+    if (!pane) { continue; }
+    box = document.createElement('div');
+    box.className = 'hra-dyn';
+    box.id = 'hraDyn' + step;
+    box.innerHTML = hraDynFieldsHtml(own);
+    pane.appendChild(box);
+    hraI18nApplyDom(box);
+  }
+
+  /* 2) Qolgani — "Qo'shimcha ma'lumot" (HR nomlagan bo'lsa o'sha nom) */
+  if (!order.length) { return; }
+  pane = hraEl('hraPane' + HRA_DYN_STEP);
+  if (!pane) { return; }
+  box = document.createElement('div');
+  box.className = 'hra-dyn';
+  box.id = 'hraDynX';
+  h = '';
+  order.forEach(function (k) {
+    var title = k || tr('hra.sec_extra', 'Qo\'shimcha ma\'lumot');
+    h += '<div class="hra-fgrp"><div class="hra-fgrp-h">' + hraDynSecIcon() +
+           '<h3 class="hra-h3"' + (k ? '' : ' data-hra-secx="1"') + '>' + hraEsc(title) + '</h3></div>' +
+         hraDynFieldsHtml(groups[k]) + '</div>';
+    _hraExtraGroups.push({ title: k, fields: groups[k] });
+  });
+  box.innerHTML = h;
+  pane.appendChild(box);
+  hraI18nApplyDom(box);
+}
+
+/* ── Bo'shab qolgan guruh / juftlik / qadam ──────────────────────────────── */
+/* 🔴 Tekshiruv QADAM PANELIDA to'xtaydi: ko'rinmayotgan qadamning paneli
+   (`hraPane2..5`) DOIM `hidden` — panelgacha yuqoriga chiqilsa, joriy bo'lmagan
+   qadamdagi HAR maydon "yashirin" deb hisoblanib validatsiyadan
+   (`hrApplyValidate`) va tozalashdan (`hraDynTidy`) chetda qolardi. */
+function hraElVisible(el) {
+  var n = el;
+  while (n && n.nodeType === 1) {
+    if (n.classList && n.classList.contains('hra-pane')) { return true; }
+    if (n.hidden) { return false; }
+    n = n.parentNode;
+  }
+  return true;
+}
+
+function hraDynTidy() {
+  var i, j, els, kids, vis, step, pane;
+
+  /* Juftlikdan bittasi yashirilsa — qolgani to'liq kenglikda */
+  els = document.querySelectorAll('.hra-fpair');
+  for (i = 0; i < els.length; i++) {
+    kids = els[i].children;   /* `:scope >` emas — eski brauzer/jsdom qorovuli */
+    vis = 0;
+    for (j = 0; j < kids.length; j++) {
+      if (kids[j].classList.contains('hra-fbox') && !kids[j].hidden) { vis++; }
+    }
+    if (!vis) { els[i].hidden = true; }
+    else if (vis === 1) { els[i].style.gridTemplateColumns = '1fr'; }
+  }
+  /* Ichida bitta ham fayl qolmagan guruh */
+  els = document.querySelectorAll('.hra-fgrp');
+  for (i = 0; i < els.length; i++) {
+    kids = els[i].querySelectorAll('.hra-fbox, .hra-fld');
+    vis = 0;
+    for (j = 0; j < kids.length; j++) { if (hraElVisible(kids[j])) { vis++; } }
+    if (!vis) { els[i].hidden = true; }
+  }
+  /* Butunlay bo'sh qadam — o'tkazib yuboriladi (bo'sh ekran ko'rsatilmaydi) */
+  for (step = 1; step <= 4; step++) {
+    pane = hraEl('hraPane' + step);
+    if (!pane) { _hraSkip[step] = true; continue; }
+    kids = pane.querySelectorAll('.hra-fld, .hra-fbox');
+    vis = 0;
+    for (j = 0; j < kids.length; j++) { if (hraElVisible(kids[j])) { vis++; break; } }
+    _hraSkip[step] = (vis === 0);
+  }
+}
+
+/* 4-qadam sarlavhasi: hujjat qolmasa "Hujjatlar" YOLG'ON bo'lib qolardi. */
+function hraDynStepHeads() {
+  var pane = hraEl('hraPane' + HRA_DYN_STEP);
+  if (!pane || _hraSkip[HRA_DYN_STEP]) { return; }
+  /* Seed qilinmagan holatda hujjatlar ro'yxati eskicha (5 ta majburiy +
+     shartnoma) — asl matn TO'G'RI, tegilmaydi. */
+  if (!hraSysDynOn()) { return; }
+  var hasFile = false, i;
+  var boxes = pane.querySelectorAll('.hra-fbox');
+  for (i = 0; i < boxes.length; i++) { if (hraElVisible(boxes[i])) { hasFile = true; break; } }
+
+  var h2 = pane.querySelector('.hra-shead h2');
+  var p  = pane.querySelector('.hra-shead p');
+  var lbl = document.querySelector('#hraSteps .hra-st[data-step="' + HRA_DYN_STEP + '"] .hra-st-l');
+  if (hasFile) {
+    /* Hujjat bor, lekin "5 ta hujjat majburiy" endi to'g'ri emas */
+    if (p) { p.removeAttribute('data-i18n'); p.textContent = tr('hra.s4_sub_dyn', 'Hujjatlarni yuklang — matn aniq va to\'liq ko\'rinsin.'); }
+    _hraStepTitleOv[HRA_DYN_STEP] = '';
+    return;
+  }
+  if (h2) { h2.removeAttribute('data-i18n'); h2.textContent = tr('hra.sec_extra', 'Qo\'shimcha ma\'lumot'); }
+  if (p)  { p.removeAttribute('data-i18n');  p.textContent  = tr('hra.s4_extra_sub', 'Quyidagi ma\'lumotlarni to\'ldiring.'); }
+  if (lbl) { lbl.removeAttribute('data-i18n'); lbl.textContent = tr('hra.sec_extra', 'Qo\'shimcha ma\'lumot'); }
+  _hraStepTitleOv[HRA_DYN_STEP] = 'extra';
+}
+
+/* ── Qadamlarni o'tkazib yuborish ────────────────────────────────────────── */
+function hraStepOk(n)   { return n === HRA_STEPS_N || !_hraSkip[n]; }
+function hraStepFirst() { var i; for (i = 1; i <= HRA_STEPS_N; i++) { if (hraStepOk(i)) { return i; } } return HRA_STEPS_N; }
+function hraStepNext(n) { var i; for (i = n + 1; i <= HRA_STEPS_N; i++) { if (hraStepOk(i)) { return i; } } return n; }
+function hraStepPrev(n) { var i; for (i = n - 1; i >= 1; i--) { if (hraStepOk(i)) { return i; } } return 0; }
+function hraStepsVisible() {
+  var out = [], i;
+  for (i = 1; i <= HRA_STEPS_N; i++) { if (hraStepOk(i)) { out.push(i); } }
+  return out;
+}
+
+/* ── Til almashganda: yorliqlar qayta chiziladi, QIYMATLAR tegilmaydi ────── */
+function hraDynRelabel() {
+  if (!hraDynOn()) { return; }
+  var els = document.querySelectorAll('[data-hra-fid]'), i, el, f, host, ph, inp;
+  for (i = 0; i < els.length; i++) {
+    el = els[i];
+    f = _hraById[el.getAttribute('data-hra-fid')];
+    if (!f) { continue; }
+    host = el.classList.contains('hra-fbox') ? el.querySelector('.hra-drop-t') : el.querySelector('label');
+    hraLabelSet(host, hraFieldName(f));
+    ph = hraFieldPh(f);
+    inp = el.querySelector('.hra-inp, .hra-sel');
+    if (inp && ph) { inp.setAttribute('placeholder', ph); }
+    if (f.ftype === 'select' && inp && inp.tagName === 'SELECT') { hraSelectOptions(inp, f); }
+    if (f.ftype === 'file' && !f.col) {
+      var s = el.querySelector('.hra-drop-s');
+      if (s) { s.textContent = ph || tr('hra.lim_doc', 'PDF · JPG · PNG, 10 MB gacha'); }
+    }
+  }
+  els = document.querySelectorAll('[data-hra-opt]');
+  for (i = 0; i < els.length; i++) { els[i].textContent = tr('hra.optional', 'ixtiyoriy'); }
+  els = document.querySelectorAll('[data-hra-secx]');
+  for (i = 0; i < els.length; i++) { els[i].textContent = tr('hra.sec_extra', 'Qo\'shimcha ma\'lumot'); }
+  hraDynStepHeads();
+}
+
+/* ── Qiymatlar (payload / xulosa) ────────────────────────────────────────── */
+/* Maxsus maydonning XOM qiymati — serverga aynan shu ketadi */
+function hraDynRaw(f) {
+  var el = hraEl(hraDynInputId(f));
+  if (!el) { return ''; }
+  if (f.ftype === 'checkbox') { return el.checked ? 'true' : 'false'; }
+  return String(el.value == null ? '' : el.value).trim();
+}
+/* Ekranda ko'rinadigan qiymat (xulosa uchun) */
+function hraDynShow(f) {
+  var id = f.col ? ((hraSysMeta(f.col) || {}).el || '') : hraDynInputId(f);
+  var el = id ? hraEl(id) : null;
+  if (!el) { return ''; }
+  if (f.ftype === 'checkbox') { return el.checked ? tr('hra.yes', 'Ha') : tr('hra.no', 'Yo\'q'); }
+  if (el.tagName === 'SELECT') {
+    var o = el.options[el.selectedIndex];
+    return (o && o.value) ? o.textContent : '';
+  }
+  return String(el.value == null ? '' : el.value).trim();
+}
+
+/* Yuklanadigan fayl kalitlari: tizim + HR qo'shgan maxsus fayl maydonlari */
+function hraUploadKeys() {
+  if (!hraDynOn()) { return HRA_UP_KEYS.slice(); }
+  /* 🔴 Seed qilinmagan holatda tizim fayllari ESKI ro'yxatdan olinadi —
+     aks holda passport/foto UMUMAN yuklanmasdi (hraSysDynOn izohi). */
+  var out = hraSysDynOn() ? [] : HRA_UP_KEYS.slice();
+  var i, f, k;
+  for (i = 0; i < _hraFields.length; i++) {
+    f = _hraFields[i];
+    if (f.ftype !== 'file') { continue; }
+    k = hraFileKeyOf(f);
+    if (k && out.indexOf(k) < 0) { out.push(k); }
+  }
+  return out;
+}
+
+/* ── Xulosa (5-qadam) — dinamik shox ─────────────────────────────────────── */
+function hraStepRecapTitle(step) {
+  if (step === 1) { return tr('hra.recap_personal', HRA_TXT.recapPersonal); }
+  if (step === 2) { return tr('hra.recap_passport', HRA_TXT.recapPassport); }
+  if (step === 3) { return tr('hra.recap_parent', HRA_TXT.recapParent); }
+  if (_hraStepTitleOv[HRA_DYN_STEP] === 'extra') { return tr('hra.sec_extra', 'Qo\'shimcha ma\'lumot'); }
+  return tr('hra.recap_files', HRA_TXT.recapFiles);
+}
+
+function hraDynRecapRow(f) {
+  if (f.ftype === 'file') {
+    return hraFileRow(hraFieldName(f), hraFileKeyOf(f), !f.required);
+  }
+  return hraRow(hraFieldName(f), hraDynShow(f));
+}
+
+/* FAQAT maxsus maydonlar (eski xulosaga qo'shiladigan qism) */
+function hraDynRecapCustomHtml() {
+  var out = '', step, rows;
+  for (step = 1; step <= 4; step++) {
+    rows = '';
+    (_hraStepFields[step] || []).forEach(function (f) { if (!f.col) { rows += hraDynRecapRow(f); } });
+    if (rows) { out += hraGroup(hraStepRecapTitle(step), step, rows); }
+  }
+  _hraExtraGroups.forEach(function (g) {
+    var r = '';
+    g.fields.forEach(function (f) { r += hraDynRecapRow(f); });
+    if (r) { out += hraGroup(g.title || tr('hra.sec_extra', 'Qo\'shimcha ma\'lumot'), HRA_DYN_STEP, r); }
+  });
+  return out;
+}
+
+function hraBuildRecapDyn() {
+  var wrap = hraEl('hraRecap');
+  if (!wrap) { return; }
+  var html = '', step, rows;
+  for (step = 1; step <= 4; step++) {
+    if (_hraSkip[step]) { continue; }
+    rows = '';
+    (_hraStepFields[step] || []).forEach(function (f) { rows += hraDynRecapRow(f); });
+    if (!rows) { continue; }
+    html += hraGroup(hraStepRecapTitle(step), step, rows);
+  }
+  _hraExtraGroups.forEach(function (g) {
+    var r = '';
+    g.fields.forEach(function (f) { r += hraDynRecapRow(f); });
+    if (r) { html += hraGroup(g.title || tr('hra.sec_extra', 'Qo\'shimcha ma\'lumot'), HRA_DYN_STEP, r); }
+  });
+  wrap.innerHTML = html;
+}
+
 /* ═════════════════════ HOLAT ALMASHTIRISH (coder ilmog'i) ════════════════ */
 /* hrApplySetState('loading'|'invalid'|'used'|'expired'|'form'|'done') */
 function hrApplySetState(state) {
@@ -1794,12 +2552,21 @@ function hraStepUi() {
     if (pane) { pane.hidden = (i !== _hraStep); }
   }
 
+  /* Dinamik rejimda butunlay bo'sh qadam KO'RSATILMAYDI — raqamlar ham
+     ko'rinadigan qadamlar bo'yicha qayta hisoblanadi (1,2,4,5 bo'lib qolmasin). */
+  var vis = hraStepsVisible();
   var sts = document.querySelectorAll('#hraSteps .hra-st');
   for (i = 0; i < sts.length; i++) {
     st = sts[i];
     var n = Number(st.getAttribute('data-step'));
+    var pos = vis.indexOf(n);
+    st.hidden = (pos < 0);
     st.classList.toggle('on', n === _hraStep);
-    st.classList.toggle('ok', n < _hraStep);
+    st.classList.toggle('ok', n < _hraStep && pos >= 0);
+    var dg = st.querySelector('.hra-st-d');
+    if (dg && pos >= 0) { dg.textContent = String(pos + 1); }
+    var ln = st.querySelector('.hra-st-line');
+    if (ln) { ln.hidden = (pos < 0 || pos === vis.length - 1); }
     btn = st.querySelector('.hra-st-btn');
     if (btn) {
       btn.disabled = (n > _hraMaxStep);
@@ -1808,14 +2575,22 @@ function hraStepUi() {
   }
 
   var pt = hraEl('hraProgTitle');
-  if (pt) { pt.textContent = tr('hra.step_title_' + _hraStep, HRA_TXT.stepTitles[_hraStep - 1] || ''); }
+  if (pt) {
+    pt.textContent = (_hraStepTitleOv[_hraStep] === 'extra')
+      ? tr('hra.sec_extra', 'Qo\'shimcha ma\'lumot')
+      : tr('hra.step_title_' + _hraStep, HRA_TXT.stepTitles[_hraStep - 1] || '');
+  }
+  var curPos = vis.indexOf(_hraStep);
+  if (curPos < 0) { curPos = 0; }
   var pn = hraEl('hraProgN');
-  if (pn) { pn.textContent = String(_hraStep); }
+  if (pn) { pn.textContent = String(curPos + 1); }
+  var ptot = hraEl('hraProgTot');
+  if (ptot) { ptot.textContent = String(vis.length); }
   var pb = hraEl('hraProgBar');
-  if (pb) { pb.style.width = Math.round(_hraStep / HRA_STEPS_N * 100) + '%'; }
+  if (pb) { pb.style.width = Math.round((curPos + 1) / (vis.length || 1) * 100) + '%'; }
 
   var back = hraEl('hraBackBtn');
-  if (back) { back.hidden = (_hraStep === 1); }
+  if (back) { back.hidden = (hraStepPrev(_hraStep) === 0); }
   var next = hraEl('hraNextBtn');
   var subm = hraEl('hraSubmitBtn');
   var last = (_hraStep === HRA_STEPS_N);
@@ -1826,16 +2601,18 @@ function hraStepUi() {
 
 function hraNext() {
   if (!hraValidateStep(_hraStep)) { return; }
-  if (_hraStep >= HRA_STEPS_N) { return; }
-  _hraStep += 1;
+  var nx = hraStepNext(_hraStep);   /* bo'sh qadam o'tkazib yuboriladi */
+  if (nx === _hraStep) { return; }
+  _hraStep = nx;
   if (_hraStep > _hraMaxStep) { _hraMaxStep = _hraStep; }
   hraStepUi();
   hraScrollTop();
 }
 
 function hraBack() {
-  if (_hraStep <= 1) { return; }
-  _hraStep -= 1;
+  var pv = hraStepPrev(_hraStep);
+  if (!pv) { return; }
+  _hraStep = pv;
   hraStepUi();
   hraScrollTop();
 }
@@ -1845,6 +2622,7 @@ function hraGoStep(n) {
   n = Number(n) || 1;
   if (n === _hraStep) { return; }
   if (n > _hraMaxStep) { return; }
+  if (!hraStepOk(n)) { return; }
   /* Oldinga siljishda joriy qadam validatsiyadan o'tsin */
   if (n > _hraStep && !hraValidateStep(_hraStep)) { return; }
   _hraStep = n;
@@ -1867,6 +2645,9 @@ function hraShowErr(el, msg) {
     if (fb) { fb.classList.add('bad'); }
   } else {
     el.setAttribute('aria-invalid', 'true');
+    /* Belgilash katagida `aria-invalid` ko'zga ko'rinmaydi — ramka qizaradi */
+    var cb = el.closest('.hra-dyncb');
+    if (cb) { cb.classList.add('bad'); }
   }
 }
 
@@ -1879,7 +2660,21 @@ function hraClearErr(el) {
     if (fb) { fb.classList.remove('bad'); }
   } else {
     el.removeAttribute('aria-invalid');
+    var cb = el.closest('.hra-dyncb');
+    if (cb) { cb.classList.remove('bad'); }
   }
+}
+
+/* `<select>` qiymati o'z variantlari ichidami? (bo'sh qiymat — "tanlanmagan",
+   uni majburiylik tekshiruvi hal qiladi) */
+function hraOptOk(sel) {
+  var v = String(sel.value || '');
+  if (!v) { return true; }
+  var i;
+  for (i = 0; i < sel.options.length; i++) {
+    if (sel.options[i].value === v) { return true; }
+  }
+  return false;
 }
 
 /* Format tekshiruvlari → xato matni yoki '' */
@@ -1901,6 +2696,20 @@ function hraCheck(kind, val) {
   }
   if (kind === 'phone')    { return hraPhoneDigits(v).length === 12 ? '' : tr('hra.err_phone', HRA_TXT.errPhone); }
   if (kind === 'email')    { return /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(v) ? '' : tr('hra.err_email', HRA_TXT.errEmail); }
+  /* ── HR qo'shgan maxsus maydonlar (server tekshiruvlari bilan bir xil) ──
+     ⚠️ `telx` — `phone` DAN BOSHQA: maxsus telefon maydoni chet el raqami ham
+     bo'lishi mumkin, server 7–15 raqam kutadi (+998 mask'i majburlanmaydi). */
+  if (kind === 'telx') {
+    var d = v.replace(/[^0-9]/g, '');
+    return (d.length >= 7 && d.length <= 15 && v.length <= 30) ? '' : tr('hra.err_tel', HRA_TXT.errTel);
+  }
+  if (kind === 'num') {
+    return /^-?[0-9]+([.,][0-9]+)?$/.test(v) ? '' : tr('hra.err_number', HRA_TXT.errNumber);
+  }
+  if (kind === 'dt') {
+    var dd = new Date(v + 'T00:00:00');
+    return (/^\d{4}-\d{2}-\d{2}$/.test(v) && !isNaN(dd.getTime())) ? '' : tr('hra.err_date', HRA_TXT.errDate);
+  }
   if (kind === 'addr')     { return v.length >= 8 ? '' : tr('hra.err_addr', HRA_TXT.errAddr); }
   if (kind === 'pinfl')    { return /^[0-9]{14}$/.test(v) ? '' : tr('hra.err_pinfl', HRA_TXT.errPinfl); }
   if (kind === 'passport') { return /^[A-Z]{2}[0-9]{7}$/.test(v.toUpperCase()) ? '' : tr('hra.err_passport', HRA_TXT.errPassport); }
@@ -1921,12 +2730,23 @@ function hraValidateStep(step, focusFirst) {
   for (i = 0; i < fields.length; i++) {
     el = fields[i];
     if (el.type === 'file') { continue; }
+    /* Yashirilgan (serverda yo'q) maydon tekshirilmaydi — `data-req` allaqachon
+       olib tashlangan, bu ikkinchi qorovul (qo'lda DOM o'zgartirilsa ham). */
+    if (el.getAttribute('data-hra-off') === '1' || !hraElVisible(el)) { continue; }
     hraClearErr(el);
     msg = '';
-    if (!String(el.value || '').trim()) {
+    if (el.type === 'checkbox') {
+      /* HR qo'shgan majburiy belgilash katagi (server: 'true' bo'lishi shart) */
+      msg = el.checked ? '' : tr('hra.err_check', HRA_TXT.errCheck);
+    } else if (!String(el.value || '').trim()) {
       msg = tr('hra.err_required', HRA_TXT.errRequired);
     } else {
       msg = hraCheck(el.getAttribute('data-check') || '', el.value);
+      /* 🔴 Tanlangan variant KATALOGDA bormi (server ham aynan shuni talab
+         qiladi) — DOM qo'lda o'zgartirilgan bo'lsa ham begona qiymat o'tmasin. */
+      if (!msg && el.tagName === 'SELECT' && !hraOptOk(el)) {
+        msg = tr('hra.err_select', HRA_TXT.errSelect);
+      }
     }
     if (msg) {
       hraShowErr(el, msg);
@@ -1939,6 +2759,7 @@ function hraValidateStep(step, focusFirst) {
   var files = pane.querySelectorAll('[data-freq]');
   for (i = 0; i < files.length; i++) {
     el = files[i];
+    if (el.getAttribute('data-hra-off') === '1' || !hraElVisible(el)) { continue; }
     var key = hraKeyOf(el);
     if (!hrApplyFiles[key]) {
       hraShowErr(el, tr('hra.err_file_req', HRA_TXT.errFileReq));
@@ -1985,6 +2806,7 @@ function hraFocusBad(el) {
 function hrApplyValidate() {
   var i, firstBad = 0;
   for (i = 1; i <= HRA_STEPS_N; i++) {
+    if (!hraStepOk(i)) { continue; }   /* bo'sh qadam — tekshiriladigan narsa yo'q */
     if (!hraValidateStep(i, false) && !firstBad) { firstBad = i; }
   }
   if (firstBad) {
@@ -2280,6 +3102,10 @@ function hraGroup(title, step, rows) {
 function hraBuildRecap() {
   var wrap = hraEl('hraRecap');
   if (!wrap) { return; }
+  /* 🔴 ZAXIRA: dinamik sozlama yo'q → pastdagi ESKI xulosa AYNAN avvalgidek.
+     Seed qilinmagan holatda ham eski xulosa chiziladi, maxsus maydonlar esa
+     oxiriga qo'shiladi (`hraSysDynOn()` izohiga qarang). */
+  if (hraDynOn() && hraSysDynOn()) { hraBuildRecapDyn(); return; }
   var g = hraEl('hraGender');
   var gv = g ? g.value : '';
   var gender = gv === 'm' ? tr('hra.gender_m', HRA_TXT.genderM)
@@ -2313,6 +3139,9 @@ function hraBuildRecap() {
     hraFileRow(hraUpLabel('parent_passport_front'), 'parent_passport_front') +
     hraFileRow(hraUpLabel('parent_passport_back'), 'parent_passport_back') +
     hraFileRow(hraUpLabel('contract'), 'contract', true));
+
+  /* Seed qilinmagan workspace: eski xulosa + HR qo'shgan maxsus maydonlar */
+  if (hraDynOn()) { html += hraDynRecapCustomHtml(); }
 
   wrap.innerHTML = html;
 }
@@ -2548,7 +3377,9 @@ async function hraUploadAll(sb) {
   /* 🔴 Faqat HAQIQATDA tanlangan fayllar yuklanadi: shartnoma (D10) ixtiyoriy,
      tanlanmasa `hraUploadOne` "fayl tanlanmagan" deb yiqilardi. Majburiy fayl
      yetishmasa bu yergacha yetib kelinmaydi — `hrApplyValidate()` to'sadi. */
-  var keys = HRA_UP_KEYS.filter(function (k) { return !!hrApplyFiles[k]; });
+  /* 🔴 `hraUploadKeys()` — dinamik rejimda HR qo'shgan fayl maydonlari ham
+     kiradi; zaxirada AYNAN `HRA_UP_KEYS` qaytadi (eski xatti-harakat). */
+  var keys = hraUploadKeys().filter(function (k) { return !!hrApplyFiles[k]; });
   var paths = {}, doneN = 0, idx = 0, failed = null, pool = [], i;
 
   hraBtnText(tr('hra.up_progress', HRA_TXT.upProgress, 0, keys.length));
@@ -2614,6 +3445,37 @@ function hraPayload(paths) {
     k = HRA_UP_KEYS[i];
     p[HRA_PATH_FIELD[k]] = paths[k] || '';
   }
+  /* 🔴 ZAXIRA: dinamik sozlama yo'q → payload AYNAN avvalgidek (fields/files yo'q) */
+  if (!hraDynOn()) { return p; }
+  return hraPayloadDyn(p, paths);
+}
+
+/* Dinamik rejim:
+   • TIZIM maydoni — kaliti AYNAN `col` (oq ro'yxat o'zgarmaydi). Serverda
+     bo'lmagani (nomzodga ko'rsatilmagani) YUBORILMAYDI.
+   • MAXSUS maydon — `fields[<field_id>]` (matn) / `files[<field_id>]` (yo'l).
+     🔴 `col` to'lgan maydon `fields` ga HECH QACHON tushmaydi — server uni
+     u yerdan qabul qilmaydi (SQL 9-bo'lim). */
+function hraPayloadDyn(p, paths) {
+  if (hraSysDynOn()) {
+    var keep = { consent: 1, consent_version: 1 };
+    Object.keys(p).forEach(function (k) {
+      if (!keep[k] && !_hraSysByCol[k]) { delete p[k]; }
+    });
+  }   /* aks holda tizim tomoni ESKI oq ro'yxat bilan to'liq ketadi */
+  var fields = {}, files = {};
+  _hraCustom.forEach(function (f) {
+    if (f.ftype === 'file') {
+      var fp = paths['f_' + f.id];
+      if (fp) { files[f.id] = fp; }
+      return;
+    }
+    var v = hraDynRaw(f);
+    /* Bo'sh javob yuborilmaydi — server HR kiritgan qiymatni saqlab qoladi */
+    if (v !== '') { fields[f.id] = v; }
+  });
+  p.fields = fields;
+  p.files  = files;
   return p;
 }
 
@@ -2747,6 +3609,10 @@ async function hraBoot() {
     }
     if (d.state === 'open') {
       hraSetCompany(d.company_name || '');
+      /* 🔴 `hrApplySetState('form')` DAN OLDIN: u `hraStepUi()` ni chaqiradi va
+         qadam/progress allaqachon yangi sozlamaga qarab chizilishi kerak.
+         `fields` yo'q/bo'sh bo'lsa hech narsa o'zgarmaydi (eski forma). */
+      hraSetFields(d.fields);
       hrApplySetState('form');
       return;
     }

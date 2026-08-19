@@ -35,9 +35,9 @@
     "en": "Sending…"
   },
   "au.signup_ok": {
-    "uz": "✓ Hisob yaratildi! Emailingizga tasdiqlash havolasi yuborildi. Spam papkangizni ham tekshiring.",
-    "ru": "✓ Аккаунт создан! На вашу почту отправлена ссылка для подтверждения. Проверьте и папку «Спам».",
-    "en": "✓ Account created! We sent a confirmation link to your email. Check your spam folder too."
+    "uz": "Hisob yaratildi! Emailingizga tasdiqlash havolasi yuborildi. Spam papkangizni ham tekshiring.",
+    "ru": "Аккаунт создан! На вашу почту отправлена ссылка для подтверждения. Проверьте и папку «Спам».",
+    "en": "Account created! We sent a confirmation link to your email. Check your spam folder too."
   },
   "au.unexpected_error": {
     "uz": "Kutilmagan xatolik.",
@@ -50,9 +50,9 @@
     "en": "Only the acceptor can approve"
   },
   "common.accepted_done": {
-    "uz": "✅ Qabul qilindi — Bajarildi",
-    "ru": "✅ Принято — Выполнено",
-    "en": "✅ Accepted — Completed"
+    "uz": "Qabul qilindi — Bajarildi",
+    "ru": "Принято — Выполнено",
+    "en": "Accepted — Completed"
   },
   "common.action_delete": {
     "uz": "O'chirish",
@@ -80,9 +80,9 @@
     "en": "Add to the organization"
   },
   "common.added_ok": {
-    "uz": "✅ Qo'shildi",
-    "ru": "✅ Добавлено",
-    "en": "✅ Added"
+    "uz": "Qo'shildi",
+    "ru": "Добавлено",
+    "en": "Added"
   },
   "common.ago_days": {
     "uz": "kun oldin",
@@ -125,9 +125,9 @@
     "en": "and {0} more…"
   },
   "common.approve_btn": {
-    "uz": "✓ Tasdiqlash",
-    "ru": "✓ Подтвердить",
-    "en": "✓ Approve"
+    "uz": "Tasdiqlash",
+    "ru": "Подтвердить",
+    "en": "Approve"
   },
   "common.assign_task_btn": {
     "uz": "Vazifa berish",
@@ -140,9 +140,9 @@
     "en": "Delete this file?"
   },
   "common.back_to_departments": {
-    "uz": "← Bo'limlar",
-    "ru": "← Отделы",
-    "en": "← Departments"
+    "uz": "Bo'limlar",
+    "ru": "Отделы",
+    "en": "Departments"
   },
   "common.badge_disabled": {
     "uz": "O'chirilgan",
@@ -190,9 +190,9 @@
     "en": "First connect your Telegram bot on the \"Qo'shimcha service\" page."
   },
   "common.bot_connected_info": {
-    "uz": "✅ Bot ulangan: <b>@{0}</b>",
-    "ru": "✅ Бот подключён: <b>@{0}</b>",
-    "en": "✅ Bot connected: <b>@{0}</b>"
+    "uz": "Bot ulangan: <b>@{0}</b>",
+    "ru": "Бот подключён: <b>@{0}</b>",
+    "en": "Bot connected: <b>@{0}</b>"
   },
   "common.bot_fallback_message": {
     "uz": "ℹ Noma'lum xabar. /help — barcha komandalar.",
@@ -200,9 +200,9 @@
     "en": "ℹ Unknown message. /help — all commands."
   },
   "common.bot_link_ready": {
-    "uz": "✓ Link tayyor",
-    "ru": "✓ Ссылка готова",
-    "en": "✓ Link ready"
+    "uz": "Link tayyor",
+    "ru": "Ссылка готова",
+    "en": "Link ready"
   },
   "common.bot_name_fallback": {
     "uz": "Bot",
@@ -210,9 +210,9 @@
     "en": "Bot"
   },
   "common.bot_not_connected_title": {
-    "uz": "⚠ Bot ulanmagan.",
-    "ru": "⚠ Бот не подключён.",
-    "en": "⚠ Bot is not connected."
+    "uz": "Bot ulanmagan.",
+    "ru": "Бот не подключён.",
+    "en": "Bot is not connected."
   },
   "common.bot_not_connected_toast": {
     "uz": "Bot ulanmagan",
@@ -245,9 +245,9 @@
     "en": "Default values restored (press \"Save\" to apply)"
   },
   "common.bot_settings_saved": {
-    "uz": "✓ Bot sozlamalari saqlandi",
-    "ru": "✓ Настройки бота сохранены",
-    "en": "✓ Bot settings saved"
+    "uz": "Bot sozlamalari saqlandi",
+    "ru": "Настройки бота сохранены",
+    "en": "Bot settings saved"
   },
   "common.bot_user": {
     "uz": "Bot user",
@@ -280,9 +280,9 @@
     "en": "Reset the webhook?"
   },
   "common.bot_webhook_reset_info": {
-    "uz": "ℹ Webhook'ni qayta o'rnatish uchun: \"Qo'shimcha service\" sahifasidan Telegram botini o'chirib, qaytadan ulang.",
-    "ru": "ℹ Чтобы переустановить webhook: на странице \"Qo'shimcha service\" отключите Telegram-бота и подключите заново.",
-    "en": "ℹ To reset the webhook: on the \"Qo'shimcha service\" page disconnect the Telegram bot and connect it again."
+    "uz": "Webhook'ni qayta o'rnatish uchun: \"Qo'shimcha service\" sahifasidan Telegram botini o'chirib, qaytadan ulang.",
+    "ru": "Чтобы переустановить webhook: на странице \"Qo'shimcha service\" отключите Telegram-бота и подключите заново.",
+    "en": "To reset the webhook: on the \"Qo'shimcha service\" page disconnect the Telegram bot and connect it again."
   },
   "common.bot_webhook_reset_info2": {
     "uz": "Yoki @BotFather'da /revoke qilib yangi token oling va ulang.",
@@ -305,9 +305,9 @@
     "en": "Edit branch"
   },
   "common.branch_employee_count": {
-    "uz": "👥 {0} xodim",
-    "ru": "👥 {0} сотр.",
-    "en": "👥 {0} employees"
+    "uz": "{0} xodim",
+    "ru": "{0} сотр.",
+    "en": "{0} employees"
   },
   "common.branch_new": {
     "uz": "Yangi filial",
@@ -330,9 +330,9 @@
     "en": "No branches"
   },
   "common.btn_retry_check": {
-    "uz": "✓ Qayta urinish",
-    "ru": "✓ Повторить",
-    "en": "✓ Retry"
+    "uz": "Qayta urinish",
+    "ru": "Повторить",
+    "en": "Retry"
   },
   "common.busy_working": {
     "uz": "Bajarilmoqda…",
@@ -380,19 +380,19 @@
     "en": "+{0} more"
   },
   "common.cal_next": {
-    "uz": "Keyingi →",
-    "ru": "Вперёд →",
-    "en": "Next →"
+    "uz": "Keyingi",
+    "ru": "Вперёд",
+    "en": "Next"
   },
   "common.cal_prev": {
-    "uz": "← Avvalgi",
-    "ru": "← Назад",
-    "en": "← Previous"
+    "uz": "Avvalgi",
+    "ru": "Назад",
+    "en": "Previous"
   },
   "common.cancelled_ok": {
-    "uz": "✓ Bekor qilindi",
-    "ru": "✓ Отменено",
-    "en": "✓ Cancelled"
+    "uz": "Bekor qilindi",
+    "ru": "Отменено",
+    "en": "Cancelled"
   },
   "common.cancelled_word": {
     "uz": "bekor qilindi",
@@ -400,9 +400,9 @@
     "en": "cancelled"
   },
   "common.changed_ok": {
-    "uz": "✓ O'zgartirildi",
-    "ru": "✓ Изменено",
-    "en": "✓ Changed"
+    "uz": "O'zgartirildi",
+    "ru": "Изменено",
+    "en": "Changed"
   },
   "common.check_failed": {
     "uz": "Tekshirib bo'lmadi: {0}",
@@ -650,9 +650,9 @@
     "en": "Creating… 0/{0}"
   },
   "common.create_slow_ok": {
-    "uz": "✓ Ulanish sekin, lekin vazifa yaratildi",
-    "ru": "✓ Соединение медленное, но задача создана",
-    "en": "✓ Connection is slow, but the task was created"
+    "uz": "Ulanish sekin, lekin vazifa yaratildi",
+    "ru": "Соединение медленное, но задача создана",
+    "en": "Connection is slow, but the task was created"
   },
   "common.csv_col_assignee": {
     "uz": "Mas'ul",
@@ -670,9 +670,9 @@
     "en": "Created by"
   },
   "common.csv_downloaded": {
-    "uz": "✓ CSV yuklandi",
-    "ru": "✓ CSV загружен",
-    "en": "✓ CSV downloaded"
+    "uz": "CSV yuklandi",
+    "ru": "CSV загружен",
+    "en": "CSV downloaded"
   },
   "common.csv_file_prefix": {
     "uz": "vazifalar-",
@@ -725,9 +725,9 @@
     "en": "Deleted, but the list didn't refresh — reload the page"
   },
   "common.deleted_ok": {
-    "uz": "🗑 O'chirildi",
-    "ru": "🗑 Удалено",
-    "en": "🗑 Deleted"
+    "uz": "O'chirildi",
+    "ru": "Удалено",
+    "en": "Deleted"
   },
   "common.deleting": {
     "uz": "O'chirilmoqda…",
@@ -740,9 +740,9 @@
     "en": "Closed"
   },
   "common.dept_created": {
-    "uz": "✅ Bo'lim yaratildi",
-    "ru": "✅ Отдел создан",
-    "en": "✅ Department created"
+    "uz": "Bo'lim yaratildi",
+    "ru": "Отдел создан",
+    "en": "Department created"
   },
   "common.dept_delete_confirm": {
     "uz": "Bo'limni o'chirasizmi? Ichidagi vazifalar \"bo'limsiz\" bo'lib qoladi.",
@@ -765,9 +765,9 @@
     "en": "No departments yet"
   },
   "common.dept_enter": {
-    "uz": "Kirish →",
-    "ru": "Открыть →",
-    "en": "Open →"
+    "uz": "Kirish",
+    "ru": "Открыть",
+    "en": "Open"
   },
   "common.dept_join": {
     "uz": "A'zo bo'lish",
@@ -785,9 +785,9 @@
     "en": "Join the department — access is required"
   },
   "common.dept_joined_ok": {
-    "uz": "✅ A'zo bo'ldingiz",
-    "ru": "✅ Вы вступили",
-    "en": "✅ You joined"
+    "uz": "A'zo bo'ldingiz",
+    "ru": "Вы вступили",
+    "en": "You joined"
   },
   "common.dept_left": {
     "uz": "Bu bo'limdan chiqarildingiz",
@@ -850,9 +850,9 @@
     "en": "Select a member to add"
   },
   "common.dept_task_count": {
-    "uz": "✓ {0} vazifa",
-    "ru": "✓ {0} задач",
-    "en": "✓ {0} tasks"
+    "uz": "{0} vazifa",
+    "ru": "{0} задач",
+    "en": "{0} tasks"
   },
   "common.desc_label_optional": {
     "uz": "Tavsif (ixtiyoriy)",
@@ -885,14 +885,14 @@
     "en": "Done"
   },
   "common.edit_arrow": {
-    "uz": "Tahrirlash →",
-    "ru": "Изменить →",
-    "en": "Edit →"
+    "uz": "Tahrirlash",
+    "ru": "Изменить",
+    "en": "Edit"
   },
   "common.edit_btn_pencil": {
-    "uz": "✎ Tahrirlash",
-    "ru": "✎ Редактировать",
-    "en": "✎ Edit"
+    "uz": "Tahrirlash",
+    "ru": "Редактировать",
+    "en": "Edit"
   },
   "common.ef_update_needed": {
     "uz": "EF yangilanishi kerak (admin-import-staff v3 deploy) — connect action",
@@ -935,14 +935,14 @@
     "en": "New comment"
   },
   "common.email_connected": {
-    "uz": "✓ Email ulandi: {0}",
-    "ru": "✓ Email подключён: {0}",
-    "en": "✓ Email connected: {0}"
+    "uz": "Email ulandi: {0}",
+    "ru": "Email подключён: {0}",
+    "en": "Email connected: {0}"
   },
   "common.email_connected_send_link": {
-    "uz": "✓ Email ulandi. Havolani hodimga yuboring.",
-    "ru": "✓ Email подключён. Отправьте ссылку сотруднику.",
-    "en": "✓ Email connected. Send the link to the employee."
+    "uz": "Email ulandi. Havolani hodimga yuboring.",
+    "ru": "Email подключён. Отправьте ссылку сотруднику.",
+    "en": "Email connected. Send the link to the employee."
   },
   "common.email_deadline_desc": {
     "uz": "Muddat haqida eslatma xati.",
@@ -1000,14 +1000,14 @@
     "en": "Employee: {0}"
   },
   "common.employee_created_added": {
-    "uz": "✅ Xodim yaratildi va bo'limlarga qo'shildi",
-    "ru": "✅ Сотрудник создан и добавлен в отделы",
-    "en": "✅ Employee created and added to departments"
+    "uz": "Xodim yaratildi va bo'limlarga qo'shildi",
+    "ru": "Сотрудник создан и добавлен в отделы",
+    "en": "Employee created and added to departments"
   },
   "common.employee_created_refresh": {
-    "uz": "✅ Xodim yaratildi — ro'yxatni ko'rish uchun sahifani yangilang",
-    "ru": "✅ Сотрудник создан — обновите страницу, чтобы увидеть список",
-    "en": "✅ Employee created — refresh the page to see the list"
+    "uz": "Xodim yaratildi — ro'yxatni ko'rish uchun sahifani yangilang",
+    "ru": "Сотрудник создан — обновите страницу, чтобы увидеть список",
+    "en": "Employee created — refresh the page to see the list"
   },
   "common.end_after_start": {
     "uz": "Tugash vaqti boshlanishdan keyin bo'lishi kerak",
@@ -1110,9 +1110,9 @@
     "en": "{0} — larger than 20MB"
   },
   "common.files_added": {
-    "uz": "📎 {0} ta fayl qo'shildi",
-    "ru": "📎 Добавлено файлов: {0}",
-    "en": "📎 {0} file(s) added"
+    "uz": "{0} ta fayl qo'shildi",
+    "ru": "Добавлено файлов: {0}",
+    "en": "{0} file(s) added"
   },
   "common.filter_clear": {
     "uz": "Filtrni tozalash",
@@ -1145,9 +1145,9 @@
     "en": "Only me"
   },
   "common.flt_overdue": {
-    "uz": "⏰ Muddati o'tgan",
-    "ru": "⏰ Просроченные",
-    "en": "⏰ Overdue"
+    "uz": "Muddati o'tgan",
+    "ru": "Просроченные",
+    "en": "Overdue"
   },
   "common.folder": {
     "uz": "Papka",
@@ -1240,9 +1240,9 @@
     "en": "Radius (meters)"
   },
   "common.hr_readonly_note": {
-    "uz": "👁 Ko'rish rejimi — o'z ma'lumotingizni ko'rmoqdasiz. Tahrirlash uchun owner yoki adminga murojaat qiling.",
-    "ru": "👁 Режим просмотра — вы видите свои данные. Для редактирования обратитесь к владельцу или администратору.",
-    "en": "👁 View mode — you are viewing your own data. Contact the owner or an admin to edit."
+    "uz": "Ko'rish rejimi — o'z ma'lumotingizni ko'rmoqdasiz. Tahrirlash uchun owner yoki adminga murojaat qiling.",
+    "ru": "Режим просмотра — вы видите свои данные. Для редактирования обратитесь к владельцу или администратору.",
+    "en": "View mode — you are viewing your own data. Contact the owner or an admin to edit."
   },
   "common.hr_role_label": {
     "uz": "Roli",
@@ -1410,19 +1410,19 @@
     "en": "Deliver tasks, invitations and reminders through your bot."
   },
   "common.invite_accept_btn": {
-    "uz": "✓ Qabul",
-    "ru": "✓ Принять",
-    "en": "✓ Accept"
+    "uz": "Qabul",
+    "ru": "Принять",
+    "en": "Accept"
   },
   "common.invite_accepted": {
-    "uz": "✅ Taklif qabul qilindi!",
-    "ru": "✅ Приглашение принято!",
-    "en": "✅ Invitation accepted!"
+    "uz": "Taklif qabul qilindi!",
+    "ru": "Приглашение принято!",
+    "en": "Invitation accepted!"
   },
   "common.invite_accepted_plain": {
-    "uz": "✅ Taklif qabul qilindi",
-    "ru": "✅ Приглашение принято",
-    "en": "✅ Invitation accepted"
+    "uz": "Taklif qabul qilindi",
+    "ru": "Приглашение принято",
+    "en": "Invitation accepted"
   },
   "common.invite_already_sent": {
     "uz": "Bu odamga allaqachon taklif yuborilgan.",
@@ -1480,14 +1480,14 @@
     "en": "Send invitation"
   },
   "common.invite_sent_ok": {
-    "uz": "✅ Taklif yuborildi. Botda xabar bordi va saytga ro'yxatdan o'tgach bell'ida ko'radi.",
-    "ru": "✅ Приглашение отправлено. Сообщение ушло в бот, а после регистрации на сайте оно появится в колокольчике.",
-    "en": "✅ Invitation sent. A message was sent in the bot, and it will appear in the bell after they sign up on the site."
+    "uz": "Taklif yuborildi. Botda xabar bordi va saytga ro'yxatdan o'tgach bell'ida ko'radi.",
+    "ru": "Приглашение отправлено. Сообщение ушло в бот, а после регистрации на сайте оно появится в колокольчике.",
+    "en": "Invitation sent. A message was sent in the bot, and it will appear in the bell after they sign up on the site."
   },
   "common.invite_tg_user_badge": {
-    "uz": "✈ TG user",
-    "ru": "✈ TG-пользователь",
-    "en": "✈ TG user"
+    "uz": "TG user",
+    "ru": "TG-пользователь",
+    "en": "TG user"
   },
   "common.invite_to_site": {
     "uz": "Saytga taklif",
@@ -1510,19 +1510,19 @@
     "en": "+ Add task"
   },
   "common.kan_assignee_bot": {
-    "uz": "✈ Bot",
-    "ru": "✈ Бот",
-    "en": "✈ Bot"
+    "uz": "Bot",
+    "ru": "Бот",
+    "en": "Bot"
   },
   "common.kan_assignee_member": {
-    "uz": "👤 A'zo",
-    "ru": "👤 Участник",
-    "en": "👤 Member"
+    "uz": "A'zo",
+    "ru": "Участник",
+    "en": "Member"
   },
   "common.kan_col_added": {
-    "uz": "✓ \"{0}\" ustuni qo'shildi — status hamma joyda paydo bo'ldi",
-    "ru": "✓ Колонка \"{0}\" добавлена — статус появился везде",
-    "en": "✓ Column \"{0}\" added — the status now appears everywhere"
+    "uz": "\"{0}\" ustuni qo'shildi — status hamma joyda paydo bo'ldi",
+    "ru": "Колонка \"{0}\" добавлена — статус появился везде",
+    "en": "Column \"{0}\" added — the status now appears everywhere"
   },
   "common.kan_col_delete_confirm": {
     "uz": "\"{0}\" column'ni o'chirasizmi? Ichidagi vazifalar boshqa column'ga avtomatik tushadi.",
@@ -1575,9 +1575,9 @@
     "en": "limit reached, the rest was not loaded"
   },
   "common.load_error": {
-    "uz": "❌ Yuklash xatosi: {0}",
-    "ru": "❌ Ошибка загрузки: {0}",
-    "en": "❌ Loading error: {0}"
+    "uz": "Yuklash xatosi: {0}",
+    "ru": "Ошибка загрузки: {0}",
+    "en": "Loading error: {0}"
   },
   "common.loading": {
     "uz": "Yuklanmoqda…",
@@ -1655,9 +1655,9 @@
     "en": "Not marked: {0}"
   },
   "common.mentions_notified": {
-    "uz": "🔔 {0} kishi belgilandi",
-    "ru": "🔔 Упомянуто: {0}",
-    "en": "🔔 {0} people mentioned"
+    "uz": "{0} kishi belgilandi",
+    "ru": "Упомянуто: {0}",
+    "en": "{0} people mentioned"
   },
   "common.minutes_ago": {
     "uz": "{0} daqiqa oldin",
@@ -1670,14 +1670,14 @@
     "en": "Move"
   },
   "common.moved_ok": {
-    "uz": "✅ Ko'chirildi",
-    "ru": "✅ Перемещено",
-    "en": "✅ Moved"
+    "uz": "Ko'chirildi",
+    "ru": "Перемещено",
+    "en": "Moved"
   },
   "common.n8n_enabled": {
-    "uz": "✅ n8n yoqildi",
-    "ru": "✅ n8n включён",
-    "en": "✅ n8n enabled"
+    "uz": "n8n yoqildi",
+    "ru": "n8n включён",
+    "en": "n8n enabled"
   },
   "common.name_empty": {
     "uz": "Nomi bo'sh",
@@ -1758,6 +1758,11 @@
     "uz": "Keyingi ›",
     "ru": "Вперёд ›",
     "en": "Next ›"
+  },
+  "common.no": {
+    "uz": "Yo'q",
+    "ru": "Нет",
+    "en": "No"
   },
   "common.no_assigned_tasks": {
     "uz": "Biriktirilgan vazifa yo'q",
@@ -1845,9 +1850,9 @@
     "en": "You were invited to a project: {0}"
   },
   "common.notif_task_accepted": {
-    "uz": "\"{0}\" qabul qilindi ✅",
-    "ru": "«{0}» принята ✅",
-    "en": "\"{0}\" accepted ✅"
+    "uz": "\"{0}\" qabul qilindi",
+    "ru": "«{0}» принята",
+    "en": "\"{0}\" accepted"
   },
   "common.notif_task_assigned": {
     "uz": "Sizga vazifa biriktirildi",
@@ -1890,9 +1895,9 @@
     "en": "New employee in the org chart"
   },
   "common.oc_added_ok": {
-    "uz": "✓ Qo'shildi",
-    "ru": "✓ Добавлено",
-    "en": "✓ Added"
+    "uz": "Qo'shildi",
+    "ru": "Добавлено",
+    "en": "Added"
   },
   "common.oc_all_added": {
     "uz": "Barcha xodimlar allaqachon qo'shilgan.",
@@ -1915,14 +1920,14 @@
     "en": "Connect to the employee below"
   },
   "common.oc_layout_saved": {
-    "uz": "✓ Joylash saqlandi",
-    "ru": "✓ Расположение сохранено",
-    "en": "✓ Layout saved"
+    "uz": "Joylash saqlandi",
+    "ru": "Расположение сохранено",
+    "en": "Layout saved"
   },
   "common.oc_manager_changed": {
-    "uz": "✓ Boshliq o'zgartirildi",
-    "ru": "✓ Руководитель изменён",
-    "en": "✓ Manager changed"
+    "uz": "Boshliq o'zgartirildi",
+    "ru": "Руководитель изменён",
+    "en": "Manager changed"
   },
   "common.oc_migration19_missing": {
     "uz": "Migration 19 ishga tushirilmagan! Supabase'da 19_org_containers.sql ni ishlating.",
@@ -2060,9 +2065,9 @@
     "en": "\"{0}\" will be removed from the org chart. Everyone below will be left without a manager.\n\nContinue?"
   },
   "common.oc_removed_ok": {
-    "uz": "🗑 Olib tashlandi",
-    "ru": "🗑 Удалено",
-    "en": "🗑 Removed"
+    "uz": "Olib tashlandi",
+    "ru": "Удалено",
+    "en": "Removed"
   },
   "common.oc_server_timeout_8s": {
     "uz": "Server javob bermayapti (8s)",
@@ -2070,19 +2075,19 @@
     "en": "Server is not responding (8s)"
   },
   "common.oc_site_user": {
-    "uz": "👤 Sayt foydalanuvchisi",
-    "ru": "👤 Пользователь сайта",
-    "en": "👤 Web user"
+    "uz": "Sayt foydalanuvchisi",
+    "ru": "Пользователь сайта",
+    "en": "Web user"
   },
   "common.oc_src_site": {
-    "uz": "{0} · 👤 Sayt",
-    "ru": "{0} · 👤 Сайт",
-    "en": "{0} · 👤 Web"
+    "uz": "{0} · Sayt",
+    "ru": "{0} · Сайт",
+    "en": "{0} · Web"
   },
   "common.oc_src_tg": {
-    "uz": "{0} · ✈ TG",
-    "ru": "{0} · ✈ TG",
-    "en": "{0} · ✈ TG"
+    "uz": "{0} · TG",
+    "ru": "{0} · TG",
+    "en": "{0} · TG"
   },
   "common.oc_update_failed": {
     "uz": "Yangilab bo'lmadi",
@@ -2125,9 +2130,9 @@
     "en": "Open"
   },
   "common.order_changed_ok": {
-    "uz": "✓ Tartib o'zgartirildi",
-    "ru": "✓ Порядок изменён",
-    "en": "✓ Order changed"
+    "uz": "Tartib o'zgartirildi",
+    "ru": "Порядок изменён",
+    "en": "Order changed"
   },
   "common.org_only": {
     "uz": "Faqat kompaniyada",
@@ -2135,9 +2140,9 @@
     "en": "Organizations only"
   },
   "common.osc_layout_reset_ok": {
-    "uz": "✅ {0} ta karta avtomatik joyiga qaytarildi",
-    "ru": "✅ {0} карточек возвращены на автоматические позиции",
-    "en": "✅ {0} card(s) restored to automatic layout"
+    "uz": "{0} ta karta avtomatik joyiga qaytarildi",
+    "ru": "{0} карточек возвращены на автоматические позиции",
+    "en": "{0} card(s) restored to automatic layout"
   },
   "common.osc_move_hint": {
     "uz": "O'zining yoki o'z ostidagining ichiga ko'chirib bo'lmaydi.",
@@ -2180,9 +2185,9 @@
     "en": "Password must be at least 6 characters"
   },
   "common.password_updated": {
-    "uz": "✅ Parol yangilandi",
-    "ru": "✅ Пароль обновлён",
-    "en": "✅ Password updated"
+    "uz": "Parol yangilandi",
+    "ru": "Пароль обновлён",
+    "en": "Password updated"
   },
   "common.passwords_mismatch": {
     "uz": "Parollar mos kelmadi",
@@ -2205,9 +2210,9 @@
     "en": "Approve \"{0}\"?"
   },
   "common.pending_approved": {
-    "uz": "✓ {0} tasdiqlandi",
-    "ru": "✓ {0} подтверждён",
-    "en": "✓ {0} approved"
+    "uz": "{0} tasdiqlandi",
+    "ru": "{0} подтверждён",
+    "en": "{0} approved"
   },
   "common.pending_count": {
     "uz": "{0} ta foydalanuvchi:",
@@ -2215,14 +2220,14 @@
     "en": "{0} user(s):"
   },
   "common.pending_empty": {
-    "uz": "✅ Tasdiqlashga kutayotgan foydalanuvchi yo'q",
-    "ru": "✅ Нет пользователей, ожидающих подтверждения",
-    "en": "✅ No users awaiting approval"
+    "uz": "Tasdiqlashga kutayotgan foydalanuvchi yo'q",
+    "ru": "Нет пользователей, ожидающих подтверждения",
+    "en": "No users awaiting approval"
   },
   "common.pending_rejected": {
-    "uz": "✗ {0} bekor qilindi",
-    "ru": "✗ {0} отклонён",
-    "en": "✗ {0} rejected"
+    "uz": "{0} bekor qilindi",
+    "ru": "{0} отклонён",
+    "en": "{0} rejected"
   },
   "common.pln_no_task_for_filter": {
     "uz": "Bu filtrga mos vazifa yo'q",
@@ -2230,9 +2235,9 @@
     "en": "No tasks match this filter"
   },
   "common.pln_no_unscheduled": {
-    "uz": "Rejalashtirilmagan vazifa yo'q 🎉",
-    "ru": "Незапланированных задач нет 🎉",
-    "en": "No unscheduled tasks 🎉"
+    "uz": "Rejalashtirilmagan vazifa yo'q",
+    "ru": "Незапланированных задач нет",
+    "en": "No unscheduled tasks"
   },
   "common.pln_side_title_todo": {
     "uz": "Bajarishim kerak",
@@ -2275,44 +2280,44 @@
     "en": "— (empty)"
   },
   "common.pos_full_accountant": {
-    "uz": "📊 Bugalter",
-    "ru": "📊 Бухгалтер",
-    "en": "📊 Accountant"
+    "uz": "Bugalter",
+    "ru": "Бухгалтер",
+    "en": "Accountant"
   },
   "common.pos_full_branch_head": {
-    "uz": "👔 Filial boshlig'i",
-    "ru": "👔 Руководитель филиала",
-    "en": "👔 Branch manager"
+    "uz": "Filial boshlig'i",
+    "ru": "Руководитель филиала",
+    "en": "Branch manager"
   },
   "common.pos_full_ceo": {
-    "uz": "👑 CEO",
-    "ru": "👑 CEO",
-    "en": "👑 CEO"
+    "uz": "CEO",
+    "ru": "CEO",
+    "en": "CEO"
   },
   "common.pos_full_chief": {
-    "uz": "👔 Boshliq",
-    "ru": "👔 Начальник",
-    "en": "👔 Head"
+    "uz": "Boshliq",
+    "ru": "Начальник",
+    "en": "Head"
   },
   "common.pos_full_courier": {
-    "uz": "🚚 Kuryer",
-    "ru": "🚚 Курьер",
-    "en": "🚚 Courier"
+    "uz": "Kuryer",
+    "ru": "Курьер",
+    "en": "Courier"
   },
   "common.pos_full_employee": {
-    "uz": "🧑‍💼 Xodim",
-    "ru": "🧑‍💼 Сотрудник",
-    "en": "🧑‍💼 Employee"
+    "uz": "Xodim",
+    "ru": "Сотрудник",
+    "en": "Employee"
   },
   "common.pos_full_seller": {
-    "uz": "🛒 Sotuvchi",
-    "ru": "🛒 Продавец",
-    "en": "🛒 Salesperson"
+    "uz": "Sotuvchi",
+    "ru": "Продавец",
+    "en": "Salesperson"
   },
   "common.pos_full_senior_seller": {
-    "uz": "🛒 Katta sotuvchi",
-    "ru": "🛒 Старший продавец",
-    "en": "🛒 Senior salesperson"
+    "uz": "Katta sotuvchi",
+    "ru": "Старший продавец",
+    "en": "Senior salesperson"
   },
   "common.pos_none": {
     "uz": "Lavozimsiz",
@@ -2370,9 +2375,9 @@
     "en": "First add a stage on the Flow tab."
   },
   "common.prj_created": {
-    "uz": "✅ Loyiha yaratildi",
-    "ru": "✅ Проект создан",
-    "en": "✅ Project created"
+    "uz": "Loyiha yaratildi",
+    "ru": "Проект создан",
+    "en": "Project created"
   },
   "common.prj_end_hint": {
     "uz": "Muddat o'tib, bosqichlar tugamagan bo'lsa — \"Muddat o'tgan\" ko'rsatiladi.",
@@ -2380,9 +2385,9 @@
     "en": "If the deadline passes and the stages are not finished — \"Overdue\" is shown."
   },
   "common.prj_go_flow": {
-    "uz": "🔀 Flow'ga o'tish",
-    "ru": "🔀 Перейти во Flow",
-    "en": "🔀 Go to Flow"
+    "uz": "Flow'ga o'tish",
+    "ru": "Перейти во Flow",
+    "en": "Go to Flow"
   },
   "common.prj_invite_member_btn": {
     "uz": "+ A'zo taklif qilish",
@@ -2395,9 +2400,9 @@
     "en": "An invited member can see the whole project but cannot change it (view only). Assignees see their own tasks even without this list."
   },
   "common.prj_invited_members_note": {
-    "uz": "👁 Taklif qilingan a'zolar loyihani to'liq ko'radi, lekin o'zgartira olmaydi.",
-    "ru": "👁 Приглашённые участники видят проект полностью, но не могут его изменять.",
-    "en": "👁 Invited members can see the whole project but cannot change it."
+    "uz": "Taklif qilingan a'zolar loyihani to'liq ko'radi, lekin o'zgartira olmaydi.",
+    "ru": "Приглашённые участники видят проект полностью, но не могут его изменять.",
+    "en": "Invited members can see the whole project but cannot change it."
   },
   "common.prj_load_err_migration": {
     "uz": "Agar loyihalar hech qachon ochilmagan bo'lsa — loyiha migratsiyasi (34) ishga tushirilmagan bo'lishi mumkin.",
@@ -2410,9 +2415,9 @@
     "en": "Locked — waiting for the previous stage"
   },
   "common.prj_members_load_err": {
-    "uz": "⚠️ A'zolar ro'yxati yuklanmadi: {0}",
-    "ru": "⚠️ Не удалось загрузить список участников: {0}",
-    "en": "⚠️ Could not load the member list: {0}"
+    "uz": "A'zolar ro'yxati yuklanmadi: {0}",
+    "ru": "Не удалось загрузить список участников: {0}",
+    "en": "Could not load the member list: {0}"
   },
   "common.prj_name_label": {
     "uz": "Loyiha nomi",
@@ -2495,19 +2500,19 @@
     "en": "Project type"
   },
   "common.prj_viewer_badge": {
-    "uz": "👁 Ko'ruvchi",
-    "ru": "👁 Наблюдатель",
-    "en": "👁 Viewer"
+    "uz": "Ko'ruvchi",
+    "ru": "Наблюдатель",
+    "en": "Viewer"
   },
   "common.pw_email_sent": {
-    "uz": "📧 Parol o'rnatish emaili yuborildi:",
-    "ru": "📧 Письмо для установки пароля отправлено:",
-    "en": "📧 Password setup email sent:"
+    "uz": "Parol o'rnatish emaili yuborildi:",
+    "ru": "Письмо для установки пароля отправлено:",
+    "en": "Password setup email sent:"
   },
   "common.readonly_badge": {
-    "uz": "👁 faqat ko'rish",
-    "ru": "👁 только просмотр",
-    "en": "👁 view only"
+    "uz": "faqat ko'rish",
+    "ru": "только просмотр",
+    "en": "view only"
   },
   "common.real_email_hint": {
     "uz": "Hodim shu email bilan kiradi. Parol o'rnatish havolasi qaytariladi.",
@@ -2535,9 +2540,9 @@
     "en": "next week"
   },
   "common.recur_task_created": {
-    "uz": "🔁 Takror vazifa yaratildi ({0})",
-    "ru": "🔁 Создана повторная задача ({0})",
-    "en": "🔁 Recurring task created ({0})"
+    "uz": "Takror vazifa yaratildi ({0})",
+    "ru": "Создана повторная задача ({0})",
+    "en": "Recurring task created ({0})"
   },
   "common.recur_tomorrow": {
     "uz": "ertaga",
@@ -2545,9 +2550,9 @@
     "en": "tomorrow"
   },
   "common.reject_btn": {
-    "uz": "✗ Bekor",
-    "ru": "✗ Отклонить",
-    "en": "✗ Reject"
+    "uz": "Bekor",
+    "ru": "Отклонить",
+    "en": "Reject"
   },
   "common.reject_reason_prompt": {
     "uz": "Sabab (foydalanuvchi ko'radi, ixtiyoriy):",
@@ -2595,14 +2600,14 @@
     "en": "Resend email"
   },
   "common.resend_email_ok": {
-    "uz": "📧 Email qayta yuborildi: {0}",
-    "ru": "📧 Письмо отправлено повторно: {0}",
-    "en": "📧 Email resent: {0}"
+    "uz": "Email qayta yuborildi: {0}",
+    "ru": "Письмо отправлено повторно: {0}",
+    "en": "Email resent: {0}"
   },
   "common.retry": {
-    "uz": "↻ Qayta urinish",
-    "ru": "↻ Повторить",
-    "en": "↻ Retry"
+    "uz": "Qayta urinish",
+    "ru": "Повторить",
+    "en": "Retry"
   },
   "common.return_confirm": {
     "uz": "Vazifani bajaruvchiga qaytaraymi? (Jarayonga o'tadi)",
@@ -2615,9 +2620,9 @@
     "en": "Only the acceptor can return it"
   },
   "common.returned_ok": {
-    "uz": "↩️ Bajaruvchiga qaytarildi",
-    "ru": "↩️ Возвращено исполнителю",
-    "en": "↩️ Returned to the assignee"
+    "uz": "Bajaruvchiga qaytarildi",
+    "ru": "Возвращено исполнителю",
+    "en": "Returned to the assignee"
   },
   "common.rmx_move_and_remove": {
     "uz": "O'tkazib, o'chirish",
@@ -2655,14 +2660,14 @@
     "en": "Admin"
   },
   "common.role_admin_granted": {
-    "uz": "✓ Admin huquqlari berildi",
-    "ru": "✓ Права администратора выданы",
-    "en": "✓ Admin rights granted"
+    "uz": "Admin huquqlari berildi",
+    "ru": "Права администратора выданы",
+    "en": "Admin rights granted"
   },
   "common.role_change_failed_migration": {
-    "uz": "⚠ Rol o'zgarmadi (ruxsat yo'q). 26-migratsiyani ishga tushiring.",
-    "ru": "⚠ Роль не изменена (нет прав). Запустите миграцию 26.",
-    "en": "⚠ Role not changed (no permission). Run migration 26."
+    "uz": "Rol o'zgarmadi (ruxsat yo'q). 26-migratsiyani ishga tushiring.",
+    "ru": "Роль не изменена (нет прав). Запустите миграцию 26.",
+    "en": "Role not changed (no permission). Run migration 26."
   },
   "common.role_change_owner_only": {
     "uz": "Faqat workspace egasi rol o'zgartira oladi",
@@ -2705,9 +2710,9 @@
     "en": "Member"
   },
   "common.role_member_restored": {
-    "uz": "✓ Oddiy a'zoga qaytarildi",
-    "ru": "✓ Возвращена роль обычного участника",
-    "en": "✓ Reverted to regular member"
+    "uz": "Oddiy a'zoga qaytarildi",
+    "ru": "Возвращена роль обычного участника",
+    "en": "Reverted to regular member"
   },
   "common.role_owner": {
     "uz": "Egasi",
@@ -2735,9 +2740,9 @@
     "en": "Save and sign in"
   },
   "common.saved": {
-    "uz": "✓ Saqlandi",
-    "ru": "✓ Сохранено",
-    "en": "✓ Saved"
+    "uz": "Saqlandi",
+    "ru": "Сохранено",
+    "en": "Saved"
   },
   "common.saving": {
     "uz": "Saqlanmoqda…",
@@ -2765,9 +2770,9 @@
     "en": "Weekly"
   },
   "common.scope_all_tasks": {
-    "uz": "✓ Barcha vazifalar",
-    "ru": "✓ Все задачи",
-    "en": "✓ All tasks"
+    "uz": "Barcha vazifalar",
+    "ru": "Все задачи",
+    "en": "All tasks"
   },
   "common.search_empty": {
     "uz": "Qidiruv natijasi bo'sh.",
@@ -2795,9 +2800,9 @@
     "en": "Send"
   },
   "common.send_failed": {
-    "uz": "⚠ Yuborilmadi",
-    "ru": "⚠ Не отправлено",
-    "en": "⚠ Not sent"
+    "uz": "Yuborilmadi",
+    "ru": "Не отправлено",
+    "en": "Not sent"
   },
   "common.server_no_response": {
     "uz": "Server javob bermayapti. Sahifani yangilang (F5) va qayta urinib ko'ring.",
@@ -2810,14 +2815,14 @@
     "en": "Only the workspace owner or an admin can configure additional services."
   },
   "common.set_password_and_login": {
-    "uz": "Parol o'rnatib, kirish →",
-    "ru": "Задать пароль и войти →",
-    "en": "Set password and sign in →"
+    "uz": "Parol o'rnatib, kirish",
+    "ru": "Задать пароль и войти",
+    "en": "Set password and sign in"
   },
   "common.settings_btn": {
-    "uz": "⚙ Sozlash",
-    "ru": "⚙ Настроить",
-    "en": "⚙ Configure"
+    "uz": "Sozlash",
+    "ru": "Настроить",
+    "en": "Configure"
   },
   "common.sidebar_bot_commands": {
     "uz": "Komandalar",
@@ -2850,14 +2855,14 @@
     "en": "Sort"
   },
   "common.src_site": {
-    "uz": "👤 Sayt",
-    "ru": "👤 Сайт",
-    "en": "👤 Site"
+    "uz": "Sayt",
+    "ru": "Сайт",
+    "en": "Site"
   },
   "common.src_tg": {
-    "uz": "✈ TG",
-    "ru": "✈ TG",
-    "en": "✈ TG"
+    "uz": "TG",
+    "ru": "TG",
+    "en": "TG"
   },
   "common.start_at_label_optional": {
     "uz": "Boshlanish (ixtiyoriy)",
@@ -2960,9 +2965,9 @@
     "en": "New"
   },
   "common.status_submitted": {
-    "uz": "📤 Qabul qiluvchiga topshirildi",
-    "ru": "📤 Передано принимающему",
-    "en": "📤 Submitted to the acceptor"
+    "uz": "Qabul qiluvchiga topshirildi",
+    "ru": "Передано принимающему",
+    "en": "Submitted to the acceptor"
   },
   "common.status_submitted_short": {
     "uz": "Qabul kutilyapti",
@@ -2970,9 +2975,9 @@
     "en": "Awaiting acceptance"
   },
   "common.status_updated": {
-    "uz": "✅ Holat yangilandi",
-    "ru": "✅ Статус обновлён",
-    "en": "✅ Status updated"
+    "uz": "Holat yangilandi",
+    "ru": "Статус обновлён",
+    "en": "Status updated"
   },
   "common.synthetic_email_reject": {
     "uz": "Sintetik email bo'lmasin — haqiqiy email kiriting",
@@ -2980,19 +2985,19 @@
     "en": "Synthetic email is not allowed — enter a real one"
   },
   "common.tab_employees": {
-    "uz": "👥 Hodimlar",
-    "ru": "👥 Сотрудники",
-    "en": "👥 Employees"
+    "uz": "Hodimlar",
+    "ru": "Сотрудники",
+    "en": "Employees"
   },
   "common.task_created": {
-    "uz": "✅ Vazifa yaratildi",
-    "ru": "✅ Задача создана",
-    "en": "✅ Task created"
+    "uz": "Vazifa yaratildi",
+    "ru": "Задача создана",
+    "en": "Task created"
   },
   "common.task_created_and_sent": {
-    "uz": "✅ Vazifa yaratildi va botda yuborildi",
-    "ru": "✅ Задача создана и отправлена в бот",
-    "en": "✅ Task created and sent via the bot"
+    "uz": "Vazifa yaratildi va botda yuborildi",
+    "ru": "Задача создана и отправлена в бот",
+    "en": "Task created and sent via the bot"
   },
   "common.task_delete_confirm": {
     "uz": "Vazifani o'chirasizmi?",
@@ -3010,9 +3015,9 @@
     "en": "This task no longer exists (it may have been deleted) — the list was refreshed"
   },
   "common.task_moved_dept": {
-    "uz": "✅ Bo'limga ko'chirildi",
-    "ru": "✅ Перемещено в отдел",
-    "en": "✅ Moved to the department"
+    "uz": "Bo'limga ko'chirildi",
+    "ru": "Перемещено в отдел",
+    "en": "Moved to the department"
   },
   "common.task_project_none_opt": {
     "uz": "— Yo'q (oddiy vazifa)",
@@ -3025,9 +3030,9 @@
     "en": "Task title:"
   },
   "common.tasks_created_n": {
-    "uz": "✅ {0} ta vazifa yaratildi",
-    "ru": "✅ Создано задач: {0}",
-    "en": "✅ {0} tasks created"
+    "uz": "{0} ta vazifa yaratildi",
+    "ru": "Создано задач: {0}",
+    "en": "{0} tasks created"
   },
   "common.tasks_empty_body": {
     "uz": "Birinchi vazifani yarating.",
@@ -3050,9 +3055,9 @@
     "en": "No tasks yet"
   },
   "common.tasks_limit_reached": {
-    "uz": "⚠️ {0} ta vazifa yuklandi — qolgani ko'rsatilmadi. Filtr yoki qidiruvdan foydalaning.",
-    "ru": "⚠️ Загружено {0} задач — остальные не показаны. Используйте фильтр или поиск.",
-    "en": "⚠️ {0} tasks loaded — the rest are not shown. Use a filter or search."
+    "uz": "{0} ta vazifa yuklandi — qolgani ko'rsatilmadi. Filtr yoki qidiruvdan foydalaning.",
+    "ru": "Загружено {0} задач — остальные не показаны. Используйте фильтр или поиск.",
+    "en": "{0} tasks loaded — the rest are not shown. Use a filter or search."
   },
   "common.tasks_load_failed": {
     "uz": "Vazifalarni yuklab bo'lmadi",
@@ -3065,9 +3070,9 @@
     "en": "tasks loaded — the rest are not shown. Use a filter or search."
   },
   "common.tasks_loading_chip": {
-    "uz": "⏳ Vazifalar yuklanmoqda… {0}",
-    "ru": "⏳ Загрузка задач… {0}",
-    "en": "⏳ Loading tasks… {0}"
+    "uz": "Vazifalar yuklanmoqda… {0}",
+    "ru": "Загрузка задач… {0}",
+    "en": "Loading tasks… {0}"
   },
   "common.tasks_not_found": {
     "uz": "Vazifa topilmadi",
@@ -3095,9 +3100,9 @@
     "en": "Connect a real email"
   },
   "common.team_contract_link": {
-    "uz": "📄 Shartnoma",
-    "ru": "📄 Договор",
-    "en": "📄 Contract"
+    "uz": "Shartnoma",
+    "ru": "Договор",
+    "en": "Contract"
   },
   "common.team_field_save_failed": {
     "uz": "Saqlanmadi: {0} (29-migratsiya kerak)",
@@ -3105,14 +3110,14 @@
     "en": "Not saved: {0} (migration 29 required)"
   },
   "common.team_invite_btn": {
-    "uz": "📧 Taklif",
-    "ru": "📧 Приглашение",
-    "en": "📧 Invite"
+    "uz": "Taklif",
+    "ru": "Приглашение",
+    "en": "Invite"
   },
   "common.team_invite_modal_title": {
-    "uz": "📧 Taklif yuborish — {0}",
-    "ru": "📧 Отправить приглашение — {0}",
-    "en": "📧 Send invitation — {0}"
+    "uz": "Taklif yuborish — {0}",
+    "ru": "Отправить приглашение — {0}",
+    "en": "Send invitation — {0}"
   },
   "common.team_no_filter_match": {
     "uz": "Filtrga mos hodim topilmadi",
@@ -3125,9 +3130,9 @@
     "en": "No members"
   },
   "common.team_not_connected": {
-    "uz": "⚠ Ulanmagan",
-    "ru": "⚠ Не подключён",
-    "en": "⚠ Not connected"
+    "uz": "Ulanmagan",
+    "ru": "Не подключён",
+    "en": "Not connected"
   },
   "common.team_open_contract": {
     "uz": "Shartnomani ochish",
@@ -3145,9 +3150,9 @@
     "en": "Contact your administrator."
   },
   "common.tg_also_sent": {
-    "uz": "📨 Telegram'ga ham yuborildi",
-    "ru": "📨 Также отправлено в Telegram",
-    "en": "📨 Also sent to Telegram"
+    "uz": "Telegram'ga ham yuborildi",
+    "ru": "Также отправлено в Telegram",
+    "en": "Also sent to Telegram"
   },
   "common.tg_bot_disabled_title": {
     "uz": "Telegram bot yoqilmagan",
@@ -3165,9 +3170,9 @@
     "en": "Telegram bot is not connected."
   },
   "common.tg_bot_user_badge": {
-    "uz": "✈ Bot user",
-    "ru": "✈ Пользователь бота",
-    "en": "✈ Bot user"
+    "uz": "Bot user",
+    "ru": "Пользователь бота",
+    "en": "Bot user"
   },
   "common.tg_comment_body": {
     "uz": "💬 <b>Yangi izoh: {0}</b>\n\n{1}:\n{2}",
@@ -3195,9 +3200,9 @@
     "en": "Could not read the Telegram identity — \"My tasks\" may be incomplete"
   },
   "common.tg_link_hint": {
-    "uz": "⏱ Havola 15 daqiqa amal qiladi. Bot ichida <b>/start</b> tugmasini bosgach, bog'lanish tugaydi va siz xabarlar ola boshlaysiz.",
-    "ru": "⏱ Ссылка действует 15 минут. После нажатия <b>/start</b> в боте привязка завершится, и вы начнёте получать сообщения.",
-    "en": "⏱ The link is valid for 15 minutes. Once you press <b>/start</b> in the bot, linking completes and you'll start receiving messages."
+    "uz": "Havola 15 daqiqa amal qiladi. Bot ichida <b>/start</b> tugmasini bosgach, bog'lanish tugaydi va siz xabarlar ola boshlaysiz.",
+    "ru": "Ссылка действует 15 минут. После нажатия <b>/start</b> в боте привязка завершится, и вы начнёте получать сообщения.",
+    "en": "The link is valid for 15 minutes. Once you press <b>/start</b> in the bot, linking completes and you'll start receiving messages."
   },
   "common.tg_mention_body": {
     "uz": "🔔 <b>Sizni belgilashdi</b>\n{0}\n\n{1}:\n{2}",
@@ -3310,14 +3315,14 @@
     "en": "Unlinked"
   },
   "common.updated_ok": {
-    "uz": "✓ Yangilandi",
-    "ru": "✓ Обновлено",
-    "en": "✓ Updated"
+    "uz": "Yangilandi",
+    "ru": "Обновлено",
+    "en": "Updated"
   },
   "common.upload_done": {
-    "uz": "📎 Yuklandi",
-    "ru": "📎 Загружено",
-    "en": "📎 Uploaded"
+    "uz": "Yuklandi",
+    "ru": "Загружено",
+    "en": "Uploaded"
   },
   "common.upload_err": {
     "uz": "Yuklashda xato: {0}",
@@ -3325,14 +3330,14 @@
     "en": "Upload error: {0}"
   },
   "common.upload_photo": {
-    "uz": "📷 Rasm yuklash",
-    "ru": "📷 Загрузить фото",
-    "en": "📷 Upload photo"
+    "uz": "Rasm yuklash",
+    "ru": "Загрузить фото",
+    "en": "Upload photo"
   },
   "common.uploading_files": {
-    "uz": "📎 Fayllar yuklanmoqda…",
-    "ru": "📎 Загрузка файлов…",
-    "en": "📎 Uploading files…"
+    "uz": "Fayllar yuklanmoqda…",
+    "ru": "Загрузка файлов…",
+    "en": "Uploading files…"
   },
   "common.url_must_https": {
     "uz": "URL https:// bilan boshlanishi kerak",
@@ -3375,9 +3380,9 @@
     "en": "Warning: {0}"
   },
   "common.welcome": {
-    "uz": "✅ Xush kelibsiz!",
-    "ru": "✅ Добро пожаловать!",
-    "en": "✅ Welcome!"
+    "uz": "Xush kelibsiz!",
+    "ru": "Добро пожаловать!",
+    "en": "Welcome!"
   },
   "common.whole_year": {
     "uz": "Butun yil",
@@ -3455,9 +3460,9 @@
     "en": "Employee not found — will stay empty"
   },
   "common.xls_no_assignee_hint": {
-    "uz": "👥 {0} ta vazifaga bajaruvchi tanlanmagan — Jadvalda \"Bajaruvchi\" ustunidan tanlang",
-    "ru": "👥 У {0} задач(и) не выбран исполнитель — выберите в столбце «Исполнитель» в режиме Таблица",
-    "en": "👥 {0} task(s) have no assignee — pick one in the \"Assignee\" column in Table view"
+    "uz": "{0} ta vazifaga bajaruvchi tanlanmagan — Jadvalda \"Bajaruvchi\" ustunidan tanlang",
+    "ru": "У {0} задач(и) не выбран исполнитель — выберите в столбце «Исполнитель» в режиме Таблица",
+    "en": "{0} task(s) have no assignee — pick one in the \"Assignee\" column in Table view"
   },
   "common.xls_no_valid_rows": {
     "uz": "Hech qanday to'g'ri qator topilmadi (Nomi ustuni kerak)",
@@ -3465,9 +3470,9 @@
     "en": "No valid rows found (the \"Name\" column is required)"
   },
   "common.xls_preview_create_btn": {
-    "uz": "✓ {0} ta vazifa yaratish",
-    "ru": "✓ Создать задач: {0}",
-    "en": "✓ Create {0} tasks"
+    "uz": "{0} ta vazifa yaratish",
+    "ru": "Создать задач: {0}",
+    "en": "Create {0} tasks"
   },
   "common.xls_preview_more": {
     "uz": "… va yana {0} ta (hammasi yaratiladi)",
@@ -3475,14 +3480,19 @@
     "en": "… and {0} more (all will be created)"
   },
   "common.xls_preview_title": {
-    "uz": "📊 Import — {0} ta vazifa",
-    "ru": "📊 Импорт — задач: {0}",
-    "en": "📊 Import — {0} tasks"
+    "uz": "Import — {0} ta vazifa",
+    "ru": "Импорт — задач: {0}",
+    "en": "Import — {0} tasks"
   },
   "common.xls_read_err": {
     "uz": "Excel o'qishda xato: {0}",
     "ru": "Ошибка чтения Excel: {0}",
     "en": "Excel read error: {0}"
+  },
+  "common.yes": {
+    "uz": "Ha",
+    "ru": "Да",
+    "en": "Yes"
   },
   "dft.chars_only_first": {
     "uz": "belgi — qoralamada faqat birinchi",
@@ -3495,9 +3505,9 @@
     "en": "characters."
   },
   "dft.copied": {
-    "uz": "✓ Nusxalandi",
-    "ru": "✓ Скопировано",
-    "en": "✓ Copied"
+    "uz": "Nusxalandi",
+    "ru": "Скопировано",
+    "en": "Copied"
   },
   "dft.copy_failed": {
     "uz": "Nusxa olib bo'lmadi, qo'lda tanlang",
@@ -3535,9 +3545,9 @@
     "en": "Invalid email format"
   },
   "dft.email_not_sent": {
-    "uz": "⚠ Email yuborilmadi{0} — Supabase SMTP sozlamasini tekshiring",
-    "ru": "⚠ Email не отправлен{0} — проверьте настройки SMTP в Supabase",
-    "en": "⚠ Email was not sent{0} — check the Supabase SMTP settings"
+    "uz": "Email yuborilmadi{0} — Supabase SMTP sozlamasini tekshiring",
+    "ru": "Email не отправлен{0} — проверьте настройки SMTP в Supabase",
+    "en": "Email was not sent{0} — check the Supabase SMTP settings"
   },
   "dft.email_required": {
     "uz": "Email kerak",
@@ -3545,59 +3555,59 @@
     "en": "Email is required"
   },
   "dft.email_sent": {
-    "uz": "📧 Email yuborildi: {0}",
-    "ru": "📧 Email отправлен: {0}",
-    "en": "📧 Email sent: {0}"
+    "uz": "Email yuborildi: {0}",
+    "ru": "Email отправлен: {0}",
+    "en": "Email sent: {0}"
   },
   "dft.employee_created": {
-    "uz": "✅ Xodim yaratildi: {0}",
-    "ru": "✅ Сотрудник создан: {0}",
-    "en": "✅ Employee created: {0}"
+    "uz": "Xodim yaratildi: {0}",
+    "ru": "Сотрудник создан: {0}",
+    "en": "Employee created: {0}"
   },
   "dft.employee_created_assigned": {
-    "uz": "✅ Xodim yaratildi va biriktirildi: {0}",
-    "ru": "✅ Сотрудник создан и назначен: {0}",
-    "en": "✅ Employee created and assigned: {0}"
+    "uz": "Xodim yaratildi va biriktirildi: {0}",
+    "ru": "Сотрудник создан и назначен: {0}",
+    "en": "Employee created and assigned: {0}"
   },
   "dft.gs_group_act": {
-    "uz": "⚡ Amallar",
-    "ru": "⚡ Действия",
-    "en": "⚡ Actions"
+    "uz": "Amallar",
+    "ru": "Действия",
+    "en": "Actions"
   },
   "dft.gs_group_branch": {
-    "uz": "🏢 Filiallar",
-    "ru": "🏢 Филиалы",
-    "en": "🏢 Branches"
+    "uz": "Filiallar",
+    "ru": "Филиалы",
+    "en": "Branches"
   },
   "dft.gs_group_dept": {
-    "uz": "▦ Bo'limlar",
-    "ru": "▦ Отделы",
-    "en": "▦ Departments"
+    "uz": "Bo'limlar",
+    "ru": "Отделы",
+    "en": "Departments"
   },
   "dft.gs_group_emp": {
-    "uz": "👤 Xodimlar",
-    "ru": "👤 Сотрудники",
-    "en": "👤 Employees"
+    "uz": "Xodimlar",
+    "ru": "Сотрудники",
+    "en": "Employees"
   },
   "dft.gs_group_page": {
-    "uz": "📄 Sahifalar",
-    "ru": "📄 Страницы",
-    "en": "📄 Pages"
+    "uz": "Sahifalar",
+    "ru": "Страницы",
+    "en": "Pages"
   },
   "dft.gs_group_pos": {
-    "uz": "🎖 Lavozimlar",
-    "ru": "🎖 Должности",
-    "en": "🎖 Positions"
+    "uz": "Lavozimlar",
+    "ru": "Должности",
+    "en": "Positions"
   },
   "dft.gs_group_proj": {
-    "uz": "📁 Loyihalar",
-    "ru": "📁 Проекты",
-    "en": "📁 Projects"
+    "uz": "Loyihalar",
+    "ru": "Проекты",
+    "en": "Projects"
   },
   "dft.gs_group_task": {
-    "uz": "✓ Vazifalar",
-    "ru": "✓ Задачи",
-    "en": "✓ Tasks"
+    "uz": "Vazifalar",
+    "ru": "Задачи",
+    "en": "Tasks"
   },
   "dft.invite_text_full": {
     "uz": "Sizni TaskFix'ga taklif qildim. Ro'yxatdan o'tish uchun havolani oching:",
@@ -3610,9 +3620,9 @@
     "en": "I've invited you to TaskFix"
   },
   "dft.members_not_refreshed": {
-    "uz": "⚠ Ro'yxat yangilanmadi — sahifani yangilang",
-    "ru": "⚠ Список не обновился — обновите страницу",
-    "en": "⚠ The list was not refreshed — reload the page"
+    "uz": "Ro'yxat yangilanmadi — sahifani yangilang",
+    "ru": "Список не обновился — обновите страницу",
+    "en": "The list was not refreshed — reload the page"
   },
   "dft.no_permission": {
     "uz": "Bunga huquqingiz yo'q",
@@ -3675,9 +3685,9 @@
     "en": "Tasks open one after another. The next one stays locked until the previous is done."
   },
   "dft.pwd_email_sent": {
-    "uz": "📧 Parol o'rnatish emaili yuborildi: {0}",
-    "ru": "📧 Письмо для установки пароля отправлено: {0}",
-    "en": "📧 Password setup email sent: {0}"
+    "uz": "Parol o'rnatish emaili yuborildi: {0}",
+    "ru": "Письмо для установки пароля отправлено: {0}",
+    "en": "Password setup email sent: {0}"
   },
   "dft.rel_days": {
     "uz": "{0} kun oldin",
@@ -3735,9 +3745,9 @@
     "en": "No record of the intermediate change"
   },
   "dlh.loading": {
-    "uz": "⏳ Yuklanmoqda…",
-    "ru": "⏳ Загрузка…",
-    "en": "⏳ Loading…"
+    "uz": "Yuklanmoqda…",
+    "ru": "Загрузка…",
+    "en": "Loading…"
   },
   "dlh.my_plan": {
     "uz": "Rejam",
@@ -3860,14 +3870,14 @@
     "en": "(previous behaviour)."
   },
   "emailSet.read_error_note": {
-    "uz": "⚠️ Sozlama o'qilmadi: {0} — hozircha hamma bildirishnoma yoniq deb hisoblanmoqda.",
-    "ru": "⚠️ Не удалось прочитать настройки: {0} — пока считается, что все уведомления включены.",
-    "en": "⚠️ Could not read the settings: {0} — for now all notifications are treated as on."
+    "uz": "Sozlama o'qilmadi: {0} — hozircha hamma bildirishnoma yoniq deb hisoblanmoqda.",
+    "ru": "Не удалось прочитать настройки: {0} — пока считается, что все уведомления включены.",
+    "en": "Could not read the settings: {0} — for now all notifications are treated as on."
   },
   "emailSet.read_failed": {
-    "uz": "⚠️ Sozlama o'qilmadi:",
-    "ru": "⚠️ Настройку не удалось прочитать:",
-    "en": "⚠️ Could not read the setting:"
+    "uz": "Sozlama o'qilmadi:",
+    "ru": "Настройку не удалось прочитать:",
+    "en": "Could not read the setting:"
   },
   "emailSet.save_denied": {
     "uz": "Saqlanmadi — ruxsat yo'q (faqat owner/admin o'zgartira oladi)",
@@ -3875,14 +3885,14 @@
     "en": "Not saved — no permission (only the owner/admin can change this)"
   },
   "emailSet.saved_all_off": {
-    "uz": "✅ Saqlandi — hamma email bildirishnoma o'chirilgan",
-    "ru": "✅ Сохранено — все email-уведомления отключены",
-    "en": "✅ Saved — all email notifications are off"
+    "uz": "Saqlandi — hamma email bildirishnoma o'chirilgan",
+    "ru": "Сохранено — все email-уведомления отключены",
+    "en": "Saved — all email notifications are off"
   },
   "emailSet.saved_n_on": {
-    "uz": "✅ Saqlandi — {0} ta bildirishnoma yoniq",
-    "ru": "✅ Сохранено — включено уведомлений: {0}",
-    "en": "✅ Saved — {0} notifications are on"
+    "uz": "Saqlandi — {0} ta bildirishnoma yoniq",
+    "ru": "Сохранено — включено уведомлений: {0}",
+    "en": "Saved — {0} notifications are on"
   },
   "emailSet.sql_missing_toast": {
     "uz": "TASKFIX_EMAIL_SETTINGS.sql ishga tushirilmagan — saqlab bo'lmadi",
@@ -3935,9 +3945,9 @@
     "en": "Could not delete: {0}"
   },
   "emp.deleted": {
-    "uz": "✓ O'chirildi",
-    "ru": "✓ Удалено",
-    "en": "✓ Deleted"
+    "uz": "O'chirildi",
+    "ru": "Удалено",
+    "en": "Deleted"
   },
   "emp.link_add_title": {
     "uz": "Hujjat havolasi qo'shish",
@@ -3945,9 +3955,9 @@
     "en": "Add document link"
   },
   "emp.link_added": {
-    "uz": "✓ Havola qo'shildi",
-    "ru": "✓ Ссылка добавлена",
-    "en": "✓ Link added"
+    "uz": "Havola qo'shildi",
+    "ru": "Ссылка добавлена",
+    "en": "Link added"
   },
   "emp.link_default_title": {
     "uz": "Havola",
@@ -3990,9 +4000,9 @@
     "en": "Google Drive link"
   },
   "emp.links_load_failed_html": {
-    "uz": "⚠ Hujjatlar yuklanmadi — <b>38-migratsiyani ishga tushiring</b>.",
-    "ru": "⚠ Документы не загрузились — <b>выполните миграцию 38</b>.",
-    "en": "⚠ Documents did not load — <b>run migration 38</b>."
+    "uz": "Hujjatlar yuklanmadi — <b>38-migratsiyani ishga tushiring</b>.",
+    "ru": "Документы не загрузились — <b>выполните миграцию 38</b>.",
+    "en": "Documents did not load — <b>run migration 38</b>."
   },
   "emp.migration_29_needed": {
     "uz": "(29-migratsiya kerak)",
@@ -4045,9 +4055,9 @@
     "en": "The position was not added:"
   },
   "emp.position_added": {
-    "uz": "✓ Lavozim qo'shildi — biriktirish uchun \"Saqlash\"ni bosing",
-    "ru": "✓ Должность добавлена — нажмите «Сохранить», чтобы назначить",
-    "en": "✓ Position added — click \"Save\" to assign it"
+    "uz": "Lavozim qo'shildi — biriktirish uchun \"Saqlash\"ni bosing",
+    "ru": "Должность добавлена — нажмите «Сохранить», чтобы назначить",
+    "en": "Position added — click \"Save\" to assign it"
   },
   "emp.position_name_label": {
     "uz": "Lavozim nomi",
@@ -4090,9 +4100,9 @@
     "en": "exist — choose who takes them over, otherwise they are left with no assignee."
   },
   "emp.role_added": {
-    "uz": "✓ Rol qo'shildi — biriktirish uchun \"Saqlash\"ni bosing",
-    "ru": "✓ Роль добавлена — нажмите «Сохранить», чтобы назначить",
-    "en": "✓ Role added — click \"Save\" to assign it"
+    "uz": "Rol qo'shildi — biriktirish uchun \"Saqlash\"ni bosing",
+    "ru": "Роль добавлена — нажмите «Сохранить», чтобы назначить",
+    "en": "Role added — click \"Save\" to assign it"
   },
   "emp.role_code_hint": {
     "uz": "Lotin harflari — import shu kod bo'yicha moslashtiradi",
@@ -4225,9 +4235,9 @@
     "en": "» — nothing found. Try another word or a phone number."
   },
   "gs.partial_error": {
-    "uz": "⚠️ Ba'zi natijalar yuklanmadi:",
-    "ru": "⚠️ Часть результатов не загрузилась:",
-    "en": "⚠️ Some results did not load:"
+    "uz": "Ba'zi natijalar yuklanmadi:",
+    "ru": "Часть результатов не загрузилась:",
+    "en": "Some results did not load:"
   },
   "gs.position_untitled": {
     "uz": "(nomsiz lavozim)",
@@ -4255,9 +4265,9 @@
     "en": "+ {0} more"
   },
   "gs.some_results_failed": {
-    "uz": "⚠️ Ba'zi natijalar yuklanmadi: {0}",
-    "ru": "⚠️ Часть результатов не загрузилась: {0}",
-    "en": "⚠️ Some results failed to load: {0}"
+    "uz": "Ba'zi natijalar yuklanmadi: {0}",
+    "ru": "Часть результатов не загрузилась: {0}",
+    "en": "Some results failed to load: {0}"
   },
   "gs.src_server": {
     "uz": "Server",
@@ -4275,9 +4285,9 @@
     "en": "Expense cash desk disabled"
   },
   "hk.enabled": {
-    "uz": "💵 Harajat kassa yoqildi",
-    "ru": "💵 Расходная касса включена",
-    "en": "💵 Expense cash desk enabled"
+    "uz": "Harajat kassa yoqildi",
+    "ru": "Расходная касса включена",
+    "en": "Expense cash desk enabled"
   },
   "hk.err_migration_47": {
     "uz": "47-migratsiya kerak (harajat_kassa ustuni yo'q)",
@@ -4300,9 +4310,9 @@
     "en": "Provodka sync error: {0}"
   },
   "hr.load_failed_warn": {
-    "uz": "⚠ HR ma'lumoti yuklanmadi —",
-    "ru": "⚠ Данные HR не загрузились —",
-    "en": "⚠ HR data failed to load —"
+    "uz": "HR ma'lumoti yuklanmadi —",
+    "ru": "Данные HR не загрузились —",
+    "en": "HR data failed to load —"
   },
   "hr.migrate_failed": {
     "uz": "Lavozimlarni ko'chirib bo'lmadi: {0}",
@@ -4310,9 +4320,9 @@
     "en": "Could not migrate positions: {0}"
   },
   "hr.positions_migrated": {
-    "uz": "✓ {0} lavozim DB'ga ko'chirildi ({1} hodimga biriktirildi)",
-    "ru": "✓ {0} должностей перенесено в базу (привязано к {1} сотрудникам)",
-    "en": "✓ {0} positions migrated to the database ({1} employees linked)"
+    "uz": "{0} lavozim DB'ga ko'chirildi ({1} hodimga biriktirildi)",
+    "ru": "{0} должностей перенесено в базу (привязано к {1} сотрудникам)",
+    "en": "{0} positions migrated to the database ({1} employees linked)"
   },
   "hr.run_migrations_38_39": {
     "uz": "38 va 39-migratsiyani ishga tushiring",
@@ -4395,9 +4405,9 @@
     "en": "Run it."
   },
   "hrEd.saved_count": {
-    "uz": "✅ Saqlandi — {0} lavozim HR muharriri",
-    "ru": "✅ Сохранено — HR-редакторов среди должностей: {0}",
-    "en": "✅ Saved — {0} positions are HR editors"
+    "uz": "Saqlandi — {0} lavozim HR muharriri",
+    "ru": "Сохранено — HR-редакторов среди должностей: {0}",
+    "en": "Saved — {0} positions are HR editors"
   },
   "hrImport.all_will_be_created": {
     "uz": "ta (hammasi yaratiladi)",
@@ -4440,9 +4450,9 @@
     "en": "view, in the \"Assignee\" column."
   },
   "hrImport.blockers": {
-    "uz": "🛑 {0} bloker — hech narsa yozilmaydi.",
-    "ru": "🛑 Блокеров: {0} — ничего не будет записано.",
-    "en": "🛑 {0} blockers — nothing will be written."
+    "uz": "{0} bloker — hech narsa yozilmaydi.",
+    "ru": "Блокеров: {0} — ничего не будет записано.",
+    "en": "{0} blockers — nothing will be written."
   },
   "hrImport.btn_photo_progress": {
     "uz": "Rasm… {0}/{1}",
@@ -4720,9 +4730,9 @@
     "en": "Select the export file first"
   },
   "hrImport.preflight_ok": {
-    "uz": "✓ <b>{0}</b> yangi yaratiladi &nbsp;·&nbsp; ↻ <b>{1}</b> yangilanadi (avval import qilingan)",
-    "ru": "✓ Будет создано: <b>{0}</b> &nbsp;·&nbsp; ↻ Будет обновлено: <b>{1}</b> (импортировано ранее)",
-    "en": "✓ <b>{0}</b> will be created &nbsp;·&nbsp; ↻ <b>{1}</b> will be updated (imported earlier)"
+    "uz": "<b>{0}</b> yangi yaratiladi &nbsp;·&nbsp; <b>{1}</b> yangilanadi (avval import qilingan)",
+    "ru": "Будет создано: <b>{0}</b> &nbsp;·&nbsp;Будет обновлено: <b>{1}</b> (импортировано ранее)",
+    "en": "<b>{0}</b> will be created &nbsp;·&nbsp; <b>{1}</b> will be updated (imported earlier)"
   },
   "hrImport.preview_note": {
     "uz": "Quyidagi vazifalar yaratiladi. Bajaruvchi/Bo'lim/Status nomlar bo'yicha avtomatik moslashtirildi.",
@@ -4735,9 +4745,9 @@
     "en": "Reading…"
   },
   "hrImport.report_counts": {
-    "uz": "✓ {0} yaratildi &nbsp;·&nbsp; ↻ {1} yangilandi &nbsp;·&nbsp; ⚲ {2} bog'landi",
-    "ru": "✓ Создано: {0} &nbsp;·&nbsp; ↻ Обновлено: {1} &nbsp;·&nbsp; ⚲ Связано: {2}",
-    "en": "✓ {0} created &nbsp;·&nbsp; ↻ {1} updated &nbsp;·&nbsp; ⚲ {2} linked"
+    "uz": "{0} yaratildi &nbsp;·&nbsp;{1} yangilandi &nbsp;·&nbsp;{2} bog'landi",
+    "ru": "Создано: {0} &nbsp;·&nbsp;Обновлено: {1} &nbsp;·&nbsp;Связано: {2}",
+    "en": "{0} created &nbsp;·&nbsp;{1} updated &nbsp;·&nbsp;{2} linked"
   },
   "hrImport.report_done": {
     "uz": "Import tugadi",
@@ -4745,9 +4755,9 @@
     "en": "Import finished"
   },
   "hrImport.report_skipped_suffix": {
-    "uz": " &nbsp;·&nbsp; ⚠ {0} o'tkazib yuborildi",
-    "ru": " &nbsp;·&nbsp; ⚠ Пропущено: {0}",
-    "en": " &nbsp;·&nbsp; ⚠ {0} skipped"
+    "uz": " &nbsp;·&nbsp;{0} o'tkazib yuborildi",
+    "ru": " &nbsp;·&nbsp;Пропущено: {0}",
+    "en": " &nbsp;·&nbsp;{0} skipped"
   },
   "hrImport.rollback_run_id": {
     "uz": "Rollback uchun run id: <code>{0}</code>",
@@ -4765,9 +4775,9 @@
     "en": "Server dry run: {0}"
   },
   "hrImport.skipped_employees": {
-    "uz": "⚠ {0} hodim o'tkazib yuborildi (identitet yaratilmagan)",
-    "ru": "⚠ Пропущено сотрудников: {0} (учётная запись не создана)",
-    "en": "⚠ {0} employees skipped (identity not created)"
+    "uz": "{0} hodim o'tkazib yuborildi (identitet yaratilmagan)",
+    "ru": "Пропущено сотрудников: {0} (учётная запись не создана)",
+    "en": "{0} employees skipped (identity not created)"
   },
   "hrImport.skipped_no_identity": {
     "uz": "hodim o'tkazib yuborildi (identitet yaratilmagan)",
@@ -4800,9 +4810,9 @@
     "en": "users:"
   },
   "hrImport.warn_header": {
-    "uz": "⚠ Ogohlantirish (bloklamaydi)",
-    "ru": "⚠ Предупреждение (не блокирует)",
-    "en": "⚠ Warning (does not block)"
+    "uz": "Ogohlantirish (bloklamaydi)",
+    "ru": "Предупреждение (не блокирует)",
+    "en": "Warning (does not block)"
   },
   "hrImport.warn_no_link": {
     "uz": "hodim yaratiladi, biriktirilmaydi",
@@ -4820,9 +4830,9 @@
     "en": "the import will create and link them — normal on the first run"
   },
   "hrImport.xls_preview_title": {
-    "uz": "📊 Import — {0} ta vazifa",
-    "ru": "📊 Импорт — задач: {0}",
-    "en": "📊 Import — {0} tasks"
+    "uz": "Import — {0} ta vazifa",
+    "ru": "Импорт — задач: {0}",
+    "en": "Import — {0} tasks"
   },
   "hrc.act_edit": {
     "uz": "Tahrirlash",
@@ -4860,9 +4870,9 @@
     "en": "Reopen for review"
   },
   "hrc.back_to_list": {
-    "uz": "← Ro'yxat",
-    "ru": "← Список",
-    "en": "← List"
+    "uz": "Ro'yxat",
+    "ru": "Список",
+    "en": "List"
   },
   "hrc.box_act_kassa": {
     "uz": "Kassa ochish",
@@ -4935,9 +4945,9 @@
     "en": "No extra action selected. You can enable the TaskFix invitation or the expense cash desk in the \"HR side\" dialog."
   },
   "hrc.box_note": {
-    "uz": "🔴 Bu yerda faqat TANLOV saqlanadi. Taklif yuborish va kassa ochish nomzod kartasidagi alohida tugma bilan bajariladi — saqlash o'zi hech narsa yubormaydi.",
-    "ru": "🔴 Здесь сохраняется только ВЫБОР. Приглашение и открытие кассы выполняются отдельной кнопкой в карточке кандидата — само сохранение ничего не отправляет.",
-    "en": "🔴 Only the CHOICE is saved here. Sending the invite and opening the cash desk are done by a separate button on the candidate card — saving itself sends nothing."
+    "uz": "Bu yerda faqat TANLOV saqlanadi. Taklif yuborish va kassa ochish nomzod kartasidagi alohida tugma bilan bajariladi — saqlash o'zi hech narsa yubormaydi.",
+    "ru": "Здесь сохраняется только ВЫБОР. Приглашение и открытие кассы выполняются отдельной кнопкой в карточке кандидата — само сохранение ничего не отправляет.",
+    "en": "Only the CHOICE is saved here. Sending the invite and opening the cash desk are done by a separate button on the candidate card — saving itself sends nothing."
   },
   "hrc.box_off": {
     "uz": "Tanlanmagan — yoqish uchun \"HR tomoni\" ni oching.",
@@ -4948,6 +4958,21 @@
     "uz": "Faqat workspace egasi yoki administratori bajara oladi.",
     "ru": "Может выполнить только владелец или администратор воркспейса.",
     "en": "Only the workspace owner or an administrator can do this."
+  },
+  "hrc.box_proj_done": {
+    "uz": "Loyiha: ishga tushirilgan",
+    "ru": "Проект: запущен",
+    "en": "Project: started"
+  },
+  "hrc.box_proj_wait": {
+    "uz": "Loyiha: kutilmoqda",
+    "ru": "Проект: ожидает",
+    "en": "Project: pending"
+  },
+  "hrc.box_project": {
+    "uz": "Loyihani ishga tushirish",
+    "ru": "Запуск проекта",
+    "en": "Start the project"
   },
   "hrc.box_taskfix": {
     "uz": "TaskFix'ga taklif qilish",
@@ -5065,9 +5090,9 @@
     "en": "The candidate was NOT deleted: the folder holds more than {0} documents and they cannot all be removed at once. {1} The candidate was kept so the remaining files do not get locked — press \"Delete\" again."
   },
   "hrc.deleted": {
-    "uz": "✅ O'chirildi",
-    "ru": "✅ Удалено",
-    "en": "✅ Deleted"
+    "uz": "O'chirildi",
+    "ru": "Удалено",
+    "en": "Deleted"
   },
   "hrc.digits": {
     "uz": "raqam",
@@ -5134,6 +5159,11 @@
     "ru": "Изображение или PDF, каждый до {0} МБ. Документы хранятся конфиденциально и доступны только HR.",
     "en": "Image or PDF, up to {0} MB each. Documents are stored confidentially and visible only to HR."
   },
+  "hrc.dyn_failed": {
+    "uz": "Qo'shimcha maydon qiymatlari o'qilmadi: {0}",
+    "ru": "Значения дополнительных полей не прочитаны: {0}",
+    "en": "Custom field values could not be read: {0}"
+  },
   "hrc.ef_offline": {
     "uz": "Xizmatga ulanib bo'lmadi — internet aloqasini tekshirib, qayta urinib ko'ring.",
     "ru": "Не удалось подключиться к сервису — проверьте интернет и попробуйте снова.",
@@ -5169,10 +5199,60 @@
     "ru": "Не загружены документы: {0}",
     "en": "Documents not uploaded: {0}"
   },
+  "hrc.err_dyn_vals": {
+    "uz": "Asosiy ma'lumot saqlandi, lekin qo'shimcha maydonlar yozilmadi: {0}",
+    "ru": "Основные данные сохранены, но дополнительные поля не записаны: {0}",
+    "en": "Main data was saved, but custom fields were not written: {0}"
+  },
   "hrc.err_email": {
     "uz": "Email manzili noto'g'ri",
     "ru": "Email указан неверно",
     "en": "The email address is invalid"
+  },
+  "hrc.err_field_check": {
+    "uz": "\"{0}\" belgilanishi kerak",
+    "ru": "Отметьте «{0}»",
+    "en": "\"{0}\" must be checked"
+  },
+  "hrc.err_field_date": {
+    "uz": "\"{0}\" — sana noto'g'ri",
+    "ru": "«{0}» — неверная дата",
+    "en": "\"{0}\" — invalid date"
+  },
+  "hrc.err_field_email": {
+    "uz": "\"{0}\" — email manzili noto'g'ri",
+    "ru": "«{0}» — неверный email",
+    "en": "\"{0}\" — invalid email address"
+  },
+  "hrc.err_field_file": {
+    "uz": "\"{0}\" — hujjat yuklanishi kerak",
+    "ru": "«{0}» — нужно загрузить документ",
+    "en": "\"{0}\" — a document must be uploaded"
+  },
+  "hrc.err_field_long": {
+    "uz": "\"{0}\" juda uzun ({1} belgidan ko'p bo'lmasin)",
+    "ru": "«{0}» слишком длинное (не более {1} символов)",
+    "en": "\"{0}\" is too long (max {1} characters)"
+  },
+  "hrc.err_field_number": {
+    "uz": "\"{0}\" — raqam kiritilishi kerak",
+    "ru": "«{0}» — нужно ввести число",
+    "en": "\"{0}\" — a number is required"
+  },
+  "hrc.err_field_option": {
+    "uz": "\"{0}\" — tanlangan variant ro'yxatda yo'q",
+    "ru": "«{0}» — выбранного варианта нет в списке",
+    "en": "\"{0}\" — the selected option is not in the list"
+  },
+  "hrc.err_field_required": {
+    "uz": "\"{0}\" to'ldirilishi kerak",
+    "ru": "Поле «{0}» обязательно для заполнения",
+    "en": "\"{0}\" is required"
+  },
+  "hrc.err_field_tel": {
+    "uz": "\"{0}\" — telefon raqami noto'g'ri",
+    "ru": "«{0}» — неверный номер телефона",
+    "en": "\"{0}\" — invalid phone number"
   },
   "hrc.err_name": {
     "uz": "F.I.O. kamida 3 belgi bo'lishi kerak",
@@ -5329,6 +5409,16 @@
     "ru": "Должность",
     "en": "Position"
   },
+  "hrc.f_project": {
+    "uz": "Loyiha",
+    "ru": "Проект",
+    "en": "Project"
+  },
+  "hrc.f_project_started": {
+    "uz": "Loyiha ishga tushirilgan",
+    "ru": "Проект запущен",
+    "en": "Project started"
+  },
   "hrc.f_referred": {
     "uz": "Kim tavsiya qildi / qayerdan topildi",
     "ru": "Кто порекомендовал / откуда найден",
@@ -5343,6 +5433,11 @@
     "uz": "Yuborilgan",
     "ru": "Отправлено",
     "en": "Submitted"
+  },
+  "hrc.fields_btn": {
+    "uz": "Maydonlar",
+    "ru": "Поля",
+    "en": "Fields"
   },
   "hrc.file_none": {
     "uz": "Fayl tanlanmagan",
@@ -5363,6 +5458,291 @@
     "uz": "Yuklangan — almashtirish uchun yangi fayl tanlang",
     "ru": "Загружен — выберите новый файл, чтобы заменить",
     "en": "Uploaded — pick a new file to replace it"
+  },
+  "hrc.fill_both": {
+    "uz": "Ikkovi",
+    "ru": "Оба",
+    "en": "Both"
+  },
+  "hrc.fill_both_desc": {
+    "uz": "HR ham, nomzod ham to'ldira oladi.",
+    "ru": "Заполнить может и HR, и кандидат.",
+    "en": "Both HR and the candidate can fill it in."
+  },
+  "hrc.fill_employee": {
+    "uz": "Hodim",
+    "ru": "Сотрудник",
+    "en": "Employee"
+  },
+  "hrc.fill_employee_desc": {
+    "uz": "Faqat nomzod havolasida so'raladi — HR formasida ko'rinmaydi.",
+    "ru": "Запрашивается только по ссылке кандидата — в форме HR не отображается.",
+    "en": "Asked only on the candidate link — not shown in the HR form."
+  },
+  "hrc.fill_hr": {
+    "uz": "HR",
+    "ru": "HR",
+    "en": "HR"
+  },
+  "hrc.fill_hr_desc": {
+    "uz": "Faqat HR ko'radi va to'ldiradi. Nomzod havolasida chiqmaydi.",
+    "ru": "Видит и заполняет только HR. В ссылке для кандидата не показывается.",
+    "en": "Only HR sees and fills it in. Not shown on the candidate link."
+  },
+  "hrc.fld_act_down": {
+    "uz": "Pastga",
+    "ru": "Вниз",
+    "en": "Move down"
+  },
+  "hrc.fld_act_hide": {
+    "uz": "Yashirish",
+    "ru": "Скрыть",
+    "en": "Hide"
+  },
+  "hrc.fld_act_show": {
+    "uz": "Ko'rsatish",
+    "ru": "Показать",
+    "en": "Show"
+  },
+  "hrc.fld_act_up": {
+    "uz": "Yuqoriga",
+    "ru": "Вверх",
+    "en": "Move up"
+  },
+  "hrc.fld_add": {
+    "uz": "Maydon qo'shish",
+    "ru": "Добавить поле",
+    "en": "Add field"
+  },
+  "hrc.fld_count": {
+    "uz": "{0} ta maydon",
+    "ru": "Полей: {0}",
+    "en": "{0} fields"
+  },
+  "hrc.fld_del_msg": {
+    "uz": "\"{0}\" maydoni o'chirilsinmi? Barcha nomzodlarda shu maydonga kiritilgan qiymatlar ham o'chadi. Yuklangan fayllar omborda qoladi va nomzod o'chirilganda tozalanadi. Bu amalni qaytarib bo'lmaydi.",
+    "ru": "Удалить поле «{0}»? Значения этого поля у всех кандидатов также будут удалены. Загруженные файлы останутся в хранилище и будут удалены вместе с кандидатом. Действие необратимо.",
+    "en": "Delete the \"{0}\" field? The values entered in this field for all candidates will be deleted too. Uploaded files stay in storage and are removed when the candidate is deleted. This action cannot be undone."
+  },
+  "hrc.fld_del_sys": {
+    "uz": "Tizim maydoni o'chirilmaydi — uni \"Yashirish\" bilan formadan olib qo'ying.",
+    "ru": "Системное поле не удаляется — уберите его из формы кнопкой «Скрыть».",
+    "en": "A system field cannot be deleted — remove it from the form with \"Hide\"."
+  },
+  "hrc.fld_del_title": {
+    "uz": "Maydonni o'chirish",
+    "ru": "Удаление поля",
+    "en": "Delete field"
+  },
+  "hrc.fld_edit_title": {
+    "uz": "Maydonni tahrirlash",
+    "ru": "Редактирование поля",
+    "en": "Edit field"
+  },
+  "hrc.fld_empty_hint": {
+    "uz": "Sahifa ochilganda standart maydonlar avtomatik yaratiladi. Ko'rinmasa — sahifani yangilang yoki maydonni o'zingiz qo'shing.",
+    "ru": "Стандартные поля создаются автоматически при открытии страницы. Если их нет — обновите страницу или добавьте поле вручную.",
+    "en": "Default fields are created automatically when the page opens. If you don't see them, refresh the page or add a field manually."
+  },
+  "hrc.fld_empty_title": {
+    "uz": "Maydonlar hali sozlanmagan",
+    "ru": "Поля ещё не настроены",
+    "en": "Fields are not configured yet"
+  },
+  "hrc.fld_err_fill_hr": {
+    "uz": "Bu maydonni nomzodga ochib bo'lmaydi — u faqat HR tomonidan to'ldiriladi.",
+    "ru": "Это поле нельзя открыть кандидату — его заполняет только HR.",
+    "en": "This field cannot be exposed to the candidate — it is filled in by HR only."
+  },
+  "hrc.fld_err_load": {
+    "uz": "Maydonlar ro'yxati o'qilmadi: {0}. Forma vaqtincha eski (qat'iy) ko'rinishda ishlayapti.",
+    "ru": "Список полей не прочитан: {0}. Форма временно работает в старом (фиксированном) виде.",
+    "en": "The field list could not be read: {0}. The form is temporarily using the old (fixed) layout."
+  },
+  "hrc.fld_err_name": {
+    "uz": "Maydon nomi (o'zbekcha) 1–120 belgi bo'lishi kerak",
+    "ru": "Название поля (узбекский) должно содержать от 1 до 120 символов",
+    "en": "The field name (Uzbek) must be 1–120 characters"
+  },
+  "hrc.fld_err_option_dup": {
+    "uz": "Variant qiymati takrorlangan: {0}",
+    "ru": "Значение варианта повторяется: {0}",
+    "en": "Duplicate option value: {0}"
+  },
+  "hrc.fld_err_option_long": {
+    "uz": "Variant qiymati juda uzun ({0}-qator)",
+    "ru": "Значение варианта слишком длинное (строка {0})",
+    "en": "The option value is too long (line {0})"
+  },
+  "hrc.fld_err_option_value": {
+    "uz": "Variant qiymati bo'sh bo'lmasin ({0}-qator)",
+    "ru": "Значение варианта не должно быть пустым (строка {0})",
+    "en": "The option value must not be empty (line {0})"
+  },
+  "hrc.fld_err_options": {
+    "uz": "Tanlash maydoni uchun kamida bitta variant kerak",
+    "ru": "Для поля выбора нужен хотя бы один вариант",
+    "en": "A select field needs at least one option"
+  },
+  "hrc.fld_err_options_max": {
+    "uz": "Variantlar soni 100 tadan oshmasin",
+    "ru": "Вариантов не должно быть больше 100",
+    "en": "There must be no more than 100 options"
+  },
+  "hrc.fld_err_type": {
+    "uz": "Maydon turi tanlanishi kerak",
+    "ru": "Нужно выбрать тип поля",
+    "en": "A field type must be selected"
+  },
+  "hrc.fld_fill_by": {
+    "uz": "Kim to'ldiradi?",
+    "ru": "Кто заполняет?",
+    "en": "Who fills it in?"
+  },
+  "hrc.fld_fill_hr_only": {
+    "uz": "Bu maydon faqat HR tomonidan to'ldiriladi — nomzod havolasiga chiqarib bo'lmaydi.",
+    "ru": "Это поле заполняет только HR — вывести его в ссылку кандидата нельзя.",
+    "en": "This field is filled in by HR only — it cannot be exposed on the candidate link."
+  },
+  "hrc.fld_group": {
+    "uz": "Guruh: {0}",
+    "ru": "Группа: {0}",
+    "en": "Group: {0}"
+  },
+  "hrc.fld_hidden": {
+    "uz": "Yashirilgan",
+    "ru": "Скрыто",
+    "en": "Hidden"
+  },
+  "hrc.fld_name_en": {
+    "uz": "Nom (inglizcha)",
+    "ru": "Название (английский)",
+    "en": "Name (English)"
+  },
+  "hrc.fld_name_hint": {
+    "uz": "Bo'sh qoldirilsa o'zbekcha nom ko'rsatiladi.",
+    "ru": "Если оставить пустым, будет показано узбекское название.",
+    "en": "If left empty, the Uzbek name is shown."
+  },
+  "hrc.fld_name_ph": {
+    "uz": "Masalan: Sudlanganlik hujjati",
+    "ru": "Например: Справка о несудимости",
+    "en": "For example: Criminal record certificate"
+  },
+  "hrc.fld_name_ru": {
+    "uz": "Nom (ruscha)",
+    "ru": "Название (русский)",
+    "en": "Name (Russian)"
+  },
+  "hrc.fld_name_uz": {
+    "uz": "Nom (o'zbekcha)",
+    "ru": "Название (узбекский)",
+    "en": "Name (Uzbek)"
+  },
+  "hrc.fld_new_title": {
+    "uz": "Yangi maydon",
+    "ru": "Новое поле",
+    "en": "New field"
+  },
+  "hrc.fld_options": {
+    "uz": "Variantlar",
+    "ru": "Варианты",
+    "en": "Options"
+  },
+  "hrc.fld_options_hint": {
+    "uz": "Har qatorda bitta variant: qiymat|o'zbekcha|ruscha|inglizcha. Masalan: yes|Ha|Да|Yes",
+    "ru": "По одному варианту в строке: значение|узбекский|русский|английский. Например: yes|Ha|Да|Yes",
+    "en": "One option per line: value|Uzbek|Russian|English. For example: yes|Ha|Да|Yes"
+  },
+  "hrc.fld_ph_en": {
+    "uz": "Ko'rsatma matni (inglizcha)",
+    "ru": "Подсказка в поле (английский)",
+    "en": "Placeholder (English)"
+  },
+  "hrc.fld_ph_hint": {
+    "uz": "Maydon bo'sh turganda ichida ko'rinadigan namuna.",
+    "ru": "Пример, который виден внутри пустого поля.",
+    "en": "Example text shown inside the empty field."
+  },
+  "hrc.fld_ph_ru": {
+    "uz": "Ko'rsatma matni (ruscha)",
+    "ru": "Подсказка в поле (русский)",
+    "en": "Placeholder (Russian)"
+  },
+  "hrc.fld_ph_uz": {
+    "uz": "Ko'rsatma matni (o'zbekcha)",
+    "ru": "Подсказка в поле (узбекский)",
+    "en": "Placeholder (Uzbek)"
+  },
+  "hrc.fld_req_tag": {
+    "uz": "Majburiy",
+    "ru": "Обязательное",
+    "en": "Required"
+  },
+  "hrc.fld_required": {
+    "uz": "Majburiy maydon",
+    "ru": "Обязательное поле",
+    "en": "Required field"
+  },
+  "hrc.fld_section": {
+    "uz": "Guruh (ixtiyoriy)",
+    "ru": "Группа (необязательно)",
+    "en": "Group (optional)"
+  },
+  "hrc.fld_section_hint": {
+    "uz": "Bir xil guruh nomi yozilgan maydonlar formada birga chiziladi. Bo'sh qolsa — \"Qo'shimcha ma'lumot\" bo'limiga tushadi.",
+    "ru": "Поля с одинаковым названием группы отображаются в форме вместе. Если оставить пустым — попадут в раздел «Дополнительная информация».",
+    "en": "Fields with the same group name are shown together in the form. If left empty, they go to the \"Additional information\" section."
+  },
+  "hrc.fld_section_ph": {
+    "uz": "Masalan: Qo'shimcha hujjatlar",
+    "ru": "Например: Дополнительные документы",
+    "en": "For example: Additional documents"
+  },
+  "hrc.fld_sql_missing_toast": {
+    "uz": "TASKFIX_HR_DYNAMIC.sql hali ishga tushirilmagan",
+    "ru": "TASKFIX_HR_DYNAMIC.sql ещё не выполнен",
+    "en": "TASKFIX_HR_DYNAMIC.sql has not been run yet"
+  },
+  "hrc.fld_sub": {
+    "uz": "Bu yerda sozlangan maydonlar HR formasida ham, nomzod havolasida ham shu tartibda chiziladi.",
+    "ru": "Настроенные здесь поля отображаются в том же порядке и в форме HR, и по ссылке кандидата.",
+    "en": "Fields configured here appear in this order both in the HR form and on the candidate link."
+  },
+  "hrc.fld_sys": {
+    "uz": "Tizim",
+    "ru": "Системное",
+    "en": "System"
+  },
+  "hrc.fld_sys_note": {
+    "uz": "Tizim maydonini o'chirib bo'lmaydi — u mavjud ma'lumot ustuniga bog'langan. Kerak bo'lmasa \"Yashirish\" bilan formadan olib qo'ying.",
+    "ru": "Системное поле удалить нельзя — оно привязано к существующему столбцу данных. Если оно не нужно, скройте его кнопкой «Скрыть».",
+    "en": "A system field cannot be deleted — it is bound to an existing data column. If you don't need it, remove it from the form with \"Hide\"."
+  },
+  "hrc.fld_title": {
+    "uz": "Forma maydonlari",
+    "ru": "Поля формы",
+    "en": "Form fields"
+  },
+  "hrc.fld_type": {
+    "uz": "Maydon turi",
+    "ru": "Тип поля",
+    "en": "Field type"
+  },
+  "hrc.fld_type_change": {
+    "uz": "Turni o'zgartirsangiz avval kiritilgan qiymatlar yangi turga mos kelmasligi mumkin.",
+    "ru": "Если изменить тип, ранее введённые значения могут не соответствовать новому типу.",
+    "en": "If you change the type, previously entered values may not match the new type."
+  },
+  "hrc.fld_type_locked": {
+    "uz": "Tizim maydonining turi va guruhi o'zgartirilmaydi — u mavjud ma'lumot ustuniga bog'langan.",
+    "ru": "Тип и группа системного поля не изменяются — оно привязано к существующему столбцу данных.",
+    "en": "The type and group of a system field cannot be changed — it is bound to an existing data column."
+  },
+  "hrc.fld_type_ph": {
+    "uz": "Turni tanlang…",
+    "ru": "Выберите тип…",
+    "en": "Choose a type…"
   },
   "hrc.gender_f": {
     "uz": "Ayol",
@@ -5395,9 +5775,9 @@
     "en": "The cash desk was not opened: {0}"
   },
   "hrc.kassa_failed_stuck": {
-    "uz": "Kassa ochilmadi: {0}. ⚠️ \"Ochilgan\" belgisi ham qaytarilmadi ({1}) — nomzodni qo'lda tekshiring.",
-    "ru": "Касса не открыта: {0}. ⚠️ Отметку «открыта» тоже не удалось снять ({1}) — проверьте кандидата вручную.",
-    "en": "The cash desk was not opened: {0}. ⚠️ The \"opened\" mark could not be reverted either ({1}) — check the candidate manually."
+    "uz": "Kassa ochilmadi: {0}.\"Ochilgan\" belgisi ham qaytarilmadi ({1}) — nomzodni qo'lda tekshiring.",
+    "ru": "Касса не открыта: {0}.Отметку «открыта» тоже не удалось снять ({1}) — проверьте кандидата вручную.",
+    "en": "The cash desk was not opened: {0}.The \"opened\" mark could not be reverted either ({1}) — check the candidate manually."
   },
   "hrc.kassa_msg": {
     "uz": "\"{0}\" uchun Provodka'da xarajat kassa ochilsinmi?",
@@ -5405,14 +5785,14 @@
     "en": "Open an expense cash desk in Provodka for \"{0}\"?"
   },
   "hrc.kassa_ok": {
-    "uz": "✅ Xarajat kassa ochildi",
-    "ru": "✅ Расходная касса открыта",
-    "en": "✅ Expense cash desk opened"
+    "uz": "Xarajat kassa ochildi",
+    "ru": "Расходная касса открыта",
+    "en": "Expense cash desk opened"
   },
   "hrc.kassa_ok_no_tick": {
-    "uz": "✅ Kassa ochildi, lekin jamoa jadvalidagi 💵 belgisi saqlanmadi: {0}",
-    "ru": "✅ Касса открыта, но отметка 💵 в таблице команды не сохранена: {0}",
-    "en": "✅ The cash desk was opened, but the 💵 mark in the team table was not saved: {0}"
+    "uz": "Kassa ochildi, lekin jamoa jadvalidagi kassa belgisi saqlanmadi: {0}",
+    "ru": "Касса открыта, но отметка кассы в таблице команды не сохранена: {0}",
+    "en": "The cash desk was opened, but the cash mark in the team table was not saved: {0}"
   },
   "hrc.kassa_taken": {
     "uz": "Bu nomzod uchun kassa allaqachon ochilgan.",
@@ -5435,9 +5815,9 @@
     "en": "Link to fill in"
   },
   "hrc.link_note": {
-    "uz": "🔒 Havola BIR MARTALIK: nomzod formani yuborgach ishlamay qoladi. Muddati: {0} gacha.",
-    "ru": "🔒 Ссылка ОДНОРАЗОВАЯ: после отправки анкеты она перестаёт работать. Срок действия — до {0}.",
-    "en": "🔒 The link is ONE-TIME: it stops working once the candidate submits the form. Valid until {0}."
+    "uz": "Havola BIR MARTALIK: nomzod formani yuborgach ishlamay qoladi. Muddati: {0} gacha.",
+    "ru": "Ссылка ОДНОРАЗОВАЯ: после отправки анкеты она перестаёт работать. Срок действия — до {0}.",
+    "en": "The link is ONE-TIME: it stops working once the candidate submits the form. Valid until {0}."
   },
   "hrc.link_open_until": {
     "uz": "Havola ochiq: {0} gacha",
@@ -5450,9 +5830,9 @@
     "en": "Candidate"
   },
   "hrc.link_title": {
-    "uz": "✓ Havola yaratildi",
-    "ru": "✓ Ссылка создана",
-    "en": "✓ Link created"
+    "uz": "Havola yaratildi",
+    "ru": "Ссылка создана",
+    "en": "Link created"
   },
   "hrc.mode_hr": {
     "uz": "HR yuklaydi",
@@ -5529,10 +5909,90 @@
     "ru": "Найдите должность…",
     "en": "Search for a position…"
   },
+  "hrc.ph_project": {
+    "uz": "Loyihani qidiring…",
+    "ru": "Найдите проект…",
+    "en": "Search for a project…"
+  },
+  "hrc.proj_act_start": {
+    "uz": "Loyihani ishga tushirish",
+    "ru": "Запустить проект",
+    "en": "Start the project"
+  },
+  "hrc.proj_col_missing": {
+    "uz": "Loyiha saqlanmadi — TASKFIX_HR_DYNAMIC.sql ishga tushirilmagan.",
+    "ru": "Проект не сохранён — TASKFIX_HR_DYNAMIC.sql не запущен.",
+    "en": "The project was not saved — TASKFIX_HR_DYNAMIC.sql has not been run."
+  },
+  "hrc.proj_done_at": {
+    "uz": "Loyiha ishga tushirilgan: {0}",
+    "ru": "Проект запущен: {0}",
+    "en": "Project started: {0}"
+  },
+  "hrc.proj_failed": {
+    "uz": "Loyiha ishga tushirilmadi: {0}",
+    "ru": "Проект не запущен: {0}",
+    "en": "The project was not started: {0}"
+  },
+  "hrc.proj_failed_stuck": {
+    "uz": "Loyiha ishga tushirilmadi: {0}.\"Ishga tushirilgan\" belgisi ham qaytarilmadi ({1}) — nomzodni qo'lda tekshiring.",
+    "ru": "Проект не запущен: {0}.Отметку «запущен» тоже не удалось снять ({1}) — проверьте кандидата вручную.",
+    "en": "The project was not started: {0}.The \"started\" mark could not be reverted either ({1}) — check the candidate manually."
+  },
+  "hrc.proj_field_hint": {
+    "uz": "Ixtiyoriy. Nomzod \"Ishga olindi\" holatiga o'tganda shu loyiha ishga tushadi va bosqichlari bajaruvchilarga ochiladi.",
+    "ru": "Необязательно. Когда кандидат перейдёт в статус «Принят», этот проект запустится и его этапы откроются исполнителям.",
+    "en": "Optional. When the candidate moves to \"Hired\", this project starts and its stages open up to their assignees."
+  },
+  "hrc.proj_gone": {
+    "uz": "Loyiha topilmadi yoki sizga ochiq emas",
+    "ru": "Проект не найден или недоступен вам",
+    "en": "The project was not found or is not available to you"
+  },
+  "hrc.proj_hint": {
+    "uz": "Nomzod \"Ishga olindi\" holatiga o'tganda loyiha avtomatik ishga tushadi.",
+    "ru": "Когда кандидат перейдёт в статус «Принят», проект запустится автоматически.",
+    "en": "The project starts automatically when the candidate moves to \"Hired\"."
+  },
+  "hrc.proj_hint_hired": {
+    "uz": "Loyiha hali ishga tushirilmagan — tugma bilan qo'lda boshlashingiz mumkin.",
+    "ru": "Проект ещё не запущен — можно запустить его вручную кнопкой.",
+    "en": "The project has not started yet — you can start it manually with the button."
+  },
+  "hrc.proj_no_pick": {
+    "uz": "— Loyihasiz —",
+    "ru": "— Без проекта —",
+    "en": "— No project —"
+  },
+  "hrc.proj_none_hint": {
+    "uz": "Workspace'da loyiha yo'q — avval loyiha yarating.",
+    "ru": "В рабочем пространстве нет проектов — сначала создайте проект.",
+    "en": "There are no projects in this workspace — create a project first."
+  },
+  "hrc.proj_started": {
+    "uz": "\"{0}\" loyihasi ishga tushirildi — bosqichlar bajaruvchilarga ochildi",
+    "ru": "Проект «{0}» запущен — этапы открылись исполнителям",
+    "en": "The \"{0}\" project has started — its stages are now open to assignees"
+  },
+  "hrc.proj_started_kept": {
+    "uz": "\"{0}\" loyihasi faol qilindi (boshlanish sanasi allaqachon o'tgan — o'zgartirilmadi)",
+    "ru": "Проект «{0}» переведён в активные (дата начала уже прошла — не изменялась)",
+    "en": "The \"{0}\" project was set to active (its start date has already passed — it was not changed)"
+  },
+  "hrc.proj_started_no_date": {
+    "uz": "\"{0}\" loyihasi faollashtirildi, lekin muddati (tugash sanasi) o'tgan — boshlanish sanasi yangilanmadi. Loyiha sozlamalaridan sanalarni qo'lda yangilang.",
+    "ru": "Проект «{0}» активирован, но его срок (дата окончания) уже прошёл — дата начала не обновлена. Обновите даты вручную в настройках проекта.",
+    "en": "The \"{0}\" project was activated, but its deadline (end date) has passed — the start date was not updated. Update the dates manually in the project settings."
+  },
+  "hrc.proj_unknown": {
+    "uz": "(loyiha topilmadi)",
+    "ru": "(проект не найден)",
+    "en": "(project not found)"
+  },
   "hrc.saved": {
-    "uz": "✅ Saqlandi",
-    "ru": "✅ Сохранено",
-    "en": "✅ Saved"
+    "uz": "Saqlandi",
+    "ru": "Сохранено",
+    "en": "Saved"
   },
   "hrc.sec_boxes": {
     "uz": "Qo'shimcha amallar",
@@ -5543,6 +6003,11 @@
     "uz": "Hujjatlar",
     "ru": "Документы",
     "en": "Documents"
+  },
+  "hrc.sec_extra": {
+    "uz": "Qo'shimcha ma'lumot",
+    "ru": "Дополнительная информация",
+    "en": "Additional information"
   },
   "hrc.sec_hr": {
     "uz": "HR tomoni",
@@ -5620,14 +6085,59 @@
     "en": "New status for “{0}”: {1}. Continue?"
   },
   "hrc.status_saved": {
-    "uz": "✅ Holat o'zgartirildi",
-    "ru": "✅ Статус изменён",
-    "en": "✅ Status changed"
+    "uz": "Holat o'zgartirildi",
+    "ru": "Статус изменён",
+    "en": "Status changed"
   },
   "hrc.status_title": {
     "uz": "Holatni o'zgartirish",
     "ru": "Изменить статус",
     "en": "Change status"
+  },
+  "hrc.t_checkbox": {
+    "uz": "Belgilash (ha/yo'q)",
+    "ru": "Флажок (да/нет)",
+    "en": "Checkbox (yes/no)"
+  },
+  "hrc.t_date": {
+    "uz": "Sana",
+    "ru": "Дата",
+    "en": "Date"
+  },
+  "hrc.t_email": {
+    "uz": "Email",
+    "ru": "Email",
+    "en": "Email"
+  },
+  "hrc.t_file": {
+    "uz": "Fayl",
+    "ru": "Файл",
+    "en": "File"
+  },
+  "hrc.t_number": {
+    "uz": "Raqam",
+    "ru": "Число",
+    "en": "Number"
+  },
+  "hrc.t_select": {
+    "uz": "Tanlash (ro'yxat)",
+    "ru": "Выбор из списка",
+    "en": "Select (list)"
+  },
+  "hrc.t_tel": {
+    "uz": "Telefon",
+    "ru": "Телефон",
+    "en": "Phone"
+  },
+  "hrc.t_text": {
+    "uz": "Matn",
+    "ru": "Текст",
+    "en": "Text"
+  },
+  "hrc.t_textarea": {
+    "uz": "Uzun matn",
+    "ru": "Длинный текст",
+    "en": "Long text"
   },
   "hrc.tf_dept_failed": {
     "uz": "Xodim yaratildi, lekin bo'limlarga qo'shilmadi: {0}",
@@ -5660,14 +6170,14 @@
     "en": "Invitation was not sent: {0}"
   },
   "hrc.tf_failed_stuck": {
-    "uz": "Taklif yuborilmadi: {0}. ⚠️ \"Yuborilgan\" belgisi ham qaytarilmadi ({1}) — nomzodni qo'lda tekshiring.",
-    "ru": "Приглашение не отправлено: {0}. ⚠️ Отметку «отправлено» тоже не удалось снять ({1}) — проверьте кандидата вручную.",
-    "en": "Invitation was not sent: {0}. ⚠️ The \"sent\" mark could not be reverted either ({1}) — check the candidate manually."
+    "uz": "Taklif yuborilmadi: {0}.\"Yuborilgan\" belgisi ham qaytarilmadi ({1}) — nomzodni qo'lda tekshiring.",
+    "ru": "Приглашение не отправлено: {0}.Отметку «отправлено» тоже не удалось снять ({1}) — проверьте кандидата вручную.",
+    "en": "Invitation was not sent: {0}.The \"sent\" mark could not be reverted either ({1}) — check the candidate manually."
   },
   "hrc.tf_no_email_sent": {
-    "uz": "⚠ Xodim yaratildi, lekin email yuborilmadi{0} — Supabase SMTP sozlamasini tekshiring",
-    "ru": "⚠ Сотрудник создан, но письмо не отправлено{0} — проверьте настройки SMTP в Supabase",
-    "en": "⚠ The employee was created but the email was not sent{0} — check the Supabase SMTP settings"
+    "uz": "Xodim yaratildi, lekin email yuborilmadi{0} — Supabase SMTP sozlamasini tekshiring",
+    "ru": "Сотрудник создан, но письмо не отправлено{0} — проверьте настройки SMTP в Supabase",
+    "en": "The employee was created but the email was not sent{0} — check the Supabase SMTP settings"
   },
   "hrc.tf_role": {
     "uz": "Bo'limdagi rol",
@@ -5680,9 +6190,9 @@
     "en": "Choose a role…"
   },
   "hrc.tf_sent": {
-    "uz": "✅ TaskFix taklifi yuborildi: {0}",
-    "ru": "✅ Приглашение в TaskFix отправлено: {0}",
-    "en": "✅ TaskFix invitation sent: {0}"
+    "uz": "TaskFix taklifi yuborildi: {0}",
+    "ru": "Приглашение в TaskFix отправлено: {0}",
+    "en": "TaskFix invitation sent: {0}"
   },
   "hrc.tf_taken": {
     "uz": "Bu nomzodga taklif allaqachon yuborilgan.",
@@ -5703,6 +6213,11 @@
     "uz": "Hujjatlar: {0}/{1}",
     "ru": "Документы: {0}/{1}",
     "en": "Documents: {0}/{1}"
+  },
+  "hrc.vals_failed": {
+    "uz": "Qo'shimcha maydon qiymatlari o'qilmadi: {0}",
+    "ru": "Не удалось загрузить значения дополнительных полей: {0}",
+    "en": "Could not load custom field values: {0}"
   },
   "hrc.warn_folders": {
     "uz": "Filiallar ro'yxati o'qilmadi (org_folders) — filial tanlash bo'sh bo'ladi.",
@@ -5735,9 +6250,9 @@
     "en": "Turn on extra services — notifications, HR, workflow automation and more."
   },
   "hrsv.enabled": {
-    "uz": "✅ HR Service yoqildi",
-    "ru": "✅ HR Service включён",
-    "en": "✅ HR Service enabled"
+    "uz": "HR Service yoqildi",
+    "ru": "HR Service включён",
+    "en": "HR Service enabled"
   },
   "hrsv.error_dot": {
     "uz": "●  Xato",
@@ -5795,9 +6310,9 @@
     "en": "Sign in to your account or create a new one."
   },
   "html-shell.back_to_login": {
-    "uz": "← Kirishga qaytish",
-    "ru": "← Вернуться ко входу",
-    "en": "← Back to sign in"
+    "uz": "Kirishga qaytish",
+    "ru": "Вернуться ко входу",
+    "en": "Back to sign in"
   },
   "html-shell.boot_err_title": {
     "uz": "Ma'lumotlarni yuklab bo'lmadi",
@@ -6070,9 +6585,9 @@
     "en": "Set a password"
   },
   "html-shell.set_password_and_login": {
-    "uz": "Parol o'rnatib, kirish →",
-    "ru": "Задать пароль и войти →",
-    "en": "Set password and sign in →"
+    "uz": "Parol o'rnatib, kirish",
+    "ru": "Задать пароль и войти",
+    "en": "Set password and sign in"
   },
   "html-shell.show_password": {
     "uz": "Parolni ko'rsatish",
@@ -6100,9 +6615,9 @@
     "en": "Sign up"
   },
   "html-shell.switch_to_login": {
-    "uz": "Kirish formasiga o'tish →",
-    "ru": "Перейти к форме входа →",
-    "en": "Go to the sign-in form →"
+    "uz": "Kirish formasiga o'tish",
+    "ru": "Перейти к форме входа",
+    "en": "Go to the sign-in form"
   },
   "html-shell.welcome": {
     "uz": "Xush kelibsiz",
@@ -6130,9 +6645,9 @@
     "en": "+ New column"
   },
   "kan.task_locked": {
-    "uz": "🔒 Bu vazifa hali qulflangan — oldingi bosqich tugashi kerak",
-    "ru": "🔒 Эта задача ещё заблокирована — сначала нужно завершить предыдущий этап",
-    "en": "🔒 This task is still locked — the previous stage must be completed first"
+    "uz": "Bu vazifa hali qulflangan — oldingi bosqich tugashi kerak",
+    "ru": "Эта задача ещё заблокирована — сначала нужно завершить предыдущий этап",
+    "en": "This task is still locked — the previous stage must be completed first"
   },
   "kan.task_not_found": {
     "uz": "Vazifa topilmadi — sahifani yangilang",
@@ -6255,24 +6770,24 @@
     "en": "My tasks"
   },
   "ms.group_branch": {
-    "uz": "▢ FILIAL — butun jamoasiga",
-    "ru": "▢ ФИЛИАЛ — всей команде",
-    "en": "▢ BRANCH — the whole team"
+    "uz": "FILIAL — butun jamoasiga",
+    "ru": "ФИЛИАЛ — всей команде",
+    "en": "BRANCH — the whole team"
   },
   "ms.group_position": {
-    "uz": "⌬ LAVOZIM — barchaga",
-    "ru": "⌬ ДОЛЖНОСТЬ — всем",
-    "en": "⌬ POSITION — everyone"
+    "uz": "LAVOZIM — barchaga",
+    "ru": "ДОЛЖНОСТЬ — всем",
+    "en": "POSITION — everyone"
   },
   "ms.group_site_users": {
-    "uz": "👥 SAYT FOYDALANUVCHILARI",
-    "ru": "👥 ПОЛЬЗОВАТЕЛИ САЙТА",
-    "en": "👥 SITE USERS"
+    "uz": "SAYT FOYDALANUVCHILARI",
+    "ru": "ПОЛЬЗОВАТЕЛИ САЙТА",
+    "en": "SITE USERS"
   },
   "ms.group_tg_users": {
-    "uz": "✈ TELEGRAM BOT FOYDALANUVCHILARI",
-    "ru": "✈ ПОЛЬЗОВАТЕЛИ TELEGRAM-БОТА",
-    "en": "✈ TELEGRAM BOT USERS"
+    "uz": "TELEGRAM BOT FOYDALANUVCHILARI",
+    "ru": "ПОЛЬЗОВАТЕЛИ TELEGRAM-БОТА",
+    "en": "TELEGRAM BOT USERS"
   },
   "ms.invite_by_email": {
     "uz": "Email orqali taklif",
@@ -6295,14 +6810,14 @@
     "en": "me myself my own"
   },
   "ms.summary_many": {
-    "uz": "✓ {0} ta xodimga (har biriga alohida vazifa) beriladi",
-    "ru": "✓ Задача будет поставлена {0} сотрудникам (каждому отдельная)",
-    "en": "✓ Will be assigned to {0} employees (a separate task for each)"
+    "uz": "{0} ta xodimga (har biriga alohida vazifa) beriladi",
+    "ru": "Задача будет поставлена {0} сотрудникам (каждому отдельная)",
+    "en": "Will be assigned to {0} employees (a separate task for each)"
   },
   "ms.summary_one": {
-    "uz": "✓ 1 ta xodimga vazifa beriladi",
-    "ru": "✓ Задача будет поставлена 1 сотруднику",
-    "en": "✓ The task will be assigned to 1 employee"
+    "uz": "1 ta xodimga vazifa beriladi",
+    "ru": "Задача будет поставлена 1 сотруднику",
+    "en": "The task will be assigned to 1 employee"
   },
   "nmz.aladhan_bad_response": {
     "uz": "aladhan: kutilmagan javob",
@@ -6375,9 +6890,9 @@
     "en": "Prayer times disabled"
   },
   "nmz.enabled_ok": {
-    "uz": "☾ Namoz vaqtlari yoqildi",
-    "ru": "☾ Время намаза включено",
-    "en": "☾ Prayer times enabled"
+    "uz": "Namoz vaqtlari yoqildi",
+    "ru": "Время намаза включено",
+    "en": "Prayer times enabled"
   },
   "nmz.exact_location": {
     "uz": "· aniq joylashuv",
@@ -6435,9 +6950,9 @@
     "en": "islomapi: couldn't read the times"
   },
   "nmz.location_title": {
-    "uz": "☾ Joylashuvingiz",
-    "ru": "☾ Ваше местоположение",
-    "en": "☾ Your location"
+    "uz": "Joylashuvingiz",
+    "ru": "Ваше местоположение",
+    "en": "Your location"
   },
   "nmz.module_not_configured": {
     "uz": "Namoz moduli sozlanmagan — TASKFIX_NAMOZ.sql ishga tushirilmagan",
@@ -6445,9 +6960,9 @@
     "en": "The prayer module isn't set up — TASKFIX_NAMOZ.sql has not been run"
   },
   "nmz.panel_close_title": {
-    "uz": "Lentani yopish (keyin ☾ Vaqtlar bilan qaytariladi)",
-    "ru": "Закрыть ленту (вернуть можно кнопкой ☾ Время)",
-    "en": "Close the bar (bring it back with ☾ Times)"
+    "uz": "Lentani yopish (keyin \"Vaqtlar\" tugmasi bilan qaytariladi)",
+    "ru": "Закрыть ленту (вернуть можно кнопкой «Время»)",
+    "en": "Close the bar (bring it back with the \"Times\" button)"
   },
   "nmz.prayer_asr": {
     "uz": "Asr",
@@ -6555,9 +7070,9 @@
     "en": "Samarkand"
   },
   "nmz.region_saved_geo": {
-    "uz": "✅ {0} · aniq joylashuv",
-    "ru": "✅ {0} · точное местоположение",
-    "en": "✅ {0} · exact location"
+    "uz": "{0} · aniq joylashuv",
+    "ru": "{0} · точное местоположение",
+    "en": "{0} · exact location"
   },
   "nmz.region_search_ph": {
     "uz": "Viloyatni qidiring…",
@@ -6635,24 +7150,24 @@
     "en": "Prayer times are shown in the planner"
   },
   "onb.bot_connect_error": {
-    "uz": "⚠️ Bot ulashda xatolik: {0}",
-    "ru": "⚠️ Ошибка при подключении бота: {0}",
-    "en": "⚠️ Error connecting the bot: {0}"
+    "uz": "Bot ulashda xatolik: {0}",
+    "ru": "Ошибка при подключении бота: {0}",
+    "en": "Error connecting the bot: {0}"
   },
   "onb.bot_token_invalid": {
-    "uz": "⚠️ Bot token noto'g'ri — qadamni o'tkazib yuboramiz",
-    "ru": "⚠️ Токен бота неверный — пропускаем этот шаг",
-    "en": "⚠️ Invalid bot token — skipping this step"
+    "uz": "Bot token noto'g'ri — qadamni o'tkazib yuboramiz",
+    "ru": "Токен бота неверный — пропускаем этот шаг",
+    "en": "Invalid bot token — skipping this step"
   },
   "onb.branches_failed": {
-    "uz": "⚠ Filiallar yaratilmadi: {0}",
-    "ru": "⚠ Филиалы не созданы: {0}",
-    "en": "⚠ Branches weren't created: {0}"
+    "uz": "Filiallar yaratilmadi: {0}",
+    "ru": "Филиалы не созданы: {0}",
+    "en": "Branches weren't created: {0}"
   },
   "onb.company_created": {
-    "uz": "🎉 Kompaniya yaratildi! Xush kelibsiz.",
-    "ru": "🎉 Компания создана! Добро пожаловать.",
-    "en": "🎉 Company created! Welcome."
+    "uz": "Kompaniya yaratildi! Xush kelibsiz.",
+    "ru": "Компания создана! Добро пожаловать.",
+    "en": "Company created! Welcome."
   },
   "onb.creating": {
     "uz": "Yaratilmoqda…",
@@ -6660,9 +7175,9 @@
     "en": "Creating…"
   },
   "onb.first_dept_failed": {
-    "uz": "⚠ Birinchi bo'lim yaratilmadi: {0}",
-    "ru": "⚠ Первый отдел не создан: {0}",
-    "en": "⚠ The first department wasn't created: {0}"
+    "uz": "Birinchi bo'lim yaratilmadi: {0}",
+    "ru": "Первый отдел не создан: {0}",
+    "en": "The first department wasn't created: {0}"
   },
   "onb.name_required": {
     "uz": "Kompaniya nomini kiriting.",
@@ -6670,9 +7185,9 @@
     "en": "Enter the company name."
   },
   "onb.webhook_failed": {
-    "uz": "⚠️ Bot ulandi, lekin webhook o'rnatib bo'lmadi: {0}",
-    "ru": "⚠️ Бот подключён, но вебхук установить не удалось: {0}",
-    "en": "⚠️ Bot connected, but the webhook couldn't be set: {0}"
+    "uz": "Bot ulandi, lekin webhook o'rnatib bo'lmadi: {0}",
+    "ru": "Бот подключён, но вебхук установить не удалось: {0}",
+    "en": "Bot connected, but the webhook couldn't be set: {0}"
   },
   "osc.add_folder_under": {
     "uz": "Ostiga papka qo'shish",
@@ -6810,9 +7325,9 @@
     "en": "{0} folders"
   },
   "osc.folder_created": {
-    "uz": "✅ Papka yaratildi",
-    "ru": "✅ Папка создана",
-    "en": "✅ Folder created"
+    "uz": "Papka yaratildi",
+    "ru": "Папка создана",
+    "en": "Folder created"
   },
   "osc.folder_delete_msg": {
     "uz": "\"{0}\" o'chiriladi.",
@@ -6990,9 +7505,9 @@
     "en": "{0} will be removed from the chart."
   },
   "osc.remove_note_team": {
-    "uz": "⚠️ Xodim jamoadan CHIQARILMAYDI va vazifalariga tegilmaydi.",
-    "ru": "⚠️ Сотрудник НЕ удаляется из команды, его задачи не затрагиваются.",
-    "en": "⚠️ The employee is NOT removed from the team and their tasks stay untouched."
+    "uz": "Xodim jamoadan CHIQARILMAYDI va vazifalariga tegilmaydi.",
+    "ru": "Сотрудник НЕ удаляется из команды, его задачи не затрагиваются.",
+    "en": "The employee is NOT removed from the team and their tasks stay untouched."
   },
   "osc.remove_other_seats": {
     "uz": "Uning qolgan {0} o'rni JOYIDA QOLADI.",
@@ -7050,14 +7565,14 @@
     "en": "Who replaces \"{0}\"?"
   },
   "osc.replaced": {
-    "uz": "✅ Almashtirildi",
-    "ru": "✅ Заменено",
-    "en": "✅ Replaced"
+    "uz": "Almashtirildi",
+    "ru": "Заменено",
+    "en": "Replaced"
   },
   "osc.replaced_with_kids": {
-    "uz": "✅ Almashtirildi — pastdagi {0} ta tugun yangi xodimga o'tdi",
-    "ru": "✅ Заменено — {0} нижестоящих узлов перешли к новому сотруднику",
-    "en": "✅ Replaced — {0} nodes below moved to the new employee"
+    "uz": "Almashtirildi — pastdagi {0} ta tugun yangi xodimga o'tdi",
+    "ru": "Заменено — {0} нижестоящих узлов перешли к новому сотруднику",
+    "en": "Replaced — {0} nodes below moved to the new employee"
   },
   "osc.reports_to": {
     "uz": "Bo'ysunadi:",
@@ -7080,9 +7595,9 @@
     "en": "manually moved cards will return to their automatic positions. The chart itself (who reports to whom) does not change."
   },
   "osc.reset_node_ok": {
-    "uz": "✅ Avtomatik joyiga qaytarildi",
-    "ru": "✅ Возвращено на автоматическое место",
-    "en": "✅ Moved back to its automatic position"
+    "uz": "Avtomatik joyiga qaytarildi",
+    "ru": "Возвращено на автоматическое место",
+    "en": "Moved back to its automatic position"
   },
   "osc.reset_node_title": {
     "uz": "Avtomatik joyiga qaytarish",
@@ -7145,9 +7660,9 @@
     "en": " — the seat in \"{0}\""
   },
   "osc.seats_added": {
-    "uz": "✅ {0} o'rin qo'shildi",
-    "ru": "✅ Добавлено мест: {0}",
-    "en": "✅ {0} seat(s) added"
+    "uz": "{0} o'rin qo'shildi",
+    "ru": "Добавлено мест: {0}",
+    "en": "{0} seat(s) added"
   },
   "osc.seats_exist_sub": {
     "uz": "{0} o'rinda bor",
@@ -7210,9 +7725,9 @@
     "en": "Custom commands users type to the bot (for example {0}). Each command returns a text reply."
   },
   "page-botcommands.desc_html": {
-    "uz": "Foydalanuvchilar botga yozadigan maxsus komandalar (masalan <code style=\"background:#F0EFEA;padding:1px 6px;border-radius:4px;\">/info</code>). Har bir komanda — matn javobi.<br><br>ℹ Tizim komandalari (<code>/start, /help, /cancel, /vazifalarim</code>) doimo ishlaydi va o'chirib bo'lmaydi.",
-    "ru": "Собственные команды, которые пользователи пишут боту (например <code style=\"background:#F0EFEA;padding:1px 6px;border-radius:4px;\">/info</code>). Каждая команда — текстовый ответ.<br><br>ℹ Системные команды (<code>/start, /help, /cancel, /vazifalarim</code>) работают всегда и их нельзя удалить.",
-    "en": "Custom commands users can send to the bot (for example <code style=\"background:#F0EFEA;padding:1px 6px;border-radius:4px;\">/info</code>). Each command returns a text reply.<br><br>ℹ System commands (<code>/start, /help, /cancel, /vazifalarim</code>) always work and cannot be removed."
+    "uz": "Foydalanuvchilar botga yozadigan maxsus komandalar (masalan <code style=\"background:#F0EFEA;padding:1px 6px;border-radius:4px;\">/info</code>). Har bir komanda — matn javobi.<br><br>Tizim komandalari (<code>/start, /help, /cancel, /vazifalarim</code>) doimo ishlaydi va o'chirib bo'lmaydi.",
+    "ru": "Собственные команды, которые пользователи пишут боту (например <code style=\"background:#F0EFEA;padding:1px 6px;border-radius:4px;\">/info</code>). Каждая команда — текстовый ответ.<br><br>Системные команды (<code>/start, /help, /cancel, /vazifalarim</code>) работают всегда и их нельзя удалить.",
+    "en": "Custom commands users can send to the bot (for example <code style=\"background:#F0EFEA;padding:1px 6px;border-radius:4px;\">/info</code>). Each command returns a text reply.<br><br>System commands (<code>/start, /help, /cancel, /vazifalarim</code>) always work and cannot be removed."
   },
   "page-botcommands.empty_hint": {
     "uz": "Yuqoridagi \"Yangi komanda\" tugmasini bosib qo'shing.",
@@ -7230,9 +7745,9 @@
     "en": "+ New command"
   },
   "page-botcommands.system_cmds": {
-    "uz": "ℹ Tizim komandalari ({0}) doimo ishlaydi va o'chirib bo'lmaydi.",
-    "ru": "ℹ Системные команды ({0}) работают всегда, их нельзя отключить.",
-    "en": "ℹ System commands ({0}) always work and can't be disabled."
+    "uz": "Tizim komandalari ({0}) doimo ishlaydi va o'chirib bo'lmaydi.",
+    "ru": "Системные команды ({0}) работают всегда, их нельзя отключить.",
+    "en": "System commands ({0}) always work and can't be disabled."
   },
   "page-botcommands.title": {
     "uz": "Bot komandalar",
@@ -7260,9 +7775,9 @@
     "en": "Approval required"
   },
   "page-botsettings.branch_field": {
-    "uz": "▢ Filial",
-    "ru": "▢ Филиал",
-    "en": "▢ Branch"
+    "uz": "Filial",
+    "ru": "Филиал",
+    "en": "Branch"
   },
   "page-botsettings.branch_hint": {
     "uz": "(workspace'dagi filiallar ro'yxatidan tanlanadi)",
@@ -7270,9 +7785,9 @@
     "en": "(chosen from the workspace's list of branches)"
   },
   "page-botsettings.collect_branch": {
-    "uz": "▢ Filial",
-    "ru": "▢ Филиал",
-    "en": "▢ Branch"
+    "uz": "Filial",
+    "ru": "Филиал",
+    "en": "Branch"
   },
   "page-botsettings.collect_hint": {
     "uz": "Ismdan tashqari qo'shimcha ma'lumotlar. Bot tartib bilan so'raydi.",
@@ -7280,14 +7795,14 @@
     "en": "Additional details besides the name. The bot asks for them in order."
   },
   "page-botsettings.collect_phone": {
-    "uz": "📞 Telefon raqami",
-    "ru": "📞 Номер телефона",
-    "en": "📞 Phone number"
+    "uz": "Telefon raqami",
+    "ru": "Номер телефона",
+    "en": "Phone number"
   },
   "page-botsettings.collect_position": {
-    "uz": "⌬ Lavozim",
-    "ru": "⌬ Должность",
-    "en": "⌬ Position"
+    "uz": "Lavozim",
+    "ru": "Должность",
+    "en": "Position"
   },
   "page-botsettings.collect_q": {
     "uz": "Ro'yxatdan o'tishda qanday ma'lumotlar so'ralsin?",
@@ -7295,9 +7810,9 @@
     "en": "What information should be collected at sign-up?"
   },
   "page-botsettings.copy_btn": {
-    "uz": "📋 Nusxalash",
-    "ru": "📋 Копировать",
-    "en": "📋 Copy"
+    "uz": "Nusxalash",
+    "ru": "Копировать",
+    "en": "Copy"
   },
   "page-botsettings.copy_prefix": {
     "uz": "Yoki nusxalab oling:",
@@ -7315,9 +7830,9 @@
     "en": "Unknown message reply (when the user writes something unrecognized)"
   },
   "page-botsettings.get_link_btn": {
-    "uz": "🔗 Bog'lash linkini olish",
-    "ru": "🔗 Получить ссылку для подключения",
-    "en": "🔗 Get connection link"
+    "uz": "Bog'lash linkini olish",
+    "ru": "Получить ссылку для подключения",
+    "en": "Get connection link"
   },
   "page-botsettings.html_hint": {
     "uz": "HTML formatlash mumkin: <b>bold</b>, <i>italic</i>, <code>code</code>",
@@ -7325,14 +7840,14 @@
     "en": "HTML formatting is allowed: <b>bold</b>, <i>italic</i>, <code>code</code>"
   },
   "page-botsettings.link_admin_info": {
-    "uz": "Bog'langandan keyin, yangi foydalanuvchilar ro'yxatdan o'tganda <b>siz Telegram'da darrov xabar olasiz</b> va botda Tasdiqlash/Bekor tugmalarini bosa olasiz.<br><br>ℹ Link 1 soat davomida amal qiladi va faqat bir marta ishlatiladi.",
-    "ru": "После привязки вы <b>сразу получите уведомление в Telegram</b>, когда зарегистрируется новый пользователь, и сможете нажать «Подтвердить»/«Отклонить» прямо в боте.<br><br>ℹ Ссылка действует 1 час и используется только один раз.",
-    "en": "Once linked, you <b>get an instant Telegram message</b> whenever a new user signs up, and you can approve or reject them right in the bot.<br><br>ℹ The link is valid for 1 hour and can be used only once."
+    "uz": "Bog'langandan keyin, yangi foydalanuvchilar ro'yxatdan o'tganda <b>siz Telegram'da darrov xabar olasiz</b> va botda Tasdiqlash/Bekor tugmalarini bosa olasiz.<br><br>Link 1 soat davomida amal qiladi va faqat bir marta ishlatiladi.",
+    "ru": "После привязки вы <b>сразу получите уведомление в Telegram</b>, когда зарегистрируется новый пользователь, и сможете нажать «Подтвердить»/«Отклонить» прямо в боте.<br><br>Ссылка действует 1 час и используется только один раз.",
+    "en": "Once linked, you <b>get an instant Telegram message</b> whenever a new user signs up, and you can approve or reject them right in the bot.<br><br>The link is valid for 1 hour and can be used only once."
   },
   "page-botsettings.link_ttl": {
-    "uz": "ℹ Link 1 soat davomida amal qiladi va faqat bir marta ishlatiladi.",
-    "ru": "ℹ Ссылка действует 1 час и используется только один раз.",
-    "en": "ℹ The link is valid for 1 hour and can be used only once."
+    "uz": "Link 1 soat davomida amal qiladi va faqat bir marta ishlatiladi.",
+    "ru": "Ссылка действует 1 час и используется только один раз.",
+    "en": "The link is valid for 1 hour and can be used only once."
   },
   "page-botsettings.open_link": {
     "uz": "Linkni Telegram'da oching:",
@@ -7425,9 +7940,9 @@
     "en": "you get a Telegram message right away"
   },
   "page-botsettings.your_account": {
-    "uz": "✅ Sizning hisobingiz",
-    "ru": "✅ Ваш аккаунт",
-    "en": "✅ Your account"
+    "uz": "Sizning hisobingiz",
+    "ru": "Ваш аккаунт",
+    "en": "Your account"
   },
   "page-branches.empty_hint": {
     "uz": "— \"+ Yangi filial\" tugmasi bilan birinchi filialingizni yarating.",
@@ -7470,9 +7985,9 @@
     "en": "Upcoming deadlines"
   },
   "page-dashboard.see_all": {
-    "uz": "Hammasi →",
-    "ru": "Все →",
-    "en": "See all →"
+    "uz": "Hammasi",
+    "ru": "Все",
+    "en": "See all"
   },
   "page-dashboard.stat_active": {
     "uz": "Faol vazifalar",
@@ -7550,9 +8065,9 @@
     "en": "Task deleted"
   },
   "page-logs.refresh": {
-    "uz": "↻ Yangilash",
-    "ru": "↻ Обновить",
-    "en": "↻ Refresh"
+    "uz": "Yangilash",
+    "ru": "Обновить",
+    "en": "Refresh"
   },
   "page-logs.title": {
     "uz": "Loglar (harakatlar tarixi)",
@@ -7580,9 +8095,9 @@
     "en": "Empty — start building"
   },
   "page-orgchart.layout_btn": {
-    "uz": "⛁ Joylash",
-    "ru": "⛁ Разместить",
-    "en": "⛁ Arrange"
+    "uz": "Joylash",
+    "ru": "Разместить",
+    "en": "Arrange"
   },
   "page-orgchart.layout_btn_title": {
     "uz": "Avtomatik chizish",
@@ -7630,14 +8145,14 @@
     "en": "Click an empty slot in the calendar"
   },
   "page-planner.hint_drag": {
-    "uz": "Vazifani kalendarga sudrab olib boring →",
-    "ru": "Перетащите задачу в календарь →",
-    "en": "Drag a task onto the calendar →"
+    "uz": "Vazifani kalendarga sudrab olib boring",
+    "ru": "Перетащите задачу в календарь",
+    "en": "Drag a task onto the calendar"
   },
   "page-planner.namoz_show": {
-    "uz": "☾ Vaqtlar",
-    "ru": "☾ Время намаза",
-    "en": "☾ Prayer times"
+    "uz": "Vaqtlar",
+    "ru": "Время намаза",
+    "en": "Prayer times"
   },
   "page-planner.namoz_show_title": {
     "uz": "Namoz vaqtlari lentasini qaytarish",
@@ -7655,19 +8170,19 @@
     "en": "+ New column"
   },
   "page-planner.tab_assigned": {
-    "uz": "📤 Men topshirganlar",
-    "ru": "📤 Поручил я",
-    "en": "📤 Assigned by me"
+    "uz": "Men topshirganlar",
+    "ru": "Поручил я",
+    "en": "Assigned by me"
   },
   "page-planner.tab_mine": {
-    "uz": "📥 Mening vazifalarim",
-    "ru": "📥 Мои задачи",
-    "en": "📥 My tasks"
+    "uz": "Mening vazifalarim",
+    "ru": "Мои задачи",
+    "en": "My tasks"
   },
   "page-planner.tab_schedule": {
-    "uz": "🗓 Mening jadvalim",
-    "ru": "🗓 Моё расписание",
-    "en": "🗓 My schedule"
+    "uz": "Mening jadvalim",
+    "ru": "Моё расписание",
+    "en": "My schedule"
   },
   "page-positions.empty_hint": {
     "uz": "Avval bot foydalanuvchilarini import qiling.",
@@ -7700,9 +8215,9 @@
     "en": "Change password"
   },
   "page-profile.delete_btn": {
-    "uz": "🗑 O'chirish",
-    "ru": "🗑 Удалить",
-    "en": "🗑 Delete"
+    "uz": "O'chirish",
+    "ru": "Удалить",
+    "en": "Delete"
   },
   "page-profile.email_readonly": {
     "uz": "Email o'zgartirib bo'lmaydi",
@@ -7745,9 +8260,9 @@
     "en": "Update password"
   },
   "page-profile.upload_photo_btn": {
-    "uz": "📷 Rasm yuklash",
-    "ru": "📷 Загрузить фото",
-    "en": "📷 Upload photo"
+    "uz": "Rasm yuklash",
+    "ru": "Загрузить фото",
+    "en": "Upload photo"
   },
   "page-profile.upload_photo_title": {
     "uz": "Rasm yuklash",
@@ -7755,24 +8270,24 @@
     "en": "Upload photo"
   },
   "page-project.back_to_projects": {
-    "uz": "← Loyihalar",
-    "ru": "← Проекты",
-    "en": "← Projects"
+    "uz": "Loyihalar",
+    "ru": "Проекты",
+    "en": "Projects"
   },
   "page-project.tab_flow": {
-    "uz": "🔀 Flow",
-    "ru": "🔀 Поток",
-    "en": "🔀 Flow"
+    "uz": "Flow",
+    "ru": "Поток",
+    "en": "Flow"
   },
   "page-project.tab_kanban": {
-    "uz": "📋 Kanban",
-    "ru": "📋 Канбан",
-    "en": "📋 Kanban"
+    "uz": "Kanban",
+    "ru": "Канбан",
+    "en": "Kanban"
   },
   "page-project.tab_members": {
-    "uz": "👥 A'zolar",
-    "ru": "👥 Участники",
-    "en": "👥 Members"
+    "uz": "A'zolar",
+    "ru": "Участники",
+    "en": "Members"
   },
   "page-project.title": {
     "uz": "Loyiha",
@@ -7815,14 +8330,14 @@
     "en": "Add a workspace member"
   },
   "page-settings.attach_paste_hint": {
-    "uz": "💡 Yoki <b>Ctrl+V</b> (Mac: <b>⌘+V</b>) — clipboard'dan paste qiling",
-    "ru": "💡 Или <b>Ctrl+V</b> (Mac: <b>⌘+V</b>) — вставьте из буфера обмена",
-    "en": "💡 Or <b>Ctrl+V</b> (Mac: <b>⌘+V</b>) — paste from the clipboard"
+    "uz": "Yoki <b>Ctrl+V</b> (Mac: <b>⌘+V</b>) — clipboard'dan paste qiling",
+    "ru": "Или <b>Ctrl+V</b> (Mac: <b>⌘+V</b>) — вставьте из буфера обмена",
+    "en": "Or <b>Ctrl+V</b> (Mac: <b>⌘+V</b>) — paste from the clipboard"
   },
   "page-settings.attach_pick": {
-    "uz": "📎 Fayl tanlash",
-    "ru": "📎 Выбрать файл",
-    "en": "📎 Choose file"
+    "uz": "Fayl tanlash",
+    "ru": "Выбрать файл",
+    "en": "Choose file"
   },
   "page-settings.branch_address": {
     "uz": "Manzil (ixtiyoriy)",
@@ -7855,9 +8370,9 @@
     "en": "Branch name *"
   },
   "page-settings.btn_back_arrow": {
-    "uz": "← Orqaga",
-    "ru": "← Назад",
-    "en": "← Back"
+    "uz": "Orqaga",
+    "ru": "Назад",
+    "en": "Back"
   },
   "page-settings.btn_back_chevron": {
     "uz": "‹ Orqaga",
@@ -7865,9 +8380,9 @@
     "en": "‹ Back"
   },
   "page-settings.btn_back_tri": {
-    "uz": "◀ Orqaga",
-    "ru": "◀ Назад",
-    "en": "◀ Back"
+    "uz": "Orqaga",
+    "ru": "Назад",
+    "en": "Back"
   },
   "page-settings.btn_cancel": {
     "uz": "Bekor",
@@ -7980,9 +8495,9 @@
     "en": "+1 week"
   },
   "page-settings.edit_tg_note": {
-    "uz": "⚠️ O'zgarishlar saqlanadi. Telegram ID o'zgartirilmaydi.",
-    "ru": "⚠️ Изменения будут сохранены. Telegram ID не меняется.",
-    "en": "⚠️ Changes will be saved. The Telegram ID stays the same."
+    "uz": "O'zgarishlar saqlanadi. Telegram ID o'zgartirilmaydi.",
+    "ru": "Изменения будут сохранены. Telegram ID не меняется.",
+    "en": "Changes will be saved. The Telegram ID stays the same."
   },
   "page-settings.edit_tg_title": {
     "uz": "Bot foydalanuvchisini tahrirlash",
@@ -7990,9 +8505,9 @@
     "en": "Edit bot user"
   },
   "page-settings.edit_tg_warn": {
-    "uz": "⚠️ O'zgarishlar saqlanadi. Telegram ID o'zgartirilmaydi.",
-    "ru": "⚠️ Изменения будут сохранены. Telegram ID не меняется.",
-    "en": "⚠️ Changes will be saved. The Telegram ID cannot be changed."
+    "uz": "O'zgarishlar saqlanadi. Telegram ID o'zgartirilmaydi.",
+    "ru": "Изменения будут сохранены. Telegram ID не меняется.",
+    "en": "Changes will be saved. The Telegram ID cannot be changed."
   },
   "page-settings.email_notif_desc": {
     "uz": "Qaysi amalda xodimlarga email xat ketishini shu yerdan boshqaring. Sukut bo'yicha <b>hammasi o'chiq</b> — kerakligini o'zingiz yoqasiz. O'chirilgan amalda email <b>umuman yuborilmaydi</b>. Sozlama butun workspace uchun amal qiladi.",
@@ -8045,14 +8560,14 @@
     "en": "Import"
   },
   "page-settings.hr_import_title": {
-    "uz": "⬆ Hodimlarni import qilish (JSON)",
-    "ru": "⬆ Импорт сотрудников (JSON)",
-    "en": "⬆ Import employees (JSON)"
+    "uz": "Hodimlarni import qilish (JSON)",
+    "ru": "Импорт сотрудников (JSON)",
+    "en": "Import employees (JSON)"
   },
   "page-settings.invite_copy": {
-    "uz": "📋 Nusxa",
-    "ru": "📋 Копировать",
-    "en": "📋 Copy"
+    "uz": "Nusxa",
+    "ru": "Копировать",
+    "en": "Copy"
   },
   "page-settings.invite_dept_access": {
     "uz": "Bo'limlarga kirish *",
@@ -8080,9 +8595,9 @@
     "en": "Invitation link"
   },
   "page-settings.invite_link_title": {
-    "uz": "✓ Taklif yaratildi",
-    "ru": "✓ Приглашение создано",
-    "en": "✓ Invitation created"
+    "uz": "Taklif yaratildi",
+    "ru": "Приглашение создано",
+    "en": "Invitation created"
   },
   "page-settings.invite_person_label": {
     "uz": "Xodim",
@@ -8095,14 +8610,14 @@
     "en": "Send invitation"
   },
   "page-settings.invite_share_tg": {
-    "uz": "📤 Telegram'ga yuborish",
-    "ru": "📤 Отправить в Telegram",
-    "en": "📤 Send via Telegram"
+    "uz": "Telegram'ga yuborish",
+    "ru": "Отправить в Telegram",
+    "en": "Send via Telegram"
   },
   "page-settings.invite_share_wa": {
-    "uz": "💬 WhatsApp'ga yuborish",
-    "ru": "💬 Отправить в WhatsApp",
-    "en": "💬 Send via WhatsApp"
+    "uz": "WhatsApp'ga yuborish",
+    "ru": "Отправить в WhatsApp",
+    "en": "Send via WhatsApp"
   },
   "page-settings.invite_title": {
     "uz": "Xodim taklif qilish",
@@ -8285,9 +8800,9 @@
     "en": "Events sent:"
   },
   "page-settings.n8n_tip": {
-    "uz": "💡 n8n'da yangi workflow yarating → \"Webhook\" trigger qo'shing → URL'ni nusxalab shu yerga joylang. Misol payload:",
-    "ru": "💡 Создайте в n8n новый workflow → добавьте триггер \"Webhook\" → скопируйте URL и вставьте сюда. Пример payload:",
-    "en": "💡 Create a new workflow in n8n → add a \"Webhook\" trigger → copy the URL and paste it here. Example payload:"
+    "uz": "n8n'da yangi workflow yarating → \"Webhook\" trigger qo'shing → URL'ni nusxalab shu yerga joylang. Misol payload:",
+    "ru": "Создайте в n8n новый workflow → добавьте триггер \"Webhook\" → скопируйте URL и вставьте сюда. Пример payload:",
+    "en": "Create a new workflow in n8n → add a \"Webhook\" trigger → copy the URL and paste it here. Example payload:"
   },
   "page-settings.n8n_title": {
     "uz": "n8n integratsiyasi",
@@ -8370,9 +8885,9 @@
     "en": "Department name"
   },
   "page-settings.onb_finish": {
-    "uz": "✓ Yaratish",
-    "ru": "✓ Создать",
-    "en": "✓ Create"
+    "uz": "Yaratish",
+    "ru": "Создать",
+    "en": "Create"
   },
   "page-settings.onb_next": {
     "uz": "Davom etish ›",
@@ -8465,9 +8980,9 @@
     "en": "— Select —"
   },
   "page-settings.paste_hint_html": {
-    "uz": "💡 Yoki <b>Ctrl+V</b> (Mac: <b>⌘+V</b>) — clipboard'dan paste qiling",
-    "ru": "💡 Или <b>Ctrl+V</b> (Mac: <b>⌘+V</b>) — вставьте из буфера обмена",
-    "en": "💡 Or <b>Ctrl+V</b> (Mac: <b>⌘+V</b>) — paste from the clipboard"
+    "uz": "Yoki <b>Ctrl+V</b> (Mac: <b>⌘+V</b>) — clipboard'dan paste qiling",
+    "ru": "Или <b>Ctrl+V</b> (Mac: <b>⌘+V</b>) — вставьте из буфера обмена",
+    "en": "Or <b>Ctrl+V</b> (Mac: <b>⌘+V</b>) — paste from the clipboard"
   },
   "page-settings.pending_loading": {
     "uz": "Yuklanmoqda...",
@@ -8480,9 +8995,9 @@
     "en": "⟳ Refresh"
   },
   "page-settings.pending_title": {
-    "uz": "⏳ Tasdiqlashga kutmoqda",
-    "ru": "⏳ Ожидают подтверждения",
-    "en": "⏳ Awaiting approval"
+    "uz": "Tasdiqlashga kutmoqda",
+    "ru": "Ожидают подтверждения",
+    "en": "Awaiting approval"
   },
   "page-settings.ph_branch_name": {
     "uz": "Masalan: Yunusobod",
@@ -8570,44 +9085,44 @@
     "en": "Select or type..."
   },
   "page-settings.pos_accountant": {
-    "uz": "📊 Bugalter",
-    "ru": "📊 Бухгалтер",
-    "en": "📊 Accountant"
+    "uz": "Bugalter",
+    "ru": "Бухгалтер",
+    "en": "Accountant"
   },
   "page-settings.pos_boss": {
-    "uz": "👔 Boshliq",
-    "ru": "👔 Начальник",
-    "en": "👔 Head"
+    "uz": "Boshliq",
+    "ru": "Начальник",
+    "en": "Head"
   },
   "page-settings.pos_branch_head": {
-    "uz": "👔 Filial boshlig'i",
-    "ru": "👔 Руководитель филиала",
-    "en": "👔 Branch manager"
+    "uz": "Filial boshlig'i",
+    "ru": "Руководитель филиала",
+    "en": "Branch manager"
   },
   "page-settings.pos_ceo": {
-    "uz": "👑 CEO",
-    "ru": "👑 CEO",
-    "en": "👑 CEO"
+    "uz": "CEO",
+    "ru": "CEO",
+    "en": "CEO"
   },
   "page-settings.pos_courier": {
-    "uz": "🚚 Kuryer",
-    "ru": "🚚 Курьер",
-    "en": "🚚 Courier"
+    "uz": "Kuryer",
+    "ru": "Курьер",
+    "en": "Courier"
   },
   "page-settings.pos_employee": {
-    "uz": "🧑‍💼 Xodim",
-    "ru": "🧑‍💼 Сотрудник",
-    "en": "🧑‍💼 Employee"
+    "uz": "Xodim",
+    "ru": "Сотрудник",
+    "en": "Employee"
   },
   "page-settings.pos_seller": {
-    "uz": "🛒 Sotuvchi",
-    "ru": "🛒 Продавец",
-    "en": "🛒 Salesperson"
+    "uz": "Sotuvchi",
+    "ru": "Продавец",
+    "en": "Salesperson"
   },
   "page-settings.pos_senior_seller": {
-    "uz": "🛒 Katta sotuvchi",
-    "ru": "🛒 Старший продавец",
-    "en": "🛒 Senior salesperson"
+    "uz": "Katta sotuvchi",
+    "ru": "Старший продавец",
+    "en": "Senior salesperson"
   },
   "page-settings.prio_none": {
     "uz": "Yo'q",
@@ -8735,14 +9250,14 @@
     "en": "Link account to Telegram"
   },
   "page-settings.tg_id_label": {
-    "uz": "🆔 Telegram ID:",
-    "ru": "🆔 Telegram ID:",
-    "en": "🆔 Telegram ID:"
+    "uz": "Telegram ID:",
+    "ru": "Telegram ID:",
+    "en": "Telegram ID:"
   },
   "page-settings.tg_next": {
-    "uz": "Davom etish →",
-    "ru": "Продолжить →",
-    "en": "Continue →"
+    "uz": "Davom etish",
+    "ru": "Продолжить",
+    "en": "Continue"
   },
   "page-settings.tg_save_enable": {
     "uz": "Saqlash va yoqish",
@@ -8770,9 +9285,9 @@
     "en": "Open {0} in Telegram."
   },
   "page-settings.tg_step1_tip": {
-    "uz": "💡 Token shunday ko'rinishda bo'ladi: <code>7123456789:AAH...XYZ</code>. Uni hech kim bilan ulashmang — bu botingizning paroli.",
-    "ru": "💡 Токен выглядит так: <code>7123456789:AAH...XYZ</code>. Никому его не сообщайте — это пароль вашего бота.",
-    "en": "💡 The token looks like this: <code>7123456789:AAH...XYZ</code>. Do not share it with anyone — it is your bot's password."
+    "uz": "Token shunday ko'rinishda bo'ladi: <code>7123456789:AAH...XYZ</code>. Uni hech kim bilan ulashmang — bu botingizning paroli.",
+    "ru": "Токен выглядит так: <code>7123456789:AAH...XYZ</code>. Никому его не сообщайте — это пароль вашего бота.",
+    "en": "The token looks like this: <code>7123456789:AAH...XYZ</code>. Do not share it with anyone — it is your bot's password."
   },
   "page-settings.tg_step1_title": {
     "uz": "1-qadam — Yangi bot yarating",
@@ -8820,9 +9335,9 @@
     "en": "Bot token *"
   },
   "page-settings.tg_token_tip_html": {
-    "uz": "💡 Token shunday ko'rinishda bo'ladi: <code>7123456789:AAH...XYZ</code>. Uni hech kim bilan ulashmang — bu botingizning paroli.",
-    "ru": "💡 Токен выглядит так: <code>7123456789:AAH...XYZ</code>. Никому его не сообщайте — это пароль вашего бота.",
-    "en": "💡 The token looks like this: <code>7123456789:AAH...XYZ</code>. Never share it — it is your bot's password."
+    "uz": "Token shunday ko'rinishda bo'ladi: <code>7123456789:AAH...XYZ</code>. Uni hech kim bilan ulashmang — bu botingizning paroli.",
+    "ru": "Токен выглядит так: <code>7123456789:AAH...XYZ</code>. Никому его не сообщайте — это пароль вашего бота.",
+    "en": "The token looks like this: <code>7123456789:AAH...XYZ</code>. Never share it — it is your bot's password."
   },
   "page-settings.tg_webhook_note_html": {
     "uz": "Saqlangach, biz botingizga webhook o'rnatamiz. Shundan keyin xodimlar botga <code>/start</code> bosib hisoblarini bog'lay oladi.",
@@ -8840,9 +9355,9 @@
     "en": "Upload several tasks at once from an Excel file. Download the template, fill it in and import. If the assignee is left empty, you can pick it later in the Table view."
   },
   "page-settings.xls_template": {
-    "uz": "⬇ Shablon yuklab olish",
-    "ru": "⬇ Скачать шаблон",
-    "en": "⬇ Download template"
+    "uz": "Shablon yuklab olish",
+    "ru": "Скачать шаблон",
+    "en": "Download template"
   },
   "page-settings.xls_title": {
     "uz": "Excel'dan vazifa import",
@@ -8850,9 +9365,9 @@
     "en": "Import tasks from Excel"
   },
   "page-settings.xls_upload": {
-    "uz": "📊 Excel yuklash",
-    "ru": "📊 Загрузить Excel",
-    "en": "📊 Upload Excel"
+    "uz": "Excel yuklash",
+    "ru": "Загрузить Excel",
+    "en": "Upload Excel"
   },
   "page-stats.csv_export": {
     "uz": "⤓ CSV eksport",
@@ -8865,9 +9380,9 @@
     "en": "Efficiency = (completed − late) / total × 100%. Click any number to see the tasks behind it."
   },
   "page-stats.tab_general": {
-    "uz": "📈 Umumiy",
-    "ru": "📈 Общее",
-    "en": "📈 Overview"
+    "uz": "Umumiy",
+    "ru": "Общее",
+    "en": "Overview"
   },
   "page-tasks.ph_search": {
     "uz": "Qidirish...",
@@ -8890,14 +9405,14 @@
     "en": "Search tasks… (title, description)"
   },
   "page-tasks.prio_high": {
-    "uz": "🔥 Yuqori (P1-P4)",
-    "ru": "🔥 Высокий (P1-P4)",
-    "en": "🔥 High (P1-P4)"
+    "uz": "Yuqori (P1-P4)",
+    "ru": "Высокий (P1-P4)",
+    "en": "High (P1-P4)"
   },
   "page-tasks.prio_today": {
-    "uz": "📅 Bugun deadline",
-    "ru": "📅 Срок сегодня",
-    "en": "📅 Due today"
+    "uz": "Bugun deadline",
+    "ru": "Срок сегодня",
+    "en": "Due today"
   },
   "page-tasks.view_calendar": {
     "uz": "Kalendar",
@@ -8935,9 +9450,9 @@
     "en": "<code>aros_staff_export.json</code> — the file is never uploaded, it is read in your browser only."
   },
   "page-team.import_json": {
-    "uz": "⬆ Import (JSON)",
-    "ru": "⬆ Импорт (JSON)",
-    "en": "⬆ Import (JSON)"
+    "uz": "Import (JSON)",
+    "ru": "Импорт (JSON)",
+    "en": "Import (JSON)"
   },
   "page-team.per_page": {
     "uz": "Sahifada:",
@@ -8945,9 +9460,9 @@
     "en": "Per page:"
   },
   "page-team.search_placeholder": {
-    "uz": "🔍 Ism, familiya, telefon yoki email...",
-    "ru": "🔍 Имя, фамилия, телефон или email...",
-    "en": "🔍 Name, surname, phone or email..."
+    "uz": "Ism, familiya, telefon yoki email...",
+    "ru": "Имя, фамилия, телефон или email...",
+    "en": "Name, surname, phone or email..."
   },
   "page-team.sent_invites": {
     "uz": "Yuborilgan takliflar",
@@ -8955,9 +9470,9 @@
     "en": "Sent invitations"
   },
   "page-tgusers.back_team": {
-    "uz": "◀ Jamoa",
-    "ru": "◀ Команда",
-    "en": "◀ Team"
+    "uz": "Jamoa",
+    "ru": "Команда",
+    "en": "Team"
   },
   "page-tgusers.desc": {
     "uz": "Botda ro'yxatdan o'tgan odamlar. Saytga taklif qila olasiz yoki vazifa biriktirasiz.",
@@ -9035,9 +9550,9 @@
     "en": "(no requests)"
   },
   "pf.panel_title": {
-    "uz": "⏱ Sahifa o'lchovi",
-    "ru": "⏱ Замер страницы",
-    "en": "⏱ Page metrics"
+    "uz": "Sahifa o'lchovi",
+    "ru": "Замер страницы",
+    "en": "Page metrics"
   },
   "pf.rows_count": {
     "uz": "{0} qator",
@@ -9055,9 +9570,9 @@
     "en": "wave = sequential step"
   },
   "ph.change_password_btn": {
-    "uz": "🔑 Parolni o'zgartirish",
-    "ru": "🔑 Сменить пароль",
-    "en": "🔑 Change password"
+    "uz": "Parolni o'zgartirish",
+    "ru": "Сменить пароль",
+    "en": "Change password"
   },
   "ph.compress_failed": {
     "uz": "Siqib bo'lmadi",
@@ -9100,9 +9615,9 @@
     "en": "Photo not uploaded: {0}"
   },
   "ph.photo_uploaded": {
-    "uz": "✓ Rasm yuklandi",
-    "ru": "✓ Фото загружено",
-    "en": "✓ Photo uploaded"
+    "uz": "Rasm yuklandi",
+    "ru": "Фото загружено",
+    "en": "Photo uploaded"
   },
   "plf.apply": {
     "uz": "Ko'rsatish",
@@ -9270,9 +9785,9 @@
     "en": "Me"
   },
   "pln.plan_hint": {
-    "uz": "🗓 Rejaga qo'shiladi: {0} {1} - {2}",
-    "ru": "🗓 Будет добавлено в план: {0} {1} - {2}",
-    "en": "🗓 Will be added to the plan: {0} {1} - {2}"
+    "uz": "Rejaga qo'shiladi: {0} {1} - {2}",
+    "ru": "Будет добавлено в план: {0} {1} - {2}",
+    "en": "Will be added to the plan: {0} {1} - {2}"
   },
   "pln.title_schedule": {
     "uz": "Mening jadvalim",
@@ -9280,14 +9795,14 @@
     "en": "My schedule"
   },
   "pln.will_be_planned": {
-    "uz": "🗓 Rejaga qo'shiladi:",
-    "ru": "🗓 Будет добавлено в план:",
-    "en": "🗓 Will be added to the plan:"
+    "uz": "Rejaga qo'shiladi:",
+    "ru": "Будет добавлено в план:",
+    "en": "Will be added to the plan:"
   },
   "ppl.accept_btn": {
-    "uz": "✅ Qabul qildim",
-    "ru": "✅ Принимаю",
-    "en": "✅ Accept"
+    "uz": "Qabul qildim",
+    "ru": "Принимаю",
+    "en": "Accept"
   },
   "ppl.acceptor_fallback": {
     "uz": "qabul qiluvchi",
@@ -9295,9 +9810,9 @@
     "en": "the acceptor"
   },
   "ppl.await_accept_title": {
-    "uz": "📤 Bu vazifa bajarildi va sizning qabulingizni kutmoqda",
-    "ru": "📤 Задача выполнена и ждёт вашей приёмки",
-    "en": "📤 This task is done and waiting for you to accept it"
+    "uz": "Bu vazifa bajarildi va sizning qabulingizni kutmoqda",
+    "ru": "Задача выполнена и ждёт вашей приёмки",
+    "en": "This task is done and waiting for you to accept it"
   },
   "ppl.awaiting_acceptance": {
     "uz": "qabul qilishini kutmoqda",
@@ -9320,14 +9835,14 @@
     "en": "No files yet. Add one with the button below or <b>Ctrl+V</b>."
   },
   "ppl.paste_hint": {
-    "uz": "💡 Yoki Ctrl+V (Mac: ⌘+V) — clipboard'dan paste",
-    "ru": "💡 Или Ctrl+V (Mac: ⌘+V) — вставить из буфера обмена",
-    "en": "💡 Or Ctrl+V (Mac: ⌘+V) — paste from clipboard"
+    "uz": "Yoki Ctrl+V (Mac: ⌘+V) — clipboard'dan paste",
+    "ru": "Или Ctrl+V (Mac: ⌘+V) — вставить из буфера обмена",
+    "en": "Or Ctrl+V (Mac: ⌘+V) — paste from clipboard"
   },
   "ppl.return_btn": {
-    "uz": "↩️ Qaytarish",
-    "ru": "↩️ Вернуть",
-    "en": "↩️ Return"
+    "uz": "Qaytarish",
+    "ru": "Вернуть",
+    "en": "Return"
   },
   "ppl.role_creator": {
     "uz": "Yaratgan odam",
@@ -9350,14 +9865,14 @@
     "en": "Subtasks"
   },
   "ppl.upload_file_btn": {
-    "uz": "📎 Fayl yuklash",
-    "ru": "📎 Загрузить файл",
-    "en": "📎 Upload file"
+    "uz": "Fayl yuklash",
+    "ru": "Загрузить файл",
+    "en": "Upload file"
   },
   "ppl.waiting_acceptor": {
-    "uz": "⏳ {0} qabul qilishini kutmoqda",
-    "ru": "⏳ Ожидает приёмки: {0}",
-    "en": "⏳ Waiting for {0} to accept"
+    "uz": "{0} qabul qilishini kutmoqda",
+    "ru": "Ожидает приёмки: {0}",
+    "en": "Waiting for {0} to accept"
   },
   "ppl.you_inline": {
     "uz": "siz",
@@ -9405,19 +9920,19 @@
     "en": "Add"
   },
   "prj.btn_delete": {
-    "uz": "🗑 O'chirish",
-    "ru": "🗑 Удалить",
-    "en": "🗑 Delete"
+    "uz": "O'chirish",
+    "ru": "Удалить",
+    "en": "Delete"
   },
   "prj.btn_recurrence": {
-    "uz": "🔁 Takrorlash",
-    "ru": "🔁 Повтор",
-    "en": "🔁 Repeat"
+    "uz": "Takrorlash",
+    "ru": "Повтор",
+    "en": "Repeat"
   },
   "prj.btn_settings": {
-    "uz": "⚙️ Sozlash",
-    "ru": "⚙️ Настроить",
-    "en": "⚙️ Settings"
+    "uz": "Sozlash",
+    "ru": "Настроить",
+    "en": "Settings"
   },
   "prj.cap_acceptor": {
     "uz": "Qabul qiluvchi",
@@ -9450,9 +9965,9 @@
     "en": "+ Create your first project"
   },
   "prj.cycle_date_not_saved": {
-    "uz": "⚠️ Yangi sikl sanasi saqlanmadi — {0}",
-    "ru": "⚠️ Дата нового цикла не сохранена — {0}",
-    "en": "⚠️ The new cycle date wasn't saved — {0}"
+    "uz": "Yangi sikl sanasi saqlanmadi — {0}",
+    "ru": "Дата нового цикла не сохранена — {0}",
+    "en": "The new cycle date wasn't saved — {0}"
   },
   "prj.days_required": {
     "uz": "Kun sonini kiriting",
@@ -9465,14 +9980,14 @@
     "en": "Deadline"
   },
   "prj.deadlines_not_shifted": {
-    "uz": "⚠️ {0} ta bosqich deadline'i surilmadi",
-    "ru": "⚠️ Сроки {0} этап(ов) не сдвинулись",
-    "en": "⚠️ Deadlines of {0} stages weren't shifted"
+    "uz": "{0} ta bosqich deadline'i surilmadi",
+    "ru": "Сроки {0} этап(ов) не сдвинулись",
+    "en": "Deadlines of {0} stages weren't shifted"
   },
   "prj.delay_shifted": {
-    "uz": "⏱ Kechikish ({0} soat) keyingi bosqich deadline'iga qo'shildi",
-    "ru": "⏱ Задержка ({0} ч) добавлена к сроку следующего этапа",
-    "en": "⏱ The delay ({0} h) was added to the next stage's deadline"
+    "uz": "Kechikish ({0} soat) keyingi bosqich deadline'iga qo'shildi",
+    "ru": "Задержка ({0} ч) добавлена к сроку следующего этапа",
+    "en": "The delay ({0} h) was added to the next stage's deadline"
   },
   "prj.delete_confirm_body": {
     "uz": "\"{0}\" va uning barcha vazifalari butunlay o'chiriladi. Bu amalni ortga qaytarib bo'lmaydi.",
@@ -9725,14 +10240,14 @@
     "en": "{0} is working on it"
   },
   "prj.hint_dep_parallel": {
-    "uz": "Loyiha turi ⚡ Parallel — shuning uchun o'chiq. Yoqsangiz faqat shu bosqich oldingisini kutadi.",
-    "ru": "Тип проекта ⚡ Параллельный — поэтому выключено. Если включите, только этот этап будет ждать предыдущий.",
-    "en": "Project type is ⚡ Parallel — that's why it's off. Turn it on and only this stage waits for the previous one."
+    "uz": "Loyiha turi — Parallel, shuning uchun o'chiq. Yoqsangiz faqat shu bosqich oldingisini kutadi.",
+    "ru": "Тип проекта — Параллельный, поэтому выключено. Если включите, только этот этап будет ждать предыдущий.",
+    "en": "Project type is Parallel — that's why it's off. Turn it on and only this stage waits for the previous one."
   },
   "prj.hint_dep_sequential": {
-    "uz": "Loyiha turi 🔗 Ketma-ket — shuning uchun yoqiq. O'chirsangiz shu bosqich darrov ochiladi.",
-    "ru": "Тип проекта 🔗 Последовательный — поэтому включено. Если выключите, этап откроется сразу.",
-    "en": "Project type is 🔗 Sequential — that's why it's on. Turn it off and this stage opens immediately."
+    "uz": "Loyiha turi — Ketma-ket, shuning uchun yoqiq. O'chirsangiz shu bosqich darrov ochiladi.",
+    "ru": "Тип проекта — Последовательный, поэтому включено. Если выключите, этап откроется сразу.",
+    "en": "Project type is Sequential — that's why it's on. Turn it off and this stage opens immediately."
   },
   "prj.hint_end_at": {
     "uz": "Muddat o'tib, bosqichlar tugamagan bo'lsa — \"Muddat o'tgan\".",
@@ -9750,9 +10265,9 @@
     "en": "An invited member sees the whole project but can't change it."
   },
   "prj.hint_loyiha_sql_missing": {
-    "uz": "⚠️ TASKFIX_LOYIHA.sql ishga tushirilmagan — sana saqlanmaydi. ",
-    "ru": "⚠️ TASKFIX_LOYIHA.sql не выполнен — дата не сохранится. ",
-    "en": "⚠️ TASKFIX_LOYIHA.sql has not been run — the date will not be saved. "
+    "uz": "TASKFIX_LOYIHA.sql ishga tushirilmagan — sana saqlanmaydi. ",
+    "ru": "TASKFIX_LOYIHA.sql не выполнен — дата не сохранится. ",
+    "en": "TASKFIX_LOYIHA.sql has not been run — the date will not be saved. "
   },
   "prj.hint_recur_create": {
     "uz": "Tur tanlansa loyiha o'sha vaqtda o'zi qaytadan boshlanadi. \"Takrorlanmaydi\" bo'lsa quyidagi eski \"har N kunda\" usuli ishlaydi.",
@@ -9805,9 +10320,9 @@
     "en": "Invite a member"
   },
   "prj.kickoff_notified": {
-    "uz": "▶️ Loyiha boshlandi — {0} ta bajaruvchiga xabar yuborildi",
-    "ru": "▶️ Проект начался — уведомление отправлено {0} исполнителям",
-    "en": "▶️ Project started — {0} assignees notified"
+    "uz": "Loyiha boshlandi — {0} ta bajaruvchiga xabar yuborildi",
+    "ru": "Проект начался — уведомление отправлено {0} исполнителям",
+    "en": "Project started — {0} assignees notified"
   },
   "prj.late_badge": {
     "uz": "kechikdi",
@@ -9815,9 +10330,9 @@
     "en": "overdue"
   },
   "prj.legacy_recur_not_cleared": {
-    "uz": "⚠️ Yangi takrorlanish saqlandi, lekin eski sozlama o'chmadi — qayta urinib ko'ring",
-    "ru": "⚠️ Новый повтор сохранён, но старая настройка не удалена — попробуйте ещё раз",
-    "en": "⚠️ The new recurrence was saved, but the old setting wasn't cleared — please try again"
+    "uz": "Yangi takrorlanish saqlandi, lekin eski sozlama o'chmadi — qayta urinib ko'ring",
+    "ru": "Новый повтор сохранён, но старая настройка не удалена — попробуйте ещё раз",
+    "en": "The new recurrence was saved, but the old setting wasn't cleared — please try again"
   },
   "prj.locked_exception_n": {
     "uz": "{0} ta bosqich qulflangan (istisno)",
@@ -9835,9 +10350,9 @@
     "en": "Removed"
   },
   "prj.members_invited": {
-    "uz": "✅ {0} a'zo taklif qilindi",
-    "ru": "✅ Приглашено участников: {0}",
-    "en": "✅ {0} members invited"
+    "uz": "{0} a'zo taklif qilindi",
+    "ru": "Приглашено участников: {0}",
+    "en": "{0} members invited"
   },
   "prj.month_1": {
     "uz": "Yanvar",
@@ -9935,9 +10450,9 @@
     "en": "Project name can't be empty"
   },
   "prj.new_recur_overrides": {
-    "uz": " ⚠️ Hozir yangi takrorlanish faol: \"{0}\" — u shu sozlamadan USTUN turadi (\"Sozlash\" oynasidan o'zgartiring).",
-    "ru": " ⚠️ Сейчас активен новый повтор: «{0}» — он ИМЕЕТ ПРИОРИТЕТ над этой настройкой (измените его в окне «Настроить»).",
-    "en": " ⚠️ A new recurrence is active: \"{0}\" — it OVERRIDES this setting (change it in the \"Settings\" dialog)."
+    "uz": "Hozir yangi takrorlanish faol: \"{0}\" — u shu sozlamadan USTUN turadi (\"Sozlash\" oynasidan o'zgartiring).",
+    "ru": "Сейчас активен новый повтор: «{0}» — он ИМЕЕТ ПРИОРИТЕТ над этой настройкой (измените его в окне «Настроить»).",
+    "en": "A new recurrence is active: \"{0}\" — it OVERRIDES this setting (change it in the \"Settings\" dialog)."
   },
   "prj.new_stage_title": {
     "uz": "Yangi bosqich (vazifa)",
@@ -10015,14 +10530,14 @@
     "en": "Only an admin can unlock"
   },
   "prj.order_changed": {
-    "uz": "↕ Tartib o'zgartirildi",
-    "ru": "↕ Порядок изменён",
-    "en": "↕ Order changed"
+    "uz": "Tartib o'zgartirildi",
+    "ru": "Порядок изменён",
+    "en": "Order changed"
   },
   "prj.order_locks_partial": {
-    "uz": "⚠️ Tartib o'zgardi, lekin qulflar to'liq yangilanmadi",
-    "ru": "⚠️ Порядок изменён, но блокировки обновились не полностью",
-    "en": "⚠️ Order changed, but the locks weren't fully updated"
+    "uz": "Tartib o'zgardi, lekin qulflar to'liq yangilanmadi",
+    "ru": "Порядок изменён, но блокировки обновились не полностью",
+    "en": "Order changed, but the locks weren't fully updated"
   },
   "prj.overall_progress": {
     "uz": "Umumiy progress",
@@ -10075,9 +10590,9 @@
     "en": "Start: {0}"
   },
   "prj.recur_created": {
-    "uz": "🔁 Takror vazifa yaratildi (",
-    "ru": "🔁 Повторная задача создана (",
-    "en": "🔁 Recurring task created ("
+    "uz": "Takror vazifa yaratildi (",
+    "ru": "Повторная задача создана (",
+    "en": "Recurring task created ("
   },
   "prj.recur_daily": {
     "uz": "Har kuni",
@@ -10130,19 +10645,19 @@
     "en": "Weekly (pick a day)"
   },
   "prj.recur_restarted": {
-    "uz": "🔁 Loyiha qaytadan boshlandi",
-    "ru": "🔁 Проект начат заново",
-    "en": "🔁 The project restarted"
+    "uz": "Loyiha qaytadan boshlandi",
+    "ru": "Проект начат заново",
+    "en": "The project restarted"
   },
   "prj.recur_saved_days": {
-    "uz": "🔁 Har {0} kunda",
-    "ru": "🔁 Каждые {0} дн.",
-    "en": "🔁 Every {0} days"
+    "uz": "Har {0} kunda",
+    "ru": "Каждые {0} дн.",
+    "en": "Every {0} days"
   },
   "prj.recur_saved_weekly": {
-    "uz": "🔁 Har hafta {0}",
-    "ru": "🔁 Еженедельно: {0}",
-    "en": "🔁 Weekly: {0}"
+    "uz": "Har hafta {0}",
+    "ru": "Еженедельно: {0}",
+    "en": "Weekly: {0}"
   },
   "prj.recur_time_required": {
     "uz": "Takrorlanish uchun soatni tanlang",
@@ -10185,9 +10700,9 @@
     "en": "Remove"
   },
   "prj.saved": {
-    "uz": "✅ Saqlandi",
-    "ru": "✅ Сохранено",
-    "en": "✅ Saved"
+    "uz": "Saqlandi",
+    "ru": "Сохранено",
+    "en": "Saved"
   },
   "prj.settings_title": {
     "uz": "Loyihani sozlash",
@@ -10195,9 +10710,9 @@
     "en": "Project settings"
   },
   "prj.stage_added": {
-    "uz": "✅ Bosqich qo'shildi",
-    "ru": "✅ Этап добавлен",
-    "en": "✅ Stage added"
+    "uz": "Bosqich qo'shildi",
+    "ru": "Этап добавлен",
+    "en": "Stage added"
   },
   "prj.stage_index": {
     "uz": "{0}-bosqich",
@@ -10215,14 +10730,14 @@
     "en": "Stages were not updated — no permission"
   },
   "prj.stages_update_failed": {
-    "uz": "⚠️ {0} ta bosqich yangilanmadi — qayta urinib ko'ring",
-    "ru": "⚠️ Не обновлено этапов: {0} — попробуйте ещё раз",
-    "en": "⚠️ {0} stages were not updated — please try again"
+    "uz": "{0} ta bosqich yangilanmadi — qayta urinib ko'ring",
+    "ru": "Не обновлено этапов: {0} — попробуйте ещё раз",
+    "en": "{0} stages were not updated — please try again"
   },
   "prj.stages_updated": {
-    "uz": "✅ {0} ta bosqich yangilandi",
-    "ru": "✅ Обновлено этапов: {0}",
-    "en": "✅ {0} stages updated"
+    "uz": "{0} ta bosqich yangilandi",
+    "ru": "Обновлено этапов: {0}",
+    "en": "{0} stages updated"
   },
   "prj.starts_on": {
     "uz": "Loyiha {0} da boshlanadi",
@@ -10295,14 +10810,14 @@
     "en": "● Active"
   },
   "prj.status_done": {
-    "uz": "✓ Tugallandi",
-    "ru": "✓ Завершён",
-    "en": "✓ Completed"
+    "uz": "Tugallandi",
+    "ru": "Завершён",
+    "en": "Completed"
   },
   "prj.status_paused": {
-    "uz": "⏸ To'xtatilgan",
-    "ru": "⏸ Приостановлен",
-    "en": "⏸ Paused"
+    "uz": "To'xtatilgan",
+    "ru": "Приостановлен",
+    "en": "Paused"
   },
   "prj.tag_depends_prev": {
     "uz": "Oldingi bosqichga bog'liq",
@@ -10360,9 +10875,9 @@
     "en": "The previous stage was cancelled or the lock is stale."
   },
   "prj.unlocked": {
-    "uz": "🔓 Qulf ochildi",
-    "ru": "🔓 Разблокировано",
-    "en": "🔓 Unlocked"
+    "uz": "Qulf ochildi",
+    "ru": "Разблокировано",
+    "en": "Unlocked"
   },
   "prj.untitled": {
     "uz": "(nomsiz)",
@@ -10375,9 +10890,9 @@
     "en": "Change not saved — no permission or project not found"
   },
   "prj.view_only": {
-    "uz": "👁 Faqat ko'rish",
-    "ru": "👁 Только просмотр",
-    "en": "👁 View only"
+    "uz": "Faqat ko'rish",
+    "ru": "Только просмотр",
+    "en": "View only"
   },
   "prj.weekday_0": {
     "uz": "Yakshanba",
@@ -10505,9 +11020,9 @@
     "en": "— removal stopped"
   },
   "rmx.removed": {
-    "uz": "✓ {0} jamoadan chiqarildi",
-    "ru": "✓ {0} удалён(а) из команды",
-    "en": "✓ {0} was removed from the team"
+    "uz": "{0} jamoadan chiqarildi",
+    "ru": "{0} удалён(а) из команды",
+    "en": "{0} was removed from the team"
   },
   "rmx.tasks_read_failed": {
     "uz": "Vazifalar ro'yxati o'qilmadi:",
@@ -10535,9 +11050,9 @@
     "en": "Delete the avatar image?"
   },
   "rt.avatar_removed": {
-    "uz": "🗑 Avatar o'chirildi",
-    "ru": "🗑 Аватар удалён",
-    "en": "🗑 Avatar deleted"
+    "uz": "Avatar o'chirildi",
+    "ru": "Аватар удалён",
+    "en": "Avatar deleted"
   },
   "rt.avatar_storage_missing": {
     "uz": "Avatar storage hali sozlanmagan. Migration 21 ishga tushiring",
@@ -10545,9 +11060,9 @@
     "en": "Avatar storage isn't set up yet. Run migration 21"
   },
   "rt.avatar_updated": {
-    "uz": "✓ Avatar yangilandi",
-    "ru": "✓ Аватар обновлён",
-    "en": "✓ Avatar updated"
+    "uz": "Avatar yangilandi",
+    "ru": "Аватар обновлён",
+    "en": "Avatar updated"
   },
   "rt.dept_no_access": {
     "uz": "Bu bo'limga sizning kirishingiz yo'q",
@@ -10580,9 +11095,9 @@
     "en": "no such page:"
   },
   "rt.password_updated": {
-    "uz": "✓ Parol yangilandi",
-    "ru": "✓ Пароль обновлён",
-    "en": "✓ Password updated"
+    "uz": "Parol yangilandi",
+    "ru": "Пароль обновлён",
+    "en": "Password updated"
   },
   "rt.saving": {
     "uz": "Saqlanmoqda...",
@@ -10600,9 +11115,9 @@
     "en": "Updating..."
   },
   "rt.uploading": {
-    "uz": "⏳ Yuklanmoqda...",
-    "ru": "⏳ Загрузка...",
-    "en": "⏳ Uploading..."
+    "uz": "Yuklanmoqda...",
+    "ru": "Загрузка...",
+    "en": "Uploading..."
   },
   "sch.add_link_btn": {
     "uz": "＋ Havola qo'shish",
@@ -10630,14 +11145,14 @@
     "en": "Days failed to load: {0}"
   },
   "sch.days_saved": {
-    "uz": "✓ {0} kun saqlandi ({1} dam kuni)",
-    "ru": "✓ Сохранено {0} дн. ({1} выходных)",
-    "en": "✓ {0} days saved ({1} days off)"
+    "uz": "{0} kun saqlandi ({1} dam kuni)",
+    "ru": "Сохранено {0} дн. ({1} выходных)",
+    "en": "{0} days saved ({1} days off)"
   },
   "sch.docs_load_failed": {
-    "uz": "⚠ Hujjatlar yuklanmadi — <b>38-migratsiyani ishga tushiring</b>.",
-    "ru": "⚠ Документы не загружены — <b>запустите миграцию 38</b>.",
-    "en": "⚠ Documents failed to load — <b>run migration 38</b>."
+    "uz": "Hujjatlar yuklanmadi — <b>38-migratsiyani ishga tushiring</b>.",
+    "ru": "Документы не загружены — <b>запустите миграцию 38</b>.",
+    "en": "Documents failed to load — <b>run migration 38</b>."
   },
   "sch.docs_title": {
     "uz": "Hujjatlar",
@@ -10715,9 +11230,9 @@
     "en": "Recalculate days"
   },
   "sch.save_days_btn": {
-    "uz": "📅 Kunlarni saqlash",
-    "ru": "📅 Сохранить дни",
-    "en": "📅 Save days"
+    "uz": "Kunlarni saqlash",
+    "ru": "Сохранить дни",
+    "en": "Save days"
   },
   "sch.save_days_error": {
     "uz": "Kunlarni saqlashda xato: {0}",
@@ -10810,9 +11325,9 @@
     "en": "Started"
   },
   "tbl.column_added": {
-    "uz": "✓ Ustun qo'shildi: {0}",
-    "ru": "✓ Столбец добавлен: {0}",
-    "en": "✓ Column added: {0}"
+    "uz": "Ustun qo'shildi: {0}",
+    "ru": "Столбец добавлен: {0}",
+    "en": "Column added: {0}"
   },
   "tbl.column_delete_confirm": {
     "uz": "Bu ustunni o'chirasizmi?",
@@ -10845,9 +11360,9 @@
     "en": "Task name… (Enter = save, Esc = cancel)"
   },
   "tbl.save_new_row": {
-    "uz": "✓ Saqlash",
-    "ru": "✓ Сохранить",
-    "en": "✓ Save"
+    "uz": "Saqlash",
+    "ru": "Сохранить",
+    "en": "Save"
   },
   "tbl.shift_enter_hint": {
     "uz": "Shift+Enter = yangi qator",
@@ -10860,9 +11375,9 @@
     "en": "↑ &nbsp;A → Z (ascending)"
   },
   "tbl.sort_clear": {
-    "uz": "✕ &nbsp;Saralashni bekor qilish",
-    "ru": "✕ &nbsp;Отменить сортировку",
-    "en": "✕ &nbsp;Clear sorting"
+    "uz": "Saralashni bekor qilish",
+    "ru": "Отменить сортировку",
+    "en": "Clear sorting"
   },
   "tbl.sort_desc": {
     "uz": "↓ &nbsp;Z → A (kamayish)",
@@ -10890,9 +11405,9 @@
     "en": "Outgoing"
   },
   "tbl.task_added": {
-    "uz": "✓ Vazifa qo'shildi",
-    "ru": "✓ Задача добавлена",
-    "en": "✓ Task added"
+    "uz": "Vazifa qo'shildi",
+    "ru": "Задача добавлена",
+    "en": "Task added"
   },
   "tg.added_by": {
     "uz": "qo'shdi:",
@@ -10905,9 +11420,9 @@
     "en": "New task assigned"
   },
   "tg.bot_enabled": {
-    "uz": "✅ Telegram bot yoqildi",
-    "ru": "✅ Telegram-бот включён",
-    "en": "✅ Telegram bot enabled"
+    "uz": "Telegram bot yoqildi",
+    "ru": "Telegram-бот включён",
+    "en": "Telegram bot enabled"
   },
   "tg.btn_comment": {
     "uz": "💬 Izoh yozish",
@@ -10970,9 +11485,9 @@
     "en": "New status:"
   },
   "tg.section_added": {
-    "uz": "✈ Telegram bo'limi qo'shildi — chapdagi menyudan oching",
-    "ru": "✈ Раздел Telegram добавлен — откройте его в меню слева",
-    "en": "✈ Telegram section added — open it from the left menu"
+    "uz": "Telegram bo'limi qo'shildi — chapdagi menyudan oching",
+    "ru": "Раздел Telegram добавлен — откройте его в меню слева",
+    "en": "Telegram section added — open it from the left menu"
   },
   "tg.status_review": {
     "uz": "Tekshiruvda",
@@ -11000,9 +11515,9 @@
     "en": "Enter the token."
   },
   "tg.webhook_error": {
-    "uz": "⚠️ Bot ulandi, lekin webhook xato: {0}",
-    "ru": "⚠️ Бот подключён, но ошибка вебхука: {0}",
-    "en": "⚠️ Bot connected, but webhook error: {0}"
+    "uz": "Bot ulandi, lekin webhook xato: {0}",
+    "ru": "Бот подключён, но ошибка вебхука: {0}",
+    "en": "Bot connected, but webhook error: {0}"
   },
   "th.no_changes": {
     "uz": "O'zgarishlar yo'q",
