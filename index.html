@@ -3962,7 +3962,7 @@
     <div class="empty-hero-ic" data-ic="building" data-ic-size="44"></div>
     <h2 style="text-align:center;margin:0 0 6px;color:var(--ink);font-size:20px;" data-i18n="html-shell.onb_title">Kompaniyangizni yarating</h2>
     <p style="text-align:center;color:var(--muted);font-size:13px;margin:0 0 20px;line-height:1.5;" data-i18n="html-shell.onb_sub">Boshlash uchun kompaniya nomini kiriting. Siz uning egasi bo'lasiz — 14 kun bepul sinov.</p>
-    <div class="field"><input id="onbBoardName" type="text" data-i18n-ph="html-shell.onb_name_ph" placeholder="Masalan: MyCompany" onkeydown="if(event.key==='Enter'){onbBoardCreate();}" /></div>
+    <div class="field"><input autocomplete="off" id="onbBoardName" type="text" data-i18n-ph="html-shell.onb_name_ph" placeholder="Masalan: MyCompany" onkeydown="if(event.key==='Enter'){onbBoardCreate();}" /></div>
     <div class="msg" id="onbBoardMsg"></div>
     <button class="btn" id="onbBoardCreateBtn" onclick="onbBoardCreate()" style="width:100%;margin-top:12px;" data-i18n="html-shell.create">Yaratish</button>
     <button class="btn secondary" onclick="doLogout()" style="width:100%;margin-top:8px;" data-i18n="html-shell.logout">Chiqish</button>
@@ -4895,15 +4895,15 @@
           <h3 data-i18n="page-profile.personal_title">Shaxsiy ma'lumotlar</h3>
           <div class="field">
             <label data-i18n="page-profile.fullname_label">Ism va familya</label>
-            <input id="profFullName" type="text" data-i18n-ph="page-profile.fullname_ph" placeholder="Ism Familya" />
+            <input autocomplete="off" id="profFullName" type="text" data-i18n-ph="page-profile.fullname_ph" placeholder="Ism Familya" />
           </div>
           <div class="field">
             <label data-i18n="page-profile.phone_label">Telefon raqami</label>
-            <input id="profPhone" type="tel" placeholder="+998 90 123 45 67" />
+            <input autocomplete="off" id="profPhone" type="tel" placeholder="+998 90 123 45 67" />
           </div>
           <div class="field">
             <label data-i18n="common.col_email">Email</label>
-            <input id="profEmail" type="email" readonly style="background:var(--surface-2);color:var(--muted);" />
+            <input autocomplete="off" id="profEmail" type="email" readonly style="background:var(--surface-2);color:var(--muted);" />
             <div style="font-size:11.5px;color:var(--muted);margin-top:4px;" data-i18n="page-profile.email_readonly">Email o'zgartirib bo'lmaydi</div>
           </div>
           <div style="display:flex; gap:10px;">
@@ -4987,7 +4987,7 @@
 
       <div class="settings-section">
         <h3 data-i18n="page-settings.ws_section_title">Workspace ma'lumotlari</h3>
-        <div class="field"><label data-i18n="page-settings.label_name_req">Nomi *</label><input id="setWsName" type="text" /></div>
+        <div class="field"><label data-i18n="page-settings.label_name_req">Nomi *</label><input autocomplete="off" id="setWsName" type="text" /></div>
         <div style="display:flex; gap:10px;">
           <button class="btn" onclick="saveWsName()" data-i18n="page-botsettings.save">Saqlash</button>
         </div>
@@ -5044,8 +5044,8 @@
 
       <div class="settings-section">
         <h3 data-i18n="page-settings.account_title">Hisob</h3>
-        <div class="field"><label data-i18n="page-settings.label_fullname">To'liq ism</label><input id="setProfName" type="text" /></div>
-        <div class="field"><label data-i18n="html-shell.phone">Telefon</label><input id="setProfPhone" type="text" /></div>
+        <div class="field"><label data-i18n="page-settings.label_fullname">To'liq ism</label><input autocomplete="off" id="setProfName" type="text" /></div>
+        <div class="field"><label data-i18n="html-shell.phone">Telefon</label><input autocomplete="off" id="setProfPhone" type="text" /></div>
         <div style="display:flex; gap:10px;">
           <button class="btn" onclick="settingsSaveProfile()" data-i18n="page-botsettings.save">Saqlash</button>
         </div>
@@ -5149,9 +5149,9 @@
       <button class="x-btn" onclick="closeBranchModal()">×</button>
     </div>
     <div class="modal-body">
-      <div class="field"><label data-i18n="page-settings.branch_name_req">Filial nomi *</label><input id="brName" type="text" data-i18n-ph="page-settings.ph_branch_name" placeholder="Masalan: Yunusobod" /></div>
-      <div class="field" id="brExternalIdWrap" style="display:none;"><label data-i18n="page-settings.branch_ext_label">Aros warehouse_id (ixtiyoriy)</label><input id="brExternalId" type="text" data-i18n-ph="page-settings.ph_ext_id" placeholder="Masalan: 37" /><div style="font-size: 11px; color: var(--muted); margin-top: 4px;" data-i18n="page-settings.branch_ext_hint">Aros API bilan moslik uchun</div></div>
-      <div class="field"><label data-i18n="page-settings.branch_address">Manzil (ixtiyoriy)</label><input id="brAddress" type="text" /></div>
+      <div class="field"><label data-i18n="page-settings.branch_name_req">Filial nomi *</label><input autocomplete="off" id="brName" type="text" data-i18n-ph="page-settings.ph_branch_name" placeholder="Masalan: Yunusobod" /></div>
+      <div class="field" id="brExternalIdWrap" style="display:none;"><label data-i18n="page-settings.branch_ext_label">Aros warehouse_id (ixtiyoriy)</label><input autocomplete="off" id="brExternalId" type="text" data-i18n-ph="page-settings.ph_ext_id" placeholder="Masalan: 37" /><div style="font-size: 11px; color: var(--muted); margin-top: 4px;" data-i18n="page-settings.branch_ext_hint">Aros API bilan moslik uchun</div></div>
+      <div class="field"><label data-i18n="page-settings.branch_address">Manzil (ixtiyoriy)</label><input autocomplete="off" id="brAddress" type="text" /></div>
       <div class="field">
         <label data-i18n="page-settings.branch_manager_label">Boshliq (ixtiyoriy)</label>
         <select id="brManager"><option value="" data-i18n="page-settings.opt_select">— Tanlang —</option></select>
@@ -5174,7 +5174,7 @@
       <button class="x-btn" onclick="closeAddColumnModal()">×</button>
     </div>
     <div class="modal-body">
-      <div class="field"><label data-i18n="page-settings.kc_name_label">Column nomi *</label><input id="kcName" type="text" data-i18n-ph="page-settings.ph_kc_name" placeholder="Masalan: Review" /></div>
+      <div class="field"><label data-i18n="page-settings.kc_name_label">Column nomi *</label><input autocomplete="off" id="kcName" type="text" data-i18n-ph="page-settings.ph_kc_name" placeholder="Masalan: Review" /></div>
       <div class="field" style="display:none">
         <label data-i18n="page-settings.kc_status_label">Status mapping</label>
         <select id="kcStatus">
@@ -5219,7 +5219,7 @@
       <p style="font-size:13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.55;" data-i18n="page-settings.n8n_desc">Vazifa hodisalari (yaratildi, holat o'zgardi, biriktirildi) sizning n8n instance'ingizdagi webhook'ga JSON sifatida yuboriladi.</p>
       <div class="field">
         <label data-i18n="page-settings.n8n_webhook_label">Webhook URL *</label>
-        <input id="n8nUrl" type="text" placeholder="https://n8n.example.com/webhook/tasks" />
+        <input autocomplete="off" id="n8nUrl" type="text" placeholder="https://n8n.example.com/webhook/tasks" />
       </div>
       <div class="tip">
         <span class="tip-ic" data-ic="bulb" data-ic-size="15"></span><span data-i18n="page-settings.n8n_tip">n8n'da yangi workflow yarating → "Webhook" trigger qo'shing → URL'ni nusxalab shu yerga joylang. Misol payload:</span>
@@ -5264,7 +5264,7 @@
       </div>
       <div class="field">
         <label data-i18n="page-settings.label_name_req">Nomi *</label>
-        <input id="ocContLabel" type="text" data-i18n-ph="page-settings.ph_oc_cont_label" placeholder="Misol: Yashnobod filiali" />
+        <input autocomplete="off" id="ocContLabel" type="text" data-i18n-ph="page-settings.ph_oc_cont_label" placeholder="Misol: Yashnobod filiali" />
       </div>
       <div class="field">
         <label data-i18n="page-settings.label_manager_opt">Boshlig'i (ixtiyoriy)</label>
@@ -5336,7 +5336,7 @@
       <div class="field">
         <label data-i18n="page-settings.invite_link_label">Taklif havolasi</label>
         <div style="display:flex; gap:8px;">
-          <input id="invLinkUrl" type="text" readonly onclick="this.select()" style="font-family: 'JetBrains Mono', monospace; font-size: 12px;" />
+          <input autocomplete="off" id="invLinkUrl" type="text" readonly onclick="this.select()" style="font-family: 'JetBrains Mono', monospace; font-size: 12px;" />
           <button class="btn" onclick="copyInviteLink()" id="invLinkCopyBtn" style="white-space:nowrap;" data-i18n-txt="page-settings.invite_copy"><span data-ic="clipboard" data-ic-size="15"></span>Nusxa</button>
         </div>
       </div>
@@ -5369,7 +5369,7 @@
       <div class="field">
         <label for="hrcLinkUrl" data-i18n="hrc.link_label">To'ldirish havolasi</label>
         <div class="hrc-linkrow">
-          <input id="hrcLinkUrl" type="text" readonly onclick="this.select()" />
+          <input autocomplete="off" id="hrcLinkUrl" type="text" readonly onclick="this.select()" />
           <button class="btn" onclick="hrcCopyLink()" id="hrcLinkCopyBtn" data-i18n-txt="page-settings.invite_copy"><span data-ic="clipboard" data-ic-size="15"></span>Nusxa</button>
         </div>
       </div>
@@ -5398,26 +5398,26 @@
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
         <div class="field">
           <label data-i18n-txt="page-settings.ph_firstname">Ism <span style="color:var(--danger)">*</span></label>
-          <input id="empFirstName" type="text" data-i18n-ph="page-settings.ph_firstname" placeholder="Ism" />
+          <input autocomplete="off" id="empFirstName" type="text" data-i18n-ph="page-settings.ph_firstname" placeholder="Ism" />
         </div>
         <div class="field">
           <label data-i18n="page-settings.label_lastname">Familya</label>
-          <input id="empLastName" type="text" data-i18n-ph="page-settings.label_lastname" placeholder="Familya" />
+          <input autocomplete="off" id="empLastName" type="text" data-i18n-ph="page-settings.label_lastname" placeholder="Familya" />
         </div>
       </div>
       <div class="field">
         <label data-i18n-txt="common.col_email">Email <span style="color:var(--danger)">*</span></label>
-        <input id="empEmail" type="email" placeholder="user@example.com" />
+        <input autocomplete="off" id="empEmail" type="email" placeholder="user@example.com" />
         <div style="font-size: 11.5px; color: var(--muted); margin-top:4px;" data-i18n="page-settings.emp_email_hint">Taklif xati shu emailga yuboriladi</div>
       </div>
       <div class="field">
         <label data-i18n="html-shell.phone">Telefon</label>
-        <input id="empPhone" type="tel" placeholder="+998 90 123 45 67" />
+        <input autocomplete="off" id="empPhone" type="tel" placeholder="+998 90 123 45 67" />
       </div>
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
         <div class="field">
           <label data-i18n="page-settings.label_position">Lavozim</label>
-          <input id="empPosition" type="text" list="empPosList" data-i18n-ph="page-settings.ph_position" placeholder="Tanlang yoki yozing..." />
+          <input autocomplete="off" id="empPosition" type="text" list="empPosList" data-i18n-ph="page-settings.ph_position" placeholder="Tanlang yoki yozing..." />
           <datalist id="empPosList"></datalist>
         </div>
         <div class="field">
@@ -5470,13 +5470,13 @@
         <label data-i18n="page-settings.cmd_name_label">Komanda nomi *</label>
         <div style="display:flex;align-items:center;gap:6px;">
           <span style="color:var(--muted);font-weight:600;font-size:15px;">/</span>
-          <input id="cmdName" type="text" placeholder="info" pattern="[a-z0-9_]+" />
+          <input autocomplete="off" id="cmdName" type="text" placeholder="info" pattern="[a-z0-9_]+" />
         </div>
         <div style="font-size: 11.5px; color: var(--muted); margin-top:4px;" data-i18n="page-settings.cmd_name_hint">Faqat kichik harflar, raqamlar, _ . Slash (/) yozmang.</div>
       </div>
       <div class="field">
         <label data-i18n="page-settings.cmd_desc_label">Tavsif (/help'da ko'rinadi)</label>
-        <input id="cmdDesc" type="text" data-i18n-ph="page-settings.ph_cmd_desc" placeholder="Misol: Kompaniyamiz haqida" />
+        <input autocomplete="off" id="cmdDesc" type="text" data-i18n-ph="page-settings.ph_cmd_desc" placeholder="Misol: Kompaniyamiz haqida" />
       </div>
       <div class="field">
         <label data-i18n="page-settings.cmd_response_label">Javob matni *</label>
@@ -5522,11 +5522,11 @@
       </div>
       <div class="field">
         <label data-i18n="page-settings.et_fullname_label">To'liq ism va familya *</label>
-        <input id="etFullName" type="text" />
+        <input autocomplete="off" id="etFullName" type="text" />
       </div>
       <div class="field">
         <label data-i18n="common.col_phone">Telefon</label>
-        <input id="etPhone" type="text" placeholder="+998..." />
+        <input autocomplete="off" id="etPhone" type="text" placeholder="+998..." />
       </div>
       <div class="field">
         <label data-i18n="page-settings.label_branch">Filial</label>
@@ -5577,7 +5577,7 @@
       <div class="onb-step" data-step="1">
         <h4 style="margin:0 0 6px;font-size:15px;" data-i18n="page-settings.onb_step1_title">1. Kompaniyangiz nomi</h4>
         <p style="font-size:12.5px;color:var(--muted);margin:0 0 14px;line-height:1.5;" data-i18n="page-settings.onb_step1_sub">14 kun bepul sinov. Siz egasi bo'lasiz.</p>
-        <div class="field"><input id="onbName" type="text" data-i18n-ph="page-settings.ph_onb_name" placeholder="Masalan: TaskTeam, MyCompany" /></div>
+        <div class="field"><input autocomplete="off" id="onbName" type="text" data-i18n-ph="page-settings.ph_onb_name" placeholder="Masalan: TaskTeam, MyCompany" /></div>
       </div>
 
       <!-- Step 2: Telegram bot (optional) -->
@@ -5586,7 +5586,7 @@
         <p style="font-size:12.5px;color:var(--muted);margin:0 0 14px;line-height:1.5;" data-i18n-html="page-settings.onb_step2_desc_html">Xodimlarga vazifa biriktirish va bildirishnoma uchun. <b>Keyin ham qo'shsa bo'ladi</b>.</p>
         <div class="field">
           <label data-i18n="page-settings.onb_bot_token_label">Bot token (BotFather'dan)</label>
-          <input id="onbBotToken" type="text" placeholder="123456:ABC-..." />
+          <input autocomplete="off" id="onbBotToken" type="text" placeholder="123456:ABC-..." />
           <div style="font-size:11.5px;color:var(--muted);margin-top:4px;" data-i18n="page-settings.onb_bot_hint">@BotFather'ga /newbot yuborib oling. Bo'sh qoldirsangiz keyin Settings'dan qo'shasiz.</div>
         </div>
       </div>
@@ -5606,7 +5606,7 @@
         <p style="font-size:12.5px;color:var(--muted);margin:0 0 14px;line-height:1.5;" data-i18n="page-settings.onb_dept_desc">Vazifalarni guruhlash uchun bo'lim. Bo'sh qoldirsangiz default bo'lim yaratiladi.</p>
         <div class="field">
           <label data-i18n="page-settings.onb_dept_label">Bo'lim nomi</label>
-          <input id="onbDeptName" type="text" data-i18n-ph="page-settings.ph_onb_dept" placeholder="Masalan: Sotuv" value="Umumiy" />
+          <input autocomplete="off" id="onbDeptName" type="text" data-i18n-ph="page-settings.ph_onb_dept" placeholder="Masalan: Sotuv" value="Umumiy" />
         </div>
       </div>
 
@@ -5629,7 +5629,7 @@
   <div class="modal modal-wide">
     <div class="modal-head"><h3 id="createTitle" data-i18n="html-shell.new_task">Yangi vazifa</h3><button class="x-btn" onclick="closeCreate()">×</button></div>
     <div class="modal-body">
-      <div class="field"><label data-i18n="page-settings.label_name_req">Nomi *</label><input id="cTitle" type="text" /></div>
+      <div class="field"><label data-i18n="page-settings.label_name_req">Nomi *</label><input autocomplete="off" id="cTitle" type="text" /></div>
       <div class="field"><label data-i18n="page-settings.label_description">Tavsif</label><textarea id="cDesc"></textarea></div>
       <div class="field" id="cDeptField" style="display:none"><label data-i18n="page-settings.label_dept">Bo'lim</label><select id="cDept"><option value="" data-i18n="page-settings.opt_no_dept">(Bo'limsiz)</option></select></div>
       <!-- 🔴 id="msHost" — TANLAGICHNING ASL UYI. `ras*` (bajaruvchini almashtirish)
@@ -5650,7 +5650,7 @@
           </button>
           <div class="ms-body" id="msBody">
             <div class="ms-panel-search">
-              <input type="text" id="msInput" data-i18n-ph="page-settings.ph_ms_input" placeholder="Qidirish: ism, filial, lavozim..." oninput="msFilter()" />
+              <input autocomplete="off" type="text" id="msInput" data-i18n-ph="page-settings.ph_ms_input" placeholder="Qidirish: ism, filial, lavozim..." oninput="msFilter()" />
               <button type="button" class="ms-panel-clear" onclick="msClearAll()" data-i18n-title="page-settings.ms_clear_title" title="Tanlanganlarni tozalash" data-i18n="page-settings.ms_clear">Tozalash</button>
             </div>
             <div class="ms-panel-list" id="msList"></div>
@@ -5762,7 +5762,7 @@
         <label data-i18n="page-settings.label_subtasks">Subtask'lar (ixtiyoriy)</label>
         <div id="cSubsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
         <div style="display:flex; gap:8px; margin-top: 6px;">
-          <input id="cNewSub" type="text" data-i18n-ph="page-settings.ph_new_subtask" placeholder="Subtask qo'shish..." onkeydown="if(event.key==='Enter') { event.preventDefault(); addCreateSub(); }" />
+          <input autocomplete="off" id="cNewSub" type="text" data-i18n-ph="page-settings.ph_new_subtask" placeholder="Subtask qo'shish..." onkeydown="if(event.key==='Enter') { event.preventDefault(); addCreateSub(); }" />
           <button class="btn sm secondary" onclick="addCreateSub()">+</button>
         </div>
       </div>
@@ -5817,7 +5817,7 @@
   <div class="modal">
     <div class="modal-head"><h3 id="deptModalTitle" data-i18n="page-settings.dept_modal_title">Yangi bo'lim</h3><button class="x-btn" onclick="closeDept()">×</button></div>
     <div class="modal-body">
-      <div class="field"><label data-i18n="page-settings.dept_name_req">Bo'lim nomi *</label><input id="deptName" type="text" data-i18n-ph="page-settings.ph_dept_name" placeholder="Masalan: IT, HR, Savdo" /></div>
+      <div class="field"><label data-i18n="page-settings.dept_name_req">Bo'lim nomi *</label><input autocomplete="off" id="deptName" type="text" data-i18n-ph="page-settings.ph_dept_name" placeholder="Masalan: IT, HR, Savdo" /></div>
       <div class="field"><label data-i18n="page-settings.label_description">Tavsif</label><textarea id="deptDesc"></textarea></div>
       <div class="msg" id="deptMsg"></div>
     </div>
@@ -5834,11 +5834,11 @@
     <div class="modal-head"><h3 data-i18n="page-settings.invite_title">Xodim taklif qilish</h3><button class="x-btn" onclick="closeInvite()">×</button></div>
     <div class="modal-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div class="field"><label data-i18n="page-settings.label_firstname_req">Ism *</label><input id="iFirst" type="text" data-i18n-ph="page-settings.ph_firstname" placeholder="Ism" /></div>
-        <div class="field"><label data-i18n="page-settings.label_lastname">Familya</label><input id="iLast" type="text" data-i18n-ph="page-settings.label_lastname" placeholder="Familya" /></div>
+        <div class="field"><label data-i18n="page-settings.label_firstname_req">Ism *</label><input autocomplete="off" id="iFirst" type="text" data-i18n-ph="page-settings.ph_firstname" placeholder="Ism" /></div>
+        <div class="field"><label data-i18n="page-settings.label_lastname">Familya</label><input autocomplete="off" id="iLast" type="text" data-i18n-ph="page-settings.label_lastname" placeholder="Familya" /></div>
       </div>
-      <div class="field"><label data-i18n="page-settings.invite_email_label">Xodim email *</label><input id="iEmail" type="email" data-i18n-ph="page-settings.ph_invite_email" placeholder="xodim@kompaniya.uz" /></div>
-      <div class="field"><label data-i18n="common.col_phone">Telefon</label><input id="iPhone" type="tel" placeholder="+998 90 123 45 67" /></div>
+      <div class="field"><label data-i18n="page-settings.invite_email_label">Xodim email *</label><input autocomplete="off" id="iEmail" type="email" data-i18n-ph="page-settings.ph_invite_email" placeholder="xodim@kompaniya.uz" /></div>
+      <div class="field"><label data-i18n="common.col_phone">Telefon</label><input autocomplete="off" id="iPhone" type="tel" placeholder="+998 90 123 45 67" /></div>
       <div class="field">
         <label data-i18n="page-settings.invite_dept_access">Bo'limlarga kirish *</label>
         <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; padding:8px 10px; background:#F4F3EF; border-radius:8px;">
@@ -6551,7 +6551,7 @@ function uiForm(title, fields, opts) {
         const tv = f.value && String(f.value).length >= 16 ? String(f.value).slice(11, 16) : '18:00';
         input = '<div style="display:flex;gap:8px;"><input type="date" id="uif_' + f.id + '_d" class="ui-input" value="' + dv + '" style="flex:1;"><input type="time" id="uif_' + f.id + '_t" class="ui-input" value="' + tv + '" style="width:120px;"></div>';
       }
-      else if (f.type === 'number') input = '<input type="number" ' + base + ' value="' + escapeHtml(f.value != null ? String(f.value) : '') + '" placeholder="' + escapeHtml(f.placeholder || '') + '">';
+      else if (f.type === 'number') input = '<input autocomplete="off" type="number" ' + base + ' value="' + escapeHtml(f.value != null ? String(f.value) : '') + '" placeholder="' + escapeHtml(f.placeholder || '') + '">';
       // 'time' — soat tanlash ('HH:MM'). Qiymati oddiy input'lar kabi o'qiladi.
       else if (f.type === 'time') input = '<input type="time" ' + base + ' value="' + escapeHtml(f.value || '') + '" style="max-width:150px;">';
       // choice — ikon + tushuntirishli kartalar (radio). options: [{value,label,icon,desc}]
@@ -6565,7 +6565,7 @@ function uiForm(title, fields, opts) {
           '</label>';
         }).join('') + '</div>';
       }
-      else input = '<input type="text" ' + base + ' value="' + escapeHtml(f.value || '') + '" placeholder="' + escapeHtml(f.placeholder || '') + '">';
+      else input = '<input autocomplete="off" type="text" ' + base + ' value="' + escapeHtml(f.value || '') + '" placeholder="' + escapeHtml(f.placeholder || '') + '">';
       // data-uif — `showIf` (shartli maydon) uchun langar. Boshqa hech narsaga
       // ta'sir qilmaydi (CSS ham, mavjud kod ham bu atributni o'qimaydi).
       return '<div class="ui-field" data-uif="' + escapeHtml(f.id) + '">' + (f.label ? '<label class="ui-label">' + escapeHtml(f.label) + '</label>' : '') + input + (f.hint ? '<div class="ui-hint">' + escapeHtml(f.hint) + '</div>' : '') + '</div>';
@@ -9590,6 +9590,25 @@ function setMode(m) {
 }
 function switchToLoginKeepEmail() { setMode('login'); $('password').value = ''; $('password').focus(); }
 function _hideBootViews() { const o = $('onbBoardView'); if (o) o.style.display = 'none'; const b = $('bootErrView'); if (b) b.style.display = 'none'; }
+// 🔴 AUTOFILL QOROVULI. Kirish formasi (`#authShell`) ilova bilan BITTA
+//    hujjatda yashaydi va `display:none` bo'lsa ham DOM'da qoladi. Chrome esa
+//    "sahifada login forma bor" deb hisoblab, saqlangan EMAILNI ilovaning
+//    oddiy matn/qidiruv maydonlariga quyib yuborardi (hech narsa bosilmasa
+//    ham). `data-lpignore`/`data-1p-ignore` faqat LastPass/1Password uchun —
+//    Chrome ularga qaramaydi.
+//    Yechim: ilova ko'rsatilganda kirish maydonlari `disabled` bo'ladi —
+//    Chrome disabled maydonni to'ldirmaydi va formani hisobga olmaydi.
+//    ⚠️ `showAuth`/`goForgot`/`showResetStep`/`showInviteSetPassword` ularni
+//    QAYTA yoqadi, aks holda chiqib qayta kirish imkonsiz bo'lardi.
+function authInputsEnabled(on) {
+  try {
+    const box = $('authShell');
+    if (!box) return;
+    const list = box.querySelectorAll('input, button, select, textarea');
+    for (let i = 0; i < list.length; i++) list[i].disabled = !on;
+  } catch (e) { console.error('authInputsEnabled:', e); }
+}
+
 function showLoading() { _hideBootViews(); $('loadingView').style.display = 'flex'; $('authShell').style.display = 'none'; $('appView').classList.remove('show'); }
 // Workspace topilmasa — cheksiz loading emas, kompaniya yaratish ekrani
 function showOnboard() {
@@ -9612,11 +9631,11 @@ function showBootErr(msg) {
 //    showAuth/goForgot/showResetStep uni yashirmay, ikki qadam birdan ko'rinishi
 //    mumkin edi (masalan invite tokeni eskirib SIGNED_OUT kelganda).
 function _authHideInvite() { const el = $('inviteSetPwStep'); if (el) el.style.display = 'none'; }
-function showAuth() { _hideBootViews(); $('loadingView').style.display = 'none'; $('authShell').style.display = 'grid'; $('appView').classList.remove('show'); $('authStep').style.display = 'block'; $('forgotStep').style.display = 'none'; $('resetStep').style.display = 'none'; _authHideInvite(); }
-function showApp() { _hideBootViews(); $('loadingView').style.display = 'none'; $('authShell').style.display = 'none'; $('appView').classList.add('show'); }
-function goForgot() { $('loadingView').style.display='none'; $('authShell').style.display='grid'; $('appView').classList.remove('show'); $('authStep').style.display='none'; $('forgotStep').style.display='block'; $('resetStep').style.display='none'; _authHideInvite(); $('fEmail').value = $('email').value.trim(); hideMsg($('fMsg')); }
+function showAuth() { _hideBootViews(); $('loadingView').style.display = 'none'; $('authShell').style.display = 'grid'; authInputsEnabled(true); $('appView').classList.remove('show'); $('authStep').style.display = 'block'; $('forgotStep').style.display = 'none'; $('resetStep').style.display = 'none'; _authHideInvite(); }
+function showApp() { _hideBootViews(); $('loadingView').style.display = 'none'; $('authShell').style.display = 'none'; $('appView').classList.add('show'); authInputsEnabled(false); }
+function goForgot() { $('loadingView').style.display='none'; $('authShell').style.display='grid'; authInputsEnabled(true); $('appView').classList.remove('show'); $('authStep').style.display='none'; $('forgotStep').style.display='block'; $('resetStep').style.display='none'; _authHideInvite(); $('fEmail').value = $('email').value.trim(); hideMsg($('fMsg')); }
 function backToLogin() { setMode('login'); showAuth(); }
-function showResetStep() { $('loadingView').style.display='none'; $('authShell').style.display='grid'; $('appView').classList.remove('show'); $('authStep').style.display='none'; $('forgotStep').style.display='none'; $('resetStep').style.display='block'; _authHideInvite(); hideMsg($('rMsg')); }
+function showResetStep() { $('loadingView').style.display='none'; $('authShell').style.display='grid'; authInputsEnabled(true); $('appView').classList.remove('show'); $('authStep').style.display='none'; $('forgotStep').style.display='none'; $('resetStep').style.display='block'; _authHideInvite(); hideMsg($('rMsg')); }
 
 async function submitAuth() {
   const email = $('email').value.trim(); const password = $('password').value; const btn = $('authBtn');
@@ -9692,7 +9711,7 @@ async function saveNewPassword() {
 // Taklif orqali kelgan foydalanuvchi — faqat parol o'rnatadi (ism qulflangan)
 function showInviteSetPassword(session) {
   $('loadingView').style.display = 'none';
-  $('authShell').style.display = 'grid';
+  $('authShell').style.display = 'grid'; authInputsEnabled(true);
   $('appView').classList.remove('show');
   $('authStep').style.display = 'none';
   $('forgotStep').style.display = 'none';
@@ -15714,7 +15733,7 @@ function renderDetailBody() {
       (canEditTask ? '<span class="sub-del" onclick="deleteSubtask('+s.id+')">×</span>' : '') +
     '</div>'
   ).join('') + '</div>' +
-  (canEditTask ? '<div class="sub-add"><input type="text" id="newSubInput" placeholder="' + tr('dlh.ph_new_subtask', 'Yangi subtask…') + '" onkeydown="if (event.key === \'Enter\') addSubtask()" /><button class="btn sm" onclick="addSubtask()">+</button></div>' : '');
+  (canEditTask ? '<div class="sub-add"><input autocomplete="off" type="text" id="newSubInput" placeholder="' + tr('dlh.ph_new_subtask', 'Yangi subtask…') + '" onkeydown="if (event.key === \'Enter\') addSubtask()" /><button class="btn sm" onclick="addSubtask()">+</button></div>' : '');
 
   // Comments
   const cmtsHtml = '<div class="cmt-list">' + curDetailComments.map(c => renderCommentItem(c, canEditTask)).join('') + '</div>' +
@@ -18536,7 +18555,7 @@ function tblRowHtml(t, cols, canEdit) {
     if (tblIsCustom(key)) {
       const val = tblCustomVal(t.id, key);
       const cell = canEdit
-        ? '<input class="cell-inp" type="text" value="' + escapeHtml(val) + '" onchange="tblSetCustomVal(' + t.id + ',\'' + key + '\',this.value)">'
+        ? '<input autocomplete="off" class="cell-inp" type="text" value="' + escapeHtml(val) + '" onchange="tblSetCustomVal(' + t.id + ',\'' + key + '\',this.value)">'
         : escapeHtml(val);
       row += '<td>' + cell + '</td>';
       return;
@@ -18714,7 +18733,7 @@ function tblNewRowHtml(cols) {
     switch (key) {
       case 'id': cell = '<span class="cell-id">＋</span>'; break;
       case 'title':
-        cell = '<input id="tblNewTitle" class="cell-inp" type="text" placeholder="' + tr('tbl.new_task_ph', 'Vazifa nomi… (Enter=saqlash, Esc=bekor)') + '" style="border-color:var(--line);background:var(--surface);" onkeydown="if(event.key===\'Enter\')tblSaveNewRow();if(event.key===\'Escape\')tblCancelNewRow();">'; break;
+        cell = '<input autocomplete="off" id="tblNewTitle" class="cell-inp" type="text" placeholder="' + tr('tbl.new_task_ph', 'Vazifa nomi… (Enter=saqlash, Esc=bekor)') + '" style="border-color:var(--line);background:var(--surface);" onkeydown="if(event.key===\'Enter\')tblSaveNewRow();if(event.key===\'Escape\')tblCancelNewRow();">'; break;
       case 'department':
         cell = '<select id="tblNewDept" class="cell-sel"><option value="">—</option>' + (departments||[]).map(d=>'<option value="'+d.id+'">'+escapeHtml(d.name)+'</option>').join('') + '</select>'; break;
       case 'assignee':
@@ -22957,11 +22976,11 @@ async function renderEmployee() {
         (canManage ? '<input type="file" id="phFileInput" accept="image/*" style="display:none" onchange="phUploadPhoto()"><button class="btn sm secondary" id="phUploadBtn" style="margin-top:8px;" onclick="phPickPhoto()">' + icon('camera', 14) + tr('common.upload_photo', 'Rasm yuklash') + '</button>' : '') +
       '</div>' +
       '<div style="flex:1;min-width:240px;"><div class="hr-grid">' +
-        '<div class="hr-f"><label class="hr-lbl">' + tr('common.col_first_name', 'Ism') + '</label><input class="hr-in" id="edtFirst" value="' + escapeHtml(nm.first) + '"' + dis + '></div>' +
-        '<div class="hr-f"><label class="hr-lbl">' + tr('common.col_last_name', 'Familiya') + '</label><input class="hr-in" id="edtLast" value="' + escapeHtml(nm.last) + '"' + dis + '></div>' +
-        '<div class="hr-f"><label class="hr-lbl">' + tr('common.col_phone', 'Telefon') + '</label><input class="hr-in" id="edtPhone" value="' + escapeHtml(p.phone || '') + '" placeholder="+998 90 123 45 67"' + dis + '></div>' +
-        '<div class="hr-f"><label class="hr-lbl">' + tr('common.col_email', 'Email') + '</label><input class="hr-in" id="edtEmail2" value="' + escapeHtml(email) + '" readonly><div class="hr-hint">' + tr('common.hr_hint_from_team_table', 'Jamoa jadvalidan o\'zgartiriladi.') + '</div></div>' +
-        '<div class="hr-f wide"><label class="hr-lbl">' + tr('common.hr_photo_gdrive_link', 'Rasm — Google Drive havolasi') + '</label><input class="hr-in" id="edtPhotoUrl" value="' + escapeHtml(d.photo_url || '') + '" placeholder="https://drive.google.com/..." oninput="empPhotoPreview()"' + dis + '><div class="hr-hint">' + tr('common.hr_hint_link_only', 'Fayl saqlanmaydi — faqat havola.') + '</div></div>' +
+        '<div class="hr-f"><label class="hr-lbl">' + tr('common.col_first_name', 'Ism') + '</label><input autocomplete="off" class="hr-in" id="edtFirst" value="' + escapeHtml(nm.first) + '"' + dis + '></div>' +
+        '<div class="hr-f"><label class="hr-lbl">' + tr('common.col_last_name', 'Familiya') + '</label><input autocomplete="off" class="hr-in" id="edtLast" value="' + escapeHtml(nm.last) + '"' + dis + '></div>' +
+        '<div class="hr-f"><label class="hr-lbl">' + tr('common.col_phone', 'Telefon') + '</label><input autocomplete="off" class="hr-in" id="edtPhone" value="' + escapeHtml(p.phone || '') + '" placeholder="+998 90 123 45 67"' + dis + '></div>' +
+        '<div class="hr-f"><label class="hr-lbl">' + tr('common.col_email', 'Email') + '</label><input autocomplete="off" class="hr-in" id="edtEmail2" value="' + escapeHtml(email) + '" readonly><div class="hr-hint">' + tr('common.hr_hint_from_team_table', 'Jamoa jadvalidan o\'zgartiriladi.') + '</div></div>' +
+        '<div class="hr-f wide"><label class="hr-lbl">' + tr('common.hr_photo_gdrive_link', 'Rasm — Google Drive havolasi') + '</label><input autocomplete="off" class="hr-in" id="edtPhotoUrl" value="' + escapeHtml(d.photo_url || '') + '" placeholder="https://drive.google.com/..." oninput="empPhotoPreview()"' + dis + '><div class="hr-hint">' + tr('common.hr_hint_link_only', 'Fayl saqlanmaydi — faqat havola.') + '</div></div>' +
         '<div class="hr-f"><label class="hr-lbl">' + tr('common.hr_role_label', 'Roli') + '</label><div style="display:flex;gap:6px;"><select class="hr-in" id="edtRole"' + dis + '>' + roleOpts + '</select>' +
           (ro ? '' : '<button class="btn sm secondary" onclick="empAddRoleInline()" title="' + tr('common.hr_add_role', 'Yangi rol qo\'shish') + '">＋</button>') +
         '</div><div class="hr-hint">' + tr('common.hr_role_separate_hint', 'TaskFix ruxsat rolidan alohida.') + '</div></div>' +
@@ -22974,20 +22993,20 @@ async function renderEmployee() {
     '<div class="hr-f"><label class="hr-lbl">' + tr('common.col_position', 'Lavozim') + '</label><div style="display:flex;gap:6px;"><select class="hr-in" id="edtPos"' + dis + '>' + posOpts + '</select>' +
       (ro ? '' : '<button class="btn sm secondary" onclick="empAddPosInline()" title="' + tr('common.hr_add_position', 'Yangi lavozim qo\'shish') + '">＋</button>') + '</div></div>' +
     '<div class="hr-f"><label class="hr-lbl">' + tr('common.hr_work_type', 'Ish turi') + '</label><select class="hr-in" id="edtWorkType"' + dis + '>' + wtOpts + '</select></div>' +
-    '<div class="hr-f"><label class="hr-lbl">' + tr('common.hr_radius', 'Radius (metr)') + '</label><input type="number" min="0" step="1" class="hr-in" id="edtRadius" value="' + escapeHtml(d.radius != null ? String(d.radius) : '') + '" placeholder="100"' + dis + '></div>' +
+    '<div class="hr-f"><label class="hr-lbl">' + tr('common.hr_radius', 'Radius (metr)') + '</label><input autocomplete="off" type="number" min="0" step="1" class="hr-in" id="edtRadius" value="' + escapeHtml(d.radius != null ? String(d.radius) : '') + '" placeholder="100"' + dis + '></div>' +
     (isArosWs() ? '<div class="hr-f"><label class="hr-lbl">' + tr('common.hr_harajat_kassa', 'Harajat kassa') + '</label><div class="hr-pick"><label><input type="checkbox" id="edtHarajatKassa"' + (d.harajat_kassa ? ' checked' : '') + dis + '><span>' + tr('common.hr_harajat_kassa_needed', 'Harajat kassa kerak') + '</span></label></div><div class="hr-hint">' + tr('common.hr_harajat_hint', 'Aros Provodka integratsiyasi uchun.') + '</div></div>' : '') +
     '<div class="hr-f wide"><label class="hr-lbl">' + tr('common.sidebar_branches', 'Filiallar') + '</label><div class="hr-pick">' + brHtml + '</div></div>' +
     '<div class="hr-f wide"><label class="hr-lbl">' + tr('common.nav_departments', 'Bo\'limlar') + '</label><div class="hr-pick">' + dpHtml + '</div><div class="hr-hint">' + tr('common.hr_dept_default_role', 'Yangi bo\'limga qo\'shilganda rol — Tahrirlovchi.') + '</div></div>' +
-    '<div class="hr-f wide"><label class="hr-lbl">' + tr('common.hr_address', 'Manzil') + '</label><input class="hr-in" id="edtAddr" value="' + escapeHtml(d.address || '') + '"' + (ro || d.no_address ? ' disabled' : '') + '></div>' +
+    '<div class="hr-f wide"><label class="hr-lbl">' + tr('common.hr_address', 'Manzil') + '</label><input autocomplete="off" class="hr-in" id="edtAddr" value="' + escapeHtml(d.address || '') + '"' + (ro || d.no_address ? ' disabled' : '') + '></div>' +
     '<div class="hr-f"><label class="hr-lbl">&nbsp;</label><div class="hr-pick"><label><input type="checkbox" id="edtNoAddr"' + (d.no_address ? ' checked' : '') + ' onchange="empToggleNoAddr()"' + dis + '><span>' + tr('common.hr_no_address', 'Manzilsiz') + '</span></label></div></div>' +
-    '<div class="hr-f wide"><label class="hr-lbl">' + tr('common.hr_address2', 'Qo\'shimcha manzil') + '</label><input class="hr-in" id="edtAddrExtra" value="' + escapeHtml(d.address_extra || '') + '"' + dis + '></div>' +
+    '<div class="hr-f wide"><label class="hr-lbl">' + tr('common.hr_address2', 'Qo\'shimcha manzil') + '</label><input autocomplete="off" class="hr-in" id="edtAddrExtra" value="' + escapeHtml(d.address_extra || '') + '"' + dis + '></div>' +
   '</div></div>';
 
   // ---- Shartnoma ----
   const ctrSafe = hrSafeUrl(d.contract_url);
   html += '<div class="hr-card"><h3>' + tr('common.col_contract', 'Shartnoma') + '</h3><div class="hr-grid">' +
     '<div class="hr-f wide"><label class="hr-lbl">' + tr('common.hr_contract_link', 'Shartnoma — Google Docs/Drive havolasi') + '</label><div style="display:flex;gap:6px;">' +
-      '<input class="hr-in" id="edtCtrUrl" value="' + escapeHtml(d.contract_url || '') + '" placeholder="https://docs.google.com/..."' + dis + '>' +
+      '<input autocomplete="off" class="hr-in" id="edtCtrUrl" value="' + escapeHtml(d.contract_url || '') + '" placeholder="https://docs.google.com/..."' + dis + '>' +
       (ctrSafe ? '<a class="btn sm secondary" href="' + escapeHtml(ctrSafe) + '" target="_blank" rel="noopener noreferrer">' + tr('common.open', 'Ochish') + '</a>' : '') +
     '</div></div>' +
     '<div class="hr-f"><label class="hr-lbl">' + tr('common.hr_start_date', 'Boshlanishi') + '</label><input type="date" class="hr-in" id="edtCtrStart" value="' + escapeHtml(d.contract_start ? String(d.contract_start).slice(0, 10) : '') + '"' + dis + '></div>' +
@@ -23006,7 +23025,7 @@ async function renderEmployee() {
     // Haftalik — hafta kunlari (dam olish)
     '<div class="hr-f wide" id="schWeeklyBox" style="' + schShow('weekly') + '"><label class="hr-lbl">' + tr('sch.weekly_days_label', 'Haftalik dam olish kunlari') + '</label><div class="hr-pick">' + wdHtml + '</div></div>' +
     // Oylik — N kun ketma-ket, oy boshi/oxiridan
-    '<div class="hr-f" id="schMonthlyCountBox" style="' + schShow('monthly') + '"><label class="hr-lbl">' + tr('sch.monthly_count_label', 'Dam olish kunlari hajmi') + '</label><input type="number" min="0" max="31" step="1" class="hr-in" id="schMonthlyCount" value="' + escapeHtml(schCount) + '" placeholder="5"' + dis + '></div>' +
+    '<div class="hr-f" id="schMonthlyCountBox" style="' + schShow('monthly') + '"><label class="hr-lbl">' + tr('sch.monthly_count_label', 'Dam olish kunlari hajmi') + '</label><input autocomplete="off" type="number" min="0" max="31" step="1" class="hr-in" id="schMonthlyCount" value="' + escapeHtml(schCount) + '" placeholder="5"' + dis + '></div>' +
     '<div class="hr-f" id="schMonthlyPosBox" style="' + schShow('monthly') + '"><label class="hr-lbl">' + tr('sch.monthly_pos_label', 'Dam olish kunlari turi') + '</label><div class="hr-pick">' +
         '<label><input type="radio" name="schPos" id="schPosStart" value="start"' + (schPos === 'start' ? ' checked' : '') + dis + '><span>' + tr('sch.month_pos_start', 'Boshlash') + '</span></label>' +
         '<label><input type="radio" name="schPos" id="schPosEnd" value="end"' + (schPos !== 'start' ? ' checked' : '') + dis + '><span>' + tr('sch.month_pos_end', 'Tugash') + '</span></label>' +
@@ -31060,7 +31079,7 @@ function dftAttachCreate(deptId) {
 // 🔴 `renderDetailBody()` innerHTML bilan HAR SAFAR YANGI #newCmtInput yaratadi
 //    (~25 chaqiruv joyi + realtime UPDATE). Yangi elementda `_dftToken` yo'q, ya'ni
 //    dftAttach ichidagi tozalash eski yozuvni TOPMAYDI → `_dftReg` cheksiz o'sardi
-//    va har yozuv DOM'dan uzilgan <input> ni ushlab turardi (xotira sizishi).
+//    va har yozuv DOM'dan uzilgan <input autocomplete="off"> ni ushlab turardi (xotira sizishi).
 //    Shuning uchun oldingi token modul darajasida saqlanadi va OLDIN detach qilinadi.
 let _dftCmtTok = null;
 function dftAttachComment() {
