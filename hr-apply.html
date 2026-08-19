@@ -1146,6 +1146,7 @@ var HRA_TXT = {
   errUpBucket: "hujjat ombori sozlanmagan — HR xodimiga xabar bering",
   errUpDup:    "shu nomdagi fayl allaqachon yuklangan, sahifani yangilab qaytadan urinib ko'ring",
   errUpNet:    "aloqa uzildi",
+  errUpUnread: "fayl o'qilmadi — u ko'chirilgan, o'chirilgan yoki bulut papkasida (OneDrive/Drive) bo'lishi mumkin. Faylni qaytadan tanlang",
   errUpOther:  "kutilmagan xato",
   errSubmit:   "Yuborilmadi. Qaytadan urinib ko'ring.",
   errLib:      "Sahifa to'liq yuklanmadi. Internetni tekshirib, sahifani yangilang."
@@ -1534,6 +1535,7 @@ var HRA_I18N = {
     'hra.err_up_bucket': 'хранилище документов не настроено — сообщите сотруднику отдела кадров',
     'hra.err_up_dup': 'файл с таким именем уже загружен, обновите страницу и попробуйте снова',
     'hra.err_up_net': 'связь прервана',
+    'hra.err_up_unread': 'файл не удалось прочитать — возможно, он перемещён, удалён или находится в облачной папке (OneDrive/Drive). Выберите файл заново',
     'hra.err_up_other': 'непредвиденная ошибка',
     'hra.err_submit': 'Не отправлено. Попробуйте ещё раз.',
     'hra.err_lib': 'Страница загрузилась не полностью. Проверьте интернет и обновите страницу.'
@@ -1692,6 +1694,7 @@ var HRA_I18N = {
     'hra.err_up_bucket': 'the document storage is not configured — inform the HR officer',
     'hra.err_up_dup': 'a file with this name has already been uploaded, refresh the page and try again',
     'hra.err_up_net': 'the connection was lost',
+    'hra.err_up_unread': 'the file could not be read — it may have been moved, deleted, or kept in a cloud folder (OneDrive/Drive). Please pick the file again',
     'hra.err_up_other': 'unexpected error',
     'hra.err_submit': 'Not submitted. Please try again.',
     'hra.err_lib': 'The page did not load fully. Check your internet connection and refresh the page.'
@@ -2431,6 +2434,7 @@ function hraUpErrCode(e) {
 function hraUpErrBase(e) {
   var m = hraErrStr(e).toLowerCase();
   var st = hraErrStatus(e);
+  if (e && e._hraUnread) { return tr('hra.err_up_unread', HRA_TXT.errUpUnread); }
   if (hraIsNetErr(e))  { return tr('hra.err_up_net', HRA_TXT.errUpNet); }
   if (hraIsDupErr(e))  { return tr('hra.err_up_dup', HRA_TXT.errUpDup); }
   if (st === 404 || m.indexOf('bucket not found') >= 0) { return tr('hra.err_up_bucket', HRA_TXT.errUpBucket); }
@@ -2481,6 +2485,30 @@ function hraShowSubmitErr(msg) {
   else { el.textContent = ''; el.classList.remove('show'); }
 }
 
+/* 🔴 `net::ERR_FAILED` / "Failed to fetch" IKKI xil sababdan chiqadi:
+   (a) tarmoq uzildi yoki so'rovni brauzer kengaytmasi/antivirus blokladi;
+   (b) FAYLNING O'ZI o'qilmaydi — OneDrive/Drive "faqat bulutda" nusxasi,
+   tanlangandan keyin ko'chirilgan/o'chirilgan fayl, uzilgan tashqi disk.
+   Ikkovi ham supabase-js'da bir xil xato bo'lib keladi, lekin odamga
+   beriladigan maslahat butunlay boshqa. 1 BAYT o'qib farqlaymiz — arzon,
+   xotira yemaydi, katta faylni ikki marta o'qimaydi. */
+async function hraFileReadable(file) {
+  try {
+    if (!file || !file.slice) { return true; }
+    var part = file.slice(0, 1);
+    if (part.arrayBuffer) { await part.arrayBuffer(); return true; }
+    return await new Promise(function (res) {
+      var fr = new FileReader();
+      fr.onload  = function () { res(true); };
+      fr.onerror = function () { res(false); };
+      fr.readAsArrayBuffer(part);
+    });
+  } catch (e) {
+    console.error("[hr-apply] fayl o'qilmadi:", (file && file.name) || "", e);
+    return false;
+  }
+}
+
 async function hraUploadOne(sb, key) {
   var file = hrApplyFiles[key];
   if (!file) { throw new Error('fayl tanlanmagan: ' + key); }
@@ -2502,6 +2530,12 @@ async function hraUploadOne(sb, key) {
     /* 🔴 supabase-js THROW QILMAYDI — {data, error} */
     if (!res.error) { _hraPaths[key] = { file: file, path: path }; return path; }
     console.error('[hr-apply] upload xato:', key, path, res.error);
+    /* Tarmoq ko'rinishidagi xatoda faylning o'zi o'qiladimi — tekshiramiz. */
+    if (hraIsNetErr(res.error) && !(await hraFileReadable(file))) {
+      var unread = new Error('file-unreadable: ' + key);
+      unread._hraUnread = true;
+      throw unread;
+    }
     /* Nom to'qnashuvi (deyarli imkonsiz) — BIR marta yangi nom bilan urinamiz */
     if (!hraIsDupErr(res.error) || attempt >= 2) { throw res.error; }
   }
