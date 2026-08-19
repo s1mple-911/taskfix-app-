@@ -10949,6 +10949,106 @@
     "ru": "Загружена новая версия — переоткройте страницу",
     "en": "New version loaded — reopen the page"
   },
+  "ras.acceptor_add": {
+    "uz": "Qabul qiluvchi qo'shish",
+    "ru": "Добавить принимающего",
+    "en": "Add an acceptor"
+  },
+  "ras.acceptor_hint": {
+    "uz": "Tanlansa: bajaruvchi tugatgach vazifa \"Qabul kutilyapti\"ga o'tadi.",
+    "ru": "Если выбран: после завершения исполнителем задача перейдёт в «Ожидает приёмки».",
+    "en": "If set: once the assignee finishes, the task moves to “Awaiting acceptance”."
+  },
+  "ras.acceptor_none": {
+    "uz": "— Yo'q (oddiy vazifa)",
+    "ru": "— Нет (обычная задача)",
+    "en": "— None (regular task)"
+  },
+  "ras.acceptor_ph": {
+    "uz": "Xodimni qidiring…",
+    "ru": "Найдите сотрудника…",
+    "en": "Search for an employee…"
+  },
+  "ras.acceptor_title": {
+    "uz": "Qabul qiluvchi",
+    "ru": "Принимающий",
+    "en": "Acceptor"
+  },
+  "ras.change_acceptor": {
+    "uz": "Qabul qiluvchini o'zgartirish",
+    "ru": "Изменить принимающего",
+    "en": "Change the acceptor"
+  },
+  "ras.change_assignee": {
+    "uz": "Bajaruvchini almashtirish",
+    "ru": "Заменить исполнителя",
+    "en": "Change the assignee"
+  },
+  "ras.close_create_first": {
+    "uz": "Avval \"Yangi vazifa\" oynasini yoping",
+    "ru": "Сначала закройте окно «Новая задача»",
+    "en": "Close the “New task” window first"
+  },
+  "ras.copy_short": {
+    "uz": "server {0} ta qator qaytardi",
+    "ru": "сервер вернул строк: {0}",
+    "en": "the server returned {0} row(s)"
+  },
+  "ras.detail_changed": {
+    "uz": "Vazifa oynasi almashdi — oynani yoping va qaytadan urinib ko'ring",
+    "ru": "Окно задачи сменилось — закройте его и попробуйте снова",
+    "en": "The task window changed — close it and try again"
+  },
+  "ras.done_multi": {
+    "uz": "Biriktirildi — yana {0} ta xodimga nusxa yaratildi",
+    "ru": "Назначено — ещё для {0} сотрудников создана копия",
+    "en": "Assigned — a copy was created for {0} more employee(s)"
+  },
+  "ras.done_one": {
+    "uz": "Bajaruvchi almashtirildi",
+    "ru": "Исполнитель заменён",
+    "en": "The assignee was changed"
+  },
+  "ras.no_ws": {
+    "uz": "Workspace aniqlanmadi — sahifani yangilang (F5)",
+    "ru": "Воркспейс не определён — обновите страницу (F5)",
+    "en": "Workspace could not be determined — refresh the page (F5)"
+  },
+  "ras.note": {
+    "uz": "Birinchi tanlangan odam shu vazifani oladi. Qolganlariga xuddi shu vazifadan alohida nusxa yaratiladi.",
+    "ru": "Первый выбранный человек получит саму задачу. Для остальных будет создана отдельная копия этой же задачи.",
+    "en": "The first person selected takes this task. For the rest, a separate copy of the same task is created."
+  },
+  "ras.partial_err": {
+    "uz": "Vazifa biriktirildi, lekin {0} ta nusxadan {1} tasi yaratilmadi: {2}",
+    "ru": "Задача назначена, но из {0} копий не создано {1}: {2}",
+    "en": "The task was assigned, but {1} of {0} copies were not created: {2}"
+  },
+  "ras.project_one_only": {
+    "uz": "Loyiha bosqichi faqat BITTA bajaruvchida bo'ladi — nusxa yaratilmaydi (bosqich tartibi va qulflari buzilardi). Bitta odam qoldiring.",
+    "ru": "Этап проекта может быть только у ОДНОГО исполнителя — копии не создаются (порядок этапов и блокировки сломались бы). Оставьте одного человека.",
+    "en": "A project stage can have only ONE assignee — no copies are created (stage order and locks would break). Leave a single person."
+  },
+  "ras.save": {
+    "uz": "Biriktirish",
+    "ru": "Назначить",
+    "en": "Assign"
+  },
+  "ras.selector_missing": {
+    "uz": "Tanlagich topilmadi — sahifani yangilang (F5)",
+    "ru": "Селектор не найден — обновите страницу (F5)",
+    "en": "The picker was not found — refresh the page (F5)"
+  },
+  "ras.task_gone": {
+    "uz": "Vazifa topilmadi — ro'yxatni yangilang",
+    "ru": "Задача не найдена — обновите список",
+    "en": "Task not found — refresh the list"
+  },
+  "ras.title": {
+    "uz": "Bajaruvchini almashtirish",
+    "ru": "Замена исполнителя",
+    "en": "Change the assignee"
+  },
   "rcx.day_n": {
     "uz": "{0}-kun",
     "ru": "{0}-е число",
