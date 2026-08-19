@@ -1034,6 +1034,11 @@
     "ru": "Неверный email или пароль.",
     "en": "Incorrect email or password."
   },
+  "common.err_check_violation": {
+    "uz": "Kiritilgan qiymat qoidaga mos emas.",
+    "ru": "Введённое значение не соответствует правилу.",
+    "en": "The value entered does not meet the rule."
+  },
   "common.err_duplicate": {
     "uz": "Bu allaqachon mavjud.",
     "ru": "Это уже существует.",
@@ -1073,6 +1078,11 @@
     "uz": "Parol kamida 6 belgi.",
     "ru": "Пароль — минимум 6 символов.",
     "en": "Password must be at least 6 characters."
+  },
+  "common.err_plan_range": {
+    "uz": "Reja vaqti noto'g'ri: kun ichida bo'lishi va tugash vaqti boshlanishdan keyin bo'lishi kerak.",
+    "ru": "Неверное время в плане: оно должно быть в пределах суток, а конец — позже начала.",
+    "en": "Invalid plan time: it must fall within the day, and the end must be after the start."
   },
   "common.err_prefix": {
     "uz": "Xato: {0}",
@@ -3828,6 +3838,186 @@
     "uz": "Bajaruvchining dam olish kuni — muddat o'zgarmadi",
     "ru": "Выходной день исполнителя — срок не изменён",
     "en": "The assignee's day off — the deadline was not changed"
+  },
+  "dsh.all_tasks_btn": {
+    "uz": "Barcha vazifalarim",
+    "ru": "Все мои задачи",
+    "en": "All my tasks"
+  },
+  "dsh.chart_aria": {
+    "uz": "So'nggi {0} kun: {1} ta vazifa yaratilgan, {2} tasi tugatilgan",
+    "ru": "Последние {0} дней: создано {1} задач, завершено {2}",
+    "en": "Last {0} days: {1} tasks created, {2} completed"
+  },
+  "dsh.chart_created": {
+    "uz": "Yaratilgan",
+    "ru": "Создано",
+    "en": "Created"
+  },
+  "dsh.chart_empty": {
+    "uz": "Ma'lumot yo'q",
+    "ru": "Нет данных",
+    "en": "No data"
+  },
+  "dsh.chart_empty_sub": {
+    "uz": "So'nggi {0} kunda vazifa yaratilmagan.",
+    "ru": "За последние {0} дней задачи не создавались.",
+    "en": "No tasks were created in the last {0} days."
+  },
+  "dsh.chart_finished": {
+    "uz": "Tugatilgan",
+    "ru": "Завершено",
+    "en": "Completed"
+  },
+  "dsh.chart_title": {
+    "uz": "So'nggi {0} kun",
+    "ru": "Последние {0} дней",
+    "en": "Last {0} days"
+  },
+  "dsh.dur_h": {
+    "uz": "{0} soat",
+    "ru": "{0} ч",
+    "en": "{0} h"
+  },
+  "dsh.dur_hm": {
+    "uz": "{0} soat {1} daq",
+    "ru": "{0} ч {1} мин",
+    "en": "{0} h {1} min"
+  },
+  "dsh.dur_m": {
+    "uz": "{0} daq",
+    "ru": "{0} мин",
+    "en": "{0} min"
+  },
+  "dsh.greet": {
+    "uz": "Bugun · {0}",
+    "ru": "Сегодня · {0}",
+    "en": "Today · {0}"
+  },
+  "dsh.greet_named": {
+    "uz": "Salom, {0} · {1}",
+    "ru": "Привет, {0} · {1}",
+    "en": "Hi, {0} · {1}"
+  },
+  "dsh.my_active": {
+    "uz": "Faol vazifalarim",
+    "ru": "Мои активные задачи",
+    "en": "My active tasks"
+  },
+  "dsh.my_active_sub": {
+    "uz": "menga biriktirilgan",
+    "ru": "назначено мне",
+    "en": "assigned to me"
+  },
+  "dsh.my_proj_empty": {
+    "uz": "Loyiha bosqichi yo'q",
+    "ru": "Нет этапов проекта",
+    "en": "No project stages"
+  },
+  "dsh.my_proj_empty_sub": {
+    "uz": "Sizga hozircha loyiha bosqichi biriktirilmagan.",
+    "ru": "Вам пока не назначен ни один этап проекта.",
+    "en": "No project stage has been assigned to you yet."
+  },
+  "dsh.my_proj_title": {
+    "uz": "Mening loyihalarim",
+    "ru": "Мои проекты",
+    "en": "My projects"
+  },
+  "dsh.pill_active": {
+    "uz": "Faol vazifa",
+    "ru": "Активные задачи",
+    "en": "Active tasks"
+  },
+  "dsh.plan_empty": {
+    "uz": "Bugunga reja yo'q",
+    "ru": "На сегодня нет плана",
+    "en": "Nothing planned for today"
+  },
+  "dsh.plan_empty_sub": {
+    "uz": "Rejalashtirgichda vazifalarni vaqt bo'yicha joylashtiring.",
+    "ru": "Разместите задачи по времени в планировщике.",
+    "en": "Lay your tasks out by time in the planner."
+  },
+  "dsh.plan_title": {
+    "uz": "Bugungi rejam",
+    "ru": "Мой план на сегодня",
+    "en": "My plan for today"
+  },
+  "dsh.plan_total": {
+    "uz": "Bugun rejalashtirilgan: {0}",
+    "ru": "Запланировано на сегодня: {0}",
+    "en": "Planned for today: {0}"
+  },
+  "dsh.prj_unknown": {
+    "uz": "Loyiha",
+    "ru": "Проект",
+    "en": "Project"
+  },
+  "dsh.proj_all_ended": {
+    "uz": "Barcha loyihalar tugagan.",
+    "ru": "Все проекты завершены.",
+    "en": "All projects are finished."
+  },
+  "dsh.proj_empty_sub": {
+    "uz": "Loyiha yaratilgach uning holati shu yerda ko'rinadi.",
+    "ru": "Как только появится проект, его статус будет виден здесь.",
+    "en": "Once a project exists, its status will show up here."
+  },
+  "dsh.proj_title": {
+    "uz": "Loyihalar holati",
+    "ru": "Статус проектов",
+    "en": "Project status"
+  },
+  "dsh.soon_empty_sub": {
+    "uz": "Yaqin {0} kunda muddat yo'q.",
+    "ru": "В ближайшие {0} дней сроков нет.",
+    "en": "No deadlines in the next {0} days."
+  },
+  "dsh.soon_title": {
+    "uz": "Yaqin muddatlar",
+    "ru": "Ближайшие сроки",
+    "en": "Upcoming deadlines"
+  },
+  "dsh.team_empty": {
+    "uz": "Ochiq vazifa yo'q",
+    "ru": "Нет открытых задач",
+    "en": "No open tasks"
+  },
+  "dsh.team_empty_sub": {
+    "uz": "Hozircha hech kimda faol vazifa yo'q.",
+    "ru": "Пока ни у кого нет активных задач.",
+    "en": "Nobody has active tasks right now."
+  },
+  "dsh.team_title": {
+    "uz": "Jamoa holati",
+    "ru": "Состояние команды",
+    "en": "Team status"
+  },
+  "dsh.today_empty": {
+    "uz": "Bugunga muddat yo'q",
+    "ru": "На сегодня сроков нет",
+    "en": "Nothing due today"
+  },
+  "dsh.today_empty_sub": {
+    "uz": "Muddati bugun tugaydigan yoki kechikkan vazifangiz yo'q.",
+    "ru": "Нет задач с сегодняшним сроком или просроченных.",
+    "en": "You have no tasks due today or overdue."
+  },
+  "dsh.today_title": {
+    "uz": "Bugun bajarish kerak",
+    "ru": "Сделать сегодня",
+    "en": "To do today"
+  },
+  "dsh.unassigned": {
+    "uz": "Biriktirilmagan",
+    "ru": "Не назначено",
+    "en": "Unassigned"
+  },
+  "dsh.unassigned_sub": {
+    "uz": "Bajaruvchi tanlanmagan faol vazifalar",
+    "ru": "Активные задачи без исполнителя",
+    "en": "Active tasks with no assignee"
   },
   "emailSet.all_on": {
     "uz": "hamma bildirishnoma yoniq",
@@ -6819,6 +7009,16 @@
     "ru": "Задача будет поставлена 1 сотруднику",
     "en": "The task will be assigned to 1 employee"
   },
+  "ms.trigger_empty": {
+    "uz": "Kimga biriktirishni tanlang",
+    "ru": "Выберите, кому назначить",
+    "en": "Choose who to assign to"
+  },
+  "ms.trigger_title": {
+    "uz": "Biriktirish ro'yxatini ochish",
+    "ru": "Открыть список назначения",
+    "en": "Open the assignee list"
+  },
   "nmz.aladhan_bad_response": {
     "uz": "aladhan: kutilmagan javob",
     "ru": "aladhan: неожиданный ответ",
@@ -8329,6 +8529,16 @@
     "ru": "Добавить участника воркспейса",
     "en": "Add a workspace member"
   },
+  "page-settings.adv_more": {
+    "uz": "Qo'shimcha",
+    "ru": "Дополнительно",
+    "en": "More options"
+  },
+  "page-settings.adv_more_sub": {
+    "uz": "Qabul qiluvchi · Prioritet · Takrorlanish",
+    "ru": "Приёмщик · Приоритет · Повтор",
+    "en": "Acceptor · Priority · Repeat"
+  },
   "page-settings.attach_paste_hint": {
     "uz": "Yoki <b>Ctrl+V</b> (Mac: <b>⌘+V</b>) — clipboard'dan paste qiling",
     "ru": "Или <b>Ctrl+V</b> (Mac: <b>⌘+V</b>) — вставьте из буфера обмена",
@@ -9779,20 +9989,175 @@
     "ru": "Ср",
     "en": "Wed"
   },
+  "pln.err_blocked": {
+    "uz": "ruxsat yo'q yoki vazifa topilmadi",
+    "ru": "нет доступа или задача не найдена",
+    "en": "no permission or the task was not found"
+  },
+  "pln.err_end_gt_start": {
+    "uz": "Tugash vaqti boshlanish vaqtidan keyin bo'lishi kerak",
+    "ru": "Время окончания должно быть позже начала",
+    "en": "The end time must be after the start time"
+  },
+  "pln.err_need_day": {
+    "uz": "Vaqt oralig'i uchun kunni tanlang",
+    "ru": "Выберите день для интервала времени",
+    "en": "Choose a day for the time range"
+  },
+  "pln.err_need_time": {
+    "uz": "Boshlanish va tugash vaqtini tanlang",
+    "ru": "Укажите время начала и окончания",
+    "en": "Set the start and end time"
+  },
+  "pln.field_day": {
+    "uz": "Kun",
+    "ru": "День",
+    "en": "Day"
+  },
+  "pln.field_from": {
+    "uz": "Boshlanish",
+    "ru": "Начало",
+    "en": "Start"
+  },
+  "pln.field_to": {
+    "uz": "Tugash",
+    "ru": "Окончание",
+    "en": "End"
+  },
+  "pln.label_when": {
+    "uz": "Muddat",
+    "ru": "Срок",
+    "en": "Timing"
+  },
   "pln.me_fallback": {
     "uz": "Men",
     "ru": "Я",
     "en": "Me"
+  },
+  "pln.msg_no_col": {
+    "uz": "vaqt oralig'i saqlanmadi — TASKFIX_PLANNER.sql ishga tushirilmagan",
+    "ru": "интервал времени не сохранён — TASKFIX_PLANNER.sql не запущен",
+    "en": "time range not saved — TASKFIX_PLANNER.sql has not been run"
+  },
+  "pln.other_load_failed": {
+    "uz": "Reja o'qilmadi: {0}",
+    "ru": "Не удалось прочитать план: {0}",
+    "en": "Could not load the plan: {0}"
+  },
+  "pln.perm_admin_always": {
+    "uz": "Admin va egasi — doim ko'ra oladi",
+    "ru": "Админ и владелец — видят всегда",
+    "en": "Admins and the owner can always see it"
+  },
+  "pln.perm_blocked": {
+    "uz": "ruxsat yo'q yoki a'zo topilmadi",
+    "ru": "нет прав или участник не найден",
+    "en": "no permission or member not found"
+  },
+  "pln.perm_col_title": {
+    "uz": "Boshqalarning rejasini ko'rish",
+    "ru": "Просмотр планов других",
+    "en": "View other people's planner"
+  },
+  "pln.perm_granted": {
+    "uz": "Rejalashtirgich ruxsati berildi",
+    "ru": "Доступ к планировщику выдан",
+    "en": "Planner access granted"
+  },
+  "pln.perm_no_col": {
+    "uz": "Ruxsat saqlanmadi — TASKFIX_PLANNER.sql ishga tushirilmagan",
+    "ru": "Право не сохранено — TASKFIX_PLANNER.sql не запущен",
+    "en": "Permission not saved — TASKFIX_PLANNER.sql has not been run"
+  },
+  "pln.perm_owner_only": {
+    "uz": "Bu ruxsatni faqat workspace egasi yoki admini o'zgartira oladi",
+    "ru": "Это право может менять только владелец или админ рабочего пространства",
+    "en": "Only the workspace owner or an admin can change this permission"
+  },
+  "pln.perm_revoked": {
+    "uz": "Rejalashtirgich ruxsati olindi",
+    "ru": "Доступ к планировщику отозван",
+    "en": "Planner access revoked"
+  },
+  "pln.perm_save_failed": {
+    "uz": "Ruxsat saqlanmadi: {0}",
+    "ru": "Право не сохранено: {0}",
+    "en": "Permission not saved: {0}"
   },
   "pln.plan_hint": {
     "uz": "Rejaga qo'shiladi: {0} {1} - {2}",
     "ru": "Будет добавлено в план: {0} {1} - {2}",
     "en": "Will be added to the plan: {0} {1} - {2}"
   },
+  "pln.range_hint": {
+    "uz": "Bajaruvchining rejalashtirgichiga avtomatik qo'yiladi.",
+    "ru": "Автоматически появится в планировщике исполнителя.",
+    "en": "Automatically added to the assignee's planner."
+  },
+  "pln.readonly_badge": {
+    "uz": "faqat ko'rish",
+    "ru": "только просмотр",
+    "en": "view only"
+  },
+  "pln.save_failed": {
+    "uz": "Reja saqlanmadi: {0}",
+    "ru": "План не сохранён: {0}",
+    "en": "Plan not saved: {0}"
+  },
+  "pln.seg_aria": {
+    "uz": "Muddat turi",
+    "ru": "Тип срока",
+    "en": "Timing type"
+  },
+  "pln.set_by_creator": {
+    "uz": "Vazifa bergan odam qo'ygan vaqt",
+    "ru": "Время, назначенное постановщиком задачи",
+    "en": "Time set by the task creator"
+  },
+  "pln.set_by_creator_short": {
+    "uz": "Vazifa beruvchi qo'ygan",
+    "ru": "Назначено постановщиком",
+    "en": "Set by the creator"
+  },
+  "pln.title_other": {
+    "uz": "{0} jadvali",
+    "ru": "Расписание: {0}",
+    "en": "{0}'s schedule"
+  },
   "pln.title_schedule": {
     "uz": "Mening jadvalim",
     "ru": "Моё расписание",
     "en": "My schedule"
+  },
+  "pln.viewing_other": {
+    "uz": "{0} — rejasi",
+    "ru": "План: {0}",
+    "en": "{0} — plan"
+  },
+  "pln.when_deadline": {
+    "uz": "Deadline",
+    "ru": "Дедлайн",
+    "en": "Deadline"
+  },
+  "pln.when_none": {
+    "uz": "Yo'q",
+    "ru": "Нет",
+    "en": "None"
+  },
+  "pln.when_range": {
+    "uz": "Vaqt oralig'i",
+    "ru": "Интервал времени",
+    "en": "Time range"
+  },
+  "pln.who_label": {
+    "uz": "Kimning rejasi",
+    "ru": "Чей план",
+    "en": "Whose plan"
+  },
+  "pln.who_me": {
+    "uz": "Mening rejam",
+    "ru": "Мой план",
+    "en": "My plan"
   },
   "pln.will_be_planned": {
     "uz": "Rejaga qo'shiladi:",
