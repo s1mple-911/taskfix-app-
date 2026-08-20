@@ -44,6 +44,146 @@
     "ru": "Непредвиденная ошибка.",
     "en": "Unexpected error."
   },
+  "chk.add_file": {
+    "uz": "Fayl",
+    "ru": "Файл",
+    "en": "File"
+  },
+  "chk.assign_denied": {
+    "uz": "Checklist punktini faqat vazifa egasi, bajaruvchi yoki admin biriktira oladi",
+    "ru": "Пункт чеклиста может назначить только автор задачи, исполнитель или админ",
+    "en": "Only the task author, assignee or an admin can assign a checklist item"
+  },
+  "chk.assign_title": {
+    "uz": "Biriktirish",
+    "ru": "Назначить",
+    "en": "Assign"
+  },
+  "chk.assigned_ok": {
+    "uz": "Biriktirildi: {0}",
+    "ru": "Назначено: {0}",
+    "en": "Assigned to {0}"
+  },
+  "chk.cols_missing": {
+    "uz": "Checklist qo'shimcha imkoniyatlari o'chiq — migratsiya ishga tushirilmagan",
+    "ru": "Дополнительные возможности чеклиста отключены — миграция не выполнена",
+    "en": "Extra checklist features are off — the migration has not been run"
+  },
+  "chk.delete_item": {
+    "uz": "Punktni o'chirish",
+    "ru": "Удалить пункт",
+    "en": "Delete item"
+  },
+  "chk.done_by": {
+    "uz": "Bajardi: {0}",
+    "ru": "Выполнил: {0}",
+    "en": "Done by {0}"
+  },
+  "chk.done_short": {
+    "uz": "Bajarildi",
+    "ru": "Выполнено",
+    "en": "Done"
+  },
+  "chk.empty": {
+    "uz": "Checklist bo'sh",
+    "ru": "Чеклист пуст",
+    "en": "The checklist is empty"
+  },
+  "chk.file_add_title": {
+    "uz": "Fayl biriktirish",
+    "ru": "Прикрепить файл",
+    "en": "Attach a file"
+  },
+  "chk.file_del_msg": {
+    "uz": "{0} — bu checklist punktidan o'chiriladi.",
+    "ru": "{0} — будет удалён из этого пункта чеклиста.",
+    "en": "{0} will be removed from this checklist item."
+  },
+  "chk.file_del_q": {
+    "uz": "Faylni o'chirasizmi?",
+    "ru": "Удалить файл?",
+    "en": "Delete the file?"
+  },
+  "chk.file_del_title": {
+    "uz": "Faylni o'chirish",
+    "ru": "Удалить файл",
+    "en": "Delete file"
+  },
+  "chk.file_deleted": {
+    "uz": "Fayl o'chirildi",
+    "ru": "Файл удалён",
+    "en": "File deleted"
+  },
+  "chk.file_denied": {
+    "uz": "Bu punktga fayl biriktira olmaysiz",
+    "ru": "Вы не можете прикрепить файл к этому пункту",
+    "en": "You cannot attach a file to this item"
+  },
+  "chk.file_open_title": {
+    "uz": "Faylni ochish",
+    "ru": "Открыть файл",
+    "en": "Open file"
+  },
+  "chk.file_storage_err": {
+    "uz": "Fayl omborda o'chmadi — qayta urinib ko'ring",
+    "ru": "Файл не удалён из хранилища — попробуйте ещё раз",
+    "en": "The file was not removed from storage — please try again"
+  },
+  "chk.file_uploaded": {
+    "uz": "Fayl yuklandi",
+    "ru": "Файл загружен",
+    "en": "File uploaded"
+  },
+  "chk.notif_title": {
+    "uz": "Sizga checklist punkti biriktirildi",
+    "ru": "Вам назначен пункт чеклиста",
+    "en": "A checklist item was assigned to you"
+  },
+  "chk.ph_new": {
+    "uz": "Yangi checklist punkti…",
+    "ru": "Новый пункт чеклиста…",
+    "en": "New checklist item…"
+  },
+  "chk.progress_title": {
+    "uz": "Bajarilgan punktlar",
+    "ru": "Выполненные пункты",
+    "en": "Completed items"
+  },
+  "chk.row_denied": {
+    "uz": "Saqlanmadi — ruxsat yo'q yoki punkt topilmadi",
+    "ru": "Не сохранено — нет прав или пункт не найден",
+    "en": "Not saved — no permission or the item was not found"
+  },
+  "chk.section": {
+    "uz": "Checklist",
+    "ru": "Чеклист",
+    "en": "Checklist"
+  },
+  "chk.subs_save_err": {
+    "uz": "Vazifa yaratildi, lekin checklist punktlari saqlanmadi: {0}",
+    "ru": "Задача создана, но пункты чеклиста не сохранены: {0}",
+    "en": "The task was created, but the checklist items were not saved: {0}"
+  },
+  "chk.toggle_aria": {
+    "uz": "Bajarildi deb belgilash",
+    "ru": "Отметить выполненным",
+    "en": "Mark as done"
+  },
+  "chk.unassigned": {
+    "uz": "Biriktirilmagan",
+    "ru": "Не назначено",
+    "en": "Unassigned"
+  },
+  "chk.unassigned_ok": {
+    "uz": "Biriktirish olib tashlandi",
+    "ru": "Назначение снято",
+    "en": "Assignment removed"
+  },
+  "chk.uploading": {
+    "uz": "Yuklanmoqda…",
+    "ru": "Загрузка…",
+    "en": "Uploading…"
+  },
   "common.accept_denied": {
     "uz": "Faqat qabul qiluvchi tasdiqlaydi",
     "ru": "Подтверждает только принимающий",
@@ -8950,9 +9090,9 @@
     "en": "Day of the week"
   },
   "page-settings.label_subtasks": {
-    "uz": "Subtask'lar (ixtiyoriy)",
-    "ru": "Подзадачи (необязательно)",
-    "en": "Subtasks (optional)"
+    "uz": "Checklist (ixtiyoriy)",
+    "ru": "Чеклист (необязательно)",
+    "en": "Checklist (optional)"
   },
   "page-settings.lang_col_missing": {
     "uz": "Til ustuni yo'q — 21-migratsiya ishga tushirilmagan",
@@ -9265,9 +9405,9 @@
     "en": "Search: name, branch, position..."
   },
   "page-settings.ph_new_subtask": {
-    "uz": "Subtask qo'shish...",
-    "ru": "Добавить подзадачу...",
-    "en": "Add a subtask..."
+    "uz": "Checklist punkti qo'shish...",
+    "ru": "Добавить пункт чеклиста...",
+    "en": "Add a checklist item..."
   },
   "page-settings.ph_oc_add_search": {
     "uz": "Qidirish (ism)...",
@@ -10334,6 +10474,21 @@
     "ru": "Дата нового цикла не сохранена — {0}",
     "en": "The new cycle date wasn't saved — {0}"
   },
+  "prj.cycle_len": {
+    "uz": "Sikl uzunligi: {0}",
+    "ru": "Длительность цикла: {0}",
+    "en": "Cycle length: {0}"
+  },
+  "prj.cycle_now": {
+    "uz": "hozir",
+    "ru": "сейчас",
+    "en": "now"
+  },
+  "prj.cycle_overlap": {
+    "uz": "Sikl uzunligi ({0}) takrorlanish oralig'idan ({1}) uzun — sikllar ustma-ust tushadi",
+    "ru": "Длительность цикла ({0}) больше интервала повтора ({1}) — циклы будут накладываться",
+    "en": "The cycle length ({0}) is longer than the repeat interval ({1}) — cycles will overlap"
+  },
   "prj.days_required": {
     "uz": "Kun sonini kiriting",
     "ru": "Укажите количество дней",
@@ -10374,10 +10529,85 @@
     "ru": "Удалено",
     "en": "Deleted"
   },
+  "prj.dl_bar_label": {
+    "uz": "Loyiha muddati",
+    "ru": "Срок проекта",
+    "en": "Project deadline"
+  },
+  "prj.dl_late_days": {
+    "uz": "{0} kun kechikdi",
+    "ru": "просрочено на {0} дн.",
+    "en": "{0} days overdue"
+  },
+  "prj.dl_late_hours": {
+    "uz": "{0} soat kechikdi",
+    "ru": "просрочено на {0} ч.",
+    "en": "{0} hours overdue"
+  },
+  "prj.dl_late_now": {
+    "uz": "muddati o'tdi",
+    "ru": "срок истёк",
+    "en": "deadline passed"
+  },
+  "prj.dl_left_days": {
+    "uz": "{0} kun qoldi",
+    "ru": "осталось {0} дн.",
+    "en": "{0} days left"
+  },
+  "prj.dl_left_hours": {
+    "uz": "{0} soat qoldi",
+    "ru": "осталось {0} ч.",
+    "en": "{0} hours left"
+  },
+  "prj.dl_left_soon": {
+    "uz": "1 soatdan kam qoldi",
+    "ru": "осталось меньше часа",
+    "en": "less than an hour left"
+  },
+  "prj.dl_title": {
+    "uz": "Loyiha muddati: {0}",
+    "ru": "Срок проекта: {0}",
+    "en": "Project deadline: {0}"
+  },
+  "prj.dl_today": {
+    "uz": "bugun tugaydi",
+    "ru": "завершается сегодня",
+    "en": "ends today"
+  },
+  "prj.dof_chip_strong": {
+    "uz": "Bajaruvchi dam oladi",
+    "ru": "Исполнитель отдыхает",
+    "en": "Assignee is off"
+  },
+  "prj.dof_stage_warn": {
+    "uz": "Bajaruvchi o'sha kuni dam oladi. Muddat o'zgartirilmaydi — faqat ogohlantirish.",
+    "ru": "В этот день исполнитель отдыхает. Срок не меняется — это только предупреждение.",
+    "en": "The assignee is off that day. The deadline is not changed — this is only a warning."
+  },
   "prj.done_by": {
     "uz": "Bajardi: {0}",
     "ru": "Выполнил: {0}",
     "en": "Done by: {0}"
+  },
+  "prj.dur_days": {
+    "uz": "{0} kun",
+    "ru": "{0} дн.",
+    "en": "{0} d"
+  },
+  "prj.dur_hours": {
+    "uz": "{0} soat",
+    "ru": "{0} ч",
+    "en": "{0} h"
+  },
+  "prj.dur_lt_min": {
+    "uz": "1 daqiqadan kam",
+    "ru": "меньше минуты",
+    "en": "less than a minute"
+  },
+  "prj.dur_mins": {
+    "uz": "{0} daq",
+    "ru": "{0} мин",
+    "en": "{0} min"
   },
   "prj.empty_active": {
     "uz": "Faol loyiha yo'q",
@@ -10454,6 +10684,11 @@
     "ru": "Кого пригласить?",
     "en": "Who should we invite?"
   },
+  "prj.field_legacy_off": {
+    "uz": "Eski takrorlanishni o'chirish",
+    "ru": "Отключить старое повторение",
+    "en": "Turn off the old recurrence"
+  },
   "prj.field_recur_days": {
     "uz": "Takrorlanish (ixtiyoriy, kun)",
     "ru": "Повтор (необязательно, дней)",
@@ -10469,6 +10704,11 @@
     "ru": "День месяца",
     "en": "Day of the month"
   },
+  "prj.field_recur_monthdays": {
+    "uz": "Oy kunlari",
+    "ru": "Дни месяца",
+    "en": "Days of the month"
+  },
   "prj.field_recur_time": {
     "uz": "Soat",
     "ru": "Время",
@@ -10483,6 +10723,26 @@
     "uz": "Hafta kuni",
     "ru": "День недели",
     "en": "Day of the week"
+  },
+  "prj.field_recur_weekdays": {
+    "uz": "Hafta kunlari",
+    "ru": "Дни недели",
+    "en": "Days of the week"
+  },
+  "prj.field_respect_dayoff": {
+    "uz": "Dam olish kunlari hisobga olinsin",
+    "ru": "Учитывать выходные дни",
+    "en": "Take days off into account"
+  },
+  "prj.field_responsible": {
+    "uz": "Mas'ul odam (ixtiyoriy)",
+    "ru": "Ответственный (необязательно)",
+    "en": "Responsible person (optional)"
+  },
+  "prj.field_responsible_short": {
+    "uz": "Mas'ul odam",
+    "ru": "Ответственный",
+    "en": "Responsible person"
   },
   "prj.field_start_at": {
     "uz": "Boshlanish",
@@ -10629,6 +10889,11 @@
     "ru": "Приглашённый участник видит проект полностью, но не может его изменять.",
     "en": "An invited member sees the whole project but can't change it."
   },
+  "prj.hint_legacy_off": {
+    "uz": "Hozirgi eski sozlama: \"{0}\". Yoqsangiz u o'chiriladi (yangi takrorlanish tanlansa — o'zi almashadi).",
+    "ru": "Текущая старая настройка: «{0}». Если включить — она будет удалена (при выборе нового повторения она заменяется сама).",
+    "en": "Current legacy setting: \"{0}\". Turning this on removes it (choosing a new recurrence replaces it automatically)."
+  },
   "prj.hint_loyiha_sql_missing": {
     "uz": "TASKFIX_LOYIHA.sql ishga tushirilmagan — sana saqlanmaydi. ",
     "ru": "TASKFIX_LOYIHA.sql не выполнен — дата не сохранится. ",
@@ -10664,6 +10929,21 @@
     "ru": "Новый цикл начнётся в это время (Ташкент). Обязательно.",
     "en": "The new cycle starts at this time (Tashkent). Required."
   },
+  "prj.hint_recur_weekdays": {
+    "uz": "Bir necha kun tanlash mumkin — har birida yangi sikl boshlanadi.",
+    "ru": "Можно выбрать несколько дней — в каждый из них начинается новый цикл.",
+    "en": "You can pick several days — a new cycle starts on each of them."
+  },
+  "prj.hint_respect_dayoff": {
+    "uz": "Yoqilsa: bosqich muddati bajaruvchining dam olish kuniga tushganda ogohlantirish ko'rsatiladi. Muddat O'ZGARTIRILMAYDI va hech narsa bloklanmaydi.",
+    "ru": "Если включено: когда срок этапа выпадает на выходной исполнителя, показывается предупреждение. Срок НЕ МЕНЯЕТСЯ и ничего не блокируется.",
+    "en": "When on: a warning is shown if a stage deadline falls on the assignee's day off. The deadline is NOT changed and nothing is blocked."
+  },
+  "prj.hint_responsible": {
+    "uz": "Loyiha uchun kim javob beradi. Bu RUXSAT bermaydi — faqat javobgarlik belgisi.",
+    "ru": "Кто отвечает за проект. Это НЕ даёт прав доступа — только отметка об ответственности.",
+    "en": "Who is accountable for the project. This grants NO permissions — it is only a responsibility marker."
+  },
   "prj.hint_start_at": {
     "uz": "Bo'sh = belgilanmagan. Boshlanish kelmagan bo'lsa loyiha \"Boshlanmagan\" ko'rinadi.",
     "ru": "Пусто = не задано. Пока начало не наступило, проект отображается как «Не начат».",
@@ -10698,6 +10978,16 @@
     "uz": "Yangi takrorlanish saqlandi, lekin eski sozlama o'chmadi — qayta urinib ko'ring",
     "ru": "Новый повтор сохранён, но старая настройка не удалена — попробуйте ещё раз",
     "en": "The new recurrence was saved, but the old setting wasn't cleared — please try again"
+  },
+  "prj.legacy_recur_off_failed": {
+    "uz": "Eski takrorlanish o'chmadi — qayta urinib ko'ring",
+    "ru": "Старое повторение не удалено — попробуйте ещё раз",
+    "en": "The old recurrence was not removed — please try again"
+  },
+  "prj.legacy_recur_off_ok": {
+    "uz": "Eski takrorlanish o'chirildi",
+    "ru": "Старое повторение отключено",
+    "en": "Old recurrence removed"
   },
   "prj.locked_exception_n": {
     "uz": "{0} ta bosqich qulflangan (istisno)",
@@ -10794,6 +11084,11 @@
     "ru": "дата не сохранена — TASKFIX_LOYIHA.sql не выполнен",
     "en": "date not saved — TASKFIX_LOYIHA.sql has not been run"
   },
+  "prj.msg_no_dayoff": {
+    "uz": "dam olish sozlamasi saqlanmadi — TASKFIX_LOYIHA_V2.sql ishga tushirilmagan",
+    "ru": "настройка выходных не сохранена — TASKFIX_LOYIHA_V2.sql не запущен",
+    "en": "day-off setting not saved — TASKFIX_LOYIHA_V2.sql has not been run"
+  },
   "prj.msg_no_flow": {
     "uz": "loyiha turi saqlanmadi — TASKFIX_PROJECT.sql ishga tushirilmagan",
     "ru": "тип проекта не сохранён — TASKFIX_PROJECT.sql не выполнен",
@@ -10804,10 +11099,20 @@
     "ru": "повтор не сохранён — TASKFIX_LOYIHA.sql не выполнен",
     "en": "recurrence not saved — TASKFIX_LOYIHA.sql has not been run"
   },
+  "prj.msg_no_recur_days": {
+    "uz": "takrorlanish kunlari saqlanmadi — TASKFIX_LOYIHA_V2.sql ishga tushirilmagan",
+    "ru": "дни повтора не сохранены — TASKFIX_LOYIHA_V2.sql не выполнен",
+    "en": "repeat days not saved — TASKFIX_LOYIHA_V2.sql has not been run"
+  },
   "prj.msg_no_recur_time": {
     "uz": "takrorlanish vaqti saqlanmadi — TASKFIX_RECUR_TIME.sql ishga tushirilmagan",
     "ru": "время повтора не сохранено — TASKFIX_RECUR_TIME.sql не выполнен",
     "en": "recurrence time not saved — TASKFIX_RECUR_TIME.sql has not been run"
+  },
+  "prj.msg_no_resp": {
+    "uz": "mas'ul odam saqlanmadi — TASKFIX_LOYIHA_V2.sql ishga tushirilmagan",
+    "ru": "ответственный не сохранён — TASKFIX_LOYIHA_V2.sql не запущен",
+    "en": "responsible person not saved — TASKFIX_LOYIHA_V2.sql has not been run"
   },
   "prj.name_required": {
     "uz": "Loyiha nomi bo'sh bo'lmasin",
@@ -10823,6 +11128,11 @@
     "uz": "Yangi bosqich (vazifa)",
     "ru": "Новый этап (задача)",
     "en": "New stage (task)"
+  },
+  "prj.next_cycles": {
+    "uz": "Keyingi sikllar: {0}",
+    "ru": "Следующие циклы: {0}",
+    "en": "Next cycles: {0}"
   },
   "prj.no_assignee": {
     "uz": "Bajaruvchi biriktirilmagan",
@@ -10939,6 +11249,101 @@
     "ru": "Что нужно сделать?",
     "en": "What needs to be done?"
   },
+  "prj.pkf_ahead": {
+    "uz": "oldinda",
+    "ru": "опережает",
+    "en": "ahead"
+  },
+  "prj.pkf_ahead_title": {
+    "uz": "Rejadan oldinda",
+    "ru": "Опережает план",
+    "en": "Ahead of schedule"
+  },
+  "prj.pkf_bar_ahead": {
+    "uz": "{0} bosqich rejadan oldinda",
+    "ru": "{0} этап(ов) опережает план",
+    "en": "{0} stage(s) ahead of plan"
+  },
+  "prj.pkf_bar_fact": {
+    "uz": "Fakt: {0}/{1}",
+    "ru": "Факт: {0}/{1}",
+    "en": "Actual: {0}/{1}"
+  },
+  "prj.pkf_bar_late": {
+    "uz": "{0} bosqich kechikmoqda",
+    "ru": "{0} этап(ов) отстаёт",
+    "en": "{0} stage(s) behind"
+  },
+  "prj.pkf_bar_ok": {
+    "uz": "hammasi reja bo'yicha",
+    "ru": "всё идёт по плану",
+    "en": "everything on plan"
+  },
+  "prj.pkf_bar_plan": {
+    "uz": "Reja bo'yicha: {0}/{1} tugagan bo'lishi kerak",
+    "ru": "По плану: должно быть завершено {0}/{1}",
+    "en": "By plan: {0}/{1} should be done"
+  },
+  "prj.pkf_bar_unknown": {
+    "uz": "Bosqichlarga muddat qo'yilmagan — reja hisoblanmadi. Muddat qo'ysangiz \"Reja\" lentasi to'ladi.",
+    "ru": "У этапов не заданы сроки — план не рассчитан. Задайте сроки, и лента «План» заполнится.",
+    "en": "Stages have no deadlines — the plan could not be calculated. Set deadlines and the \"Plan\" lane will fill up."
+  },
+  "prj.pkf_behind": {
+    "uz": "kechikmoqda",
+    "ru": "отстаёт",
+    "en": "behind"
+  },
+  "prj.pkf_cnt_fact": {
+    "uz": "Haqiqatda shu ustunda",
+    "ru": "Фактически в этой колонке",
+    "en": "Actually in this column"
+  },
+  "prj.pkf_cnt_plan": {
+    "uz": "Reja bo'yicha shu ustunda",
+    "ru": "По плану в этой колонке",
+    "en": "Should be in this column"
+  },
+  "prj.pkf_fact_none": {
+    "uz": "Bu ustunda bosqich yo'q",
+    "ru": "В этой колонке нет этапов",
+    "en": "No stages in this column"
+  },
+  "prj.pkf_lane_fact": {
+    "uz": "Fakt",
+    "ru": "Факт",
+    "en": "Actual"
+  },
+  "prj.pkf_lane_plan": {
+    "uz": "Reja",
+    "ru": "План",
+    "en": "Plan"
+  },
+  "prj.pkf_late_title": {
+    "uz": "Rejadan orqada",
+    "ru": "Отстаёт от плана",
+    "en": "Behind schedule"
+  },
+  "prj.pkf_no_deadline": {
+    "uz": "muddat yo'q",
+    "ru": "без срока",
+    "en": "no deadline"
+  },
+  "prj.pkf_on_plan": {
+    "uz": "rejada",
+    "ru": "по плану",
+    "en": "on plan"
+  },
+  "prj.pkf_on_plan_title": {
+    "uz": "Reja bo'yicha ketmoqda",
+    "ru": "Идёт по плану",
+    "en": "On schedule"
+  },
+  "prj.pkf_plan_none": {
+    "uz": "Reja bo'yicha bo'sh",
+    "ru": "По плану пусто",
+    "en": "Nothing planned here"
+  },
   "prj.project_date_denied": {
     "uz": "Loyiha sanasi yangilanmadi — ruxsat yo'q",
     "ru": "Дата проекта не обновлена — нет прав",
@@ -11009,6 +11414,11 @@
     "ru": "Еженедельно (выбрать день)",
     "en": "Weekly (pick a day)"
   },
+  "prj.recur_pick_day": {
+    "uz": "Kamida bitta kun tanlang",
+    "ru": "Выберите хотя бы один день",
+    "en": "Select at least one day"
+  },
   "prj.recur_restarted": {
     "uz": "Loyiha qaytadan boshlandi",
     "ru": "Проект начат заново",
@@ -11063,6 +11473,21 @@
     "uz": "Olib tashlash",
     "ru": "Удалить из проекта",
     "en": "Remove"
+  },
+  "prj.resp_cap": {
+    "uz": "Mas'ul",
+    "ru": "Ответственный",
+    "en": "Responsible"
+  },
+  "prj.resp_cap_val": {
+    "uz": "Mas'ul: {0}",
+    "ru": "Ответственный: {0}",
+    "en": "Responsible: {0}"
+  },
+  "prj.resp_none": {
+    "uz": "— Mas'ul yo'q —",
+    "ru": "— Без ответственного —",
+    "en": "— No responsible person —"
   },
   "prj.saved": {
     "uz": "Saqlandi",
@@ -11259,6 +11684,41 @@
     "ru": "Только просмотр",
     "en": "View only"
   },
+  "prj.wd_short_0": {
+    "uz": "Ya",
+    "ru": "Вс",
+    "en": "Sun"
+  },
+  "prj.wd_short_1": {
+    "uz": "Du",
+    "ru": "Пн",
+    "en": "Mon"
+  },
+  "prj.wd_short_2": {
+    "uz": "Se",
+    "ru": "Вт",
+    "en": "Tue"
+  },
+  "prj.wd_short_3": {
+    "uz": "Cha",
+    "ru": "Ср",
+    "en": "Wed"
+  },
+  "prj.wd_short_4": {
+    "uz": "Pa",
+    "ru": "Чт",
+    "en": "Thu"
+  },
+  "prj.wd_short_5": {
+    "uz": "Ju",
+    "ru": "Пт",
+    "en": "Fri"
+  },
+  "prj.wd_short_6": {
+    "uz": "Sha",
+    "ru": "Сб",
+    "en": "Sat"
+  },
   "prj.weekday_0": {
     "uz": "Yakshanba",
     "ru": "Воскресенье",
@@ -11429,9 +11889,19 @@
     "ru": "Ежемесячно, {0}-го числа в {1}",
     "en": "Every month on day {0} at {1}"
   },
+  "rcx.every_month_multi": {
+    "uz": "Har oy {0}-kun {1}",
+    "ru": "Каждый месяц {0} числа, в {1}",
+    "en": "Every month on the {0}, at {1}"
+  },
   "rcx.every_week": {
     "uz": "Har hafta {0} {1}",
     "ru": "Еженедельно, {0} в {1}",
+    "en": "Every week on {0} at {1}"
+  },
+  "rcx.every_week_multi": {
+    "uz": "Har hafta {0} {1}",
+    "ru": "Каждую неделю: {0}, в {1}",
     "en": "Every week on {0} at {1}"
   },
   "rcx.msg_no_col": {
@@ -12008,5 +12478,10 @@
     "uz": "task_history jadvali yo'q — TASKFIX_HISTORY.sql ishga tushirilmagan",
     "ru": "Таблицы task_history нет — TASKFIX_HISTORY.sql не запущен",
     "en": "The task_history table is missing — TASKFIX_HISTORY.sql has not been run"
+  },
+  "chk.subs_rows_mismatch": {
+    "uz": "checklist punktlari yozilmadi (ruxsat berilmadi)",
+    "ru": "пункты чек-листа не сохранены (нет доступа)",
+    "en": "checklist items were not saved (permission denied)"
   }
 }
