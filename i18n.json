@@ -12673,5 +12673,10 @@
     "uz": "Eski bog'lanishlar olib tashlanmadi — ruxsat yo'q bo'lishi mumkin. Sahifani yangilab, qayta urinib ko'ring.",
     "ru": "Старые связи не удалены — возможно, нет прав. Обновите страницу и попробуйте снова.",
     "en": "Old links were not removed — you may not have permission. Refresh the page and try again."
+  },
+  "prj.bad_deadline": {
+    "uz": "Muddat noto'g'ri — sana va soatni tekshiring",
+    "ru": "Срок неверный — проверьте дату и время",
+    "en": "Invalid deadline — check the date and time"
   }
 }
