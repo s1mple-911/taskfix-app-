@@ -12483,5 +12483,195 @@
     "uz": "checklist punktlari yozilmadi (ruxsat berilmadi)",
     "ru": "пункты чек-листа не сохранены (нет доступа)",
     "en": "checklist items were not saved (permission denied)"
+  },
+  "dlh.tv_not_enabled": {
+    "uz": "Ko'ruvchi hisoblagichi yoqilmagan —",
+    "ru": "Счётчик просмотров не включён —",
+    "en": "View counter is not enabled —"
+  },
+  "page-settings.dl_pick_time": {
+    "uz": "Shu sanada tugashi kerak — soatni tanlang",
+    "ru": "Завершить нужно в эту дату — выберите время",
+    "en": "Due on this date — pick the time"
+  },
+  "page-settings.dl_today_used": {
+    "uz": "Sana tanlanmagan — bugun {0} olinadi",
+    "ru": "Дата не выбрана — будет сегодня в {0}",
+    "en": "No date picked — today at {0} will be used"
+  },
+  "page-settings.dl_past_today": {
+    "uz": "Bugungi soat o'tib ketgan — muddat darrov o'tgan bo'ladi",
+    "ru": "Сегодня это время уже прошло — срок сразу будет просрочен",
+    "en": "That time has already passed today — the deadline will be overdue at once"
+  },
+  "dep.mode_seq": {
+    "uz": "Ketma-ket",
+    "ru": "Последовательно",
+    "en": "Sequential"
+  },
+  "dep.mode_seq_desc": {
+    "uz": "Oldingi bosqich tugagach ochiladi.",
+    "ru": "Открывается после завершения предыдущего этапа.",
+    "en": "Opens after the previous stage is completed."
+  },
+  "dep.mode_par": {
+    "uz": "Parallel",
+    "ru": "Параллельно",
+    "en": "Parallel"
+  },
+  "dep.mode_par_desc": {
+    "uz": "Hech kimni kutmaydi — darrov ochiq.",
+    "ru": "Никого не ждёт — открыт сразу.",
+    "en": "Waits for no one — open right away."
+  },
+  "dep.mode_wait": {
+    "uz": "Kutish",
+    "ru": "Ожидание",
+    "en": "Waiting"
+  },
+  "dep.mode_wait_desc": {
+    "uz": "Tanlangan bosqichlar tugagach ochiladi.",
+    "ru": "Открывается после завершения выбранных этапов.",
+    "en": "Opens after the selected stages are completed."
+  },
+  "dep.field_mode": {
+    "uz": "Bosqich turi",
+    "ru": "Тип этапа",
+    "en": "Stage type"
+  },
+  "dep.field_wait": {
+    "uz": "Qaysi bosqichlarni kutadi?",
+    "ru": "Каких этапов ждёт?",
+    "en": "Which stages does it wait for?"
+  },
+  "dep.ph_search_stage": {
+    "uz": "Bosqichni qidiring…",
+    "ru": "Поиск этапа…",
+    "en": "Search stage…"
+  },
+  "dep.hint_wait": {
+    "uz": "Faqat tepadagi bosqichlar. Hammasi tugagach bu bosqich ochiladi.",
+    "ru": "Только этапы выше. Этот этап откроется, когда все они завершатся.",
+    "en": "Only stages above. This stage opens when all of them are done."
+  },
+  "dep.edit_title": {
+    "uz": "Bosqich turini o'zgartirish",
+    "ru": "Изменить тип этапа",
+    "en": "Change stage type"
+  },
+  "dep.edit_btn": {
+    "uz": "Bosqich turi / kutish",
+    "ru": "Тип этапа / ожидание",
+    "en": "Stage type / waiting"
+  },
+  "dep.pick_at_least_one": {
+    "uz": "Kamida bitta bosqich tanlang",
+    "ru": "Выберите хотя бы один этап",
+    "en": "Select at least one stage"
+  },
+  "dep.err_cycle": {
+    "uz": "Bunday bog'lanish halqa hosil qiladi — bosqich o'zini kutib qolardi.",
+    "ru": "Такая связь образует цикл — этап ждал бы сам себя.",
+    "en": "This link would create a cycle — the stage would end up waiting for itself."
+  },
+  "dep.err_not_enabled": {
+    "uz": "\"Kutish\" moduli hali yoqilmagan — TASKFIX_KUTISH.sql ishga tushirilmagan.",
+    "ru": "Модуль «Ожидание» ещё не включён — TASKFIX_KUTISH.sql не запущен.",
+    "en": "The \"Waiting\" module is not enabled yet — TASKFIX_KUTISH.sql has not been run."
+  },
+  "dep.sync_partial": {
+    "uz": "Bog'lanishlar to'liq saqlanmadi — qayta urinib ko'ring",
+    "ru": "Связи сохранены не полностью — попробуйте ещё раз",
+    "en": "Dependencies were not fully saved — please try again"
+  },
+  "dep.mode_saved": {
+    "uz": "Bosqich turi saqlandi",
+    "ru": "Тип этапа сохранён",
+    "en": "Stage type saved"
+  },
+  "dep.stage_added_no_wait": {
+    "uz": "Bosqich qo'shildi, lekin kutish bog'lanishi saqlanmadi: {0}",
+    "ru": "Этап добавлен, но связь ожидания не сохранена: {0}",
+    "en": "Stage added, but the waiting link was not saved: {0}"
+  },
+  "dep.applied_skip": {
+    "uz": "{0} ta \"Kutish\" bosqichga tegilmadi",
+    "ru": "Этапы с типом «Ожидание» ({0}) не изменены",
+    "en": "{0} \"Waiting\" stage(s) left unchanged"
+  },
+  "dep.chip_waiting_n": {
+    "uz": "Kutmoqda: {0} bosqich",
+    "ru": "Ожидает: {0} этап(ов)",
+    "en": "Waiting for {0} stage(s)"
+  },
+  "dep.chip_ready": {
+    "uz": "Kutish tugadi",
+    "ru": "Ожидание завершено",
+    "en": "Waiting is over"
+  },
+  "dep.tip_waiting": {
+    "uz": "Kutmoqda: {0}",
+    "ru": "Ожидает: {0}",
+    "en": "Waiting for: {0}"
+  },
+  "dep.tip_all_done": {
+    "uz": "Kutilgan bosqichlar tugadi: {0}",
+    "ru": "Ожидаемые этапы завершены: {0}",
+    "en": "Awaited stages are done: {0}"
+  },
+  "dep.state_waiting_n": {
+    "uz": "{0} bosqich tugashini kutmoqda",
+    "ru": "Ожидает завершения {0} этап(ов)",
+    "en": "Waiting for {0} stage(s) to finish"
+  },
+  "dep.below_warn": {
+    "uz": "Kutilayotgan bosqich pastda",
+    "ru": "Ожидаемый этап находится ниже",
+    "en": "An awaited stage is below"
+  },
+  "dep.below_warn_tip": {
+    "uz": "Tartib o'zgargan: kutilayotgan bosqich shu bosqichdan PASTDA. Bog'lanish ishlayveradi, lekin tartibni tekshiring.",
+    "ru": "Порядок изменился: ожидаемый этап находится НИЖЕ этого этапа. Связь работает, но проверьте порядок.",
+    "en": "Order changed: the awaited stage is BELOW this one. The link still works, but check the order."
+  },
+  "dep.detail_label": {
+    "uz": "Kutmoqda",
+    "ru": "Ожидает",
+    "en": "Waiting for"
+  },
+  "dep.detail_left": {
+    "uz": "{0} bosqich tugagach bu vazifa ochiladi",
+    "ru": "Задача откроется после завершения {0} этап(ов)",
+    "en": "This task opens after {0} stage(s) are completed"
+  },
+  "dep.detail_ready": {
+    "uz": "Kutilgan bosqichlar tugadi — vazifa ochiq.",
+    "ru": "Ожидаемые этапы завершены — задача открыта.",
+    "en": "Awaited stages are done — the task is open."
+  },
+  "dlx.quick_day": {
+    "uz": "Tezkor kun",
+    "ru": "Быстрый день",
+    "en": "Quick day"
+  },
+  "dep.err_blocked": {
+    "uz": "Bu bosqich hali ochilmagan: {0} ta kutilayotgan bosqich tugallanmagan. Avval o'sha bosqich(lar) \"Bajarildi\" yoki \"Bekor\" bo'lishi kerak.",
+    "ru": "Этот этап ещё не открыт: не завершено ожидаемых этапов — {0}. Сначала они должны получить статус «Выполнено» или «Отменена».",
+    "en": "This stage is not open yet: {0} awaited stage(s) not completed. They must first be set to \"Done\" or \"Cancelled\"."
+  },
+  "dep.err_blocked_nonum": {
+    "uz": "Bu bosqich hali ochilmagan — kutilayotgan bosqichlar tugallanmagan. Avval o'sha bosqich(lar) \"Bajarildi\" yoki \"Bekor\" bo'lishi kerak.",
+    "ru": "Этот этап ещё не открыт — ожидаемые этапы не завершены. Сначала они должны получить статус «Выполнено» или «Отменена».",
+    "en": "This stage is not open yet — the awaited stages are not completed. They must first be set to \"Done\" or \"Cancelled\"."
+  },
+  "dep.err_too_deep": {
+    "uz": "Bog'lanish zanjiri juda uzun — xavfsizlik uchun qabul qilinmadi. Bog'lanishlar sonini kamaytiring.",
+    "ru": "Цепочка связей слишком длинная — в целях безопасности не принята. Уменьшите количество связей.",
+    "en": "The dependency chain is too long — rejected for safety. Reduce the number of links."
+  },
+  "dep.err_remove_failed": {
+    "uz": "Eski bog'lanishlar olib tashlanmadi — ruxsat yo'q bo'lishi mumkin. Sahifani yangilab, qayta urinib ko'ring.",
+    "ru": "Старые связи не удалены — возможно, нет прав. Обновите страницу и попробуйте снова.",
+    "en": "Old links were not removed — you may not have permission. Refresh the page and try again."
   }
 }
