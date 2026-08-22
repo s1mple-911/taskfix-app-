@@ -13273,5 +13273,25 @@
     "uz": "{0} takror ish kuni birlashtirildi",
     "ru": "объединено повторяющихся рабочих дней: {0}",
     "en": "{0} duplicate work days merged"
+  },
+  "arst.ef_unreachable": {
+    "uz": "ArosStaff xizmatiga ulanib bo'lmadi. Ehtimol «aros-staff-proxy» hali deploy qilinmagan — administratorga xabar bering; yoki internet aloqasi uzilgan.",
+    "ru": "Не удалось подключиться к сервису ArosStaff. Возможно, «aros-staff-proxy» ещё не развёрнут — сообщите администратору; либо нет интернета.",
+    "en": "Could not reach the ArosStaff service. The “aros-staff-proxy” function may not be deployed yet — tell your administrator; or your internet connection is down."
+  },
+  "hrImport.err_empty_chunk": {
+    "uz": "Ichki xato: identitet bosqichiga bo'sh ro'yxat berildi ({0} tadan {1}-o'rin)",
+    "ru": "Внутренняя ошибка: на этап идентификации передан пустой список (позиция {1} из {0})",
+    "en": "Internal error: the identity step received an empty list (position {1} of {0})"
+  },
+  "hrImport.err_empty_photo_chunk": {
+    "uz": "Ichki xato: rasm bosqichiga bo'sh ro'yxat berildi ({0} tadan {1}-o'rin)",
+    "ru": "Внутренняя ошибка: на этап фото передан пустой список (позиция {1} из {0})",
+    "en": "Internal error: the photo step received an empty list (position {1} of {0})"
+  },
+  "arst.err_empty_chunk": {
+    "uz": "Ichki xato: rasm bosqichiga bo'sh ro'yxat berildi ({0} tadan {1}-o'rin)",
+    "ru": "Внутренняя ошибка: на этап фото передан пустой список (позиция {1} из {0})",
+    "en": "Internal error: the photo step received an empty list (position {1} of {0})"
   }
 }
