@@ -12678,5 +12678,600 @@
     "uz": "Muddat noto'g'ri — sana va soatni tekshiring",
     "ru": "Срок неверный — проверьте дату и время",
     "en": "Invalid deadline — check the date and time"
+  },
+  "rdl.field_label": {
+    "uz": "Muddat — bosqich boshlangandan keyin (ixtiyoriy)",
+    "ru": "Срок — после начала этапа (необязательно)",
+    "en": "Deadline — after the stage starts (optional)"
+  },
+  "rdl.field_hint": {
+    "uz": "Bo'sh qoldirsangiz muddat qo'yilmaydi. Kun kiritilsa soat majburiy.",
+    "ru": "Если оставить пустым, срок не устанавливается. При указании дней время обязательно.",
+    "en": "Leave empty and no deadline is set. If you enter days, the time is required."
+  },
+  "rdl.day_same": {
+    "uz": "O'sha kuni",
+    "ru": "В тот же день",
+    "en": "Same day"
+  },
+  "rdl.day_n": {
+    "uz": "{0} kun",
+    "ru": "{0} дн.",
+    "en": "{0} days"
+  },
+  "rdl.days_unit": {
+    "uz": "kun",
+    "ru": "дн.",
+    "en": "days"
+  },
+  "rdl.days_aria": {
+    "uz": "Kun soni",
+    "ru": "Количество дней",
+    "en": "Number of days"
+  },
+  "rdl.hour_lbl": {
+    "uz": "Soat",
+    "ru": "Время",
+    "en": "Time"
+  },
+  "rdl.pick_time": {
+    "uz": "Kun tanlandi — soatni ham tanlang",
+    "ru": "День выбран — выберите также время",
+    "en": "Day selected — pick the time as well"
+  },
+  "rdl.from_start": {
+    "uz": "Loyiha boshlanishidan {0} kun · {1}",
+    "ru": "Через {0} дн. после начала проекта · {1}",
+    "en": "{0} days after the project starts · {1}"
+  },
+  "rdl.from_start_same": {
+    "uz": "Loyiha boshlangan kuni {0}",
+    "ru": "В день начала проекта в {0}",
+    "en": "On the project start day at {0}"
+  },
+  "rdl.after_prev": {
+    "uz": "Oldingi bosqich tugagach {0} kun · {1}",
+    "ru": "Через {0} дн. после завершения предыдущего этапа · {1}",
+    "en": "{0} days after the previous stage ends · {1}"
+  },
+  "rdl.after_prev_same": {
+    "uz": "Oldingi bosqich tugagan kuni {0}",
+    "ru": "В день завершения предыдущего этапа в {0}",
+    "en": "On the day the previous stage ends at {0}"
+  },
+  "rdl.after_wait": {
+    "uz": "Kutilgan bosqichlar tugagach {0} kun · {1}",
+    "ru": "Через {0} дн. после завершения ожидаемых этапов · {1}",
+    "en": "{0} days after the awaited stages end · {1}"
+  },
+  "rdl.after_wait_same": {
+    "uz": "Kutilgan bosqichlar tugagan kuni {0}",
+    "ru": "В день завершения ожидаемых этапов в {0}",
+    "en": "On the day the awaited stages end at {0}"
+  },
+  "rdl.arrow": {
+    "uz": "{0} → {1}",
+    "ru": "{0} → {1}",
+    "en": "{0} → {1}"
+  },
+  "rdl.unknown_note": {
+    "uz": "Aniq sana bosqich boshlangach hisoblanadi.",
+    "ru": "Точная дата будет вычислена, когда этап начнётся.",
+    "en": "The exact date is calculated once the stage starts."
+  },
+  "rdl.rel_title": {
+    "uz": "Nisbiy muddat",
+    "ru": "Относительный срок",
+    "en": "Relative deadline"
+  },
+  "rdl.msg_no_col": {
+    "uz": "nisbiy muddat saqlanmadi — TASKFIX_REL_DEADLINE.sql ishga tushirilmagan",
+    "ru": "относительный срок не сохранён — TASKFIX_REL_DEADLINE.sql не выполнен",
+    "en": "relative deadline was not saved — TASKFIX_REL_DEADLINE.sql has not been run"
+  },
+  "rdl.stage_added_warn": {
+    "uz": "Bosqich qo'shildi ({0})",
+    "ru": "Этап добавлен ({0})",
+    "en": "Stage added ({0})"
+  },
+  "rdl.err_pair": {
+    "uz": "Nisbiy muddat: kun soni va soat BIRGA berilishi kerak (yoki ikkovi ham bo'sh).",
+    "ru": "Относительный срок: количество дней и время нужно указывать ВМЕСТЕ (либо оба пустыми).",
+    "en": "Relative deadline: days and time must be provided TOGETHER (or both left empty)."
+  },
+  "rdl.err_days": {
+    "uz": "Nisbiy muddat: kun soni 0 dan 3650 gacha bo'lishi kerak.",
+    "ru": "Относительный срок: количество дней должно быть от 0 до 3650.",
+    "en": "Relative deadline: the number of days must be between 0 and 3650."
+  },
+  "rdl.err_time": {
+    "uz": "Nisbiy muddat: soat noto'g'ri formatda — SS:DD (masalan 09:00) bo'lishi kerak.",
+    "ru": "Относительный срок: неверный формат времени — нужно ЧЧ:ММ (например 09:00).",
+    "en": "Relative deadline: invalid time format — it must be HH:MM (for example 09:00)."
+  },
+  "rdl.plain_days": {
+    "uz": "Muddat: {0} kun · {1}",
+    "ru": "Срок: {0} дн. · {1}",
+    "en": "Deadline: {0} days · {1}"
+  },
+  "rdl.plain_same": {
+    "uz": "Muddat: o'sha kuni {0}",
+    "ru": "Срок: в тот же день в {0}",
+    "en": "Deadline: same day at {0}"
+  },
+  "rdl.edit_title": {
+    "uz": "Nisbiy muddatni o'zgartirish",
+    "ru": "Изменить относительный срок",
+    "en": "Change the relative deadline"
+  },
+  "rdl.edit_btn": {
+    "uz": "Muddat: kun/soat",
+    "ru": "Срок: дни/время",
+    "en": "Deadline: days/time"
+  },
+  "rdl.edit_hint": {
+    "uz": "Bo'sh qoldirsangiz muddat butunlay olib tashlanadi. Aniq sana bosqich boshlangan paytdan qayta hisoblanadi.",
+    "ru": "Если оставить пустым, срок будет полностью снят. Точная дата пересчитывается от момента начала этапа.",
+    "en": "Leave it empty and the deadline is removed entirely. The exact date is recalculated from the moment the stage starts."
+  },
+  "rdl.edit_saved": {
+    "uz": "Muddat yangilandi",
+    "ru": "Срок обновлён",
+    "en": "Deadline updated"
+  },
+  "rdl.edit_cleared": {
+    "uz": "Muddat olib tashlandi",
+    "ru": "Срок снят",
+    "en": "Deadline removed"
+  },
+  "rdl.manual_blocked": {
+    "uz": "Bu bosqich muddati NISBIY — u kun soni va soatdan hisoblanadi. Loyihani oching va bosqichdagi \"Muddat: kun/soat\" tugmasidan o'zgartiring.",
+    "ru": "Срок этого этапа ОТНОСИТЕЛЬНЫЙ — он вычисляется из количества дней и времени. Откройте проект и измените его кнопкой «Срок: дни/время» на этапе.",
+    "en": "This stage has a RELATIVE deadline — it is calculated from a number of days and a time. Open the project and change it with the \"Deadline: days/time\" button on the stage."
+  },
+  "arst.btn": {
+    "uz": "ArosStaff'dan ko'chirish",
+    "ru": "Перенести из ArosStaff",
+    "en": "Import from ArosStaff"
+  },
+  "arst.title": {
+    "uz": "ArosStaff'dan ko'chirish",
+    "ru": "Перенести из ArosStaff",
+    "en": "Import from ArosStaff"
+  },
+  "arst.hint": {
+    "uz": "Ro'yxatda faqat ArosStaff'da bor, TaskFix'da yo'q xodimlar ko'rsatiladi. Mavjud xodimlarning ma'lumotiga tegilmaydi.",
+    "ru": "В списке только те сотрудники, которые есть в ArosStaff, но отсутствуют в TaskFix. Данные существующих сотрудников не изменяются.",
+    "en": "The list shows only employees who exist in ArosStaff but not in TaskFix. Data of existing employees is left untouched."
+  },
+  "arst.search_ph": {
+    "uz": "Ism yoki telefon bo'yicha qidirish...",
+    "ru": "Поиск по имени или телефону...",
+    "en": "Search by name or phone..."
+  },
+  "arst.select_all": {
+    "uz": "Hammasini tanlash",
+    "ru": "Выбрать все",
+    "en": "Select all"
+  },
+  "arst.clear_all": {
+    "uz": "Tanlovni bekor qilish",
+    "ru": "Снять выделение",
+    "en": "Clear selection"
+  },
+  "arst.loading": {
+    "uz": "Yuklanmoqda…",
+    "ru": "Загрузка…",
+    "en": "Loading…"
+  },
+  "arst.empty": {
+    "uz": "Xodim topilmadi.",
+    "ru": "Сотрудники не найдены.",
+    "en": "No employees found."
+  },
+  "arst.all_present": {
+    "uz": "Yangi xodim yo'q — topilganlarning hammasi TaskFix'da bor.",
+    "ru": "Новых сотрудников нет — все найденные уже есть в TaskFix.",
+    "en": "No new employees — everyone found is already in TaskFix."
+  },
+  "arst.more": {
+    "uz": "Yana yuklash",
+    "ru": "Загрузить ещё",
+    "en": "Load more"
+  },
+  "arst.run": {
+    "uz": "Ko'chirish",
+    "ru": "Перенести",
+    "en": "Import"
+  },
+  "arst.run_n": {
+    "uz": "Ko'chirish ({0})",
+    "ru": "Перенести ({0})",
+    "en": "Import ({0})"
+  },
+  "arst.selected_n": {
+    "uz": "Tanlandi: {0}",
+    "ru": "Выбрано: {0}",
+    "en": "Selected: {0}"
+  },
+  "arst.shown_n": {
+    "uz": "ro'yxatda: {0}",
+    "ru": "в списке: {0}",
+    "en": "in list: {0}"
+  },
+  "arst.hidden_n": {
+    "uz": "{0} tasi TaskFix'da bor — ko'rsatilmadi",
+    "ru": "{0} уже есть в TaskFix — не показаны",
+    "en": "{0} already in TaskFix — not shown"
+  },
+  "arst.badid_n": {
+    "uz": "{0} qator manba id'si yaroqsiz — o'tkazib yuborildi",
+    "ru": "у {0} строк недопустимый id источника — пропущены",
+    "en": "{0} rows have an invalid source id — skipped"
+  },
+  "arst.tag_inactive": {
+    "uz": "nofaol",
+    "ru": "неактивен",
+    "en": "inactive"
+  },
+  "arst.inactive_title": {
+    "uz": "Manbada nofaol deb belgilangan — tanlash mumkin, lekin tekshirib ko'ring",
+    "ru": "В источнике помечен как неактивный — выбрать можно, но лучше проверить",
+    "en": "Marked inactive in the source — you can still select, but please check"
+  },
+  "arst.tag_similar": {
+    "uz": "o'xshash ism",
+    "ru": "похожее имя",
+    "en": "similar name"
+  },
+  "arst.similar_name_title": {
+    "uz": "TaskFix'da shunga o'xshash ism bor: {0}",
+    "ru": "В TaskFix есть похожее имя: {0}",
+    "en": "A similar name already exists in TaskFix: {0}"
+  },
+  "arst.tag_incomplete": {
+    "uz": "to'liqsiz",
+    "ru": "неполные данные",
+    "en": "incomplete"
+  },
+  "arst.err_row_bad": {
+    "uz": "qator obyekt emas",
+    "ru": "строка не является объектом",
+    "en": "row is not an object"
+  },
+  "arst.err_bad_id": {
+    "uz": "manba id'si yaroqsiz: \"{0}\"",
+    "ru": "недопустимый id источника: \"{0}\"",
+    "en": "invalid source id: \"{0}\""
+  },
+  "arst.err_no_name": {
+    "uz": "ism yo'q",
+    "ru": "нет имени",
+    "en": "no name"
+  },
+  "arst.err_no_row": {
+    "uz": "qator yozilmadi — huquq yo'q bo'lishi mumkin",
+    "ru": "строка не записана — возможно, нет прав",
+    "en": "row was not written — you may lack permission"
+  },
+  "arst.err_incomplete": {
+    "uz": "telefon yoki ism yo'q",
+    "ru": "нет телефона или имени",
+    "en": "phone or name is missing"
+  },
+  "arst.not_allowed": {
+    "uz": "Bu amal faqat Aros workspace egasi (owner/admin) uchun",
+    "ru": "Это действие доступно только владельцу/админу рабочего пространства Aros",
+    "en": "This action is only for the Aros workspace owner/admin"
+  },
+  "arst.busy": {
+    "uz": "Ko'chirish davom etmoqda — tugashini kuting",
+    "ru": "Перенос выполняется — дождитесь завершения",
+    "en": "Import is running — please wait for it to finish"
+  },
+  "arst.known_err": {
+    "uz": "TaskFix xodimlari ro'yxati o'qilmadi: {0} — ko'chirish vaqtincha bloklandi (dublikat xavfi).",
+    "ru": "Не удалось прочитать список сотрудников TaskFix: {0} — перенос временно заблокирован (риск дубликатов).",
+    "en": "Could not read the TaskFix employee list: {0} — import is blocked for now (duplicate risk)."
+  },
+  "arst.known_required": {
+    "uz": "Avval TaskFix xodimlari ro'yxati o'qilishi kerak — oynani yopib qayta oching",
+    "ru": "Сначала нужно прочитать список сотрудников TaskFix — закройте и снова откройте окно",
+    "en": "The TaskFix employee list must be loaded first — close and reopen this window"
+  },
+  "arst.all_bad": {
+    "uz": "Tanlanganlarning hech birida to'liq ma'lumot yo'q (telefon/ism) — ko'chirilmadi",
+    "ru": "Ни у одного из выбранных нет полных данных (телефон/имя) — ничего не перенесено",
+    "en": "None of the selected rows has complete data (phone/name) — nothing was imported"
+  },
+  "arst.ef_missing": {
+    "uz": "ArosStaff xizmati ulanmagan — «aros-staff-proxy» hali deploy qilinmagan. Administratorga xabar bering.",
+    "ru": "Сервис ArosStaff не подключён — «aros-staff-proxy» ещё не задеплоен. Сообщите администратору.",
+    "en": "The ArosStaff service is not connected — “aros-staff-proxy” is not deployed yet. Please tell your administrator."
+  },
+  "arst.ef_offline": {
+    "uz": "ArosStaff xizmatiga ulanib bo'lmadi — internet aloqasini tekshiring.",
+    "ru": "Не удалось подключиться к сервису ArosStaff — проверьте интернет-соединение.",
+    "en": "Could not reach the ArosStaff service — check your internet connection."
+  },
+  "arst.confirm_title": {
+    "uz": "Ko'chirishni boshlaymizmi?",
+    "ru": "Начать перенос?",
+    "en": "Start the import?"
+  },
+  "arst.confirm_count": {
+    "uz": "{0} ta xodim ko'chiriladi.",
+    "ru": "Будет перенесено сотрудников: {0}.",
+    "en": "{0} employees will be imported."
+  },
+  "arst.confirm_bad": {
+    "uz": "{0} tasi o'tkazib yuboriladi (telefon yoki ism yo'q).",
+    "ru": "{0} будут пропущены (нет телефона или имени).",
+    "en": "{0} will be skipped (no phone or name)."
+  },
+  "arst.confirm_inactive": {
+    "uz": "{0} tasi manbada NOFAOL deb belgilangan.",
+    "ru": "{0} помечены в источнике как НЕАКТИВНЫЕ.",
+    "en": "{0} are marked INACTIVE in the source."
+  },
+  "arst.confirm_name": {
+    "uz": "{0} tasining ismi TaskFix'dagi xodimga o'xshaydi — dublikat bo'lishi mumkin.",
+    "ru": "У {0} имя похоже на сотрудника в TaskFix — возможен дубликат.",
+    "en": "{0} have a name similar to an existing TaskFix employee — possible duplicate."
+  },
+  "arst.confirm_tail": {
+    "uz": "Mavjud xodimlarning ma'lumotiga tegilmaydi.",
+    "ru": "Данные существующих сотрудников не изменяются.",
+    "en": "Data of existing employees will not be changed."
+  },
+  "arst.step_identity": {
+    "uz": "Hodim yaratilmoqda… {0}/{1}",
+    "ru": "Создание сотрудников… {0}/{1}",
+    "en": "Creating employees… {0}/{1}"
+  },
+  "arst.step_identity_range": {
+    "uz": "identitet {0}–{1}",
+    "ru": "учётные записи {0}–{1}",
+    "en": "identity {0}–{1}"
+  },
+  "arst.step_row_identity": {
+    "uz": "hodim {0}",
+    "ru": "сотрудник {0}",
+    "en": "employee {0}"
+  },
+  "arst.step_legacy": {
+    "uz": "legacy xaritasi",
+    "ru": "карта legacy-идентификаторов",
+    "en": "legacy id map"
+  },
+  "arst.step_pos": {
+    "uz": "Lavozim va filiallar…",
+    "ru": "Должности и филиалы…",
+    "en": "Positions and branches…"
+  },
+  "arst.step_position": {
+    "uz": "lavozim {0}",
+    "ru": "должность {0}",
+    "en": "position {0}"
+  },
+  "arst.step_branch": {
+    "uz": "filial {0}",
+    "ru": "филиал {0}",
+    "en": "branch {0}"
+  },
+  "arst.step_profiles": {
+    "uz": "profillarni o'qish (profil yozuvi o'tkazib yuborildi)",
+    "ru": "чтение профилей (запись профиля пропущена)",
+    "en": "reading profiles (profile write skipped)"
+  },
+  "arst.step_profile_one": {
+    "uz": "profil \"{0}\"",
+    "ru": "профиль «{0}»",
+    "en": "profile “{0}”"
+  },
+  "arst.step_details": {
+    "uz": "Ma'lumot… {0}/{1}",
+    "ru": "Данные… {0}/{1}",
+    "en": "Details… {0}/{1}"
+  },
+  "arst.step_employee": {
+    "uz": "hodim \"{0}\"",
+    "ru": "сотрудник «{0}»",
+    "en": "employee “{0}”"
+  },
+  "arst.step_photo": {
+    "uz": "Rasm… {0}/{1}",
+    "ru": "Фото… {0}/{1}",
+    "en": "Photos… {0}/{1}"
+  },
+  "arst.step_photo_range": {
+    "uz": "rasm {0}–{1}",
+    "ru": "фото {0}–{1}",
+    "en": "photos {0}–{1}"
+  },
+  "arst.step_sched": {
+    "uz": "Ish jadvali… {0}/{1}",
+    "ru": "График работы… {0}/{1}",
+    "en": "Work schedule… {0}/{1}"
+  },
+  "arst.step_sched_call": {
+    "uz": "ish jadvali {0}–{1}",
+    "ru": "график работы {0}–{1}",
+    "en": "work schedule {0}–{1}"
+  },
+  "arst.step_sched_save": {
+    "uz": "Ish kunlari saqlanmoqda… {0}/{1}",
+    "ru": "Сохранение рабочих дней… {0}/{1}",
+    "en": "Saving work days… {0}/{1}"
+  },
+  "arst.step_days_range": {
+    "uz": "ish kunlari {0}–{1}",
+    "ru": "рабочие дни {0}–{1}",
+    "en": "work days {0}–{1}"
+  },
+  "arst.step_finish": {
+    "uz": "Yangilanmoqda…",
+    "ru": "Обновление…",
+    "en": "Refreshing…"
+  },
+  "arst.step_reload": {
+    "uz": "HR ma'lumotini qayta yuklash",
+    "ru": "перезагрузка HR-данных",
+    "en": "reloading HR data"
+  },
+  "arst.step_reload_members": {
+    "uz": "jamoani qayta yuklash",
+    "ru": "перезагрузка команды",
+    "en": "reloading the team"
+  },
+  "arst.step_unexpected": {
+    "uz": "kutilmagan xato",
+    "ru": "непредвиденная ошибка",
+    "en": "unexpected error"
+  },
+  "arst.rep_moved": {
+    "uz": "{0} ta xodim ko'chirildi",
+    "ru": "Перенесено сотрудников: {0}",
+    "en": "{0} employees imported"
+  },
+  "arst.rep_photo": {
+    "uz": "rasm: {0}/{1}",
+    "ru": "фото: {0}/{1}",
+    "en": "photos: {0}/{1}"
+  },
+  "arst.rep_photo_fail": {
+    "uz": "{0} tasida rasm yuklanmadi",
+    "ru": "у {0} не загрузилось фото",
+    "en": "photo failed for {0}"
+  },
+  "arst.rep_days": {
+    "uz": "{0} ish kuni",
+    "ru": "рабочих дней: {0}",
+    "en": "{0} work days"
+  },
+  "arst.rep_no_sched": {
+    "uz": "{0} tasi jadvalsiz",
+    "ru": "{0} без графика",
+    "en": "{0} without a schedule"
+  },
+  "arst.rep_bad_days": {
+    "uz": "{0} ish kuni rad etildi (qiymati yaroqsiz)",
+    "ru": "отклонено рабочих дней: {0} (недопустимое значение)",
+    "en": "{0} work days rejected (invalid value)"
+  },
+  "arst.rep_pos_branch": {
+    "uz": "yangi: {0} lavozim, {1} filial",
+    "ru": "новых: должностей {0}, филиалов {1}",
+    "en": "new: {0} positions, {1} branches"
+  },
+  "arst.rep_profiles": {
+    "uz": "{0} profil to'ldirildi",
+    "ru": "заполнено профилей: {0}",
+    "en": "{0} profiles filled in"
+  },
+  "arst.rep_skipped": {
+    "uz": "{0} tasi o'tkazib yuborildi (telefon yoki ism yo'q)",
+    "ru": "пропущено: {0} (нет телефона или имени)",
+    "en": "{0} skipped (no phone or name)"
+  },
+  "arst.rep_skipped_title": {
+    "uz": "Ko'chirilmadi",
+    "ru": "Не перенесены",
+    "en": "Not imported"
+  },
+  "arst.rep_no_sched_title": {
+    "uz": "Ish jadvali olinmadi",
+    "ru": "График работы не получен",
+    "en": "Work schedule not received"
+  },
+  "arst.rep_errors": {
+    "uz": "Xatolar: {0} — ko'chirish idempotent, tuzatib qayta urinish mumkin",
+    "ru": "Ошибок: {0} — перенос идемпотентен, можно исправить и повторить",
+    "en": "Errors: {0} — the import is idempotent, you can fix and retry"
+  },
+  "arst.rep_run_id": {
+    "uz": "run id: {0}",
+    "ru": "run id: {0}",
+    "en": "run id: {0}"
+  },
+  "arst.and_more": {
+    "uz": "…va yana {0} ta",
+    "ru": "…и ещё {0}",
+    "en": "…and {0} more"
+  },
+  "arst.done_toast": {
+    "uz": "ArosStaff: {0} ta xodim ko'chirildi",
+    "ru": "ArosStaff: перенесено сотрудников — {0}",
+    "en": "ArosStaff: {0} employees imported"
+  },
+  "arst.sched_fail_line": {
+    "uz": "{0} xodim — {1}",
+    "ru": "сотрудников: {0} — {1}",
+    "en": "{0} employees — {1}"
+  },
+  "arst.sched_fail_upstream_timeout": {
+    "uz": "ArosStaff javob bermadi (timeout)",
+    "ru": "ArosStaff не ответил (таймаут)",
+    "en": "ArosStaff did not respond (timeout)"
+  },
+  "arst.sched_fail_bad_id": {
+    "uz": "manba id'si yaroqsiz",
+    "ru": "недопустимый id источника",
+    "en": "invalid source id"
+  },
+  "arst.sched_fail_not_found": {
+    "uz": "manbada bunday xodim yo'q",
+    "ru": "такого сотрудника нет в источнике",
+    "en": "no such employee in the source"
+  },
+  "arst.sched_fail_no_data": {
+    "uz": "manbada jadval yo'q",
+    "ru": "в источнике нет графика",
+    "en": "no schedule in the source"
+  },
+  "arst.sched_fail_request_failed": {
+    "uz": "so'rov yiqildi — ArosStaff xizmati javob bermadi",
+    "ru": "запрос не выполнен — сервис ArosStaff не ответил",
+    "en": "the request failed — the ArosStaff service did not respond"
+  },
+  "arst.sched_fail_upstream_auth": {
+    "uz": "ArosStaff kaliti eskirgan yoki noto'g'ri — administratorga xabar bering",
+    "ru": "Ключ ArosStaff истёк или неверен — сообщите администратору",
+    "en": "The ArosStaff key has expired or is invalid — please tell your administrator"
+  },
+  "arst.sched_fail_upstream_down": {
+    "uz": "ArosStaff serveri ishlamayapti",
+    "ru": "Сервер ArosStaff не работает",
+    "en": "The ArosStaff server is down"
+  },
+  "arst.sched_fail_upstream_busy": {
+    "uz": "ArosStaff band — birozdan keyin qayta urinib ko'ring",
+    "ru": "ArosStaff занят — попробуйте чуть позже",
+    "en": "ArosStaff is busy — please try again in a moment"
+  },
+  "arst.sched_fail_upstream_unreachable": {
+    "uz": "ArosStaff serveriga ulanib bo'lmadi",
+    "ru": "Не удалось подключиться к серверу ArosStaff",
+    "en": "Could not reach the ArosStaff server"
+  },
+  "arst.sched_fail_upstream_bad_status": {
+    "uz": "ArosStaff kutilmagan javob qaytardi",
+    "ru": "ArosStaff вернул неожиданный ответ",
+    "en": "ArosStaff returned an unexpected response"
+  },
+  "arst.sched_fail_upstream_bad_json": {
+    "uz": "ArosStaff javobini o'qib bo'lmadi (format buzuq)",
+    "ru": "Не удалось прочитать ответ ArosStaff (повреждённый формат)",
+    "en": "Could not read the ArosStaff response (malformed format)"
+  },
+  "arst.sched_fail_upstream_too_large": {
+    "uz": "ArosStaff javobi juda katta — kamroq xodim tanlab ko'ring",
+    "ru": "Ответ ArosStaff слишком большой — выберите меньше сотрудников",
+    "en": "The ArosStaff response is too large — try selecting fewer employees"
+  },
+  "arst.rep_dup_days": {
+    "uz": "{0} takror ish kuni birlashtirildi",
+    "ru": "объединено повторяющихся рабочих дней: {0}",
+    "en": "{0} duplicate work days merged"
   }
 }

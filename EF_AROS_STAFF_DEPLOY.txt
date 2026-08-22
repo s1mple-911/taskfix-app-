@@ -1,0 +1,225 @@
+============================================================
+EF_AROS_STAFF_DEPLOY — aros-staff-proxy (v1-2026-08-22)
+Manba: supabase/functions/aros-staff-proxy/index.ts
+============================================================
+
+NIMA QILADI
+  Aros'ning tashqi HR tizimidan (api.staff.aros.uz) hodim ro'yxati,
+  hodim kartochkasi va ish jadvalini FAQAT O'QIB beradi.
+
+NEGA KERAK
+  🔴 Manba API kaliti (`Authorization: Api-Key <token>`) index.html ga
+     YOZILMAYDI — u GitHub Pages'da ochiq turadi va kalitni hamma ko'radi.
+     Kalit faqat Supabase secret'ida (AROS_STAFF_TOKEN) yashaydi.
+     Ikkinchi sabab: manbani brauzerdan to'g'ridan-to'g'ri chaqirib
+     bo'lmaydi (CORS to'sadi).
+
+NIMAGA TEGMAYDI
+  🔴 DB ga HECH NARSA YOZMAYDI. Yagona DB murojaati — chaqiruvchining
+     rolini bilish uchun `workspace_members` dan SELECT.
+     Import yozuvlari (auth user, workspace_members, employee_details,
+     staff_import_map, rasm) — mavjud `admin-import-staff` EF'ida va
+     mijozda qoladi. Bu funksiyaga import mantiqi qo'shilmaydi.
+  Migratsiya / .sql fayl KERAK EMAS.
+  ⚠️ MIJOZ TOMONI BOR: index.html dagi `arst*` moduli (Jamoa sahifasidagi
+     "ArosStaff'dan ko'chirish" tugmasi) aynan shu EF ga tayanadi. EF deploy
+     qilinmagan yoki o'chirilgan bo'lsa tugma bosilganda "xizmat ulanmagan /
+     hali deploy qilinmagan" xatosi chiqadi — ilova buzilmaydi, faqat shu
+     funksiya ishlamaydi.
+
+
+------------------------------------------------------------
+1) DEPLOY
+------------------------------------------------------------
+
+A) CLI bilan (tavsiya etiladi — repo bilan bir xil qoladi):
+
+    cd C:\Users\laziz\taskfix-app-
+    supabase functions deploy aros-staff-proxy --project-ref nnpsbwsppgxbytlfloth
+
+   (Agar login qilinmagan bo'lsa: `supabase login`)
+
+B) Dashboard bilan (CLI bo'lmasa):
+    Supabase → Edge Functions → Deploy a new function
+      nomi:  aros-staff-proxy
+      kod:   supabase/functions/aros-staff-proxy/index.ts faylini
+             TO'LIQ nusxalab qo'ying (birinchi qatordan oxirgisigacha).
+
+
+------------------------------------------------------------
+2) VERIFY JWT — ON (default, o'zgartirilmaydi)
+------------------------------------------------------------
+  Edge Functions → aros-staff-proxy → Settings → "Verify JWT" = ON.
+
+  ⚠️ admin-create-employee OFF bilan deploy qilingan — BU funksiya
+     unga o'xshamaydi, bu yerda ON qoladi (admin-import-staff naqshi).
+
+  Ustiga kodning o'zi 3 ta qorovulni bajaradi:
+    • chaqiruvchi JWT haqiqiymi (auth.getUser)
+    • chaqiruvchi shu workspace'da owner/admin'mi (workspace_members)
+    • workspace_id AROS_WORKSPACE_ID ga TENGmi (boshqa ws — rad)
+
+
+------------------------------------------------------------
+3) SECRETS (Asilbek qo'yadi)
+------------------------------------------------------------
+  Dashboard: Project Settings → Edge Functions → Secrets → Add new secret
+  yoki CLI:
+
+    supabase secrets set AROS_STAFF_TOKEN=<TOKEN> --project-ref nnpsbwsppgxbytlfloth
+
+  ┌───────────────────┬──────────┬──────────────────────────────────────────────┐
+  │ Nomi              │ Holati   │ Qiymat                                       │
+  ├───────────────────┼──────────┼──────────────────────────────────────────────┤
+  │ AROS_STAFF_TOKEN  │ MAJBURIY │ ArosStaff API kaliti (Api-Key qiymati)       │
+  │ AROS_STAFF_BASE   │ ixtiyoriy│ default:                                     │
+  │                   │          │ https://api.staff.aros.uz/external/v1/       │
+  │                   │          │ employment                                   │
+  │ AROS_WORKSPACE_ID │ ixtiyoriy│ default:                                     │
+  │                   │          │ 12b22aa6-dc45-4197-ae84-2e32e3cd56c2 (Aros)  │
+  └───────────────────┴──────────┴──────────────────────────────────────────────┘
+
+  SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY — Supabase
+  o'zi beradi, qo'lda qo'shilmaydi.
+
+  🔴 HAQIQIY TOKEN HECH QAYERGA YOZILMAYDI: na bu faylga, na index.html ga,
+     na git'ga. Faqat Supabase secret'ida. Bu yerdagi <TOKEN> — o'rin egasi.
+     Token javobga/xato matniga/logga ham tushmaydi (kod ichida `redact`
+     va upstream javob tanasi umuman qaytarilmaydi).
+
+
+------------------------------------------------------------
+4) KONTRAKT (mijoz shunga tayanadi)
+------------------------------------------------------------
+  POST https://nnpsbwsppgxbytlfloth.supabase.co/functions/v1/aros-staff-proxy
+
+  1. { action:'list', workspace_id, search?, page?, page_size? }
+       → { ok:true, count, page, page_size, has_next, results:[…] }
+       ⚠️ page_size manbada 100 ga cheklangan (jami ~135 hodim) — EF ham
+          100 dan katta so'rovni 100 ga tushiradi.
+
+  2. { action:'detail', workspace_id, source_id }
+       → { ok:true, employee:{…} }   (bu yerda `branches[]` — ko'plik)
+
+  3. { action:'schedule', workspace_id, source_id, date_from?, date_to? }
+       → { ok:true, schedule:{ employee_id, date_from, date_to, days:[…] } }
+
+  4. { action:'schedule_bulk', workspace_id, source_ids:[…≤25], date_from?, date_to? }
+       → { ok:true, schedules:{ "<id>":{…} }, failed:[{source_id, error}] }
+       Serverda parallel (6 tadan) — 130 round-trip o'rniga 6 chaqiruv.
+       ⚠️ `schedules` KALITI = mijoz YUBORGAN xom id (EF uni normallashtirib
+          qaytarmaydi) — javobni yuborilgan qiymat bo'yicha qidiring.
+          Xato qatorida ham xom qiymat, 64 belgigacha kesilgan holda.
+       ⚠️ UMUMIY MUDDAT 60s: bo'laklar ketma-ket ketgani uchun eng yomon holatda
+          5 × 20s ≈ 105s bo'lardi va EF limitiga urilib BUTUN javob yo'qolardi.
+          Endi ulgurmagan id'lar so'ralmaydi — ular `failed` ga
+          'upstream_timeout' bilan tushadi, olingan jadvallar SAQLANADI.
+          Ya'ni `schedules` to'liq bo'lmasligi mumkin — mijoz `failed` ni
+          O'QIShI va o'sha id'lar uchun qayta urinishi kerak.
+
+  Xato: { ok:false, error:'<kod>', message:"<o'zbekcha matn>", detail, v }
+
+
+------------------------------------------------------------
+5) TEKSHIRISH (curl)
+------------------------------------------------------------
+  Kerak:
+    <ANON_KEY>  — Project Settings → API → anon public
+    <USER_JWT>  — owner/admin sifatida kirgan sessiya tokeni.
+                  TaskFix ochiq turganda brauzer konsolida:
+                    (await sb.auth.getSession()).data.session.access_token
+
+  5.1 Ro'yxat (1-sahifa):
+    curl -s -X POST \
+      "https://nnpsbwsppgxbytlfloth.supabase.co/functions/v1/aros-staff-proxy" \
+      -H "apikey: <ANON_KEY>" \
+      -H "Authorization: Bearer <USER_JWT>" \
+      -H "Content-Type: application/json" \
+      -d '{"action":"list","workspace_id":"12b22aa6-dc45-4197-ae84-2e32e3cd56c2","page":1,"page_size":100}'
+    Kutilgan: {"ok":true,"count":135,...,"results":[...]}
+
+  5.2 Qidiruv:
+      -d '{"action":"list","workspace_id":"12b22aa6-...","search":"Akobir"}'
+
+  5.3 Bitta hodim (branches[] bilan):
+      -d '{"action":"detail","workspace_id":"12b22aa6-...","source_id":42}'
+
+  5.4 Jadval:
+      -d '{"action":"schedule","workspace_id":"12b22aa6-...","source_id":42,
+           "date_from":"2026-08-01","date_to":"2026-08-31"}'
+
+  5.5 Ommaviy jadval:
+      -d '{"action":"schedule_bulk","workspace_id":"12b22aa6-...",
+           "source_ids":[42,43,44],"date_from":"2026-08-01","date_to":"2026-08-31"}'
+
+  5.6 QOROVUL SINOVLARI (bularning HAMMASI rad bo'lishi SHART):
+      • boshqa workspace_id  → 403 forbidden_workspace
+      • oddiy a'zo JWT'si    → 403 forbidden
+      • JWT'siz              → 401 (Verify JWT darvozasi)
+      • {"action":"proxy","url":"http://..."} → 400 bad_action
+      • "source_id":"1; DROP" yoki "../"      → 400 bad_body
+      • "date_from":"2026-13-45"              → 400 bad_body
+      • {"action":["list"],...}                → 400 bad_action (massiv — satr emas)
+      • source_ids da 26 ta id                 → 400 too_many_ids
+
+
+------------------------------------------------------------
+6) XATOLARNI O'QISH
+------------------------------------------------------------
+ ┌──────────────────────┬──────┬──────────────────────────────────────────────┐
+ │ error                │ HTTP │ Ma'nosi / nima qilinadi                      │
+ ├──────────────────────┼──────┼──────────────────────────────────────────────┤
+ │ (bo'sh javob, 401)   │ 401  │ Verify JWT darvozasi — token yuborilmagan    │
+ │ unauthorized         │ 401  │ JWT yaroqsiz/eskirgan → qayta kirish         │
+ │ forbidden            │ 403  │ Chaqiruvchi owner/admin emas                 │
+ │ forbidden_workspace  │ 403  │ workspace_id Aros emas → AROS_WORKSPACE_ID   │
+ │                      │      │ ni tekshiring (kutilgan: 12b22aa6-…)         │
+ │ bad_action           │ 400  │ action noma'lum (list/detail/schedule/       │
+ │                      │      │ schedule_bulk)                               │
+ │ bad_body             │ 400  │ Parametr shakli xato (source_id butun son    │
+ │                      │      │ emas, sana YYYY-MM-DD emas, search uzun)     │
+ │ too_many_ids         │ 400  │ schedule_bulk'da 25 tadan ko'p id            │
+ │ method_not_allowed   │ 405  │ Faqat POST                                   │
+ │ config               │ 500  │ AROS_STAFF_TOKEN qo'yilmagan (3-bo'lim) yoki  │
+ │                      │      │ SUPABASE_URL/ANON/SERVICE_ROLE yo'q           │
+ │ db                   │ 500  │ workspace_members o'qilmadi (RLS/DB)         │
+ │ upstream_auth        │ 502  │ 🔴 ArosStaff kalit rad etdi (401/403) →      │
+ │                      │      │ AROS_STAFF_TOKEN eskirgan, yangilash kerak   │
+ │ not_found            │ 404  │ ArosStaff'da bunday hodim yo'q               │
+ │ upstream_down        │ 502  │ Manba 5xx qaytardi — keyinroq urinib ko'ring │
+ │ upstream_busy        │ 429  │ Manba rate-limit qildi — pauza qiling        │
+ │ upstream_timeout     │ 504  │ Manba 20s da javob bermadi                   │
+ │ upstream_unreachable │ 502  │ Tarmoq/DNS — manbaga ulanib bo'lmadi         │
+ │ upstream_bad_status  │ 502  │ Kutilmagan status (detail'da raqami bor)     │
+ │ upstream_bad_json    │ 502  │ Manba JSON emas (login sahifasi/HTML?)       │
+ │ upstream_too_large   │ 502  │ Javob 4 MB dan katta                         │
+ │ unexpected           │ 500  │ Kutilmagan xato — Edge Function Logs'da       │
+ │                      │      │ "aros-staff-proxy unexpected:" qatori (token  │
+ │                      │      │ `redact` bilan tozalangan). Bu — kodda ATAYLAB │
+ │                      │      │ qo'yilgan yagona console chaqiruvi.           │
+ └──────────────────────┴──────┴──────────────────────────────────────────────┘
+
+ schedule_bulk ichidagi `failed[].error`: yuqoridagi kodlar + `bad_id`
+ (id butun son emas). Bitta id yiqilsa qolganlari baribir qaytadi.
+ `upstream_timeout` bu yerda ikki ma'noli bo'lishi mumkin: (a) o'sha id
+ uchun manba 20s da javob bermadi, (b) 60s umumiy muddat tugagani uchun
+ u UMUMAN so'ralmadi. Ikkalasida ham qayta urinish to'g'ri yo'l.
+
+ ⚠️ upstream_auth chiqsa BIRINCHI tekshiriladigan narsa — sxema:
+    `Api-Key <token>` (Token / Bearer / Basic — 401 beradi). Kodda to'g'ri
+    yozilgan; demak muammo kalitning o'zida.
+
+
+------------------------------------------------------------
+7) ROLLBACK
+------------------------------------------------------------
+  Bu funksiya hech narsa yozmaydi → qaytariladigan ma'lumot YO'Q.
+  Butunlay o'chirish:
+    supabase functions delete aros-staff-proxy --project-ref nnpsbwsppgxbytlfloth
+  yoki Dashboard → Edge Functions → aros-staff-proxy → Delete.
+  Secret'lar ham o'chirilishi mumkin (AROS_STAFF_TOKEN).
+  DB va boshqa EF'lar bundan ta'sirlanmaydi.
+  ⚠️ index.html O'ZGARISHSIZ ishlayveradi, lekin `arst*` moduli
+     ("ArosStaff'dan ko'chirish") ishlamay qoladi: tugma bosilganda "xizmat
+     ulanmagan / hali deploy qilinmagan" xatosi chiqadi. Ko'chirishni butunlay
+     olib tashlash kerak bo'lsa — bu alohida ish, mijoz tomonida qilinadi.
