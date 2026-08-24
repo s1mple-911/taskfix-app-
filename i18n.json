@@ -3610,9 +3610,9 @@
     "en": "Employee not found — will stay empty"
   },
   "common.xls_no_assignee_hint": {
-    "uz": "{0} ta vazifaga bajaruvchi tanlanmagan — Jadvalda \"Bajaruvchi\" ustunidan tanlang",
-    "ru": "У {0} задач(и) не выбран исполнитель — выберите в столбце «Исполнитель» в режиме Таблица",
-    "en": "{0} task(s) have no assignee — pick one in the \"Assignee\" column in Table view"
+    "uz": "{0} ta vazifaga bajaruvchi tanlanmagan — ular ro'yxatda qizil belgilangan, \"Bajaruvchi\" ustunidan tanlang",
+    "ru": "У {0} задач(и) нет исполнителя — они отмечены красным, выберите в колонке «Исполнитель»",
+    "en": "{0} task(s) have no assignee — they are marked red; pick one in the \"Assignee\" column"
   },
   "common.xls_no_valid_rows": {
     "uz": "Hech qanday to'g'ri qator topilmadi (Nomi ustuni kerak)",
@@ -13618,5 +13618,45 @@
     "uz": "Shablon",
     "ru": "Шаблон",
     "en": "Template"
+  },
+  "nas.banner": {
+    "uz": "Sizga ko'rinadigan {0} ta vazifada bajaruvchi biriktirilmagan (joriy filtrlar hisobga olinmagan)",
+    "ru": "У {0} задач(и), доступных вам, не назначен исполнитель (текущие фильтры не учтены)",
+    "en": "{0} task(s) visible to you have no assignee (current filters not applied)"
+  },
+  "nas.chip": {
+    "uz": "Bajaruvchi yo'q",
+    "ru": "Нет исполнителя",
+    "en": "No assignee"
+  },
+  "nas.chip_title": {
+    "uz": "Bu vazifaga bajaruvchi biriktirilmagan",
+    "ru": "Для этой задачи не назначен исполнитель",
+    "en": "This task has no assignee"
+  },
+  "nas.close_btn": {
+    "uz": "Yopish",
+    "ru": "Закрыть",
+    "en": "Close"
+  },
+  "nas.import_note": {
+    "uz": "Bajaruvchisiz vazifalar ro'yxatda qizil belgilanadi.",
+    "ru": "Задачи без исполнителя помечаются красным в списке.",
+    "en": "Tasks without an assignee are marked red in the list."
+  },
+  "nas.show_btn": {
+    "uz": "Ko'rsatish",
+    "ru": "Показать",
+    "en": "Show"
+  },
+  "nas.show_btn_title": {
+    "uz": "Filtrlar tozalanadi va shu vazifalar ro'yxati ochiladi",
+    "ru": "Фильтры будут сброшены и откроется список этих задач",
+    "en": "Filters will be cleared and the list of these tasks will open"
+  },
+  "nas.filters_cleared": {
+    "uz": "Filtrlar tozalandi",
+    "ru": "Фильтры сброшены",
+    "en": "Filters cleared"
   }
 }
