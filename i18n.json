@@ -13363,5 +13363,260 @@
     "uz": "Ichki xato: rasm bosqichiga bo'sh ro'yxat berildi ({0} tadan {1}-o'rin)",
     "ru": "Внутренняя ошибка: на этап фото передан пустой список (позиция {1} из {0})",
     "en": "Internal error: the photo step received an empty list (position {1} of {0})"
+  },
+  "common.err_assignee_required": {
+    "uz": "Bajaruvchini tanlang — bajaruvchisiz vazifa yaratilmaydi",
+    "ru": "Выберите исполнителя — задача без исполнителя не создаётся",
+    "en": "Select an assignee — a task cannot be created without one"
+  },
+  "common.field_required": {
+    "uz": "\"{0}\" — bu maydon majburiy",
+    "ru": "«{0}» — обязательное поле",
+    "en": "\"{0}\" is a required field"
+  },
+  "est.chip": {
+    "uz": "~{0} (taxminiy)",
+    "ru": "~{0} (примерно)",
+    "en": "~{0} (estimated)"
+  },
+  "est.title": {
+    "uz": "Taxminiy sana — oldingi bosqich qachon tugashiga bog'liq, o'zgarishi mumkin",
+    "ru": "Примерная дата — зависит от того, когда завершится предыдущий этап, может измениться",
+    "en": "Estimated date — depends on when the previous stage finishes, may change"
+  },
+  "prj.no_members_for_stage": {
+    "uz": "Jamoa ro'yxati bo'sh — avval jamoaga xodim qo'shing yoki sahifani yangilang.",
+    "ru": "Список команды пуст — сначала добавьте сотрудника в команду или обновите страницу.",
+    "en": "The team list is empty — add a member to the team first, or refresh the page."
+  },
+  "shb.cycle_denied": {
+    "uz": "Yangi sikl yaratilmadi — ruxsat yo'q",
+    "ru": "Новый цикл не создан — нет прав",
+    "en": "New cycle was not created — no permission"
+  },
+  "shb.stages_denied": {
+    "uz": "Yangi sikl bosqichlari yaratilmadi — ruxsat yo'q",
+    "ru": "Этапы нового цикла не созданы — нет прав",
+    "en": "New cycle stages were not created — no permission"
+  },
+  "shb.cycle_close_denied": {
+    "uz": "Joriy sikl yopilmadi — ruxsat yo'q",
+    "ru": "Текущий цикл не закрыт — нет прав",
+    "en": "Current cycle was not closed — no permission"
+  },
+  "shb.deps_partial": {
+    "uz": "Yangi sikl ochildi, lekin kutish bog'lanishlari to'liq ko'chirilmadi",
+    "ru": "Новый цикл открыт, но связи ожидания перенесены не полностью",
+    "en": "New cycle started, but wait dependencies were not fully copied"
+  },
+  "shb.cycle_started": {
+    "uz": "Yangi sikl boshlandi — {0} ta bosqich ochildi",
+    "ru": "Начался новый цикл — открыто этапов: {0}",
+    "en": "New cycle started — {0} stage(s) opened"
+  },
+  "cyc.label": {
+    "uz": "Sikl",
+    "ru": "Цикл",
+    "en": "Cycle"
+  },
+  "cyc.nth": {
+    "uz": "{0}-sikl",
+    "ru": "Цикл {0}",
+    "en": "Cycle {0}"
+  },
+  "cyc.current": {
+    "uz": "Joriy",
+    "ru": "Текущий",
+    "en": "Current"
+  },
+  "cyc.past": {
+    "uz": "Tarixiy",
+    "ru": "Прошлый",
+    "en": "Past"
+  },
+  "cyc.ph": {
+    "uz": "Siklni tanlang…",
+    "ru": "Выберите цикл…",
+    "en": "Select a cycle…"
+  },
+  "cyc.back_current": {
+    "uz": "Joriy siklga qaytish",
+    "ru": "Вернуться к текущему циклу",
+    "en": "Back to current cycle"
+  },
+  "cyc.readonly_banner": {
+    "uz": "Tarixiy sikl — faqat ko'rish uchun. Bosqich qo'shish, tahrirlash, sudrash va holatni o'zgartirish o'chirilgan.",
+    "ru": "Прошлый цикл — только просмотр. Добавление, редактирование, перетаскивание этапов и смена статуса отключены.",
+    "en": "Past cycle — view only. Adding, editing, dragging stages and changing status are disabled."
+  },
+  "cyc.readonly_toast": {
+    "uz": "Tarixiy sikl — faqat ko'rish uchun. O'zgartirish uchun joriy siklga qayting.",
+    "ru": "Прошлый цикл — только просмотр. Чтобы изменить, вернитесь к текущему циклу.",
+    "en": "Past cycle — view only. Switch back to the current cycle to make changes."
+  },
+  "page-project.tab_templates": {
+    "uz": "Shablonlar",
+    "ru": "Шаблоны",
+    "en": "Templates"
+  },
+  "shbu.badge": {
+    "uz": "Shablon",
+    "ru": "Шаблон",
+    "en": "Template"
+  },
+  "shbu.order_n": {
+    "uz": "{0}-o'rin",
+    "ru": "{0}-я позиция",
+    "en": "Position {0}"
+  },
+  "shbu.opened_n": {
+    "uz": "{0} marta ochilgan",
+    "ru": "Открыт {0} раз",
+    "en": "Opened {0} times"
+  },
+  "shbu.intro": {
+    "uz": "Shablon — bosqichning TA'RIFI. Har sikl uchun undan yangi vazifa ochiladi. Shablonni tahrirlash faqat KELAJAKDAGI sikllarga ta'sir qiladi; bugungi vazifani o'zgartirish uchun Flow tabidagi bosqichni tahrirlang.",
+    "ru": "Шаблон — это ОПРЕДЕЛЕНИЕ этапа. Для каждого цикла из него создаётся новая задача. Редактирование шаблона влияет только на БУДУЩИЕ циклы; чтобы изменить сегодняшнюю задачу, отредактируйте этап во вкладке Flow.",
+    "en": "A template is the DEFINITION of a stage. A new task is created from it for every cycle. Editing a template affects FUTURE cycles only; to change today's task, edit the stage in the Flow tab."
+  },
+  "shbu.sec_history": {
+    "uz": "Shablon tarixi",
+    "ru": "История шаблона",
+    "en": "Template history"
+  },
+  "shbu.sec_instances": {
+    "uz": "Ochilgan vazifalar ({0})",
+    "ru": "Созданные задачи ({0})",
+    "en": "Created tasks ({0})"
+  },
+  "shbu.act_created": {
+    "uz": "Yaratildi",
+    "ru": "Создан",
+    "en": "Created"
+  },
+  "shbu.act_edited": {
+    "uz": "Tahrirlandi",
+    "ru": "Изменён",
+    "en": "Edited"
+  },
+  "shbu.act_materialized": {
+    "uz": "Yangi sikl ochildi",
+    "ru": "Открыт новый цикл",
+    "en": "New cycle opened"
+  },
+  "shbu.act_archived": {
+    "uz": "Arxivlandi",
+    "ru": "Архивирован",
+    "en": "Archived"
+  },
+  "shbu.fld_cycle_no": {
+    "uz": "Sikl raqami",
+    "ru": "Номер цикла",
+    "en": "Cycle number"
+  },
+  "shbu.hist_loading": {
+    "uz": "Yuklanmoqda…",
+    "ru": "Загрузка…",
+    "en": "Loading…"
+  },
+  "shbu.hist_off": {
+    "uz": "Shablon tarixi yoqilmagan —",
+    "ru": "История шаблонов не включена —",
+    "en": "Template history is not enabled —"
+  },
+  "shbu.hist_err": {
+    "uz": "Shablon tarixini o'qib bo'lmadi: {0}",
+    "ru": "Не удалось прочитать историю шаблона: {0}",
+    "en": "Could not read template history: {0}"
+  },
+  "shbu.hist_none": {
+    "uz": "Hali hech qanday o'zgarish yo'q",
+    "ru": "Изменений пока нет",
+    "en": "No changes yet"
+  },
+  "shbu.inst_none": {
+    "uz": "Hali birorta sikl ochilmagan",
+    "ru": "Ни одного цикла ещё не открыто",
+    "en": "No cycle has been opened yet"
+  },
+  "shbu.cycle_unknown": {
+    "uz": "Sikl noma'lum",
+    "ru": "Цикл неизвестен",
+    "en": "Unknown cycle"
+  },
+  "shbu.edit_btn": {
+    "uz": "Shablonni tahrirlash",
+    "ru": "Редактировать шаблон",
+    "en": "Edit template"
+  },
+  "shbu.edit_title": {
+    "uz": "Shablonni tahrirlash",
+    "ru": "Редактирование шаблона",
+    "en": "Edit template"
+  },
+  "shbu.future_only": {
+    "uz": "Faqat kelajakdagi sikllarga ta'sir qiladi — joriy sikl o'zgarmaydi.",
+    "ru": "Влияет только на будущие циклы — текущий цикл не изменится.",
+    "en": "Affects future cycles only — the current cycle stays unchanged."
+  },
+  "shbu.only_admin": {
+    "uz": "Shablonni faqat administrator tahrirlaydi",
+    "ru": "Шаблон может редактировать только администратор",
+    "en": "Only an administrator can edit a template"
+  },
+  "shbu.not_found": {
+    "uz": "Shablon topilmadi — sahifani yangilang",
+    "ru": "Шаблон не найден — обновите страницу",
+    "en": "Template not found — refresh the page"
+  },
+  "shbu.title_required": {
+    "uz": "Shablon nomini kiriting",
+    "ru": "Введите название шаблона",
+    "en": "Enter the template name"
+  },
+  "shbu.no_changes": {
+    "uz": "O'zgarish yo'q",
+    "ru": "Изменений нет",
+    "en": "No changes"
+  },
+  "shbu.saved": {
+    "uz": "Shablon yangilandi — keyingi sikllarda qo'llanadi",
+    "ru": "Шаблон обновлён — будет применён в следующих циклах",
+    "en": "Template updated — it will apply to the next cycles"
+  },
+  "shbu.saved_hist_fail": {
+    "uz": "Shablon yangilandi, lekin tarixga yozilmadi: {0}",
+    "ru": "Шаблон обновлён, но запись в историю не сохранена: {0}",
+    "en": "Template updated, but the history entry was not saved: {0}"
+  },
+  "shbu.saved_rel_dropped": {
+    "uz": "Shablon yangilandi ({0})",
+    "ru": "Шаблон обновлён ({0})",
+    "en": "Template updated ({0})"
+  },
+  "shbu.off_title": {
+    "uz": "Shablonlar yo'q",
+    "ru": "Шаблонов нет",
+    "en": "No templates"
+  },
+  "shbu.off_sub": {
+    "uz": "Bu loyihada shablon bosqichlari yo'q yoki TASKFIX_SHABLON.sql hali ishga tushirilmagan.",
+    "ru": "В этом проекте нет шаблонных этапов либо TASKFIX_SHABLON.sql ещё не запущен.",
+    "en": "This project has no template stages, or TASKFIX_SHABLON.sql has not been run yet."
+  },
+  "shb.open_template": {
+    "uz": "Bu — bosqich SHABLONI (ta'rif), vazifa emas. Uni loyihaning \"Shablonlar\" bo'limida oching.",
+    "ru": "Это ШАБЛОН этапа (определение), а не задача. Откройте его в разделе «Шаблоны» проекта.",
+    "en": "This is a stage TEMPLATE (a definition), not a task. Open it in the project's \"Templates\" section."
+  },
+  "shb.tpl_left": {
+    "uz": "Bosqich ochilmadi ({0}) — shablon saqlanib qoldi, u keyingi siklda o'zi ochiladi.",
+    "ru": "Этап не открыт ({0}) — шаблон сохранён, он откроется сам в следующем цикле.",
+    "en": "The stage was not opened ({0}) — the template is kept and will open by itself in the next cycle."
+  },
+  "rmx.badge_template": {
+    "uz": "Shablon",
+    "ru": "Шаблон",
+    "en": "Template"
   }
 }
