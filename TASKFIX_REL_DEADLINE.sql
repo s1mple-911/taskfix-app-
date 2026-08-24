@@ -5,27 +5,46 @@
 --
 -- 🔴 KAM TRAFIK VAQTIDA RUN QILING (rostini aytganda):
 --    ALTER TABLE ... ADD CONSTRAINT ... CHECK butun public.tasks jadvalini
---    ACCESS EXCLUSIVE qulfi ostida SKANERLAYDI. Ikkala ustun ham shu
+--    ACCESS EXCLUSIVE qulfi ostida SKANERLAYDI. Uchala ustun ham shu
 --    tranzaksiyada tug'iladi va TO'LIQ NULL bo'ladi, ya'ni skanerlash tez
 --    (20k qatorda millisekundlar), LEKIN qulf davomida tasks ga har qanday
 --    SELECT/INSERT/UPDATE KUTIB turadi. Katta bazada bu bir necha soniya
 --    bo'lishi mumkin.
 --
 -- ── NIMA QILADI (ADDITIVE + IDEMPOTENT) ─────────────────────────────────────
---   public.tasks ga 2 ta ustun:
---     deadline_days smallint  — nisbiy KUN soni. 🔴 0 YAROQLI ("o'sha kuni").
---     deadline_time text      — 'HH:MM' (24 soatlik, Asia/Tashkent).
---   + 3 ta CHECK:
+--   public.tasks ga 3 ta ustun:
+--     deadline_days  smallint — nisbiy KUN soni. 🔴 0 YAROQLI ("o'sha kuni").
+--     deadline_time  text     — 'HH:MM' (24 soatlik, Asia/Tashkent).
+--     deadline_hours smallint — 🔴 YANGI: nisbiy SOATLIK DAVOMIYLIK ("1 soat",
+--                               "4 soat"). Kun ham, soat-vaqti ham kiritilmaydi.
+--
+--   🔴 UCH REJIM — AYNI PAYTDA FAQAT BITTASI (tasks_deadline_rel_pair_chk):
+--     A) hammasi NULL   — ESKI usul: bosqich absolut tasks.deadline bilan ishlaydi.
+--     B) days + time    — KUN + SOAT: anchor + N kun, o'sha kuni soat HH:MM da.
+--                         🔴 days = 0 => "o'sha kuni soat HH:MM" — bu ESKI
+--                         semantika va u O'ZGARMADI (soatlik rejim BOSHQA ma'no).
+--     C) hours          — SOATLIK DAVOMIYLIK: anchor + N soat. Kun ham, soat-vaqti
+--                         ham YO'Q (aks holda bitta deadline ni ikki HAR XIL manba
+--                         da'vo qilardi va mijoz qaysi biri ustunligini bilmasdi).
+--
+--   + 4 ta CHECK:
 --     tasks_deadline_days_chk      IS NULL OR 0..3650  (~10 yil)
 --     tasks_deadline_time_chk      IS NULL OR '^([01][0-9]|2[0-3]):[0-5][0-9]$'
---     tasks_deadline_rel_pair_chk  (deadline_days IS NULL) = (deadline_time IS NULL)
---       → ikkovi BIRGA to'ladi yoki ikkovi NULL. Soat MAJBURIY: usiz absolut
---         deadline ni hisoblab bo'lmaydi, ya'ni "yarim to'ldirilgan" qator
---         mijozda jimgina noto'g'ri sanaga aylanardi.
---   + 2 ta COMMENT ON COLUMN (ma'no bazada ham yozilgan bo'lsin).
+--     tasks_deadline_hours_chk     IS NULL OR 1..8760  (1 soat … 1 yil)
+--     tasks_deadline_rel_pair_chk  REJIM XOR — yuqoridagi A/B/C dan AYNAN bittasi.
+--       → B rejimida soat MAJBURIY: usiz absolut deadline ni hisoblab bo'lmaydi,
+--         ya'ni "yarim to'ldirilgan" qator mijozda jimgina noto'g'ri sanaga
+--         aylanardi. Yolg'iz soat, yolg'iz kun va aralash (days+hours) — RAD.
+--   + 3 ta COMMENT ON COLUMN (ma'no bazada ham yozilgan bo'lsin).
 --
 --   Qayta RUN xavfsiz: ustunlar IF NOT EXISTS, CHECK'lar pg_constraint dan
 --   conrelid bilan tekshiriladi (conname global unikal EMAS).
+--   ⚠️ ESKI (2 ustunli) versiya ALLAQACHON RUN qilingan bazada
+--      tasks_deadline_rel_pair_chk eski tanasi bilan turadi. Skript uni TANIB
+--      (ta'rifida deadline_hours YO'Q, lekin days+time BOR) DROP + qayta ADD
+--      qiladi — nom SAQLANADI. Begona tanani ko'rsa TEGMAYDI, EXCEPTION beradi.
+--      Mavjud qatorlar buzilmaydi: yangi ta'rif eski YAROQLI holatlarning
+--      hammasini (hammasi NULL / days+time) qabul qiladi.
 --
 -- ── 🔴 NIMA QILMAYDI (ATAYLAB) ──────────────────────────────────────────────
 --   1) TRIGGER YO'Q va GENERATED COLUMN YO'Q — absolut tasks.deadline ni
@@ -54,7 +73,8 @@
 --   tasks.deadline (absolut) — YAGONA haqiqat. Butun ilova (ro'yxat, kanban,
 --   kalendar, jadval, dofBadge, Telegram, email, tarix, dlh* zanjiri,
 --   prjState, planner) AYNAN shu ustunni o'qiydi.
---   deadline_days + deadline_time — MANBA (nisbiy retsept).
+--   deadline_days + deadline_time (kun+soat) YOKI deadline_hours (soatlik
+--   davomiylik) — MANBA (nisbiy retsept).
 --   Anchor NOMA'LUM bo'lsa (oldingi bosqich hali tugamagan) mijoz deadline ni
 --   NULL qoldiradi va ekranda nisbiy yorliq ko'rsatadi — YOLG'ON sana bazaga
 --   YOZILMAYDI. ⚠️ Shu sabab tasks.deadline NULLABLE bo'lishi SHART; skript
@@ -74,7 +94,7 @@
 --   ustun va jadvallarga tegadi).
 --
 -- ── TIRIK SINOV ─────────────────────────────────────────────────────────────
---   5-bo'limda 7 ta holat HAQIQIY INSERT/UPDATE bilan sinaladi va SENTINEL-
+--   5-bo'limda 12 ta holat HAQIQIY INSERT/UPDATE bilan sinaladi va SENTINEL-
 --   ROLLBACK bilan qaytariladi — bazada BITTA qator ham qolmaydi. Bittasi
 --   kutilgandek chiqmasa BUTUN migratsiya qaytadi (COMMIT bo'lmaydi).
 --   ⚠️ Aniqlik: sinov qatorlari tasks.id sequence'ini bir necha pog'ona
@@ -114,13 +134,16 @@ END $pre$;
 -- ════════════════════════════════════════════════════════════════════════════
 DO $typ$
 DECLARE
-  v_days text;
-  v_time text;
+  v_days  text;
+  v_time  text;
+  v_hours text;
 BEGIN
   SELECT data_type INTO v_days FROM information_schema.columns
    WHERE table_schema = 'public' AND table_name = 'tasks' AND column_name = 'deadline_days';
   SELECT data_type INTO v_time FROM information_schema.columns
    WHERE table_schema = 'public' AND table_name = 'tasks' AND column_name = 'deadline_time';
+  SELECT data_type INTO v_hours FROM information_schema.columns
+   WHERE table_schema = 'public' AND table_name = 'tasks' AND column_name = 'deadline_hours';
 
   IF v_days IS NOT NULL AND v_days <> 'smallint' THEN
     RAISE EXCEPTION 'public.tasks.deadline_days ALLAQACHON mavjud, lekin tipi "%" (kutilgan: smallint). Skript uni O''ZGARTIRMAYDI (ma''lumot yo''qolishi mumkin). Qo''lda hal qiling: ustunni ko''rib chiqing yoki nomini o''zgartiring, so''ng bu skriptni qayta RUN qiling. Hech narsa o''zgartirilmadi.', v_days;
@@ -128,6 +151,10 @@ BEGIN
 
   IF v_time IS NOT NULL AND v_time NOT IN ('text', 'character varying') THEN
     RAISE EXCEPTION 'public.tasks.deadline_time ALLAQACHON mavjud, lekin tipi "%" (kutilgan: text). Skript uni O''ZGARTIRMAYDI. Hech narsa o''zgartirilmadi.', v_time;
+  END IF;
+
+  IF v_hours IS NOT NULL AND v_hours <> 'smallint' THEN
+    RAISE EXCEPTION 'public.tasks.deadline_hours ALLAQACHON mavjud, lekin tipi "%" (kutilgan: smallint). Skript uni O''ZGARTIRMAYDI (ma''lumot yo''qolishi mumkin). Qo''lda hal qiling: ustunni ko''rib chiqing yoki nomini o''zgartiring, so''ng bu skriptni qayta RUN qiling. Hech narsa o''zgartirilmadi.', v_hours;
   END IF;
 
   IF v_time = 'character varying' THEN
@@ -153,6 +180,14 @@ INSERT INTO pg_temp.rdl_pre VALUES
                         WHERE conname = 'tasks_deadline_days_chk' AND conrelid = 'public.tasks'::regclass)),
   ('chk_time', EXISTS (SELECT 1 FROM pg_constraint
                         WHERE conname = 'tasks_deadline_time_chk' AND conrelid = 'public.tasks'::regclass)),
+  ('col_hours', EXISTS (SELECT 1 FROM information_schema.columns
+                        WHERE table_schema = 'public' AND table_name = 'tasks' AND column_name = 'deadline_hours')),
+  ('chk_hours', EXISTS (SELECT 1 FROM pg_constraint
+                        WHERE conname = 'tasks_deadline_hours_chk' AND conrelid = 'public.tasks'::regclass)),
+  -- 🔴 pair CHECK BOR, lekin ESKI (2 ustunli) tanasi bilanmi? (deadline_hours ni bilmaydi)
+  ('chk_pair_old', EXISTS (SELECT 1 FROM pg_constraint
+                        WHERE conname = 'tasks_deadline_rel_pair_chk' AND conrelid = 'public.tasks'::regclass
+                          AND strpos(pg_get_constraintdef(oid), 'deadline_hours') = 0)),
   ('chk_pair', EXISTS (SELECT 1 FROM pg_constraint
                         WHERE conname = 'tasks_deadline_rel_pair_chk' AND conrelid = 'public.tasks'::regclass));
 
@@ -162,12 +197,16 @@ INSERT INTO pg_temp.rdl_pre VALUES
 -- ════════════════════════════════════════════════════════════════════════════
 ALTER TABLE public.tasks ADD COLUMN IF NOT EXISTS deadline_days smallint;
 ALTER TABLE public.tasks ADD COLUMN IF NOT EXISTS deadline_time text;
+ALTER TABLE public.tasks ADD COLUMN IF NOT EXISTS deadline_hours smallint;
 
 COMMENT ON COLUMN public.tasks.deadline_days IS
   'NISBIY DEADLINE — MANBA (faqat loyiha bosqichlari uchun ma''noli). Ma''nosi: anchor + N kun. 🔴 0 YAROQLI = anchor kunining O''ZI ("o''sha kuni"). NULL = bosqich ESKI usulda, absolut tasks.deadline bilan ishlaydi. 🔴 BOSHLANISH NUQTASI (anchor) BAZADA SAQLANMAYDI va SERVER uni HISOBLAMAYDI — u MIJOZDA (rdlAnchor) topiladi: kutish bog''lanishlari bo''lsa ularning eng kechki tugash vaqti; depends_on_prev bo''lsa oldingi bosqich (flow_order) tugash vaqti; aks holda projects.start_at (yo''q bo''lsa projects.created_at). Hisoblangan ABSOLUT natija tasks.deadline ga yoziladi (rdlSync) — tasks.deadline butun ilova uchun yagona haqiqat bo''lib qoladi.';
 
 COMMENT ON COLUMN public.tasks.deadline_time IS
-  'NISBIY DEADLINE — MANBA: hisoblangan kundagi soat HH:MM (24 soatlik, Asia/Tashkent). deadline_days bilan BIRGA to''ladi yoki ikkovi NULL (tasks_deadline_rel_pair_chk) — soat MAJBURIY, usiz absolut deadline ni hisoblab bo''lmaydi. Anchor noma''lum bo''lganda mijoz tasks.deadline ni NULL qoldiradi va ekranda nisbiy yorliq ko''rsatadi (yolg''on sana yozilmaydi).';
+  'NISBIY DEADLINE — MANBA, "KUN + SOAT" rejimidagi soat HH:MM (24 soatlik, Asia/Tashkent). deadline_days bilan BIRGA to''ladi yoki ikkovi NULL (tasks_deadline_rel_pair_chk) — soat MAJBURIY, usiz absolut deadline ni hisoblab bo''lmaydi. 🔴 deadline_hours bilan BIRGA TO''LMAYDI (rejim XOR). Anchor noma''lum bo''lganda mijoz tasks.deadline ni NULL qoldiradi va ekranda nisbiy yorliq ko''rsatadi (yolg''on sana yozilmaydi).';
+
+COMMENT ON COLUMN public.tasks.deadline_hours IS
+  'NISBIY DEADLINE — MANBA, IKKINCHI REJIM: SOATLIK DAVOMIYLIK. Ma''nosi: anchor + N SOAT (1..8760 = 1 soat … 1 yil). Misol: "1 soat", "4 soat" — bosqich boshlanish nuqtasidan shuncha soat keyin tugashi kerak. 🔴 Bu rejimda deadline_days ham, deadline_time ham TO''LDIRILMAYDI (tasks_deadline_rel_pair_chk = rejim XOR): kun+soat va soatlik davomiylik — BIR deadline ni hisoblashning ikki HAR XIL usuli; ikkovi birga bo''lsa qaysi biri ustunligi noaniq bo''lardi. ⚠️ deadline_days = 0 BOSHQA ma''no ("o''sha kuni soat HH:MM") va u O''ZGARMADI. 🔴 Anchor BAZADA SAQLANMAYDI va SERVER uni HISOBLAMAYDI — mijozdagi rdlAnchor topadi, hisoblangan ABSOLUT natija tasks.deadline ga yoziladi (rdlSync).';
 
 -- ════════════════════════════════════════════════════════════════════════════
 -- 2) CHECK CHEKLOVLARI (TEXT + CHECK — ENUM EMAS, 30/32-migratsiyalar saboqi)
@@ -176,6 +215,8 @@ COMMENT ON COLUMN public.tasks.deadline_time IS
 --    ⚠️ conname global unikal EMAS → conrelid bilan skoplangan.
 -- ════════════════════════════════════════════════════════════════════════════
 DO $chk$
+DECLARE
+  v_pair text;
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_constraint
                   WHERE conname = 'tasks_deadline_days_chk'
@@ -191,19 +232,46 @@ BEGIN
       CHECK (deadline_time IS NULL OR deadline_time ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$');
   END IF;
 
-  -- 🔴 Juftlik: ikkovi birga to'ladi yoki ikkovi NULL (yolg'iz soat ham to'siladi).
-  --    "(a IS NULL) = (b IS NULL)" — mavjud org_folders.node_x/node_y naqshi.
   IF NOT EXISTS (SELECT 1 FROM pg_constraint
-                  WHERE conname = 'tasks_deadline_rel_pair_chk'
+                  WHERE conname = 'tasks_deadline_hours_chk'
                     AND conrelid = 'public.tasks'::regclass) THEN
+    ALTER TABLE public.tasks ADD CONSTRAINT tasks_deadline_hours_chk
+      CHECK (deadline_hours IS NULL OR (deadline_hours >= 1 AND deadline_hours <= 8760));
+  END IF;
+
+  -- 🔴 REJIM XOR: A) hammasi NULL · B) days + time · C) hours — AYNAN BITTASI.
+  --    Yolg'iz soat, yolg'iz kun va aralash (days+hours / time+hours) — HAMMASI RAD.
+  --    ⚠️ Bu cheklov ESKI (2 ustunli) juftlik cheklovining O'RNINI oladi: NOM
+  --       SAQLANADI (mijoz xato matnini nomga qarab taniydi), TANASI kengayadi.
+  SELECT pg_get_constraintdef(oid) INTO v_pair
+    FROM pg_constraint
+   WHERE conname = 'tasks_deadline_rel_pair_chk'
+     AND conrelid = 'public.tasks'::regclass;
+
+  IF v_pair IS NULL THEN
     ALTER TABLE public.tasks ADD CONSTRAINT tasks_deadline_rel_pair_chk
-      CHECK ((deadline_days IS NULL) = (deadline_time IS NULL));
+      CHECK ((deadline_days IS NULL     AND deadline_time IS NULL     AND deadline_hours IS NULL)
+          OR (deadline_days IS NOT NULL AND deadline_time IS NOT NULL AND deadline_hours IS NULL)
+          OR (deadline_days IS NULL     AND deadline_time IS NULL     AND deadline_hours IS NOT NULL));
+  ELSIF strpos(v_pair, 'deadline_hours') = 0 THEN
+    -- Ta'rifda deadline_hours YO'Q → bu ESKI versiya (yoki BEGONA cheklov).
+    -- 🔴 Faqat AYNAN taniganimizni almashtiramiz; boshqasiga TEGMAYMIZ.
+    IF strpos(v_pair, 'deadline_days') > 0 AND strpos(v_pair, 'deadline_time') > 0 THEN
+      ALTER TABLE public.tasks DROP CONSTRAINT tasks_deadline_rel_pair_chk;
+      ALTER TABLE public.tasks ADD CONSTRAINT tasks_deadline_rel_pair_chk
+        CHECK ((deadline_days IS NULL     AND deadline_time IS NULL     AND deadline_hours IS NULL)
+            OR (deadline_days IS NOT NULL AND deadline_time IS NOT NULL AND deadline_hours IS NULL)
+            OR (deadline_days IS NULL     AND deadline_time IS NULL     AND deadline_hours IS NOT NULL));
+      RAISE NOTICE 'tasks_deadline_rel_pair_chk ESKI (2 ustunli) tanasi bilan turgan edi — REJIM XOR ga kengaytirildi. Mavjud qatorlar buzilmaydi: yangi ta''rif eski YAROQLI holatlarning HAMMASINI (hammasi NULL / days+time) qabul qiladi.';
+    ELSE
+      RAISE EXCEPTION 'tasks_deadline_rel_pair_chk MAVJUD, lekin ta''rifi BEGONA (deadline_days / deadline_time ga murojaat qilmaydi): %. Skript begona cheklovni O''ZGARTIRMAYDI — qo''lda ko''rib chiqing. HAMMASI QAYTARILDI.', v_pair;
+    END IF;
   END IF;
 END $chk$;
 
 -- ════════════════════════════════════════════════════════════════════════════
 -- 3) TEKSHIRUV — jimgina o'tmasin
---    (a) 2 ustun bor · (b) 3 CHECK bor · (c) CHECK TA'RIFLARI kutilganday
+--    (a) 3 ustun bor · (b) 4 CHECK bor · (c) CHECK TA'RIFLARI kutilganday
 --        (nomi bir xil, tanasi BOSHQA bo'lgan eski cheklov shu yerda tutiladi)
 -- ════════════════════════════════════════════════════════════════════════════
 DO $ver$
@@ -215,21 +283,23 @@ DECLARE
 BEGIN
   SELECT count(*) INTO v_cols FROM information_schema.columns
    WHERE table_schema = 'public' AND table_name = 'tasks'
-     AND column_name IN ('deadline_days', 'deadline_time');
-  IF v_cols <> 2 THEN
-    RAISE EXCEPTION 'TEKSHIRUV: 2 ustun kutilgandi, % ta topildi. HAMMASI QAYTARILDI.', v_cols;
+     AND column_name IN ('deadline_days', 'deadline_time', 'deadline_hours');
+  IF v_cols <> 3 THEN
+    RAISE EXCEPTION 'TEKSHIRUV: 3 ustun kutilgandi, % ta topildi. HAMMASI QAYTARILDI.', v_cols;
   END IF;
 
   SELECT count(*) INTO v_chks FROM pg_constraint
    WHERE contype = 'c' AND conrelid = 'public.tasks'::regclass
-     AND conname IN ('tasks_deadline_days_chk', 'tasks_deadline_time_chk', 'tasks_deadline_rel_pair_chk');
-  IF v_chks <> 3 THEN
+     AND conname IN ('tasks_deadline_days_chk', 'tasks_deadline_time_chk',
+                     'tasks_deadline_hours_chk', 'tasks_deadline_rel_pair_chk');
+  IF v_chks <> 4 THEN
     SELECT string_agg(c, ', ') INTO v_miss FROM unnest(ARRAY[
-      'tasks_deadline_days_chk', 'tasks_deadline_time_chk', 'tasks_deadline_rel_pair_chk'
+      'tasks_deadline_days_chk', 'tasks_deadline_time_chk',
+      'tasks_deadline_hours_chk', 'tasks_deadline_rel_pair_chk'
     ]) c WHERE NOT EXISTS (SELECT 1 FROM pg_constraint
                             WHERE contype = 'c' AND conname = c
                               AND conrelid = 'public.tasks'::regclass);
-    RAISE EXCEPTION 'TEKSHIRUV: 3 CHECK kutilgandi, % ta topildi. Yetishmayapti: %. HAMMASI QAYTARILDI.', v_chks, coalesce(v_miss, '?');
+    RAISE EXCEPTION 'TEKSHIRUV: 4 CHECK kutilgandi, % ta topildi. Yetishmayapti: %. HAMMASI QAYTARILDI.', v_chks, coalesce(v_miss, '?');
   END IF;
 
   -- (c) TA'RIFLAR
@@ -246,13 +316,23 @@ BEGIN
   END IF;
 
   SELECT pg_get_constraintdef(oid) INTO v_def FROM pg_constraint
-   WHERE conname = 'tasks_deadline_rel_pair_chk' AND conrelid = 'public.tasks'::regclass;
-  IF strpos(coalesce(v_def, ''), 'deadline_days') = 0
-     OR strpos(coalesce(v_def, ''), 'deadline_time') = 0 THEN
-    RAISE EXCEPTION 'TEKSHIRUV: tasks_deadline_rel_pair_chk ta''rifi ikkala ustunga ham murojaat qilmayapti. Hozirgi ta''rif: %. HAMMASI QAYTARILDI.', coalesce(v_def, 'YO''Q');
+   WHERE conname = 'tasks_deadline_hours_chk' AND conrelid = 'public.tasks'::regclass;
+  IF strpos(coalesce(v_def, ''), '8760') = 0 THEN
+    RAISE EXCEPTION 'TEKSHIRUV: tasks_deadline_hours_chk MAVJUD, lekin ta''rifi kutilganidan BOSHQA (yuqori chegara 8760 topilmadi). Hozirgi ta''rif: %. Skript begona cheklovni O''ZGARTIRMAYDI — qo''lda ko''rib chiqing. HAMMASI QAYTARILDI.', coalesce(v_def, 'YO''Q');
   END IF;
 
-  RAISE NOTICE 'TASKFIX_REL_DEADLINE: struktura OK — 2 ustun + 3 CHECK joyida.';
+  -- 🔴 REJIM XOR: ta'rif UCHALA ustunga ham murojaat qilishi SHART.
+  --    Eski (2 ustunli) tana bu yerda tutiladi — u deadline_hours ni bilmagani
+  --    uchun "hours + days" kabi aralash qatorni JIMGINA o'tkazib yuborardi.
+  SELECT pg_get_constraintdef(oid) INTO v_def FROM pg_constraint
+   WHERE conname = 'tasks_deadline_rel_pair_chk' AND conrelid = 'public.tasks'::regclass;
+  IF strpos(coalesce(v_def, ''), 'deadline_days') = 0
+     OR strpos(coalesce(v_def, ''), 'deadline_time') = 0
+     OR strpos(coalesce(v_def, ''), 'deadline_hours') = 0 THEN
+    RAISE EXCEPTION 'TEKSHIRUV: tasks_deadline_rel_pair_chk ta''rifi UCHALA ustunga ham murojaat qilmayapti (rejim XOR ta''minlanmagan). Hozirgi ta''rif: %. HAMMASI QAYTARILDI.', coalesce(v_def, 'YO''Q');
+  END IF;
+
+  RAISE NOTICE 'TASKFIX_REL_DEADLINE: struktura OK — 3 ustun + 4 CHECK joyida (rejim XOR).';
 END $ver$;
 
 -- ════════════════════════════════════════════════════════════════════════════
@@ -285,7 +365,7 @@ BEGIN
      AND attnum > 0 AND NOT attisdropped AND attacl IS NOT NULL;
 
   IF coalesce(v_colacl, 0) > 0 THEN
-    RAISE WARNING 'public.tasks da USTUN darajasidagi GRANT bor (%). Bunday grant YANGI ustunlarga MEROS O''TMAYDI — deadline_days / deadline_time PostgREST orqali ko''rinmasligi mumkin. Kerak bo''lsa qo''lda: GRANT SELECT(deadline_days, deadline_time), UPDATE(deadline_days, deadline_time) ON public.tasks TO authenticated;', v_names;
+    RAISE WARNING 'public.tasks da USTUN darajasidagi GRANT bor (%). Bunday grant YANGI ustunlarga MEROS O''TMAYDI — deadline_days / deadline_time / deadline_hours PostgREST orqali ko''rinmasligi mumkin. Kerak bo''lsa qo''lda: GRANT SELECT(deadline_days, deadline_time, deadline_hours), UPDATE(deadline_days, deadline_time, deadline_hours) ON public.tasks TO authenticated;', v_names;
   END IF;
 
   -- tasks.deadline NULLABLE bo'lishi SHART (anchor noma'lum bo'lganda NULL qoladi)
@@ -315,9 +395,15 @@ END $rls$;
 --    (b) deadline_days = 3 + soat NULL       → RAD     (pair CHECK)
 --    (c) deadline_time = '25:00'             → RAD     (time CHECK)
 --    (d) deadline_days = -1                  → RAD     (days CHECK)
---    (e) ikkovi NULL                         → O'TADI  (eski qatorlar)
+--    (e) hammasi NULL                        → O'TADI  (eski qatorlar)
 --    (f) mavjud vazifani oddiy yangilash     → O'TADI  (REGRESSIYA yo'q)
 --    (g) deadline_days = 3651                → RAD     (yuqori chegara)
+--    🔴 YANGI — SOATLIK REJIM:
+--    (h) deadline_hours = 1 YOLG'IZ          → O'TADI  (C rejimi)
+--    (i) deadline_hours = 0                  → RAD     (hours CHECK, quyi 1)
+--    (j) deadline_hours = 8761               → RAD     (hours CHECK, yuqori 8760)
+--    (k) hours + days + time BIRGA           → RAD     (pair CHECK — rejim XOR)
+--    (l) hours + time (kunsiz)               → RAD     (pair CHECK — rejim XOR)
 --    ⚠️ Yozuv qiladigan qism ichki blokda ATAYLAB EXCEPTION bilan tugatiladi
 --       → subtranzaksiya qaytadi, bazada BITTA qator ham qolmaydi. Natijalar
 --       xato MATNIDA olib chiqiladi (RDL_PROBE:...).
@@ -347,6 +433,7 @@ DECLARE
   v_n         bigint;
   v_probe     text;
   p_a text; p_b text; p_c text; p_d text; p_e text; p_f text; p_g text;
+  p_h text; p_i text; p_j text; p_k text; p_l text;
 BEGIN
   -- ── (5.0) SINOV UCHUN MA'LUMOT TOPAMIZ ───────────────────────────────────
   --    ⚠️ Loyiha ham, workspace ham YARATMAYMIZ — mavjudidan foydalanamiz
@@ -410,7 +497,7 @@ BEGIN
        AND is_nullable = 'NO' AND column_default IS NULL AND is_identity = 'NO'
        AND column_name NOT IN ('id', 'workspace_id', 'title', 'status', 'project_id',
                                'created_by', 'assigned_to', 'flow_order', 'depends_on_prev',
-                               'deadline', 'deadline_days', 'deadline_time');
+                               'deadline', 'deadline_days', 'deadline_time', 'deadline_hours');
     IF v_bad IS NOT NULL THEN
       v_skip := 'tasks da noma''lum majburiy ustun(lar) bor: ' || v_bad;
     END IF;
@@ -424,7 +511,8 @@ BEGIN
   END IF;
 
   -- ── (5.1) INSERT SHABLONI ────────────────────────────────────────────────
-  --    ⚠️ %L = sarlavha, 1-%s = deadline_days, 2-%s = deadline_time.
+  --    ⚠️ %L = sarlavha, 1-%s = deadline_days, 2-%s = deadline_time,
+  --       3-%s = deadline_hours.
   --       Boshqa marker YO'Q. project_id qiymati id TIPIGA bog'lanmasin deb
   --       subselect bilan beriladi; ehtiyot uchun % qochiriladi (uuid da
   --       bo'lmaydi, lekin u format() shablonining bir qismiga aylanadi).
@@ -435,12 +523,12 @@ BEGIN
     v_prjexpr := 'NULL';
   END IF;
 
-  v_tpl := 'INSERT INTO public.tasks (workspace_id, status, title, project_id, deadline_days, deadline_time'
+  v_tpl := 'INSERT INTO public.tasks (workspace_id, status, title, project_id, deadline_days, deadline_time, deadline_hours'
         || CASE WHEN v_has_flow THEN ', flow_order'      ELSE '' END
         || CASE WHEN v_has_cb   THEN ', created_by'      ELSE '' END
         || CASE WHEN v_has_asg  THEN ', assigned_to'     ELSE '' END
         || CASE WHEN v_has_dpp  THEN ', depends_on_prev' ELSE '' END
-        || ') VALUES (' || quote_literal(v_ws::text) || '::uuid, ''new'', %L, ' || v_prjexpr || ', %s, %s'
+        || ') VALUES (' || quote_literal(v_ws::text) || '::uuid, ''new'', %L, ' || v_prjexpr || ', %s, %s, %s'
         --  ⚠️ flow_order har sinov qatorida BOSHQA bo'lsin: agar bazada
         --     (project_id, flow_order) bo'yicha UNIQUE indeks bo'lsa qattiq
         --     "1" ikkinchi qatordayoq 23505 berib, sinovlar ENV bo'lib
@@ -473,7 +561,7 @@ BEGIN
   BEGIN
     -- (a) 🔴 days = 0 + soat → O'TISHI SHART ("o'sha kuni")
     BEGIN
-      EXECUTE format(v_tpl, 'RDL-SINOV A (sentinel, o''chadi)', '0', quote_literal('09:00')) INTO v_a;
+      EXECUTE format(v_tpl, 'RDL-SINOV A (sentinel, o''chadi)', '0', quote_literal('09:00'), 'NULL') INTO v_a;
       p_a := 'OK';
     EXCEPTION
       WHEN check_violation THEN
@@ -487,9 +575,9 @@ BEGIN
         p_a := 'ENV:' || SQLSTATE || ':' || replace(left(SQLERRM, 60), '|', '/');
     END;
 
-    -- (e) ikkovi NULL → O'TISHI SHART (eski qatorlar naqshi)
+    -- (e) UCHOVI ham NULL → O'TISHI SHART (eski qatorlar naqshi)
     BEGIN
-      EXECUTE format(v_tpl, 'RDL-SINOV E (sentinel, o''chadi)', 'NULL', 'NULL') INTO v_tmp;
+      EXECUTE format(v_tpl, 'RDL-SINOV E (sentinel, o''chadi)', 'NULL', 'NULL', 'NULL') INTO v_tmp;
       p_e := 'OK';
     EXCEPTION
       WHEN check_violation THEN
@@ -505,7 +593,7 @@ BEGIN
 
     -- (b) days bor, soat YO'Q → RAD (pair CHECK)
     BEGIN
-      EXECUTE format(v_tpl, 'RDL-SINOV B (sentinel, o''chadi)', '3', 'NULL') INTO v_tmp;
+      EXECUTE format(v_tpl, 'RDL-SINOV B (sentinel, o''chadi)', '3', 'NULL', 'NULL') INTO v_tmp;
       p_b := 'YOZILDI';
     EXCEPTION
       WHEN check_violation THEN
@@ -521,7 +609,7 @@ BEGIN
 
     -- (c) noto'g'ri soat 25:00 → RAD (time CHECK)
     BEGIN
-      EXECUTE format(v_tpl, 'RDL-SINOV C (sentinel, o''chadi)', '1', quote_literal('25:00')) INTO v_tmp;
+      EXECUTE format(v_tpl, 'RDL-SINOV C (sentinel, o''chadi)', '1', quote_literal('25:00'), 'NULL') INTO v_tmp;
       p_c := 'YOZILDI';
     EXCEPTION
       WHEN check_violation THEN
@@ -537,7 +625,7 @@ BEGIN
 
     -- (d) manfiy kun -1 → RAD (days CHECK)
     BEGIN
-      EXECUTE format(v_tpl, 'RDL-SINOV D (sentinel, o''chadi)', '-1', quote_literal('09:00')) INTO v_tmp;
+      EXECUTE format(v_tpl, 'RDL-SINOV D (sentinel, o''chadi)', '-1', quote_literal('09:00'), 'NULL') INTO v_tmp;
       p_d := 'YOZILDI';
     EXCEPTION
       WHEN check_violation THEN
@@ -553,7 +641,7 @@ BEGIN
 
     -- (g) yuqori chegaradan oshiq 3651 → RAD (days CHECK)
     BEGIN
-      EXECUTE format(v_tpl, 'RDL-SINOV G (sentinel, o''chadi)', '3651', quote_literal('09:00')) INTO v_tmp;
+      EXECUTE format(v_tpl, 'RDL-SINOV G (sentinel, o''chadi)', '3651', quote_literal('09:00'), 'NULL') INTO v_tmp;
       p_g := 'YOZILDI';
     EXCEPTION
       WHEN check_violation THEN
@@ -565,6 +653,86 @@ BEGIN
         END IF;
       WHEN OTHERS THEN
         p_g := 'ENV:' || SQLSTATE || ':' || replace(left(SQLERRM, 60), '|', '/');
+    END;
+
+    -- (h) 🔴 hours = 1 YOLG'IZ → O'TISHI SHART (C rejimi: anchor + 1 soat)
+    BEGIN
+      EXECUTE format(v_tpl, 'RDL-SINOV H (sentinel, o''chadi)', 'NULL', 'NULL', '1') INTO v_tmp;
+      p_h := 'OK';
+    EXCEPTION
+      WHEN check_violation THEN
+        GET STACKED DIAGNOSTICS v_cn = CONSTRAINT_NAME;
+        IF coalesce(v_cn, '') LIKE 'tasks_deadline%' THEN
+          p_h := 'RAD:' || v_cn;
+        ELSE
+          p_h := 'ENV:23514:' || coalesce(v_cn, '?');
+        END IF;
+      WHEN OTHERS THEN
+        p_h := 'ENV:' || SQLSTATE || ':' || replace(left(SQLERRM, 60), '|', '/');
+    END;
+
+    -- (i) hours = 0 → RAD (hours CHECK, quyi chegara 1)
+    BEGIN
+      EXECUTE format(v_tpl, 'RDL-SINOV I (sentinel, o''chadi)', 'NULL', 'NULL', '0') INTO v_tmp;
+      p_i := 'YOZILDI';
+    EXCEPTION
+      WHEN check_violation THEN
+        GET STACKED DIAGNOSTICS v_cn = CONSTRAINT_NAME;
+        IF coalesce(v_cn, '') LIKE 'tasks_deadline%' THEN
+          p_i := 'RAD:' || v_cn;
+        ELSE
+          p_i := 'ENV:23514:' || coalesce(v_cn, '?');
+        END IF;
+      WHEN OTHERS THEN
+        p_i := 'ENV:' || SQLSTATE || ':' || replace(left(SQLERRM, 60), '|', '/');
+    END;
+
+    -- (j) hours = 8761 → RAD (hours CHECK, yuqori chegara 8760 = 1 yil)
+    BEGIN
+      EXECUTE format(v_tpl, 'RDL-SINOV J (sentinel, o''chadi)', 'NULL', 'NULL', '8761') INTO v_tmp;
+      p_j := 'YOZILDI';
+    EXCEPTION
+      WHEN check_violation THEN
+        GET STACKED DIAGNOSTICS v_cn = CONSTRAINT_NAME;
+        IF coalesce(v_cn, '') LIKE 'tasks_deadline%' THEN
+          p_j := 'RAD:' || v_cn;
+        ELSE
+          p_j := 'ENV:23514:' || coalesce(v_cn, '?');
+        END IF;
+      WHEN OTHERS THEN
+        p_j := 'ENV:' || SQLSTATE || ':' || replace(left(SQLERRM, 60), '|', '/');
+    END;
+
+    -- (k) 🔴 REJIM XOR: hours + days + time BIRGA → RAD (pair CHECK)
+    BEGIN
+      EXECUTE format(v_tpl, 'RDL-SINOV K (sentinel, o''chadi)', '3', quote_literal('09:00'), '2') INTO v_tmp;
+      p_k := 'YOZILDI';
+    EXCEPTION
+      WHEN check_violation THEN
+        GET STACKED DIAGNOSTICS v_cn = CONSTRAINT_NAME;
+        IF coalesce(v_cn, '') LIKE 'tasks_deadline%' THEN
+          p_k := 'RAD:' || v_cn;
+        ELSE
+          p_k := 'ENV:23514:' || coalesce(v_cn, '?');
+        END IF;
+      WHEN OTHERS THEN
+        p_k := 'ENV:' || SQLSTATE || ':' || replace(left(SQLERRM, 60), '|', '/');
+    END;
+
+    -- (l) 🔴 REJIM XOR: hours + time (kunsiz) → RAD (pair CHECK)
+    BEGIN
+      EXECUTE format(v_tpl, 'RDL-SINOV L (sentinel, o''chadi)', 'NULL', quote_literal('09:00'), '2') INTO v_tmp;
+      p_l := 'YOZILDI';
+    EXCEPTION
+      WHEN check_violation THEN
+        GET STACKED DIAGNOSTICS v_cn = CONSTRAINT_NAME;
+        IF coalesce(v_cn, '') LIKE 'tasks_deadline%' THEN
+          p_l := 'RAD:' || v_cn;
+        ELSE
+          p_l := 'ENV:23514:' || coalesce(v_cn, '?');
+        END IF;
+      WHEN OTHERS THEN
+        p_l := 'ENV:' || SQLSTATE || ':' || replace(left(SQLERRM, 60), '|', '/');
     END;
 
     -- (f) 🔴 REGRESSIYA: MAVJUD (real) vazifani oddiy yangilash AVVALGIDEK o'tadimi?
@@ -606,7 +774,8 @@ BEGIN
     RAISE EXCEPTION 'RDL_PROBE:%',
       coalesce(p_a, '?') || '|' || coalesce(p_b, '?') || '|' || coalesce(p_c, '?') || '|' ||
       coalesce(p_d, '?') || '|' || coalesce(p_e, '?') || '|' || coalesce(p_f, '?') || '|' ||
-      coalesce(p_g, '?')
+      coalesce(p_g, '?') || '|' || coalesce(p_h, '?') || '|' || coalesce(p_i, '?') || '|' ||
+      coalesce(p_j, '?') || '|' || coalesce(p_k, '?') || '|' || coalesce(p_l, '?')
       USING ERRCODE = '22000';
 
   EXCEPTION WHEN OTHERS THEN
@@ -628,6 +797,11 @@ BEGIN
     p_e := split_part(v_probe, '|', 5);
     p_f := split_part(v_probe, '|', 6);
     p_g := split_part(v_probe, '|', 7);
+    p_h := split_part(v_probe, '|', 8);
+    p_i := split_part(v_probe, '|', 9);
+    p_j := split_part(v_probe, '|', 10);
+    p_k := split_part(v_probe, '|', 11);
+    p_l := split_part(v_probe, '|', 12);
 
     -- ══════════════ 0) MUHIT (ENV) — HUKM CHIQARILMAYDI ══════════════
     --  🔴 Sinov qatorini yozib/yangilab bo'lmagan bo'lsa (begona cheklov,
@@ -636,10 +810,13 @@ BEGIN
     --     bizning CHECK'imiz umuman ishga tushmagan bo'lardi. Bunday holda
     --     migratsiya QAYTARILMAYDI (u to'g'ri), lekin sabab OCHIQ aytiladi.
     IF p_a LIKE 'ENV:%' OR p_b LIKE 'ENV:%' OR p_c LIKE 'ENV:%' OR p_d LIKE 'ENV:%'
-       OR p_e LIKE 'ENV:%' OR p_f LIKE 'ENV:%' OR p_g LIKE 'ENV:%' THEN
+       OR p_e LIKE 'ENV:%' OR p_f LIKE 'ENV:%' OR p_g LIKE 'ENV:%' OR p_h LIKE 'ENV:%'
+       OR p_i LIKE 'ENV:%' OR p_j LIKE 'ENV:%' OR p_k LIKE 'ENV:%' OR p_l LIKE 'ENV:%' THEN
       v_skip := 'sinov muhiti qator yozishga/yangilashga imkon bermadi (bu CHECK''lar aybi EMAS) — a=' || p_a
              || ' b=' || p_b || ' c=' || p_c || ' d=' || p_d
-             || ' e=' || p_e || ' f=' || p_f || ' g=' || p_g;
+             || ' e=' || p_e || ' f=' || p_f || ' g=' || p_g
+             || ' h=' || p_h || ' i=' || p_i || ' j=' || p_j
+             || ' k=' || p_k || ' l=' || p_l;
       RAISE WARNING 'TIRIK SINOVLAR O''TKAZIB YUBORILDI — %. Struktura tekshiruvlari BAJARILDI; prodga chiqishdan oldin QO''LDA sinang.', v_skip;
       INSERT INTO pg_temp.rdl_res VALUES
         (50, 'sinov', 'TIRIK SINOVLAR', 'o''tkazib yuborildi', v_skip);
@@ -652,7 +829,7 @@ BEGIN
     END IF;
 
     IF p_e <> 'OK' THEN
-      RAISE EXCEPTION 'TIRIK SINOV YIQILDI (e) 🔴 REGRESSIYA: ikkala yangi ustun ham NULL bo''lgan qator YOZILMADI (%). Ya''ni ESKI usuldagi har qanday vazifa yaratish buzilgan bo''lardi. HAMMASI QAYTARILDI.', p_e;
+      RAISE EXCEPTION 'TIRIK SINOV YIQILDI (e) 🔴 REGRESSIYA: uchala yangi ustun ham NULL bo''lgan qator YOZILMADI (%). Ya''ni ESKI usuldagi har qanday vazifa yaratish buzilgan bo''lardi. HAMMASI QAYTARILDI.', p_e;
     END IF;
 
     IF p_f <> 'OK' THEN
@@ -675,6 +852,27 @@ BEGIN
       RAISE EXCEPTION 'TIRIK SINOV YIQILDI (g): deadline_days = 3651 rad etilmadi (natija: %, kutilgan: RAD:tasks_deadline_days_chk). Yuqori chegara (3650 kun) ishlamayapti. HAMMASI QAYTARILDI.', p_g;
     END IF;
 
+    -- 🔴 YANGI — SOATLIK REJIM (C)
+    IF p_h <> 'OK' THEN
+      RAISE EXCEPTION 'TIRIK SINOV YIQILDI (h): deadline_hours = 1 YOLG''IZ qabul QILINMADI (%). Bu SOATLIK rejimning o''zi — "1 soat", "4 soat" umuman saqlanmasdi. HAMMASI QAYTARILDI.', p_h;
+    END IF;
+
+    IF p_i <> 'RAD:tasks_deadline_hours_chk' THEN
+      RAISE EXCEPTION 'TIRIK SINOV YIQILDI (i): deadline_hours = 0 rad etilmadi (natija: %, kutilgan: RAD:tasks_deadline_hours_chk). 0 soat — ma''nosiz davomiylik: deadline anchor bilan AYNAN bir xil bo''lardi. HAMMASI QAYTARILDI.', p_i;
+    END IF;
+
+    IF p_j <> 'RAD:tasks_deadline_hours_chk' THEN
+      RAISE EXCEPTION 'TIRIK SINOV YIQILDI (j): deadline_hours = 8761 rad etilmadi (natija: %, kutilgan: RAD:tasks_deadline_hours_chk). Yuqori chegara (8760 soat = 1 yil) ishlamayapti. HAMMASI QAYTARILDI.', p_j;
+    END IF;
+
+    IF p_k <> 'RAD:tasks_deadline_rel_pair_chk' THEN
+      RAISE EXCEPTION 'TIRIK SINOV YIQILDI (k) 🔴 REJIM XOR: deadline_hours + deadline_days + deadline_time BIRGA rad etilmadi (natija: %, kutilgan: RAD:tasks_deadline_rel_pair_chk). Ikki HAR XIL retsept bitta deadline ni da''vo qilardi va mijoz qaysi biri ustunligini bilmasdi. HAMMASI QAYTARILDI.', p_k;
+    END IF;
+
+    IF p_l <> 'RAD:tasks_deadline_rel_pair_chk' THEN
+      RAISE EXCEPTION 'TIRIK SINOV YIQILDI (l) 🔴 REJIM XOR: deadline_hours + deadline_time (kunsiz) rad etilmadi (natija: %, kutilgan: RAD:tasks_deadline_rel_pair_chk). Soatlik rejimda soat-vaqti MA''NOSIZ — u jimgina e''tiborsiz qolib, foydalanuvchi kiritgan qiymat yo''qolardi. HAMMASI QAYTARILDI.', p_l;
+    END IF;
+
     INSERT INTO pg_temp.rdl_res VALUES
       (50, 'sinov', '(a) deadline_days = 0 + soat', '✅ o''tdi',
        '🔴 0 = "o''sha kuni" — YAROQLI qiymat, CHECK uni to''smaydi'),
@@ -683,10 +881,18 @@ BEGIN
       (52, 'sinov', '(c) soat 25:00', '✅ rad etildi', 'tasks_deadline_time_chk (HH:MM regexi)'),
       (53, 'sinov', '(d) days = -1', '✅ rad etildi', 'tasks_deadline_days_chk (quyi chegara 0)'),
       (54, 'sinov', '(g) days = 3651', '✅ rad etildi', 'tasks_deadline_days_chk (yuqori chegara 3650, ~10 yil)'),
-      (55, 'sinov', '(e) ikkovi NULL', '✅ o''tdi', 'Eski qatorlar naqshi — REGRESSIYA yo''q'),
+      (55, 'sinov', '(e) uchovi ham NULL', '✅ o''tdi', 'Eski qatorlar naqshi — REGRESSIYA yo''q'),
       (56, 'sinov', '(f) oddiy UPDATE (title)', '✅ o''tdi',
        'Nishon: ' || v_realsrc || '. UPDATE da Postgres qatorning BARCHA CHECK''larini qayta baholaydi — ya''ni yangi cheklovlar mavjud ma''lumotga zid emas'),
-      (57, 'sinov', 'SENTINEL-ROLLBACK', '✅ toza',
+      (57, 'sinov', '(h) 🔴 deadline_hours = 1 yolg''iz', '✅ o''tdi',
+       'SOATLIK REJIM (C): anchor + N soat. Kun ham, soat-vaqti ham kiritilmaydi'),
+      (58, 'sinov', '(i) deadline_hours = 0', '✅ rad etildi', 'tasks_deadline_hours_chk (quyi chegara 1 soat)'),
+      (59, 'sinov', '(j) deadline_hours = 8761', '✅ rad etildi', 'tasks_deadline_hours_chk (yuqori chegara 8760 = 1 yil)'),
+      (60, 'sinov', '(k) hours + days + time birga', '✅ rad etildi',
+       'tasks_deadline_rel_pair_chk — REJIM XOR: kun+soat va soatlik davomiylik BIR vaqtda bo''lmaydi'),
+      (61, 'sinov', '(l) hours + time (kunsiz)', '✅ rad etildi',
+       'tasks_deadline_rel_pair_chk — REJIM XOR: soatlik rejimda soat-vaqti ma''nosiz, jimgina yo''qolmasin'),
+      (62, 'sinov', 'SENTINEL-ROLLBACK', '✅ toza',
        'Sinov qatorlari subtranzaksiya bilan QAYTARILDI — bazada bitta qator ham qolmadi (sequence bir necha pog''ona siljigan bo''lishi mumkin, bu ma''lumot emas)');
 
     RAISE NOTICE 'TIRIK SINOVLAR O''TDI — sentinel-rollback: bazada bitta qator ham QOLMADI.';
@@ -698,18 +904,24 @@ END $live$;
 -- ════════════════════════════════════════════════════════════════════════════
 DO $rep$
 DECLARE
-  v_pre_days boolean;
-  v_pre_time boolean;
-  v_pre_cd   boolean;
-  v_pre_ct   boolean;
-  v_pre_cp   boolean;
-  v_skipn    int;
+  v_pre_days  boolean;
+  v_pre_time  boolean;
+  v_pre_hours boolean;
+  v_pre_cd    boolean;
+  v_pre_ct    boolean;
+  v_pre_ch    boolean;
+  v_pre_cp    boolean;
+  v_pre_cpold boolean;
+  v_skipn     int;
 BEGIN
-  SELECT v INTO v_pre_days FROM pg_temp.rdl_pre WHERE k = 'col_days';
-  SELECT v INTO v_pre_time FROM pg_temp.rdl_pre WHERE k = 'col_time';
-  SELECT v INTO v_pre_cd   FROM pg_temp.rdl_pre WHERE k = 'chk_days';
-  SELECT v INTO v_pre_ct   FROM pg_temp.rdl_pre WHERE k = 'chk_time';
-  SELECT v INTO v_pre_cp   FROM pg_temp.rdl_pre WHERE k = 'chk_pair';
+  SELECT v INTO v_pre_days  FROM pg_temp.rdl_pre WHERE k = 'col_days';
+  SELECT v INTO v_pre_time  FROM pg_temp.rdl_pre WHERE k = 'col_time';
+  SELECT v INTO v_pre_hours FROM pg_temp.rdl_pre WHERE k = 'col_hours';
+  SELECT v INTO v_pre_cd    FROM pg_temp.rdl_pre WHERE k = 'chk_days';
+  SELECT v INTO v_pre_ct    FROM pg_temp.rdl_pre WHERE k = 'chk_time';
+  SELECT v INTO v_pre_ch    FROM pg_temp.rdl_pre WHERE k = 'chk_hours';
+  SELECT v INTO v_pre_cp    FROM pg_temp.rdl_pre WHERE k = 'chk_pair';
+  SELECT v INTO v_pre_cpold FROM pg_temp.rdl_pre WHERE k = 'chk_pair_old';
 
   INSERT INTO pg_temp.rdl_res VALUES
     (1, 'ustun', 'public.tasks.deadline_days (smallint)',
@@ -717,22 +929,32 @@ BEGIN
      '🔴 MANBA: anchor + N kun. 0 YAROQLI ("o''sha kuni"). NULL = eski (absolut) rejim. Anchor MIJOZDA hisoblanadi.'),
     (2, 'ustun', 'public.tasks.deadline_time (text)',
      CASE WHEN coalesce(v_pre_time, false) THEN 'allaqachon bor edi' ELSE 'QO''SHILDI' END,
-     'MANBA: HH:MM (Asia/Tashkent). Soat MAJBURIY — usiz absolut deadline hisoblanmaydi.'),
+     'MANBA: "KUN + SOAT" rejimidagi HH:MM (Asia/Tashkent). Soat MAJBURIY — usiz absolut deadline hisoblanmaydi.'),
+    (3, 'ustun', '🔴 public.tasks.deadline_hours (smallint)',
+     CASE WHEN coalesce(v_pre_hours, false) THEN 'allaqachon bor edi' ELSE 'QO''SHILDI' END,
+     '🔴 YANGI REJIM — SOATLIK DAVOMIYLIK: anchor + N soat ("1 soat", "4 soat"). Kun ham, soat-vaqti ham kiritilmaydi. deadline_days = 0 ("o''sha kuni soat HH:MM") BOSHQA ma''no va u O''ZGARMADI.'),
     (10, 'CHECK', 'tasks_deadline_days_chk',
      CASE WHEN coalesce(v_pre_cd, false) THEN 'allaqachon bor edi' ELSE 'QO''SHILDI' END,
      'IS NULL OR (0 <= deadline_days <= 3650) — 0 KIRADI, manfiy va ~10 yildan oshiq kirmaydi'),
     (11, 'CHECK', 'tasks_deadline_time_chk',
      CASE WHEN coalesce(v_pre_ct, false) THEN 'allaqachon bor edi' ELSE 'QO''SHILDI' END,
      'IS NULL OR HH:MM regexi — mavjud recur_time bilan AYNAN bir xil shakl'),
-    (12, 'CHECK', 'tasks_deadline_rel_pair_chk',
-     CASE WHEN coalesce(v_pre_cp, false) THEN 'allaqachon bor edi' ELSE 'QO''SHILDI' END,
-     '(deadline_days IS NULL) = (deadline_time IS NULL) — ikkovi birga to''ladi yoki ikkovi NULL. Yolg''iz soat ham TO''SILADI.'),
+    (12, 'CHECK', 'tasks_deadline_hours_chk',
+     CASE WHEN coalesce(v_pre_ch, false) THEN 'allaqachon bor edi' ELSE 'QO''SHILDI' END,
+     'IS NULL OR (1 <= deadline_hours <= 8760) — 1 soatdan 1 yilgacha. 0 KIRMAYDI (ma''nosiz davomiylik).'),
+    (13, 'CHECK', '🔴 tasks_deadline_rel_pair_chk (REJIM XOR)',
+     CASE WHEN coalesce(v_pre_cpold, false) THEN 'ESKI tanasi KENGAYTIRILDI (DROP + qayta ADD, nom saqlandi)'
+          WHEN coalesce(v_pre_cp, false)    THEN 'allaqachon bor edi'
+          ELSE 'QO''SHILDI' END,
+     'A) hammasi NULL · B) days + time · C) hours — AYNAN BITTASI. Yolg''iz soat, yolg''iz kun va aralash (days+hours / time+hours) TO''SILADI. Mavjud qatorlar buzilmaydi — eski YAROQLI holatlarning hammasi qabul qilinadi.'),
     (20, 'qaror', '🔴 TRIGGER / GENERATED COLUMN', 'YO''Q (ataylab)',
      'Absolut deadline ni SERVER hisoblamaydi: anchor "oldingi bosqich TUGAGANDA" bo''lgani uchun hisob HODISAGA bog''liq, ilovada esa cron/EF YO''Q. Trigger mijozdagi rdlSync bilan poyga qilardi va har UPDATE''ga yuk bo''lardi. Mijoz 3 nuqtada yozadi: yaratish · bosqich tugashi · loyiha ochilishi.'),
     (21, 'qaror', 'tasks.deadline (absolut)', 'TEGILMADI',
      'Backfill YO''Q. U butun ilova uchun yagona haqiqat manbai bo''lib qoladi; nisbiy qiymat — faqat MANBA (retsept).'),
     (22, 'qaror', 'indeks', 'QO''SHILMADI',
-     'Bu ustunlar bo''yicha FILTR yo''q — qiymat allaqachon project_id bo''yicha o''qilgan bosqich qatorida keladi.');
+     'Bu ustunlar bo''yicha FILTR yo''q — qiymat allaqachon project_id bo''yicha o''qilgan bosqich qatorida keladi.'),
+    (23, 'qaror', '🔴 deadline_days = 0 semantikasi', 'O''ZGARMADI',
+     '0 = "o''sha kuni soat HH:MM" (B rejimi). Soatlik rejim (C) — BUTUNLAY BOSHQA ma''no: anchor + N soat. Ikkovi bir vaqtda bo''lmaydi (rejim XOR).');
 
   SELECT count(*) INTO v_skipn FROM pg_temp.rdl_res
    WHERE bosqich = 'sinov' AND qiymat LIKE 'o''tkazib%';
@@ -741,7 +963,7 @@ BEGIN
     (99, 'XULOSA',
      CASE WHEN v_skipn = 0 THEN '✅ TIRIK SINOVLAR TO''LIQ BAJARILDI'
           ELSE '🔴 DIQQAT: TIRIK SINOVLAR O''TKAZIB YUBORILDI' END,
-     CASE WHEN v_skipn = 0 THEN '7/7' ELSE '0/7' END,
+     CASE WHEN v_skipn = 0 THEN '12/12' ELSE '0/12' END,
      CASE WHEN v_skipn = 0
           THEN 'Har bir hukm chiqarildi; birortasi salbiy bo''lsa skript COMMIT QILMAGAN bo''lardi. Sinov qatorlari qaytarildi.'
           ELSE '⚠️ Migratsiya COMMIT BO''LDI (struktura to''g''ri), lekin sinovlar bajarilmadi — sabab "sinov" qatorida yozilgan. Prodga chiqishdan oldin QO''LDA sinang.' END);
@@ -771,7 +993,8 @@ SELECT bosqich, nom, qiymat, izoh FROM pg_temp.rdl_res ORDER BY ord;
 --  • "allaqachon bor edi" — skript ikkinchi marta RUN qilingan (yoki ustun
 --    boshqa yo'l bilan qo'shilgan). Bu XATO emas.
 --  • 🔴 ENG MUHIM QATORLAR: (a) 0 yaroqli · (e) va (f) REGRESSIYA yo'q ·
---    (b) soat majburiy.
+--    (b) soat majburiy · (h) soatlik rejim ishlaydi · (k)/(l) rejim XOR
+--    (aralash retsept jimgina yozilib qolmasin).
 --    ⚠️ ANIQLIK: hukm chiqarilib salbiy bo'lsa skript COMMIT QILMAYDI. LEKIN
 --    sinov UMUMAN o'tkazilmagan bo'lishi ham mumkin (bo'sh baza / tasks da
 --    noma'lum majburiy ustun / id da DEFAULT yo'q / sinov qatorini BEGONA
@@ -786,15 +1009,21 @@ SELECT bosqich, nom, qiymat, izoh FROM pg_temp.rdl_res ORDER BY ord;
 --    e'tibor talab qiladi.
 --
 -- ── RUN'DAN KEYIN — MIJOZ TOMONIDA (boshqa agent) ───────────────────────────
---   rdlAnchor(t, list, project) → rdlCompute(anchorMs, days, time) → rdlSync()
+--   rdlAnchor(t, list, project) → rdlCompute(anchorMs, days, time, hours) → rdlSync()
 --   yagona choke-point bo'lib tasks.deadline ni yozadi ({error} + .select()).
+--   🔴 UCHINCHI ARGUMENT: deadline_hours bo'lsa natija = anchor + hours*3600000
+--   (kun/soat-vaqti umuman qaralmaydi); aks holda eski kun+soat yo'li.
+--   Mijoz UCHALA ustunni ham BIRGA yozadi/tozalaydi — rejim almashtirilganda
+--   eski rejim ustunlari NULL ga qaytarilishi SHART, aks holda
+--   tasks_deadline_rel_pair_chk (23514) qaytaradi va saqlash yiqiladi.
 --   Anchor NOMA'LUM bo'lsa deadline NULL qoladi — yolg'on sana yozilmaydi.
 --
 -- ============================================================================
 -- QAYTARISH (kerak bo'lsa — mijoz ularsiz ham ishlaydi, _rdlMissing):
 --   ALTER TABLE public.tasks DROP COLUMN IF EXISTS deadline_days;
 --   ALTER TABLE public.tasks DROP COLUMN IF EXISTS deadline_time;
---   (3 CHECK ustunlar bilan birga o'chadi)
+--   ALTER TABLE public.tasks DROP COLUMN IF EXISTS deadline_hours;
+--   (4 CHECK ustunlar bilan birga o'chadi)
 --   ⚠️ Bu nisbiy RETSEPTNI o'chiradi; allaqachon HISOBLANIB tasks.deadline ga
 --      yozilgan absolut sanalar JOYIDA QOLADI (ular alohida ustun).
 -- ============================================================================

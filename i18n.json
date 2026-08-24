@@ -12775,9 +12775,9 @@
     "en": "Stage added ({0})"
   },
   "rdl.err_pair": {
-    "uz": "Nisbiy muddat: kun soni va soat BIRGA berilishi kerak (yoki ikkovi ham bo'sh).",
-    "ru": "Относительный срок: количество дней и время нужно указывать ВМЕСТЕ (либо оба пустыми).",
-    "en": "Relative deadline: days and time must be provided TOGETHER (or both left empty)."
+    "uz": "Nisbiy muddat: bir vaqtda faqat BITTA rejim — yo kun soni + soat BIRGA, yo faqat soatlik davomiylik, yoki ikkovi ham bo'sh.",
+    "ru": "Относительный срок: одновременно только ОДИН режим — либо количество дней + время ВМЕСТЕ, либо только длительность в часах, либо оба пустые.",
+    "en": "Relative deadline: only ONE mode at a time — either days + time TOGETHER, or just a duration in hours, or both left empty."
   },
   "rdl.err_days": {
     "uz": "Nisbiy muddat: kun soni 0 dan 3650 gacha bo'lishi kerak.",
@@ -12828,6 +12828,76 @@
     "uz": "Bu bosqich muddati NISBIY — u kun soni va soatdan hisoblanadi. Loyihani oching va bosqichdagi \"Muddat: kun/soat\" tugmasidan o'zgartiring.",
     "ru": "Срок этого этапа ОТНОСИТЕЛЬНЫЙ — он вычисляется из количества дней и времени. Откройте проект и измените его кнопкой «Срок: дни/время» на этапе.",
     "en": "This stage has a RELATIVE deadline — it is calculated from a number of days and a time. Open the project and change it with the \"Deadline: days/time\" button on the stage."
+  },
+  "rdl.mode_aria": {
+    "uz": "Muddat rejimi",
+    "ru": "Режим срока",
+    "en": "Deadline mode"
+  },
+  "rdl.mode_days": {
+    "uz": "Kun",
+    "ru": "Дни",
+    "en": "Days"
+  },
+  "rdl.mode_hours": {
+    "uz": "Soat",
+    "ru": "Часы",
+    "en": "Hours"
+  },
+  "rdl.hour_n": {
+    "uz": "{0} soat",
+    "ru": "{0} ч.",
+    "en": "{0} h"
+  },
+  "rdl.hours_unit": {
+    "uz": "soat",
+    "ru": "ч.",
+    "en": "hours"
+  },
+  "rdl.hours_aria": {
+    "uz": "Soat soni",
+    "ru": "Количество часов",
+    "en": "Number of hours"
+  },
+  "rdl.pick_hours": {
+    "uz": "Soat soni 1 dan 8760 gacha bo'lishi kerak",
+    "ru": "Количество часов должно быть от 1 до 8760",
+    "en": "The number of hours must be between 1 and 8760"
+  },
+  "rdl.from_start_h": {
+    "uz": "Loyiha boshlanishidan {0} soat",
+    "ru": "Через {0} ч. после начала проекта",
+    "en": "{0} hours after the project starts"
+  },
+  "rdl.after_prev_h": {
+    "uz": "Oldingi bosqich tugagach {0} soat",
+    "ru": "Через {0} ч. после завершения предыдущего этапа",
+    "en": "{0} hours after the previous stage ends"
+  },
+  "rdl.after_wait_h": {
+    "uz": "Kutilgan bosqichlar tugagach {0} soat",
+    "ru": "Через {0} ч. после завершения ожидаемых этапов",
+    "en": "{0} hours after the awaited stages end"
+  },
+  "rdl.plain_hours": {
+    "uz": "Muddat: {0} soat",
+    "ru": "Срок: {0} ч.",
+    "en": "Deadline: {0} hours"
+  },
+  "rdl.err_hours": {
+    "uz": "Nisbiy muddat: soat soni 1 dan 8760 gacha bo'lishi kerak.",
+    "ru": "Относительный срок: количество часов должно быть от 1 до 8760.",
+    "en": "Relative deadline: the number of hours must be between 1 and 8760."
+  },
+  "rdl.err_mode": {
+    "uz": "Nisbiy muddat: bir vaqtda faqat BITTA rejim — yo kun + soat, yo soatlik davomiylik.",
+    "ru": "Относительный срок: одновременно только ОДИН режим — либо дни + время, либо длительность в часах.",
+    "en": "Relative deadline: only ONE mode at a time — either days + time, or a duration in hours."
+  },
+  "rdl.msg_no_hours_col": {
+    "uz": "soatlik rejim yo'q — TASKFIX_REL_DEADLINE.sql (deadline_hours) ishga tushirilmagan",
+    "ru": "почасовой режим недоступен — TASKFIX_REL_DEADLINE.sql (deadline_hours) не выполнен",
+    "en": "the hourly mode is unavailable — TASKFIX_REL_DEADLINE.sql (deadline_hours) has not been run"
   },
   "arst.btn": {
     "uz": "ArosStaff'dan ko'chirish",
