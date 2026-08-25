@@ -13454,11 +13454,6 @@
     "ru": "Прошлый цикл — только просмотр. Чтобы изменить, вернитесь к текущему циклу.",
     "en": "Past cycle — view only. Switch back to the current cycle to make changes."
   },
-  "page-project.tab_templates": {
-    "uz": "Shablonlar",
-    "ru": "Шаблоны",
-    "en": "Templates"
-  },
   "shbu.badge": {
     "uz": "Shablon",
     "ru": "Шаблон",
@@ -13473,11 +13468,6 @@
     "uz": "{0} marta ochilgan",
     "ru": "Открыт {0} раз",
     "en": "Opened {0} times"
-  },
-  "shbu.intro": {
-    "uz": "Shablon — bosqichning TA'RIFI. Har sikl uchun undan yangi vazifa ochiladi. Shablonni tahrirlash faqat KELAJAKDAGI sikllarga ta'sir qiladi; bugungi vazifani o'zgartirish uchun Flow tabidagi bosqichni tahrirlang.",
-    "ru": "Шаблон — это ОПРЕДЕЛЕНИЕ этапа. Для каждого цикла из него создаётся новая задача. Редактирование шаблона влияет только на БУДУЩИЕ циклы; чтобы изменить сегодняшнюю задачу, отредактируйте этап во вкладке Flow.",
-    "en": "A template is the DEFINITION of a stage. A new task is created from it for every cycle. Editing a template affects FUTURE cycles only; to change today's task, edit the stage in the Flow tab."
   },
   "shbu.sec_history": {
     "uz": "Shablon tarixi",
@@ -13594,16 +13584,6 @@
     "ru": "Шаблон обновлён ({0})",
     "en": "Template updated ({0})"
   },
-  "shbu.off_title": {
-    "uz": "Shablonlar yo'q",
-    "ru": "Шаблонов нет",
-    "en": "No templates"
-  },
-  "shbu.off_sub": {
-    "uz": "Bu loyihada shablon bosqichlari yo'q yoki TASKFIX_SHABLON.sql hali ishga tushirilmagan.",
-    "ru": "В этом проекте нет шаблонных этапов либо TASKFIX_SHABLON.sql ещё не запущен.",
-    "en": "This project has no template stages, or TASKFIX_SHABLON.sql has not been run yet."
-  },
   "shb.open_template": {
     "uz": "Bu — bosqich SHABLONI (ta'rif), vazifa emas. Uni loyihaning \"Shablonlar\" bo'limida oching.",
     "ru": "Это ШАБЛОН этапа (определение), а не задача. Откройте его в разделе «Шаблоны» проекта.",
@@ -13658,5 +13638,155 @@
     "uz": "Filtrlar tozalandi",
     "ru": "Фильтры сброшены",
     "en": "Filters cleared"
+  },
+  "cyc.empty_hist_sub": {
+    "uz": "O'sha davrda shablonlardan vazifa ochilmagan yoki ular keyinroq o'chirilgan.",
+    "ru": "В тот период задачи из шаблонов не создавались либо были удалены позже.",
+    "en": "No tasks were created from templates in that period, or they were deleted later."
+  },
+  "cyc.empty_hist_title": {
+    "uz": "Bu siklda vazifa ochilmagan",
+    "ru": "В этом цикле задач не было",
+    "en": "No tasks in this cycle"
+  },
+  "cyc.hist_first": {
+    "uz": "Hali tarix yo'q — 1-sikl davom etmoqda. Loyiha qayta boshlanganda bu sikl tarixga tushadi va shu yerdan reja/fakt bilan ko'riladi.",
+    "ru": "Истории пока нет — идёт 1-й цикл. Когда проект перезапустится, этот цикл попадёт в историю и будет виден здесь с планом и фактом.",
+    "en": "No history yet — cycle 1 is in progress. When the project restarts, this cycle moves to history and can be viewed here with plan and fact."
+  },
+  "cyc.hist_have": {
+    "uz": "Joriy sikl ko'rsatilmoqda. Tarixda {0} ta sikl bor — yuqoridagi tanlagichdan o'tgan siklni oching.",
+    "ru": "Показан текущий цикл. В истории {0} цикла — откройте прошлый цикл в селекторе выше.",
+    "en": "Showing the current cycle. History has {0} cycles — open a past one in the selector above."
+  },
+  "cyc.hist_none_yet": {
+    "uz": "Sikl tarixi hali boshlanmagan — loyiha birinchi marta qayta boshlanganda o'tgan sikl shu yerda saqlanadi.",
+    "ru": "История циклов ещё не началась — когда проект перезапустится в первый раз, прошедший цикл сохранится здесь.",
+    "en": "Cycle history has not started yet — when the project restarts for the first time, the past cycle will be kept here."
+  },
+  "cyc.hist_viewing": {
+    "uz": "Tarixiy sikl: {0}. Quyida o'sha siklning vazifalari reja va fakt bo'yicha ko'rsatilgan.",
+    "ru": "Прошлый цикл: {0}. Ниже показаны задачи этого цикла по плану и факту.",
+    "en": "Past cycle: {0}. Below are that cycle's tasks by plan and fact."
+  },
+  "rdl.est_note": {
+    "uz": "Aniq sana bosqich boshlangach hisoblanadi — bu oldingi bosqichlar rejasidan chiqqan taxmin.",
+    "ru": "Точная дата будет вычислена, когда этап начнётся, — это оценка по плану предыдущих этапов.",
+    "en": "The exact date is calculated once the stage starts — this is an estimate from the previous stages' plan."
+  },
+  "shb.add_tpl_btn": {
+    "uz": "+ Shablon qo'shish",
+    "ru": "+ Добавить шаблон",
+    "en": "+ Add template"
+  },
+  "shb.go_templates": {
+    "uz": "Shablonlarga o'tish",
+    "ru": "Перейти к шаблонам",
+    "en": "Go to templates"
+  },
+  "shb.kan_empty_sub": {
+    "uz": "Loyihada shablonlar bor, lekin joriy siklda ulardan vazifa ochilmagan. Yangi sikl boshlanganda ular shu yerda paydo bo'ladi.",
+    "ru": "В проекте есть шаблоны, но в текущем цикле из них не создано ни одной задачи. Они появятся здесь, когда начнётся новый цикл.",
+    "en": "The project has templates, but no tasks were created from them in the current cycle. They will appear here when a new cycle starts."
+  },
+  "shb.kan_empty_title": {
+    "uz": "Hali vazifa ochilmagan",
+    "ru": "Задачи ещё не созданы",
+    "en": "No tasks created yet"
+  },
+  "shb.new_tpl_title": {
+    "uz": "Yangi shablon",
+    "ru": "Новый шаблон",
+    "en": "New template"
+  },
+  "shb.tpl_added": {
+    "uz": "Shablon qo'shildi — joriy siklda vazifa ochildi",
+    "ru": "Шаблон добавлен — задача в текущем цикле создана",
+    "en": "Template added — a task was created in the current cycle"
+  },
+  "shbu.intro_flow": {
+    "uz": "Bu yerdagi qatorlar — loyihaning SHABLONLARI: har sikl uchun ulardan yangi vazifa ochiladi. Shablonni tahrirlash faqat KELAJAKDAGI sikllarga ta'sir qiladi. Ochilgan haqiqiy vazifalarni Kanban tabida ko'rasiz.",
+    "ru": "Строки здесь — это ШАБЛОНЫ проекта: для каждого цикла из них создаётся новая задача. Редактирование шаблона влияет только на БУДУЩИЕ циклы. Созданные реальные задачи вы увидите во вкладке «Канбан».",
+    "en": "The rows here are the project TEMPLATES: a new task is created from each one for every cycle. Editing a template affects FUTURE cycles only. The real tasks created from them are in the Kanban tab."
+  },
+  "shb.tag_wait_n": {
+    "uz": "Kutadi: {0} shablon",
+    "ru": "Ждёт: {0} шаблон(ов)",
+    "en": "Waits for {0} template(s)"
+  },
+  "shb.edit_mode_btn": {
+    "uz": "Shablon turi / kutish",
+    "ru": "Тип шаблона / ожидание",
+    "en": "Template type / waiting"
+  },
+  "shb.edit_mode_title": {
+    "uz": "Shablon turini o'zgartirish",
+    "ru": "Изменить тип шаблона",
+    "en": "Change template type"
+  },
+  "shb.field_mode": {
+    "uz": "Shablon turi",
+    "ru": "Тип шаблона",
+    "en": "Template type"
+  },
+  "shb.field_wait": {
+    "uz": "Qaysi shablonlarni kutadi?",
+    "ru": "Каких шаблонов ждёт?",
+    "en": "Which templates does it wait for?"
+  },
+  "shb.ph_search_tpl": {
+    "uz": "Shablonni qidiring…",
+    "ru": "Найдите шаблон…",
+    "en": "Search a template…"
+  },
+  "shb.hint_wait": {
+    "uz": "Faqat tepadagi shablonlar. Hammasi tugagach bu shablon ochiladi.",
+    "ru": "Только шаблоны выше. Этот шаблон откроется, когда все они завершатся.",
+    "en": "Only templates above. This template opens when all of them are done."
+  },
+  "shb.mode_seq_desc": {
+    "uz": "Oldingi shablon tugagach ochiladi.",
+    "ru": "Открывается после завершения предыдущего шаблона.",
+    "en": "Opens after the previous template is completed."
+  },
+  "shb.mode_wait_desc": {
+    "uz": "Tanlangan shablonlar tugagach ochiladi.",
+    "ru": "Открывается после завершения выбранных шаблонов.",
+    "en": "Opens after the selected templates are completed."
+  },
+  "shb.mode_saved": {
+    "uz": "Shablon turi saqlandi — keyingi sikllarga ta'sir qiladi",
+    "ru": "Тип шаблона сохранён — повлияет на следующие циклы",
+    "en": "Template type saved — affects the next cycles"
+  },
+  "shb.order_changed": {
+    "uz": "Shablon tartibi o'zgartirildi — keyingi sikllarga ta'sir qiladi",
+    "ru": "Порядок шаблонов изменён — повлияет на следующие циклы",
+    "en": "Template order changed — affects the next cycles"
+  },
+  "shb.field_tpl_title": {
+    "uz": "Shablon nomi",
+    "ru": "Название шаблона",
+    "en": "Template name"
+  },
+  "shb.rdl_field_label": {
+    "uz": "Muddat — shablon boshlangandan keyin (ixtiyoriy)",
+    "ru": "Срок — после начала шаблона (необязательно)",
+    "en": "Deadline — after the template starts (optional)"
+  },
+  "cyc.hist_first_closed": {
+    "uz": "1-sikl yakunlangan, yangisi hali ochilmagan. Loyiha qayta boshlanganda bu sikl tarixga tushadi va shu yerdan reja/fakt bilan ko'riladi.",
+    "ru": "1-й цикл завершён, новый ещё не открыт. Когда проект перезапустится, этот цикл попадёт в историю и будет виден здесь с планом и фактом.",
+    "en": "Cycle 1 is finished, a new one has not started yet. When the project restarts, this cycle moves to history and can be viewed here with plan and fact."
+  },
+  "cyc.hist_have_one": {
+    "uz": "Joriy sikl ko'rsatilmoqda. Tarixda {0} ta sikl bor — yuqoridagi tanlagichdan o'tgan siklni oching.",
+    "ru": "Показан текущий цикл. В истории {0} цикл — откройте прошлый цикл в селекторе выше.",
+    "en": "Showing the current cycle. History has {0} cycles — open a past one in the selector above."
+  },
+  "cyc.hist_have_many": {
+    "uz": "Joriy sikl ko'rsatilmoqda. Tarixda {0} ta sikl bor — yuqoridagi tanlagichdan o'tgan siklni oching.",
+    "ru": "Показан текущий цикл. В истории {0} циклов — откройте прошлый цикл в селекторе выше.",
+    "en": "Showing the current cycle. History has {0} cycles — open a past one in the selector above."
   }
 }
