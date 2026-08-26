@@ -1238,8 +1238,24 @@ DECLARE
   v_left       int := 0;
   v_cond       text;
 BEGIN
-  SELECT v INTO v_inc FROM pg_temp.t8_cfg WHERE k = 'include_completed';
+  -- ⚠️ SOZLAMA TEMP JADVALI BO'LMASLIGI MUMKIN. `pg_temp.t8_cfg` fayl boshida
+  --    `ON COMMIT DROP` bilan yaratiladi, ya'ni FAQAT butun fayl BITTA
+  --    tranzaksiyada ishga tushirilganda yashaydi. Skript BO'LIMLARGA BO'LIB
+  --    (Supabase SQL Editor'da qismma-qism) ishga tushirilsa, oldingi bo'lim
+  --    COMMIT bo'lgan zahoti jadval yo'qoladi va bu blok `42P01` bilan
+  --    yiqilardi. Endi: jadval bo'lsa — undan, bo'lmasa — SUKUT qiymat.
+  -- 🔴 Sukut fayl boshidagi `v_include_completed` bilan AYNAN BIR XIL (true)
+  --    bo'lishi shart — ikkisi ajralsa bir xil skript ikki xil ish qilardi.
+  IF to_regclass('pg_temp.t8_cfg') IS NOT NULL THEN
+    SELECT v INTO v_inc FROM pg_temp.t8_cfg WHERE k = 'include_completed';
+  ELSE
+    v_inc := NULL;
+    RAISE NOTICE 'ℹ️  pg_temp.t8_cfg yo''q (skript bo''limlarga bo''lib RUN qilingan) — sukut qiymat ishlatiladi.';
+    RAISE NOTICE '    Faqat faol vazifalarni xohlasangiz: pastdagi COALESCE(v_inc, true) dagi true → false.';
+  END IF;
   v_inc := COALESCE(v_inc, true);
+  RAISE NOTICE 'ℹ️  include_completed = % → statuslar: %', v_inc,
+    CASE WHEN v_inc THEN 'qabul_kutilyapti + completed' ELSE 'faqat qabul_kutilyapti' END;
   v_st  := CASE WHEN v_inc THEN ARRAY['qabul_kutilyapti','completed']
                 ELSE ARRAY['qabul_kutilyapti'] END;
 
@@ -1328,6 +1344,18 @@ DECLARE
 BEGIN
   RAISE NOTICE '';
   RAISE NOTICE '════════════════ TASKFIX_8ISH.sql — XULOSA ════════════════';
+  -- ⚠️ `_t8_before` ham `ON COMMIT DROP` (0-bo'limda yaratiladi). Skript
+  --    bo'limlarga bo'lib RUN qilinsa u yo'q bo'ladi va bu blok `42P01`
+  --    bilan yiqilardi — ya'ni HAMMA ISH TO'G'RI BAJARILGANIDAN KEYIN,
+  --    faqat hisobot sababli. XULOSA — ma'lumot, to'siq emas: jadval
+  --    bo'lmasa jimgina o'tkazib yuboriladi va sabab aytiladi.
+  IF to_regclass('pg_temp._t8_before') IS NULL THEN
+    RAISE NOTICE 'ℹ️  "oldingi holat" fotosurati yo''q (skript bo''limlarga bo''lib RUN qilingan).';
+    RAISE NOTICE '    Nima qo''shilgani/bor ekani solishtirilmaydi — bu XATO EMAS.';
+    RAISE NOTICE '    To''liq xulosa uchun butun faylni BITTA marta RUN qiling (idempotent, xavfsiz).';
+    RAISE NOTICE '═══════════════════════════════════════════════════════════';
+    RETURN;
+  END IF;
   FOR r IN
     SELECT k, v FROM _t8_before
      ORDER BY CASE k
