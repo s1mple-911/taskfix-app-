@@ -14268,5 +14268,50 @@
     "uz": "muallif: {0}",
     "ru": "автор: {0}",
     "en": "author: {0}"
+  },
+  "rcp.copy_label": {
+    "uz": "Oldingi vazifadan ma'lumotlarni ko'chirish",
+    "ru": "Копировать данные из предыдущей задачи",
+    "en": "Copy data from the previous task"
+  },
+  "rcp.copy_hint": {
+    "uz": "Izohlar va biriktirilgan fayllar keyingi takrorga ko'chiriladi",
+    "ru": "Комментарии и вложения будут скопированы в следующий повтор",
+    "en": "Comments and attachments will be copied to the next repeat"
+  },
+  "rcp.no_col": {
+    "uz": "Ko'chirish sozlamasi saqlanmadi — TASKFIX_8ISH.sql ishga tushirilmagan",
+    "ru": "Настройка копирования не сохранена — TASKFIX_8ISH.sql не выполнен",
+    "en": "Copy setting was not saved — TASKFIX_8ISH.sql has not been run"
+  },
+  "rcp.cut": {
+    "uz": "Ko'chirish chegarasi: {0} ta izoh / {1} ta fayldan ortig'i ko'chirilmadi",
+    "ru": "Лимит копирования: сверх {0} комментариев / {1} файлов не скопировано",
+    "en": "Copy limit: anything beyond {0} comments / {1} files was not copied"
+  },
+  "rcp.partial": {
+    "uz": "Takror vazifa yaratildi, lekin {0} ta izoh / {1} ta fayl ko'chmadi",
+    "ru": "Повторная задача создана, но {0} комментариев / {1} файлов не скопировано",
+    "en": "Repeat task created, but {0} comments / {1} files were not copied"
+  },
+  "rcp.partial_why": {
+    "uz": "Takror vazifa yaratildi, lekin {0} ta izoh / {1} ta fayl ko'chmadi: {2}",
+    "ru": "Повторная задача создана, но {0} комментариев / {1} файлов не скопировано: {2}",
+    "en": "Repeat task created, but {0} comments / {1} files were not copied: {2}"
+  },
+  "rcp.read_err": {
+    "uz": "Takror vazifa yaratildi, lekin ma'lumotlar ko'chirilmadi: {0}",
+    "ru": "Повторная задача создана, но данные не скопированы: {0}",
+    "en": "Repeat task created, but the data was not copied: {0}"
+  },
+  "rcp.copied": {
+    "uz": "Ko'chirildi: {0} ta izoh, {1} ta fayl",
+    "ru": "Скопировано: {0} комментариев, {1} файлов",
+    "en": "Copied: {0} comments, {1} files"
+  },
+  "cah.truncated_read": {
+    "uz": "… eng so'nggi {0} ta yozuv o'qildi — undan eskisi ko'rsatilmaydi",
+    "ru": "… прочитаны последние {0} записей — более старые не показываются",
+    "en": "… the latest {0} entries were read — older ones are not shown"
   }
 }

@@ -1,10 +1,25 @@
 -- ============================================================================
 -- TASKFIX_8ISH.sql — boy matnli tavsif + IZOH AUDITI + "bajardi" ustunlari
+--                    + takrorda ma'lumot ko'chirish + eski reassign migratsiyasi
+-- ⚠️ KAM TRAFIK VAQTIDA RUN — public.tasks ga ustun QO'SHILADI va 5b-bo'limda
+--    UPDATE qilinadi (ACCESS EXCLUSIVE qulf), task_comments ga TRIGGER qo'yiladi.
 -- ============================================================================
--- NIMA QILADI (5 bo'lak, hammasi ADDITIVE)
+-- NIMA QILADI (7 bo'lak — 6 tasi ADDITIVE, 1 tasi MA'LUMOT MIGRATSIYASI)
 --
 --   1) public.tasks.description_html text
 --        Vazifa tavsifining FORMAT bilan saqlangan nusxasi (rich text).
+--
+--   1b) public.tasks.recur_copy_data boolean NOT NULL DEFAULT false
+--        Takrorlanuvchi vazifa: keyingi nusxaga oldingi vazifaning IZOHLARI
+--        va FAYLLARI ko'chirilsinmi. Sukut false = AYNAN hozirgi xatti-harakat.
+--        🔴 Ustun KERAK, chunki nusxa KEYINROQ (vazifa bajarilganda) yaratiladi
+--        va tanlov vazifaning O'ZIDA saqlanishi shart.
+--
+--   5b) 🔴 MIGRATSIYA — eski "reassign" qilingan vazifalar (YAGONA yozuvchi
+--        bo'lak: public.tasks ga UPDATE). `assigned_to = acceptor_id` bo'lgan
+--        topshirilgan/tugagan vazifalar asl bajaruvchiga (`submitter_id`)
+--        qaytariladi. ZAXIRA: public.tasks_reassign_backup_8ish.
+--        ⚙️ Sozlama: `v_include_completed` (fayl boshida, BEGIN; dan keyin).
 --
 --   2) public.task_comment_history  ← 🔴 ASOSIY BO'LAK
 --        Izoh auditi: izoh yozilsa / tahrirlansa / O'CHIRILSA — matni, muallifi,
@@ -137,6 +152,49 @@
 
 BEGIN;
 
+-- ════════════════════════════════════════════════════════════════════════════
+-- ⚙️ SOZLAMA — RUN'DAN OLDIN O'QING (7-bo'lim: eski reassign migratsiyasi)
+-- ════════════════════════════════════════════════════════════════════════════
+--  v_include_completed   (SUKUT: true)
+--
+--  🔴 NIMA MIGRATSIYA QILINADI: 2026-08-26 gacha `changeStatus` vazifani
+--     topshirishda QABUL QILUVCHIGA ko'chirardi (`assigned_to = acceptor_id`),
+--     asl bajaruvchi esa `submitter_id` da qolardi. Reassign OLIB TASHLANDI,
+--     lekin BAZADAGI eski qatorlar hamon qabul qiluvchida turibdi — ro'yxatlar
+--     va hisobotlar yangi model bilan NOMUVOFIQ. 7-bo'lim ularni qaytaradi.
+--
+--  ▸ 'qabul_kutilyapti' — DOIM migratsiya qilinadi (sozlamaga bog'liq emas).
+--    Bular FAOL vazifalar: hozir kimningdir ro'yxatida noto'g'ri turibdi,
+--    eng muhimi ham shu.
+--  ▸ 'completed' — v_include_completed bilan boshqariladi.
+--      true  = TARIX ham to'g'rilanadi. "Kim bajardi" bo'yicha hisobot va
+--              xodim statistikasi to'g'ri bo'ladi, LEKIN o'tmishdagi SONLAR
+--              o'zgaradi (kimningdir "bajarilgan" soni kamayadi/ko'payadi).
+--      false = tugagan vazifalar O'Z HOLICHA qoladi (tarix "muzlatiladi"),
+--              faqat faol vazifalar to'g'rilanadi.
+--
+--  🔴 BOSHQA STATUSLARGA UMUMAN TEGILMAYDI ('new' / 'in_progress' / boshqa) —
+--     sabab 7-bo'lim izohida (qo'lda qayta biriktirish xavfi).
+-- ════════════════════════════════════════════════════════════════════════════
+DROP TABLE IF EXISTS pg_temp.t8_cfg;
+CREATE TEMP TABLE pg_temp.t8_cfg (k text PRIMARY KEY, v boolean, izoh text) ON COMMIT DROP;
+
+DO $cfg$
+DECLARE
+  -- 🔴🔴 KERAK BO'LSA FAQAT SHU QATORNI O'ZGARTIRING (boshqa joyda emas).
+  v_include_completed boolean := true;
+BEGIN
+  INSERT INTO pg_temp.t8_cfg VALUES
+    ('include_completed', v_include_completed,
+     'true = "completed" vazifalar ham migratsiya qilinadi (tarix to''g''rilanadi, o''tmishdagi sonlar o''zgaradi)');
+
+  IF v_include_completed THEN
+    RAISE NOTICE '⚙️ v_include_completed = TRUE — "completed" vazifalar HAM migratsiya qilinadi (tarixdagi sonlar o''zgarishi mumkin).';
+  ELSE
+    RAISE NOTICE '⚙️ v_include_completed = FALSE — faqat "qabul_kutilyapti" migratsiya qilinadi, tugagan vazifalar tegilmaydi.';
+  END IF;
+END $cfg$;
+
 -- ── 0) OLDINDAN TEKSHIRUV + "oldingi holat" fotosurati ──────────────────────
 -- Qayta RUN'da "nima allaqachon bor edi" ni aytish uchun holatni DDL'DAN OLDIN
 -- yozib olamiz (DO bloklari o'zgaruvchi almashmaydi — vaqtinchalik jadval).
@@ -262,6 +320,11 @@ BEGIN
   INSERT INTO _t8_before(k, v) VALUES
     ('tasks.description_html', EXISTS (SELECT 1 FROM information_schema.columns
         WHERE table_schema='public' AND table_name='tasks' AND column_name='description_html')),
+    -- 1b — takrorda ma'lumotlarni ko'chirish bayrog'i
+    ('tasks.recur_copy_data', EXISTS (SELECT 1 FROM information_schema.columns
+        WHERE table_schema='public' AND table_name='tasks' AND column_name='recur_copy_data')),
+    -- 7 — eski reassign qilingan vazifalar migratsiyasi (zaxira jadvali)
+    ('table.tasks_reassign_backup_8ish', to_regclass('public.tasks_reassign_backup_8ish') IS NOT NULL),
     ('tasks.bajardi_user_id',  EXISTS (SELECT 1 FROM information_schema.columns
         WHERE table_schema='public' AND table_name='tasks' AND column_name='bajardi_user_id')),
     ('tasks.bajardi_at',       EXISTS (SELECT 1 FROM information_schema.columns
@@ -284,6 +347,8 @@ BEGIN
 
   RAISE NOTICE '── Oldingi holat ──';
   RAISE NOTICE 'tasks.description_html        : %', (SELECT CASE WHEN v THEN 'BOR' ELSE 'yo''q' END FROM _t8_before WHERE k='tasks.description_html');
+  RAISE NOTICE 'tasks.recur_copy_data         : %', (SELECT CASE WHEN v THEN 'BOR' ELSE 'yo''q' END FROM _t8_before WHERE k='tasks.recur_copy_data');
+  RAISE NOTICE 'reassign zaxira jadvali       : %', (SELECT CASE WHEN v THEN 'BOR' ELSE 'yo''q' END FROM _t8_before WHERE k='table.tasks_reassign_backup_8ish');
   RAISE NOTICE 'tasks.bajardi_user_id/at      : % / %',
     (SELECT CASE WHEN v THEN 'BOR' ELSE 'yo''q' END FROM _t8_before WHERE k='tasks.bajardi_user_id'),
     (SELECT CASE WHEN v THEN 'BOR' ELSE 'yo''q' END FROM _t8_before WHERE k='tasks.bajardi_at');
@@ -310,6 +375,39 @@ ALTER TABLE public.tasks
 
 COMMENT ON COLUMN public.tasks.description_html IS
   'Vazifa tavsifining FORMAT bilan saqlangan nusxasi (rich text HTML). 🔴 tasks.description TOZA MATN bo''lib qoladi — Telegram bot / n8n / send-email o''shani o''qiydi, ikkalasi BIRGA yoziladi. Bo''sh bo''lsa mijoz eski description ni chizadi. ⚠️ XSS: HTML mijozda oq ro''yxat bilan tozalanadi (script/on*=/javascript:/data: yo''q) — bazada CHECK YO''Q.';
+
+
+-- ============================================================================
+-- 1b) TAKRORDA MA'LUMOTLARNI KO'CHIRISH — public.tasks.recur_copy_data
+-- ============================================================================
+-- Takrorlanuvchi vazifa yaratilganda "ma'lumotlar ko'chirilsinmi?" belgisi.
+-- Belgilansa: vazifa bajarilib KEYINGI nusxa yaratilganda oldingi vazifaning
+-- IZOHLARI (task_comments) va BIRIKTIRILGAN FAYLLARI (task_attachments)
+-- yangi nusxaga ko'chiriladi. Belgilanmasa — bo'sh, YANGI vazifa (hozirgidek).
+--
+-- 🔴 NEGA USTUN KERAK (bayroq mijozda "esda" turolmaydi): nusxa KEYINROQ —
+--    vazifa BAJARILGANDA — yaratiladi (`maybeRecurTask`), ya'ni yaratish
+--    oynasi allaqachon yopilgan bo'ladi. Tanlov vazifaning O'ZIDA saqlanishi
+--    shart va u zanjir bo'ylab har yangi nusxaga ko'chadi (recur_* naqshi).
+--
+-- 🔴 NOT NULL DEFAULT false — mavjud MILLIONLAB qatorda AYNAN hozirgi
+--    xatti-harakat (ko'chirmaslik). Postgres 11+ da bu ustun qo'shish
+--    jadvalni QAYTA YOZMAYDI (default katalogda saqlanadi), ya'ni tez.
+--    ⚠️ Baribir ACCESS EXCLUSIVE qulf oladi — kam trafik vaqtida RUN.
+--
+-- ⚠️ FAYL — mijoz Storage'da NUSXA oladi (`copy`), DB qatori eski yo'lga
+--    havola QILMAYDI: aks holda ikki vazifa bitta faylga ko'rsatib, birini
+--    o'chirgan odam ikkinchisini ham o'chirib qo'yardi. Yangi Storage policy
+--    KERAK EMAS — mavjud `attachments` bucket va mavjud `<ws>/<task>/…` yo'li.
+-- ⚠️ IZOH MUALLIFI saqlanadi (`author_id`). Agar task_comments INSERT
+--    policy'si `author_id = auth.uid()` ni talab qilsa, BEGONA muallifli
+--    izohlar ko'chmaydi — mijoz buni JIMGINA yutmaydi, "N ta izoh ko'chmadi"
+--    deb aytadi (bu bo'lim policy'ga TEGMAYDI, additive qoidasi).
+ALTER TABLE public.tasks
+  ADD COLUMN IF NOT EXISTS recur_copy_data boolean NOT NULL DEFAULT false;
+
+COMMENT ON COLUMN public.tasks.recur_copy_data IS
+  'Takrorlanuvchi vazifa: keyingi nusxaga OLDINGI vazifaning izohlari (task_comments) va fayllari (task_attachments) ko''chirilsinmi. false = bo''sh, yangi vazifa (sukut, mavjud xatti-harakat). Bayroq zanjir bo''ylab har yangi nusxaga ko''chadi. Fayl Storage''da NUSXA olinadi — qatorlar eski yo''lga havola qilmaydi.';
 
 
 -- ============================================================================
@@ -1041,6 +1139,185 @@ END $$;
 
 
 -- ============================================================================
+-- 5b) 🔴 MIGRATSIYA — ESKI "REASSIGN" QILINGAN VAZIFALAR
+--     ⚠️ public.tasks ga UPDATE — KAM TRAFIK VAQTIDA RUN QILINSIN
+-- ============================================================================
+-- MUAMMO
+--   2026-08-26 gacha mijozdagi `changeStatus` vazifani TOPSHIRISHDA qabul
+--   qiluvchiga KO'CHIRARDI:  patch.assigned_to = prev.acceptor_id
+--   Asl bajaruvchi esa `submitter_id` ga yozilardi. O'sha reassign OLIB
+--   TASHLANDI (Asilbek qarori) — endi vazifa BAJARUVCHIDA qoladi.
+--   Lekin BAZADAGI eski qatorlar hamon qabul qiluvchida turibdi: ro'yxatlar,
+--   "kimda nechta vazifa" va hisobotlar yangi model bilan NOMUVOFIQ.
+--
+-- NISHON SHART (aynan shu 4 shart birga)
+--   submitter_id IS NOT NULL          -- topshirilgan (reassign izi bor)
+--   AND acceptor_id IS NOT NULL       -- qabul qiluvchisi bor
+--   AND assigned_to = acceptor_id     -- hozir qabul qiluvchida turibdi
+--   AND submitter_id <> acceptor_id   -- ikkovi bir odam emas (aks holda ma'nosiz)
+--   →  assigned_to := submitter_id
+--
+-- 🔴 STATUS CHEKLOVI — QO'LDA QAYTA BIRIKTIRISH XAVFI
+--   `taskReassign` (ras*) moduli orqali odam vazifani ATAYLAB qabul
+--   qiluvchiga bergan bo'lishi mumkin. U holda `assigned_to = acceptor_id`
+--   TASODIFAN mos keladi va migratsiya uning qarorini NOTO'G'RI qaytarardi.
+--   Shuning uchun faqat ESKI OQIM QOLDIRADIGAN ikki status olinadi:
+--     • 'qabul_kutilyapti' — aynan topshirish natijasi (eski reassign shu
+--       lahzada bo'lardi);
+--     • 'completed'        — o'sha topshirish qabul qilingandan keyingi holat.
+--   'new' / 'in_progress' va boshqa statuslarda `assigned_to = acceptor_id`
+--   holati eski reassign'dan KELIB CHIQMAYDI (u yerda reassign hech qachon
+--   bo'lmagan) — demak u FAQAT qo'lda biriktirishdan bo'lishi mumkin va
+--   biz unga TEGMAYMIZ.
+--   ⚠️ Qoldiq xavf: 'qabul_kutilyapti'/'completed' vazifani qo'lda qabul
+--   qiluvchiga biriktirgan bo'lsa u ham qaytariladi — shuning uchun
+--   ZAXIRA JADVALI bor (pastda) va qaytarish UPDATE'i yozib qo'yilgan.
+--
+-- ⚠️ BU UPDATE `task_history` GA TUSHMAYDI — vazifa tarixini MIJOZ yozadi
+--    (`thRecord`), `tasks` da tarix trigger'i ATAYLAB yo'q. Ya'ni detal
+--    oynasidagi "Tarix" bo'limida bu o'zgarish KO'RINMAYDI. Iz — quyidagi
+--    zaxira jadvali.
+-- ⚠️ Bildirishnoma/Telegram/email HAM ketmaydi (server tomonda yuboruvchi
+--    yo'q) — bu ONGLI: 100+ eski vazifa uchun xabar to'lqini kerak emas.
+--
+-- IDEMPOTENT: migratsiyadan keyin `assigned_to = submitter_id` bo'ladi, ya'ni
+--   nishon shart o'z-o'zidan bajarilmay qoladi → qayta RUN'da 0 qator.
+--   Zaxiraga ham takror yozilmaydi (PK + ON CONFLICT DO NOTHING).
+-- ============================================================================
+
+-- ── 5b.1) ZAXIRA JADVALI — migratsiya QAYTARILADIGAN bo'lsin ───────────────
+-- 🔴 RLS yoqiladi va POLICY UMUMAN QO'SHILMAYDI + anon/authenticated dan
+--    REVOKE: bu ichki, ma'muriy jadval — PostgREST orqali o'qilmasin.
+DO $bk$
+DECLARE
+  v_task_type text;
+BEGIN
+  SELECT format_type(a.atttypid, a.atttypmod) INTO v_task_type
+    FROM pg_attribute a
+   WHERE a.attrelid = 'public.tasks'::regclass
+     AND a.attname = 'id' AND a.attnum > 0 AND NOT a.attisdropped;
+  IF v_task_type IS NULL THEN
+    RAISE EXCEPTION 'public.tasks.id ustuni topilmadi — zaxira jadvali qurilmaydi.';
+  END IF;
+
+  -- FK ATAYLAB YO'Q: vazifa o'chirilsa ham "nima o'zgartirilgan edi" izi qolsin
+  -- (task_comment_history bilan bir xil sabab).
+  EXECUTE format($f$
+    CREATE TABLE IF NOT EXISTS public.tasks_reassign_backup_8ish (
+      task_id         %s PRIMARY KEY,
+      old_assigned_to uuid,
+      new_assigned_to uuid,
+      status          text,
+      at              timestamptz NOT NULL DEFAULT now()
+    )
+  $f$, v_task_type);
+
+  EXECUTE 'ALTER TABLE public.tasks_reassign_backup_8ish ENABLE ROW LEVEL SECURITY';
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname='anon') THEN
+    EXECUTE 'REVOKE ALL ON public.tasks_reassign_backup_8ish FROM anon';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname='authenticated') THEN
+    EXECUTE 'REVOKE ALL ON public.tasks_reassign_backup_8ish FROM authenticated';
+  END IF;
+END $bk$;
+
+COMMENT ON TABLE public.tasks_reassign_backup_8ish IS
+  'TASKFIX_8ISH.sql 5b-bo''limi: "eski reassign" migratsiyasining ZAXIRASI (assigned_to qabul qiluvchidan asl bajaruvchiga qaytarilgan qatorlar). Qaytarish UPDATE''i skript oxirida izoh sifatida yozilgan. RLS yoqiq, policy YO''Q — faqat service_role/superuser o''qiydi.';
+
+
+-- ── 5b.2) MIGRATSIYANING O'ZI ──────────────────────────────────────────────
+DO $mig$
+DECLARE
+  v_inc        boolean;
+  v_st         text[];
+  v_has_sub    boolean;
+  v_cnt_pend   int := 0;
+  v_cnt_done   int := 0;
+  v_bk         int := 0;
+  v_upd        int := 0;
+  v_left       int := 0;
+  v_cond       text;
+BEGIN
+  SELECT v INTO v_inc FROM pg_temp.t8_cfg WHERE k = 'include_completed';
+  v_inc := COALESCE(v_inc, true);
+  v_st  := CASE WHEN v_inc THEN ARRAY['qabul_kutilyapti','completed']
+                ELSE ARRAY['qabul_kutilyapti'] END;
+
+  -- `submitter_id` bo'lmasa eski reassign hech qachon ishlamagan → migratsiya
+  -- ma'nosiz. Jimgina o'tmaymiz — sababni AYTAMIZ.
+  v_has_sub := EXISTS (SELECT 1 FROM information_schema.columns
+                        WHERE table_schema='public' AND table_name='tasks' AND column_name='submitter_id');
+  IF NOT v_has_sub THEN
+    RAISE NOTICE '';
+    RAISE NOTICE '── 5b) MIGRATSIYA — O''TKAZIB YUBORILDI ──';
+    RAISE NOTICE 'ℹ️ public.tasks.submitter_id ustuni YO''Q → eski "reassign" oqimi bu bazada hech qachon ishlamagan. Migratsiya qilinadigan qator yo''q.';
+    RETURN;
+  END IF;
+
+  -- 🔴 Shart BITTA joyda yoziladi (sanoq / zaxira / update / tekshiruv AYNI
+  --    shartni ishlatsin — nusxa ko'chirilgan shart vaqt o'tib ajralib ketardi).
+  v_cond := 't.submitter_id IS NOT NULL '
+         || 'AND t.acceptor_id IS NOT NULL '
+         || 'AND t.assigned_to = t.acceptor_id '
+         || 'AND t.submitter_id <> t.acceptor_id';
+
+  -- (a) Diagnostika — status bo'yicha nechta qator TOPILDI (sozlamadan qat'i nazar)
+  EXECUTE format($q$
+    SELECT count(*) FILTER (WHERE t.status = 'qabul_kutilyapti'),
+           count(*) FILTER (WHERE t.status = 'completed')
+      FROM public.tasks t
+     WHERE %s AND t.status IN ('qabul_kutilyapti','completed')
+  $q$, v_cond) INTO v_cnt_pend, v_cnt_done;
+
+  RAISE NOTICE '';
+  RAISE NOTICE '── 5b) ESKI REASSIGN MIGRATSIYASI ──';
+  RAISE NOTICE 'Topildi: qabul_kutilyapti = % ta | completed = % ta', v_cnt_pend, v_cnt_done;
+  RAISE NOTICE 'Sozlama: v_include_completed = % → migratsiya statuslari: %', v_inc, array_to_string(v_st, ', ');
+
+  -- (b) ZAXIRA — UPDATE'DAN OLDIN (keyin bo'lsa eski qiymat allaqachon yo'q edi)
+  EXECUTE format($q$
+    INSERT INTO public.tasks_reassign_backup_8ish (task_id, old_assigned_to, new_assigned_to, status)
+    SELECT t.id, t.assigned_to, t.submitter_id, t.status
+      FROM public.tasks t
+     WHERE %s AND t.status = ANY($1)
+    ON CONFLICT (task_id) DO NOTHING
+  $q$, v_cond) USING v_st;
+  GET DIAGNOSTICS v_bk = ROW_COUNT;
+  RAISE NOTICE 'Zaxiraga yozildi: % ta qator (public.tasks_reassign_backup_8ish)', v_bk;
+
+  -- (c) MIGRATSIYA
+  EXECUTE format($q$
+    UPDATE public.tasks t
+       SET assigned_to = t.submitter_id
+     WHERE %s AND t.status = ANY($1)
+  $q$, v_cond) USING v_st;
+  GET DIAGNOSTICS v_upd = ROW_COUNT;
+  RAISE NOTICE 'Yangilandi: % ta vazifa (assigned_to → submitter_id)', v_upd;
+
+  -- (d) 🔴 TEKSHIRUV — jimgina o'tmasin. Kiritilgan statuslar bo'yicha nishon
+  --     shartga mos qator QOLMASLIGI shart; qolsa hammasi QAYTADI.
+  -- ⚠️ PL/pgSQL: INTO ... USING (aynan shu tartib) — teskarisi sintaksis xatosi.
+  EXECUTE format($q$
+    SELECT count(*) FROM public.tasks t WHERE %s AND t.status = ANY($1)
+  $q$, v_cond) INTO v_left USING v_st;
+
+  IF v_left <> 0 THEN
+    RAISE EXCEPTION 'MIGRATSIYA TO''LIQ EMAS: nishon shartga mos % ta qator QOLDI (statuslar: %). Ehtimol trigger UPDATE''ni qaytardi yoki shart bilan yozuv orasida qator o''zgardi. Hammasi qaytarildi — hech narsa o''zgartirilmadi.',
+      v_left, array_to_string(v_st, ', ');
+  END IF;
+
+  IF v_upd = 0 THEN
+    RAISE NOTICE 'ℹ️ 0 qator yangilandi — migratsiya AVVAL bajarilgan yoki bunday vazifa yo''q (idempotent, normal holat).';
+  END IF;
+  IF NOT v_inc AND v_cnt_done > 0 THEN
+    RAISE NOTICE '⚠️ % ta "completed" vazifa TEGILMADI (v_include_completed = false). Kerak bo''lsa sozlamani true qilib QAYTA RUN qiling — skript idempotent.', v_cnt_done;
+  END IF;
+  RAISE NOTICE '⚠️ Bu o''zgarish task_history ga TUSHMAYDI (tarixni mijoz yozadi). Iz — public.tasks_reassign_backup_8ish jadvalida.';
+  RAISE NOTICE '───────────────────';
+END $mig$;
+
+
+-- ============================================================================
 -- 6) XULOSA — nima QO'SHILDI / nima ALLAQACHON BOR EDI
 -- ============================================================================
 DO $$
@@ -1055,6 +1332,8 @@ BEGIN
     SELECT k, v FROM _t8_before
      ORDER BY CASE k
        WHEN 'tasks.description_html'         THEN 1
+       WHEN 'tasks.recur_copy_data'          THEN 1.5
+       WHEN 'table.tasks_reassign_backup_8ish' THEN 9.5
        WHEN 'table.task_comment_history'     THEN 2
        WHEN 'cmt_history.author_id'          THEN 3
        WHEN 'trigger.zz_task_cmt_audit_trg'  THEN 4
@@ -1086,6 +1365,13 @@ BEGIN
   RAISE NOTICE '     policy o''zi qoplagan, hech narsa o''zgartirilmadi.';
   RAISE NOTICE '  🔴 cmt_history.author_id — endi tarixda "kim YOZGAN" ham bor';
   RAISE NOTICE '     (actor_* = kim o''chirdi/tahrirladi). Eski qatorlarda NULL.';
+  RAISE NOTICE '  📋 tasks.recur_copy_data — takrorlanuvchi vazifada "ma''lumotlar';
+  RAISE NOTICE '     ko''chirilsinmi" belgisi (izoh + fayl). Sukut FALSE = hozirgi';
+  RAISE NOTICE '     xatti-harakat; mijozda yaratish oynasidan yoqiladi.';
+  RAISE NOTICE '  🔴 5b) ESKI REASSIGN MIGRATSIYASI — yuqoridagi "5b" NOTICE''lariga';
+  RAISE NOTICE '     qarang: nechta topildi / zaxiraga yozildi / yangilandi.';
+  RAISE NOTICE '     Zaxira: public.tasks_reassign_backup_8ish (qaytarish UPDATE''i';
+  RAISE NOTICE '     fayl oxirida izoh sifatida yozilgan).';
   RAISE NOTICE '═══════════════════════════════════════════════════════════';
 END $$;
 
@@ -1140,8 +1426,50 @@ COMMIT;
 --    HECH QANDAY o'zgarish talab qilinmaydi (`tasksQuery` da `acceptor_id`
 --    allaqachon bor) — bu bo'lim SERVER tomonidagi kafolatni beradi.
 --
+-- 6) 📋 TAKRORDA MA'LUMOTLARNI KO'CHIRISH — `tasks.recur_copy_data`
+--      // yaratishda (saveCreate) — FAQAT true bo'lganda payload'ga qo'shiladi
+--      if (recurCopy) inserts.forEach(r => { r.recur_copy_data = true; });
+--      // zanjirda (maybeRecurTask) — bayroq YANGI nusxaga ham ko'chadi
+--      if (rcpWant(task)) row.recur_copy_data = true;
+--      // nusxa yaratilgandan KEYIN: izoh + fayl ko'chiriladi
+--      if (rcpWant(task) && data && data.id) rcpReport(await rcpCopyData(task, data));
+--    ⚠️ Ustun yo'q bo'lsa `task.recur_copy_data` === undefined → ko'chirish
+--       UMUMAN bo'lmaydi (0 ta so'rov), xato ham, toast ham yo'q. Yozuvda
+--       42703/PGRST204 kelsa mijoz bayroqni tashlab QAYTA yozadi va sababni
+--       toastda aytadi (rcx*/rte* naqshi).
+--    🔴 IZOH MUALLIFI (`author_id`) saqlanadi — matn boshqa odam nomiga
+--       yozilib qolmasin. Agar `task_comments` INSERT policy'si
+--       `author_id = auth.uid()` ni talab qilsa, begona muallifli izohlar
+--       ko'chmaydi: mijoz O'Z izohlarini ko'chiradi va qolganini OCHIQ aytadi
+--       ("N ta izoh ko'chmadi"). Bu skript o'sha policy'ga TEGMAYDI.
+--    🔴 FAYL: Storage'da `copy()` bilan NUSXA olinadi (mavjud `attachments`
+--       bucket, mavjud `<ws>/<task>/…` yo'li) — yangi Storage policy KERAK
+--       EMAS. Qator ESKI yo'lga havola qilmaydi: aks holda birinchi vazifadagi
+--       faylni o'chirgan odam ikkinchisinikini ham o'chirardi.
+--    ⚠️ Ko'chirilgan izohlar `zz_task_cmt_audit_trg` orqali tarixga `created`
+--       bo'lib tushadi — bu TO'G'RI (yangi vazifada izoh haqiqatan yaratildi).
+--       Mijoz `created` yozuvlarini KO'RSATMAYDI (2026-08-26 qarori), ya'ni
+--       ko'chirish izoh tarixini shovqin bilan to'ldirmaydi.
+--
+-- 7) 📝 IZOH TARIXIDA `created` KO'RSATILMAYDI (mijoz, 2026-08-26)
+--    Izoh qo'shilgani "Izohlar" bo'limida allaqachon ko'rinadi — tarixda
+--    takrorlansa BITTA narsa ikki marta ko'rinardi. 🔴 TRIGGER `created`
+--    qatorini YOZISHDA DAVOM ETADI: izoh keyin O'CHIRILSA, uning qachon va
+--    kim tomonidan YOZILGANI faqat o'sha qatorda qoladi. Bu FAQAT ko'rsatish
+--    filtri (`cahVisibleRows`) — bu skriptda hech narsa o'zgarmaydi.
+--
 -- ============================================================================
 -- QAYTARISH (rollback) — kerak bo'lsa QO'LDA, ehtiyot bo'lib:
+--   -- 🔴 5b) ESKI REASSIGN MIGRATSIYASINI QAYTARISH (zaxiradan, xavfsiz):
+--   --   UPDATE public.tasks t
+--   --      SET assigned_to = b.old_assigned_to
+--   --     FROM public.tasks_reassign_backup_8ish b
+--   --    WHERE t.id = b.task_id
+--   --      AND t.assigned_to IS NOT DISTINCT FROM b.new_assigned_to;
+--   --   ⚠️ Oxirgi shart MAJBURIY: migratsiyadan KEYIN odam vazifani qo'lda
+--   --      boshqa xodimga bergan bo'lsa, uning qarori BOSILMASIN.
+--   --   Qaytargandan so'ng zaxira qatorlarini o'chirish (ixtiyoriy):
+--   --   DELETE FROM public.tasks_reassign_backup_8ish;
 --   DROP TRIGGER IF EXISTS zz_task_cmt_audit_trg ON public.task_comments;
 --   DROP FUNCTION IF EXISTS public.task_cmt_audit();
 --   DROP POLICY IF EXISTS tasks_select_acceptor ON public.tasks;   -- 4b
