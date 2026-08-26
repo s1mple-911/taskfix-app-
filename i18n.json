@@ -13788,5 +13788,485 @@
     "uz": "Joriy sikl ko'rsatilmoqda. Tarixda {0} ta sikl bor — yuqoridagi tanlagichdan o'tgan siklni oching.",
     "ru": "Показан текущий цикл. В истории {0} циклов — откройте прошлый цикл в селекторе выше.",
     "en": "Showing the current cycle. History has {0} cycles — open a past one in the selector above."
+  },
+  "tbl.col_done": {
+    "uz": "Bajarildi",
+    "ru": "Выполнено",
+    "en": "Completed"
+  },
+  "dlc.t_over": {
+    "uz": "Muddati o'tgan",
+    "ru": "Срок истёк",
+    "en": "Overdue"
+  },
+  "dlc.t_ontime": {
+    "uz": "Vaqtida bajarilgan",
+    "ru": "Выполнено в срок",
+    "en": "Completed on time"
+  },
+  "dlc.t_late": {
+    "uz": "Kechikib bajarilgan",
+    "ru": "Выполнено с опозданием",
+    "en": "Completed late"
+  },
+  "rcf.label": {
+    "uz": "Takrorlanuvchi",
+    "ru": "Повторяющиеся",
+    "en": "Recurring"
+  },
+  "rcf.title": {
+    "uz": "Faqat takrorlanuvchi vazifalar",
+    "ru": "Только повторяющиеся задачи",
+    "en": "Only recurring tasks"
+  },
+  "rcf.on_title": {
+    "uz": "Filtr yoniq — bosing va hamma vazifalar qaytadi",
+    "ru": "Фильтр включён — нажмите, чтобы показать все задачи",
+    "en": "Filter is on — click to show all tasks"
+  },
+  "rcf.empty": {
+    "uz": "Takrorlanuvchi vazifa topilmadi",
+    "ru": "Повторяющихся задач не найдено",
+    "en": "No recurring tasks found"
+  },
+  "common.complete_only_acceptor": {
+    "uz": "Bu vazifani faqat qabul qiluvchi yakunlaydi",
+    "ru": "Эту задачу завершает только принимающий",
+    "en": "Only the acceptor can complete this task"
+  },
+  "acc.mine_chip": {
+    "uz": "Qabulim",
+    "ru": "На приёмке",
+    "en": "My approval"
+  },
+  "acc.mine_title": {
+    "uz": "Sizning qabulingizni kutmoqda",
+    "ru": "Ожидает вашей приёмки",
+    "en": "Waiting for your approval"
+  },
+  "cah.title": {
+    "uz": "Izoh tarixi",
+    "ru": "История комментариев",
+    "en": "Comment history"
+  },
+  "cah.added": {
+    "uz": "Izoh qo'shildi",
+    "ru": "Комментарий добавлен",
+    "en": "Comment added"
+  },
+  "cah.edited": {
+    "uz": "Tahrirlandi",
+    "ru": "Отредактирован",
+    "en": "Edited"
+  },
+  "cah.deleted": {
+    "uz": "O'chirildi",
+    "ru": "Удалён",
+    "en": "Deleted"
+  },
+  "cah.to": {
+    "uz": "yangi matn",
+    "ru": "новый текст",
+    "en": "new text"
+  },
+  "cah.empty": {
+    "uz": "Izohlar o'zgartirilmagan",
+    "ru": "Комментарии не изменялись",
+    "en": "No comment changes"
+  },
+  "cah.more": {
+    "uz": "To'liq ko'rish",
+    "ru": "Показать полностью",
+    "en": "Show full text"
+  },
+  "cah.less": {
+    "uz": "Yig'ish",
+    "ru": "Свернуть",
+    "en": "Collapse"
+  },
+  "cah.not_enabled": {
+    "uz": "Izoh tarixi yoqilmagan —",
+    "ru": "История комментариев не включена —",
+    "en": "Comment history is not enabled —"
+  },
+  "cah.read_failed": {
+    "uz": "Izoh tarixini o'qib bo'lmadi: {0}",
+    "ru": "Не удалось прочитать историю комментариев: {0}",
+    "en": "Could not read comment history: {0}"
+  },
+  "cah.actor_system": {
+    "uz": "Tizim",
+    "ru": "Система",
+    "en": "System"
+  },
+  "cah.truncated": {
+    "uz": "… eng so'nggi {0} ta yozuv ko'rsatilmoqda",
+    "ru": "… показаны последние {0} записей",
+    "en": "… showing the latest {0} entries"
+  },
+  "cah.edited_mark": {
+    "uz": "(tahrirlangan)",
+    "ru": "(отредактировано)",
+    "en": "(edited)"
+  },
+  "cah.edit_btn": {
+    "uz": "Izohni tahrirlash",
+    "ru": "Редактировать комментарий",
+    "en": "Edit comment"
+  },
+  "cah.edit_denied": {
+    "uz": "Izohni faqat muallif yoki admin/owner tahrirlaydi",
+    "ru": "Комментарий может редактировать только автор либо админ/владелец",
+    "en": "Only the author or an admin/owner can edit a comment"
+  },
+  "cah.edit_denied_rls": {
+    "uz": "Izoh yangilanmadi — ruxsat yo'q yoki izoh o'chirilgan",
+    "ru": "Комментарий не обновлён — нет прав или он удалён",
+    "en": "Comment was not updated — no permission or it was deleted"
+  },
+  "cah.edit_empty": {
+    "uz": "Izoh bo'sh bo'lishi mumkin emas",
+    "ru": "Комментарий не может быть пустым",
+    "en": "A comment cannot be empty"
+  },
+  "cah.saved_no_col": {
+    "uz": "Izoh saqlandi — lekin \"tahrirlangan\" belgisi saqlanmadi (TASKFIX_8ISH.sql ishga tushirilmagan)",
+    "ru": "Комментарий сохранён — но метка «отредактировано» не сохранена (TASKFIX_8ISH.sql не запущен)",
+    "en": "Comment saved — but the \"edited\" mark was not saved (TASKFIX_8ISH.sql has not been run)"
+  },
+  "cah.edit_tg_denied": {
+    "uz": "Telegram orqali kelgan izoh tahrirlanmaydi",
+    "ru": "Комментарий из Telegram нельзя редактировать",
+    "en": "A comment that came from Telegram cannot be edited"
+  },
+  "rte.toolbar_aria": {
+    "uz": "Matn formatlash",
+    "ru": "Форматирование текста",
+    "en": "Text formatting"
+  },
+  "rte.editor_aria": {
+    "uz": "Tavsif",
+    "ru": "Описание",
+    "en": "Description"
+  },
+  "rte.placeholder": {
+    "uz": "Tavsif yozing…",
+    "ru": "Введите описание…",
+    "en": "Write a description…"
+  },
+  "rte.hint": {
+    "uz": "Ctrl+B qalin · Ctrl+I kursiv · Ctrl+K havola",
+    "ru": "Ctrl+B жирный · Ctrl+I курсив · Ctrl+K ссылка",
+    "en": "Ctrl+B bold · Ctrl+I italic · Ctrl+K link"
+  },
+  "rte.bold": {
+    "uz": "Qalin",
+    "ru": "Жирный",
+    "en": "Bold"
+  },
+  "rte.italic": {
+    "uz": "Kursiv",
+    "ru": "Курсив",
+    "en": "Italic"
+  },
+  "rte.underline": {
+    "uz": "Tagiga chizish",
+    "ru": "Подчёркнутый",
+    "en": "Underline"
+  },
+  "rte.color": {
+    "uz": "Matn rangi",
+    "ru": "Цвет текста",
+    "en": "Text color"
+  },
+  "rte.color_default": {
+    "uz": "Standart rang",
+    "ru": "Цвет по умолчанию",
+    "en": "Default color"
+  },
+  "rte.size": {
+    "uz": "Shrift o'lchami",
+    "ru": "Размер шрифта",
+    "en": "Font size"
+  },
+  "rte.size_1": {
+    "uz": "Kichik",
+    "ru": "Мелкий",
+    "en": "Small"
+  },
+  "rte.size_2": {
+    "uz": "Oddiy",
+    "ru": "Обычный",
+    "en": "Normal"
+  },
+  "rte.size_3": {
+    "uz": "O'rta",
+    "ru": "Средний",
+    "en": "Medium"
+  },
+  "rte.size_4": {
+    "uz": "Katta",
+    "ru": "Крупный",
+    "en": "Large"
+  },
+  "rte.size_5": {
+    "uz": "Juda katta",
+    "ru": "Очень крупный",
+    "en": "Extra large"
+  },
+  "rte.font": {
+    "uz": "Shrift turi",
+    "ru": "Шрифт",
+    "en": "Font"
+  },
+  "rte.font_sans": {
+    "uz": "Inter",
+    "ru": "Inter",
+    "en": "Inter"
+  },
+  "rte.font_grotesk": {
+    "uz": "Space Grotesk",
+    "ru": "Space Grotesk",
+    "en": "Space Grotesk"
+  },
+  "rte.font_serif": {
+    "uz": "Serif",
+    "ru": "С засечками",
+    "en": "Serif"
+  },
+  "rte.font_mono": {
+    "uz": "Monospace",
+    "ru": "Моноширинный",
+    "en": "Monospace"
+  },
+  "rte.font_system": {
+    "uz": "Tizim shrifti",
+    "ru": "Системный шрифт",
+    "en": "System font"
+  },
+  "rte.ul": {
+    "uz": "Markerli ro'yxat",
+    "ru": "Маркированный список",
+    "en": "Bulleted list"
+  },
+  "rte.ol": {
+    "uz": "Raqamli ro'yxat",
+    "ru": "Нумерованный список",
+    "en": "Numbered list"
+  },
+  "rte.link": {
+    "uz": "Havola",
+    "ru": "Ссылка",
+    "en": "Link"
+  },
+  "rte.link_prompt": {
+    "uz": "Havola manzili",
+    "ru": "Адрес ссылки",
+    "en": "Link address"
+  },
+  "rte.link_hint": {
+    "uz": "Bo'sh qoldirilsa havola olib tashlanadi",
+    "ru": "Оставьте пустым, чтобы удалить ссылку",
+    "en": "Leave empty to remove the link"
+  },
+  "rte.link_insert": {
+    "uz": "Qo'yish",
+    "ru": "Вставить",
+    "en": "Insert"
+  },
+  "rte.link_bad": {
+    "uz": "Havola manzili noto'g'ri (faqat http, https yoki mailto)",
+    "ru": "Неверный адрес ссылки (только http, https или mailto)",
+    "en": "Invalid link address (only http, https or mailto)"
+  },
+  "rte.clear": {
+    "uz": "Formatni tozalash",
+    "ru": "Очистить формат",
+    "en": "Clear formatting"
+  },
+  "rte.c_black": {
+    "uz": "Qora",
+    "ru": "Чёрный",
+    "en": "Black"
+  },
+  "rte.c_gray": {
+    "uz": "Kulrang",
+    "ru": "Серый",
+    "en": "Gray"
+  },
+  "rte.c_red": {
+    "uz": "Qizil",
+    "ru": "Красный",
+    "en": "Red"
+  },
+  "rte.c_brick": {
+    "uz": "G'ishtrang",
+    "ru": "Кирпичный",
+    "en": "Brick"
+  },
+  "rte.c_amber": {
+    "uz": "Kehribar",
+    "ru": "Янтарный",
+    "en": "Amber"
+  },
+  "rte.c_green": {
+    "uz": "Yashil",
+    "ru": "Зелёный",
+    "en": "Green"
+  },
+  "rte.c_teal": {
+    "uz": "Firuza",
+    "ru": "Бирюзовый",
+    "en": "Teal"
+  },
+  "rte.c_blue": {
+    "uz": "Ko'k",
+    "ru": "Синий",
+    "en": "Blue"
+  },
+  "rte.c_navy": {
+    "uz": "To'q ko'k",
+    "ru": "Тёмно-синий",
+    "en": "Navy"
+  },
+  "rte.c_violet": {
+    "uz": "Binafsha",
+    "ru": "Фиолетовый",
+    "en": "Violet"
+  },
+  "rte.c_fuchsia": {
+    "uz": "Fuksiya",
+    "ru": "Фуксия",
+    "en": "Fuchsia"
+  },
+  "rte.c_pink": {
+    "uz": "Pushti",
+    "ru": "Розовый",
+    "en": "Pink"
+  },
+  "rte.no_col": {
+    "uz": "Format saqlanmaydi — TASKFIX_8ISH.sql ishga tushirilmagan (matn saqlanadi)",
+    "ru": "Форматирование не сохранится — TASKFIX_8ISH.sql не выполнен (текст сохраняется)",
+    "en": "Formatting will not be saved — TASKFIX_8ISH.sql has not been run (text is saved)"
+  },
+  "rte.saved_no_html": {
+    "uz": "Saqlandi (format saqlanmadi — TASKFIX_8ISH.sql ishga tushirilmagan)",
+    "ru": "Сохранено (форматирование не сохранено — TASKFIX_8ISH.sql не выполнен)",
+    "en": "Saved (formatting not saved — TASKFIX_8ISH.sql has not been run)"
+  },
+  "flt.title": {
+    "uz": "Filtr",
+    "ru": "Фильтр",
+    "en": "Filter"
+  },
+  "flt.bar_aria": {
+    "uz": "Filtrlar",
+    "ru": "Фильтры",
+    "en": "Filters"
+  },
+  "flt.status": {
+    "uz": "Status",
+    "ru": "Статус",
+    "en": "Status"
+  },
+  "flt.deadline": {
+    "uz": "Muddat",
+    "ru": "Срок",
+    "en": "Deadline"
+  },
+  "flt.assignee": {
+    "uz": "Bajaruvchi",
+    "ru": "Исполнитель",
+    "en": "Assignee"
+  },
+  "flt.employee": {
+    "uz": "Xodim",
+    "ru": "Сотрудник",
+    "en": "Employee"
+  },
+  "flt.clear": {
+    "uz": "Tozalash",
+    "ru": "Очистить",
+    "en": "Clear"
+  },
+  "flt.clear_all": {
+    "uz": "Tozalash",
+    "ru": "Очистить",
+    "en": "Clear"
+  },
+  "flt.ph_status": {
+    "uz": "Status qidirish…",
+    "ru": "Поиск статуса…",
+    "en": "Search status…"
+  },
+  "flt.dl_today": {
+    "uz": "Bugun",
+    "ru": "Сегодня",
+    "en": "Today"
+  },
+  "flt.dl_tomorrow": {
+    "uz": "Ertaga",
+    "ru": "Завтра",
+    "en": "Tomorrow"
+  },
+  "flt.dl_week": {
+    "uz": "Bu hafta",
+    "ru": "На этой неделе",
+    "en": "This week"
+  },
+  "flt.dl_overdue": {
+    "uz": "Muddati o'tgan",
+    "ru": "Просроченные",
+    "en": "Overdue"
+  },
+  "flt.dl_none": {
+    "uz": "Muddatsiz",
+    "ru": "Без срока",
+    "en": "No deadline"
+  },
+  "flt.dl_range": {
+    "uz": "Oraliq…",
+    "ru": "Период…",
+    "en": "Date range…"
+  },
+  "flt.range_title": {
+    "uz": "Muddat qaysi kunlar orasida?",
+    "ru": "Срок в каких числах?",
+    "en": "Deadline between which dates?"
+  },
+  "flt.back": {
+    "uz": "Orqaga",
+    "ru": "Назад",
+    "en": "Back"
+  },
+  "flt.empty": {
+    "uz": "Hech narsa topilmadi",
+    "ru": "Ничего не найдено",
+    "en": "Nothing found"
+  },
+  "flt.empty_title": {
+    "uz": "Filtr bo'yicha vazifa topilmadi",
+    "ru": "По фильтру задач не найдено",
+    "en": "No tasks match the filter"
+  },
+  "flt.empty_body": {
+    "uz": "Joriy filtrlarga mos vazifa yo'q.",
+    "ru": "Нет задач, подходящих под текущие фильтры.",
+    "en": "There are no tasks matching the current filters."
+  },
+  "flt.sum": {
+    "uz": "{0} ta",
+    "ru": "{0} шт.",
+    "en": "{0} items"
+  },
+  "cah.delete_denied": {
+    "uz": "Izoh o'chirilmadi — ruxsat yo'q yoki izoh topilmadi",
+    "ru": "Комментарий не удалён — нет прав или комментарий не найден",
+    "en": "Comment was not deleted — no permission or comment not found"
+  },
+  "cah.author": {
+    "uz": "muallif: {0}",
+    "ru": "автор: {0}",
+    "en": "author: {0}"
   }
 }
