@@ -14313,5 +14313,170 @@
     "uz": "… eng so'nggi {0} ta yozuv o'qildi — undan eskisi ko'rsatilmaydi",
     "ru": "… прочитаны последние {0} записей — более старые не показываются",
     "en": "… the latest {0} entries were read — older ones are not shown"
+  },
+  "tcp.btn": {
+    "uz": "Ustunlar",
+    "ru": "Столбцы",
+    "en": "Columns"
+  },
+  "tcp.btn_title": {
+    "uz": "Jadvalda qaysi ustunlar ko'rinishini tanlang",
+    "ru": "Выберите, какие столбцы показывать в таблице",
+    "en": "Choose which columns to show in the table"
+  },
+  "tcp.title": {
+    "uz": "Ustunlar",
+    "ru": "Столбцы",
+    "en": "Columns"
+  },
+  "tcp.reset": {
+    "uz": "Sukut holat",
+    "ru": "По умолчанию",
+    "en": "Default"
+  },
+  "tcp.search_ph": {
+    "uz": "Ustun qidirish…",
+    "ru": "Поиск столбца…",
+    "en": "Search columns…"
+  },
+  "tcp.empty": {
+    "uz": "Ustun topilmadi",
+    "ru": "Столбцы не найдены",
+    "en": "No columns found"
+  },
+  "tcp.grp_task": {
+    "uz": "Vazifa maydonlari",
+    "ru": "Поля задачи",
+    "en": "Task fields"
+  },
+  "tcp.grp_custom": {
+    "uz": "O'z ustunlarim",
+    "ru": "Мои столбцы",
+    "en": "My columns"
+  },
+  "tcp.title_locked": {
+    "uz": "«Nomi» ustuni doim ko'rinadi — vazifa shu yerdan ochiladi",
+    "ru": "Столбец «Название» всегда виден — задача открывается отсюда",
+    "en": "The \"Name\" column is always visible — tasks are opened from it"
+  },
+  "tcp.new_col": {
+    "uz": "O'z ustunimni yaratish",
+    "ru": "Создать свой столбец",
+    "en": "Create my own column"
+  },
+  "tcp.note_local": {
+    "uz": "Tanlov faqat sizga tegishli — shu brauzerda saqlanadi.",
+    "ru": "Выбор личный — сохраняется в этом браузере.",
+    "en": "This choice is personal — it is saved in this browser."
+  },
+  "tcp.new_col_title": {
+    "uz": "O'z ustunim",
+    "ru": "Свой столбец",
+    "en": "My own column"
+  },
+  "tcp.new_col_label": {
+    "uz": "Ustun nomi",
+    "ru": "Название столбца",
+    "en": "Column name"
+  },
+  "tcp.new_col_ph": {
+    "uz": "Masalan: Shartnoma raqami",
+    "ru": "Например: Номер договора",
+    "en": "For example: Contract number"
+  },
+  "tcp.new_col_hint": {
+    "uz": "Bo'sh matnli ustun — qiymatlarini o'zingiz yozasiz. Ular bazaga EMAS, shu brauzerga saqlanadi.",
+    "ru": "Пустой текстовый столбец — значения вы вводите сами. Они сохраняются НЕ в базе, а в этом браузере.",
+    "en": "An empty text column — you fill in the values yourself. They are stored in this browser, NOT in the database."
+  },
+  "tcp.new_col_req": {
+    "uz": "Ustun nomini kiriting",
+    "ru": "Введите название столбца",
+    "en": "Enter a column name"
+  },
+  "tcp.new_col_ok": {
+    "uz": "Yaratish",
+    "ru": "Создать",
+    "en": "Create"
+  },
+  "tcp.del_title": {
+    "uz": "Ustunni o'chirish",
+    "ru": "Удалить столбец",
+    "en": "Delete column"
+  },
+  "tcp.del_msg": {
+    "uz": "«{0}» ustuni va undagi qiymatlar o'chadi. Vazifa ma'lumotlariga ta'sir qilmaydi.",
+    "ru": "Столбец «{0}» и его значения будут удалены. На данные задач это не повлияет.",
+    "en": "The \"{0}\" column and its values will be deleted. Task data is not affected."
+  },
+  "tcp.recur_days": {
+    "uz": "Har {0} kunda",
+    "ru": "Каждые {0} дн.",
+    "en": "Every {0} days"
+  },
+  "tcp.assignee_reopened": {
+    "uz": "«Bajaruvchi» ustuni yoqildi — yangi qator uchun u kerak",
+    "ru": "Столбец «Исполнитель» включён — он нужен для новой строки",
+    "en": "The \"Assignee\" column was turned on — it is required for a new row"
+  },
+  "tbl.col_file": {
+    "uz": "Fayl",
+    "ru": "Файл",
+    "en": "File"
+  },
+  "tbl.col_description": {
+    "uz": "Tavsif",
+    "ru": "Описание",
+    "en": "Description"
+  },
+  "tbl.col_acceptor": {
+    "uz": "Qabul qiluvchi",
+    "ru": "Принимающий",
+    "en": "Acceptor"
+  },
+  "tbl.col_project": {
+    "uz": "Loyiha",
+    "ru": "Проект",
+    "en": "Project"
+  },
+  "tbl.col_started": {
+    "uz": "Jarayon boshlandi",
+    "ru": "Взята в работу",
+    "en": "Started"
+  },
+  "tbl.col_completed": {
+    "uz": "Tugallandi",
+    "ru": "Завершена",
+    "en": "Finished"
+  },
+  "tbl.col_accepted": {
+    "uz": "Qabul qilindi",
+    "ru": "Принята",
+    "en": "Accepted"
+  },
+  "tbl.col_doneby": {
+    "uz": "Kim bajardi",
+    "ru": "Кто выполнил",
+    "en": "Done by"
+  },
+  "tbl.col_recur": {
+    "uz": "Takrorlanish",
+    "ru": "Повторение",
+    "en": "Recurrence"
+  },
+  "tbl.col_plan": {
+    "uz": "Reja vaqti",
+    "ru": "Время в плане",
+    "en": "Planned time"
+  },
+  "tbl.col_overdue": {
+    "uz": "Kechikkan",
+    "ru": "Просрочена",
+    "en": "Overdue"
+  },
+  "tbl.col_locked": {
+    "uz": "Qulflangan",
+    "ru": "Заблокирована",
+    "en": "Locked"
   }
 }
