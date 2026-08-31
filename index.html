@@ -1327,6 +1327,8 @@
   .pln-block .pb-title { font-weight:600; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .pln-block .pb-time { font-size:10px; opacity:.85; }
   .pln-block.ro { cursor:default; }
+  /* 👔 Hodim ish vaqti foni — faqat UI bezagi, mexanikaga ta'sir qilmaydi */
+  .pln-work { position:absolute; left:0; right:0; z-index:0; pointer-events:none; background:rgba(100,116,139,.08); }
   .pln-block .pb-x { position:absolute; top:2px; right:4px; cursor:pointer; opacity:.7; font-size:12px; }
   .pln-block .pb-x:hover { opacity:1; }
   .pln-block .pb-resize { position:absolute; left:0; right:0; bottom:0; height:7px; cursor:ns-resize; }
@@ -29906,7 +29908,7 @@ function tblResetAttachCache() { _tblAttachSet = null; }
 
 
 // ============ REJALASHTIRGICH (Planner) ============
-const PLN_H_START = 7, PLN_H_END = 23, PLN_HPX = 44;
+const PLN_H_START = 0, PLN_H_END = 23, PLN_HPX = 44;
 let plnWeekStart = null; // dushanba 00:00
 
 function plnMondayOf(d) {
@@ -30506,6 +30508,30 @@ function plnSetTab(tab) {
   }
 }
 
+// 👔 Hodim ish vaqti foni — FAQAT UI bezagi (kulrang polosa), hech narsani
+//    to'smaydi/bloklamaydi. Manba: employee_details.work_start/work_end
+//    (loadHrData keshi, 0 qo'shimcha so'rov). Kesh hali kelmagan yoki vaqt
+//    kiritilmagan bo'lsa — hech narsa chizilmaydi. Boshqaning rejasini
+//    ko'rishda (plnViewUid) o'sha hodimning ish vaqti olinadi.
+function plnWorkBandHtml() {
+  try {
+    const uid = plnViewUid();
+    if (!uid || typeof empDetails === 'undefined' || !empDetails) return '';
+    const d = empDetails[uid];
+    if (!d || !d.work_start || !d.work_end) return '';
+    const p = function (s) { const m = String(s).match(/^(\d{1,2}):(\d{2})/); return m ? (+m[1]) * 60 + (+m[2]) : null; };
+    let s = p(d.work_start), e = p(d.work_end);
+    // Tungi smena (end < start) — oddiy polosa chizib bo'lmaydi, chizilmaydi
+    if (s === null || e === null || e <= s) return '';
+    const gridStart = PLN_H_START * 60, gridEnd = (PLN_H_END + 1) * 60;
+    s = Math.max(s, gridStart); e = Math.min(e, gridEnd);
+    if (e <= s) return '';
+    const top = ((s - gridStart) / 60) * PLN_HPX;
+    const h = ((e - s) / 60) * PLN_HPX;
+    return '<div class="pln-work" style="top:' + top + 'px;height:' + h + 'px;"></div>';
+  } catch (err) { console.error('plnWorkBandHtml:', err); return ''; }
+}
+
 function renderPlanner() {
   if (!$('plnCal')) return;
   if (!plnWeekStart) plnWeekStart = plnMondayOf(new Date());
@@ -30556,13 +30582,15 @@ function renderPlanner() {
   html += '</div>';
   // Day columns
   const sched = plnViewSchedule();
+  // 👔 Ish vaqti kulrang foni — hafta bo'ylab bir xil, bir marta hisoblanadi
+  const workBand = plnWorkBandHtml();
   days.forEach((d, di) => {
     const ds = plnDateStr(d);
     const gridlines = 'repeating-linear-gradient(to bottom, transparent, transparent ' + (PLN_HPX-1) + 'px, var(--line) ' + (PLN_HPX-1) + 'px, var(--line) ' + PLN_HPX + 'px)';
     const dayAct = ro ? '' :
       ('onmousedown="plnDayMouseDown(event,\'' + ds + '\')" ondragover="plnDayDragOver(event)" ondragleave="plnDayDragLeave(event)" ondrop="plnDayDrop(event,\'' + ds + '\')"');
     html += '<div class="pln-day" data-date="' + ds + '" style="position:relative;height:' + bodyH + 'px;border-right:1px solid var(--line);background:' + gridlines + ';" ' +
-      dayAct + '>';
+      dayAct + '>' + workBand;
     // Shu kundagi bloklar — ustma-ust tushganlari YONMA-YON (plnLanes)
     const dayItems = [];
     Object.keys(sched).forEach(tid => {
@@ -30605,7 +30633,15 @@ function renderPlanner() {
     html += '</div>';
   });
   html += '</div>';
-  $('plnCal').innerHTML = html;
+  const _plnCalEl = $('plnCal');
+  _plnCalEl.innerHTML = html;
+  // Setka endi 00:00 dan boshlanadi — BIRINCHI ochilishda 07:00 ga scroll
+  // (odam yarim tunga qarab qolmasin). Bayroq DOM elementda — keyingi
+  // renderlar (drag/resize/realtime) foydalanuvchi scrollini buzmaydi.
+  if (!_plnCalEl._plnScrolled) {
+    _plnCalEl.scrollTop = 7 * PLN_HPX;
+    _plnCalEl._plnScrolled = true;
+  }
 
   // Chap panel: rejalashtirilmagan vazifalarim (faqat O'Z rejamda)
   if (!ro) renderPlnUnscheduled();
@@ -31658,10 +31694,9 @@ function nmzNowMin() {
 //    yaratish/sudrash ishlayveradi (eski planner mexanikasi buzilmaydi).
 //    localStorage'dagi `planner_*` jadvaliga hech narsa yozilmaydi.
 //
-// ⚠️ Setka PLN_H_START (07:00) dan boshlanadi, bomdod esa ko'pincha undan
-//    oldin (03:47). Bunday vaqt KESILIB YO'QOLMAYDI: ustunning eng tepasiga
-//    ingichka "erta" chipi bo'lib chiqadi (30 daqiqalik blok bo'lib
-//    ko'rinmaydi — bo'lmagan joyda turgandek tuyulmasin).
+// ⚠️ Setka endi PLN_H_START=00:00 dan boshlanadi (2026-08-31: 24 soat) —
+//    bomdod (03:47) setkaga sig'adi va "erta" chipi shoxi amalda ishlamaydi.
+//    Shox ATAYLAB qoldirilgan: PLN_H_START qachondir qaytarilsa himoya tayyor.
 function nmzDayBlocksHtml(ds) {
   if (!nmzEnabled || !nmzRegion || _nmzMissing) return '';
   const day = nmzDay(ds);
