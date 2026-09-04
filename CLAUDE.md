@@ -45,6 +45,12 @@ Sen Fable'san — bosh agent, loyiha boshqaruvchi. Asilbek senga task beradi. Se
 
 ### Hisobot uslubi
 Asilbek o'zbekcha, qisqa, aniq javob kutadi. Uzun tafsilot emas — nima bo'ldi, test qanday, keyingi qadam. Emoji minimal.
+## 🔴 HOLAT (2026-09-04): ESKI taskfix.org MUZLATILGAN — MAINTENANCE
+- Cutover (yangi serverga ko'chirish) boshlandi. `main` da `index.html`/`landing.html`/`hr-apply.html`/`404.html` = yagona 3 tilli maintenance sahifasi, `sw.js` = kill-switch (keshni o'chiradi, o'zini unregister qiladi). Ilova kodi `main` da YO'Q.
+- **Rollback**: branch `backup/pre-maintenance-2026-09-04` = tag `pre-maintenance-2026-09-04` = commit `ddab64e` (oxirgi ishlaydigan ilova). Qaytarish: `git checkout ddab64e -- index.html landing.html hr-apply.html sw.js && git rm 404.html` → commit → push.
+- Pastdagi butun hujjat o'sha `ddab64e` holatini tasvirlaydi — ilova ustida ishlash kerak bo'lsa backup branch'dan.
+- Yangi frontend BOSHQA repoda (taskfix-frontend) — bu repo'ga yangi feature qo'shilmaydi.
+
 ## Loyiha
 - **TaskFix** — vazifa/jamoa boshqaruvi ilovasi. Supabase backend + bitta katta `index.html` (~560KB) frontend.
 - **Supabase ref**: `nnpsbwsppgxbytlfloth`
