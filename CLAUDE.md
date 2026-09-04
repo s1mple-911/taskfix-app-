@@ -45,11 +45,10 @@ Sen Fable'san — bosh agent, loyiha boshqaruvchi. Asilbek senga task beradi. Se
 
 ### Hisobot uslubi
 Asilbek o'zbekcha, qisqa, aniq javob kutadi. Uzun tafsilot emas — nima bo'ldi, test qanday, keyingi qadam. Emoji minimal.
-## 🔴 HOLAT (2026-09-04): ESKI taskfix.org MUZLATILGAN — MAINTENANCE
-- Cutover (yangi serverga ko'chirish) boshlandi. `main` da `index.html`/`landing.html`/`hr-apply.html`/`404.html` = yagona 3 tilli maintenance sahifasi, `sw.js` = kill-switch (keshni o'chiradi, o'zini unregister qiladi). Ilova kodi `main` da YO'Q.
-- **Rollback**: branch `backup/pre-maintenance-2026-09-04` = tag `pre-maintenance-2026-09-04` = commit `ddab64e` (oxirgi ishlaydigan ilova). Qaytarish: `git checkout ddab64e -- index.html landing.html hr-apply.html sw.js && git rm 404.html` → commit → push.
-- Pastdagi butun hujjat o'sha `ddab64e` holatini tasvirlaydi — ilova ustida ishlash kerak bo'lsa backup branch'dan.
-- Yangi frontend BOSHQA repoda (taskfix-frontend) — bu repo'ga yangi feature qo'shilmaydi.
+## ⚠️ 2026-09-04/05: MAINTENANCE bo'lib, QAYTARILDI
+- 2026-09-04 cutover uchun `main` maintenance sahifasi bilan muzlatilgan edi (`483e278`); 2026-09-05 Asilbek "bo'ldi, o'chir" dedi — eski ilova `ddab64e` dan to'liq tiklandi. Yagona farq: `sw.js` `CACHE_VER='v2'` (kill-switch SW dan keyin toza qayta o'rnatilsin).
+- Backup nuqtasi saqlanadi: branch `backup/pre-maintenance-2026-09-04` / tag `pre-maintenance-2026-09-04`. Maintenance sahifasi kerak bo'lsa — `483e278` commit'idagi `index.html`/`sw.js`.
+- DNS (2026-09-05): taskfix.org hali GitHub Pages'da (185.199.x, NS Spaceship) — Cloudflare'ga o'tmagan.
 
 ## Loyiha
 - **TaskFix** — vazifa/jamoa boshqaruvi ilovasi. Supabase backend + bitta katta `index.html` (~560KB) frontend.
